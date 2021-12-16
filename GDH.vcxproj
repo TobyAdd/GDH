@@ -97,7 +97,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>$(SolutionDir)cappuccino-sdk\lib\cappuccino.lib;$(SolutionDir)cappuccino-sdk\lib\libExtensions.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)cappuccino-sdk\lib\cappuccino.lib;$(SolutionDir)cappuccino-sdk\lib\libExtensions.lib;opengl32.lib;$(SolutionDir)Detours\detours.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
