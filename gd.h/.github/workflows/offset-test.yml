@@ -1,0 +1,41 @@
+name: CMake
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  run-test:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      
+    - uses: actions/checkout@v2
+      with:
+        repository: HJfod/cocos-headers
+        path: ${{github.workspace}}/test/cocos-headers
+        
+    - uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x86
+
+    - uses: actions/setup-python@v2
+
+    - name: Configure CMake
+      run: |
+        cd ${{github.workspace}}/test
+        echo shut up windows > generated.cpp
+        cmake -G "Visual Studio 16 2019" -B ${{github.workspace}}/test/build -T host=x86 -A win32
+        
+    - name: Download Cocos DLLs
+      run: |
+        cd ${{github.workspace}}/test
+        curl -o test.zip ${{secrets.COCOS_DLLS}}
+        tar -xf test.zip
+
+    - name: Run Test
+      run: |
+        cd ${{github.workspace}}/test
+        python setup.py
+      

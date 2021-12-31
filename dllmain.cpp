@@ -1,4 +1,5 @@
 #define _CRT_SECURE_NO_DEPRECATE
+#define _CRT_SECURE_NO_WARNINGS
 #pragma once
 #include "pch.h"
 #include <cocos2d.h>
@@ -9,6 +10,98 @@
 #include <iostream>
 #include <fstream>
 #include "Detours/detours.h"
+#include <shellapi.h>
+#include <chrono>
+#include <ctime>
+#include <thread>
+#include <commdlg.h>
+#include <gd.h>
+#pragma comment (lib, "MinHook.lib")
+
+
+int hui = 0;
+using namespace std;
+
+//ImGui Form Function
+bool OnStartForm1 = true;
+bool OnStartForm2 = true;
+bool OnStartForm3 = true;
+bool OnStartForm4 = true;
+bool OnStartForm5 = true;
+bool OnStartForm6 = true;
+bool OnStartForm7 = true;
+bool menu = true;
+bool tab = true;
+//ImGui Form Function
+
+struct {
+	//hacks bool
+	bool anticheat = false;
+	bool noclip = false;
+	bool unlockall = false;
+	bool ac = false;
+	bool noprogessbar = false;
+	bool pmh = false;
+	bool practicepulse = false;
+	bool copy = false;
+	bool lvledit = false;
+	bool freewnd = false;
+	bool NopeTranltn = false;
+	bool nde = false;
+	bool safemode = false;
+	bool norespawnblink = false;
+	bool soildwt = false;
+	bool nospk = false;
+	bool nohitbox = false;
+	bool nosoilds = false;
+	bool fbt = false;
+	bool eh = false;
+	bool imp = false;
+	bool fz = false;
+	bool jh = false;
+	bool trailoff = false;
+	bool trailon = false;
+	bool it = false;
+	bool ha = false;
+	bool nopls = false;
+	bool noflash = false;
+	bool cop = false;
+	bool asc = false;
+	bool noesc = false;
+	bool suicide = false;
+	bool noparticles = false;
+	bool instantcomplate = false;
+	bool instantrespawn = false;
+	bool nocmark = false;
+	bool objbypass = false;
+	bool zoomb = false;
+	bool toolbox = false;
+	bool veifyhack = false;
+	bool dsb = false;
+	bool editore = false;
+	bool placeo = false;
+	bool testmodeb = false;
+	bool rotationhack = false;
+	bool freescrool = false;
+	bool hideui = false;
+	bool zorderbypass = false;
+	bool hidepausebtn = false;
+	bool trailbug = false;
+	bool cms = false;
+	bool nsd = false;
+	bool alm = false;
+	bool ap = false;
+	bool as = false;
+	bool fpsC = false;
+	bool fps = false;
+	bool gdrps = false;
+	bool cps = false;
+	bool cpsf = false;
+	bool audiohack = false;
+	bool dsbypass = false;
+	bool onlyingame = false;
+	//hacks bool
+}setting;
 
 namespace Speedhack
 {
@@ -79,7 +172,7 @@ namespace Speedhack
 		if (attatched)
 			return;
 
-		HMODULE hMod = GetModuleHandle(L"Kernel32.dll");
+		HMODULE hMod = GetModuleHandle("Kernel32.dll");
 
 		if (!hMod)
 			return;
@@ -135,82 +228,125 @@ namespace Speedhack
 	}
 }
 
-//ImGui Form Function
-bool OnStartForm1 = true;
-bool OnStartForm2 = true;
-bool OnStartForm3 = true;
-bool OnStartForm4 = true;
-bool OnStartForm5 = true;
-bool OnStartForm6 = true;
-bool menu = true;
-bool tab = true;
-//ImGui Form Function
+namespace SpeedhackAudio {
+	void* channel;
+	float speed;
+	bool initialized = false;
 
-struct  {
-	//hacks bool
-	bool anticheat = false;
-	bool noclip = false;
-	bool unlockall = false;
-	bool ac = false;
-	bool noprogessbar = false;
-	bool pmh = false;
-	bool practicepulse = false;
-	bool copy = false;
-	bool lvledit = false;
-	bool freewnd = false;
-	bool NopeTranltn = false;
-	bool nde = false;
-	bool safemode = false;
-	bool norespawnblink = false;
-	bool soildwt = false;
-	bool nospk = false;
-	bool nohitbox = false;
-	bool nosoilds = false;
-	bool fbt = false;
-	bool eh = false;
-	bool imp = false;
-	bool fz = false;
-	bool jh = false;
-	bool trailoff = false;
-	bool trailon = false;
-	bool it = false;
-	bool ha = false;
-	bool nopls = false;
-	bool noflash = false;
-	bool cop = false;
-	bool asc = false;
-	bool noesc = false;
-	bool suicide = false;
-	bool noparticles = false;
-	bool instantcomplate = false;
-	bool instantrespawn = false;
-	bool nocmark = false;
-	bool objbypass = false;
-	bool zoomb = false;
-	bool toolbox = false;
-	bool veifyhack = false;
-	bool dsb = false;
-	bool editore = false;
-	bool placeo = false;
-	bool testmodeb = false;
-	bool rotationhack = false;
-	bool freescrool = false;
-	bool hideui = false;
-	bool zorderbypass = false;
-	bool hidepausebtn = false;
-	bool trailbug = false;
-	bool cms = false;
-	bool nsd = false;
-	bool alm = false;
-	bool ap = false;
-	bool as = false;
-	bool fpsC = false;
-	bool fps = false;
-	
-	//hacks bool
-}setting;
+	// setfrequency
+	// setvolume
 
+	void* (__stdcall* setVolume)(void* t_channel, float volume);
+	void* (__stdcall* setFrequency)(void* t_channel, float frequency);
 
+	void* __stdcall AhsjkabdjhadbjJHDSJ(void* t_channel, float volume) {
+		channel = t_channel;
+
+		if (speed != 1.f) {
+			setFrequency(channel, speed);
+
+		}
+		return setVolume(channel, volume);
+	}
+
+	void init() {
+		if (initialized)
+			return;
+
+		setFrequency = (decltype(setFrequency))GetProcAddress(GetModuleHandle("fmod.dll"), "?setPitch@ChannelControl@FMOD@@QAG?AW4FMOD_RESULT@@M@Z");
+		DWORD hkAddr = (DWORD)GetProcAddress(GetModuleHandle("fmod.dll"), "?setVolume@ChannelControl@FMOD@@QAG?AW4FMOD_RESULT@@M@Z");
+
+		MH_CreateHook(
+			(PVOID)hkAddr,
+			AhsjkabdjhadbjJHDSJ,
+			(PVOID*)&setVolume
+		);
+
+		speed = 1.f;
+		initialized = true;
+	}
+
+	void set(float frequency) {
+		if (!initialized)
+			init();
+
+		if (channel == nullptr)
+			return;
+
+		speed = frequency;
+		setFrequency(channel, frequency);
+	}
+}
+
+namespace PlayLayer {
+	inline bool(__thiscall* pushButton)(void* self, int state, bool player);
+	bool __fastcall pushButtonHook(void* self, uintptr_t, int state, bool player);
+
+	inline bool(__thiscall* releaseButton)(void* self, int state, bool player);
+	bool __fastcall releaseButtonHook(void* self, uintptr_t, int state, bool player);
+
+	inline int(__thiscall* death)(void* self, void* go, void* powerrangers);
+	int __fastcall DeathHook(void* self, void*, void* go, void* powerrangers);
+
+	void mem_init();
+
+}
+
+bool __fastcall PlayLayer::pushButtonHook(void* self, uintptr_t, int state, bool player) {
+	hui++;
+	return PlayLayer::pushButton(self, state, player);
+}
+bool __fastcall PlayLayer::releaseButtonHook(void* self, uintptr_t, int state, bool player) {
+	//code
+	return PlayLayer::releaseButton(self, state, player);
+}
+
+int __fastcall PlayLayer::DeathHook(void* self, void*, void* go, void* powerrangers) {
+	if (setting.noclip == false or setting.nospk == false or setting.nohitbox or setting.nosoilds)
+	{
+		hui = 0;
+	}
+
+	return PlayLayer::death(self, go, powerrangers);
+}
+
+void PlayLayer::mem_init() {
+	MH_Initialize();
+
+	size_t base = reinterpret_cast<size_t>(GetModuleHandle(0));
+	MH_CreateHook(
+		(PVOID)(base + 0x111500),
+		PlayLayer::pushButtonHook,
+		(LPVOID*)&PlayLayer::pushButton
+	);
+
+	MH_CreateHook(
+		(PVOID)(base + 0x111660),
+		PlayLayer::releaseButtonHook,
+		(LPVOID*)&PlayLayer::releaseButton
+	);
+
+	MH_CreateHook(
+		(PVOID)(base + 0x20A1A0),
+		PlayLayer::DeathHook,
+		(LPVOID*)&PlayLayer::death
+	);
+
+	MH_EnableHook(MH_ALL_HOOKS);
+}
+
+std::string chooseDLL() //dll
+{
+	OPENFILENAME ofn;
+	char fileName[MAX_PATH] = "";
+	ZeroMemory(&ofn, sizeof(ofn));
+	ofn.lStructSize = sizeof(OPENFILENAME);
+	ofn.lpstrFile = fileName;
+	ofn.nMaxFile = MAX_PATH;
+	if (GetOpenFileName(&ofn))
+		return fileName;
+
+}
 
 
 typedef void* (__cdecl* fSharedApplication)();
@@ -222,7 +358,7 @@ void Fps(int FPS)
 {
 	interval = 1.0f / FPS;
 
-	HMODULE hMod = LoadLibrary(L"libcocos2d.dll");
+	HMODULE hMod = LoadLibrary("libcocos2d.dll");
 
 	sharedApplication = (fSharedApplication)GetProcAddress(hMod, "?sharedApplication@CCApplication@cocos2d@@SAPAV12@XZ");
 	setAnimInterval = (fSetAnimationInterval)GetProcAddress(hMod, "?setAnimationInterval@CCApplication@cocos2d@@UAEXN@Z");
@@ -379,6 +515,7 @@ void ApplyStyleFlags() {
 	style.SelectableTextAlign = ImVec2(0.00f, 0.00f);
 	style.DisplaySafeAreaPadding = ImVec2(3.00f, 3.00f);
 }
+
 
 void LoadHacks()
 {
@@ -552,11 +689,76 @@ void LoadHacks()
 	if (setting.ap) { (BYTE*)write_bytes(base + 0x8DDE4, { 0x90, 0x8B, 0xCE, 0x90, 0x90, 0x90 }); }
 	if (setting.as) { (BYTE*)write_bytes(base + 0x8F2F9, { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 }); }
 	if (setting.fps) { setting.fps = true; }
+	if (setting.dsbypass) {
+		(BYTE*)write_bytes(base + 0x7A100, { 0xEB });
+		(BYTE*)write_bytes(base + 0x7A022, { 0xEB });
+		(BYTE*)write_bytes(base + 0x7A203, { 0x90, 0x90 });
+	}
 }
 
-void RenderMain()
+chrono::system_clock::time_point start = chrono::system_clock::now(), now;
+int midClickCount = 0, actualClickCount = 0;
+chrono::duration<double> cycleTime;
+int lastAsyncKeyStateValue = 1337;
+
+void ShowInfoFunction()
 {
-	const auto show = true;
+	if (setting.fps)
+	{
+		ImGui::Begin("FPS", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoTitleBar);
+		if (setting.cps)
+		{
+			ImGui::SetWindowSize(ImVec2(210, 6));
+			ImGui::SetWindowPos(ImVec2(0, 19));
+		}
+		else
+		{
+			ImGui::SetWindowSize(ImVec2(210, 6));
+			ImGui::SetWindowPos(ImVec2(0, 0));
+		}
+		ImGui::SetWindowSize(ImVec2(210, 6));
+		ImGui::SetWindowPos(ImVec2(0, 0));
+		ImGui::Text("FPS: %.2f", ImGui::GetIO().Framerate);
+		ImGui::End();
+	}
+
+	if (setting.cps)
+	{
+		ImGui::Begin("CPS", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoTitleBar);
+		if (setting.fps)
+		{
+			ImGui::SetWindowSize(ImVec2(210, 6));
+			ImGui::SetWindowPos(ImVec2(0, 19));
+		}
+		else
+		{
+			ImGui::SetWindowSize(ImVec2(210, 6));
+			ImGui::SetWindowPos(ImVec2(0, 0));
+		}
+
+		ImGui::Text("CPS: %i / %i", actualClickCount, hui);
+		ImGui::End();
+
+		now = chrono::system_clock::now();
+		cycleTime = now - start;
+		if (cycleTime.count() > 1)
+		{
+			actualClickCount = midClickCount;
+			midClickCount = 0;
+			start = now;
+		}
+		else {
+			int curKeyState = GetAsyncKeyState(0x01);
+			if (lastAsyncKeyStateValue != curKeyState && curKeyState == -32767)
+				midClickCount++;
+			lastAsyncKeyStateValue = curKeyState;
+		}
+	}
+}
+
+
+void RenderMain()
+{	const auto show = true;
 	const auto director = cocos2d::CCDirector::sharedDirector();
 	const bool enable_touch = !ImGui::GetIO().WantCaptureMouse || !show;
 	director->getTouchDispatcher()->setDispatchEvents(enable_touch);
@@ -570,6 +772,8 @@ void RenderMain()
 	{
 		tab = false;
 	}
+
+
 
 	if (menu)
 	{
@@ -1255,6 +1459,22 @@ void RenderMain()
 			}
 		}
 
+		if (ImGui::Checkbox("Custom Object Bypass", &setting.dsbypass))
+		{
+			(BYTE*)write_bytes(base + 0x7A100, { 0xEB });
+			(BYTE*)write_bytes(base + 0x7A022, { 0xEB });
+			(BYTE*)write_bytes(base + 0x7A203, { 0x90, 0x90 });
+			if (!setting.dsbypass)
+			{
+
+				{
+				(BYTE*)write_bytes(base + 0x7A100, { 0x72 });
+				(BYTE*)write_bytes(base + 0x7A022, { 0x76 });
+				(BYTE*)write_bytes(base + 0x7A203, { 0x77, 0x3A });
+				}
+			}
+		}
+
 		if (ImGui::Checkbox("Zoom Bypass", &setting.zoomb))
 		{
 			(BYTE*)write_bytes(base + 0x87801, { 0x90, 0x90, 0x90 });
@@ -1454,6 +1674,11 @@ void RenderMain()
 			{
 				Speedhack::Setup();
 				Speedhack::SetSpeed(speedhack);
+				if (setting.audiohack)
+				{
+					SpeedhackAudio::set(speedhack);
+				}
+
 			}
 		}
 
@@ -1462,6 +1687,11 @@ void RenderMain()
 			Speedhack::Setup();
 			Speedhack::SetSpeed(1.0);
 			speedhack = 1.0;
+
+			if (setting.audiohack)
+			{
+				SpeedhackAudio::set(1.0);
+			}
 		}
 
 		//if (ImGui::Button("Save Hacks"))
@@ -1477,28 +1707,79 @@ void RenderMain()
 		ImGui::Begin("Tools");
 		if (OnStartForm6)
 		{
-			ImGui::SetWindowSize(ImVec2(210, 480));
+			ImGui::SetWindowSize(ImVec2(210, 440));
 			ImGui::SetWindowPos(ImVec2(670, 10));
 			OnStartForm6 = false;
 		}
+		ImGui::Text("Speedhack:");
+		if (ImGui::Checkbox("Speedhack Audio", &setting.audiohack))
+		{
+			if (setting.audiohack) {
+				SpeedhackAudio::set(speedhack);
+			}
+			else
+			{
+				SpeedhackAudio::set(1.0);
+			}
+
+		}
+		ImGui::Text("Show Info:");
+		ImGui::Checkbox("Show Only In Game", &setting.onlyingame);
 
 		if (ImGui::Checkbox("Show FPS Counter", &setting.fpsC))
 		{
-		setting.fps = !setting.fps;
+			setting.fps = !setting.fps;
+		}
+
+		if (ImGui::Checkbox("CPS Counter", &setting.cpsf))
+		{
+			if (setting.cpsf)
+			{
+				setting.cps = true;
+			}
+			else
+			{
+				setting.cps = false;
+			}
+		}
+
+		ImGui::Text("Other:");
+		if (ImGui::Button("Inject Dll")) {
+			std::string stringpath = chooseDLL();
+			const char* DllPath = stringpath.c_str();
+
+			// Open a handle to target process
+			HWND hWnd = FindWindow(0, "Geometry Dash");
+			DWORD proccess_ID;
+			GetWindowThreadProcessId(hWnd, &proccess_ID);
+			HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, proccess_ID);
+			LPVOID pDllPath = VirtualAllocEx(hProcess, 0, strlen(DllPath) + 1,
+				MEM_COMMIT, PAGE_READWRITE);
+			WriteProcessMemory(hProcess, pDllPath, (LPVOID)DllPath,
+				strlen(DllPath) + 1, 0);
+			HANDLE hLoadThread = CreateRemoteThread(hProcess, 0, 0,
+				(LPTHREAD_START_ROUTINE)GetProcAddress(GetModuleHandleA("Kernel32.dll"), "LoadLibraryA"), pDllPath, 0, 0);
+			WaitForSingleObject(hLoadThread, INFINITE);
+			VirtualFreeEx(hProcess, pDllPath, strlen(DllPath) + 1, MEM_RELEASE);
 		}
 		ImGui::End();
-
 	}
-	
-		if (setting.fps)
-		{
-			ImGui::Begin("FPS", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoTitleBar);
-			ImGui::SetWindowSize(ImVec2(210, 6));
-			ImGui::SetWindowPos(ImVec2(0, 0));
-			ImGui::Text("FPS: %.2f", ImGui::GetIO().Framerate);
-			ImGui::End();
+
+	if (setting.onlyingame)
+	{
+		auto play_layer = gd::GameManager::sharedState()->getPlayLayer();
+		if (play_layer) {
+			ShowInfoFunction();
 		}
+	}
+	else
+		{
+		ShowInfoFunction();
+		}
+		
 }
+
+
 
 
 
@@ -1511,6 +1792,10 @@ BOOL WINAPI DllMain(HMODULE hMod, DWORD dwReason, LPVOID lpReserved)
 		ImGuiHook::Load(RenderMain);
 		LoadSettings();
 		LoadHacks();
+		MH_Initialize();
+		SpeedhackAudio::init();
+		PlayLayer::mem_init();
+		MH_EnableHook(MH_ALL_HOOKS);
 		break;
 	case DLL_PROCESS_DETACH:
 		SaveSettings();
