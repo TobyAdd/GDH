@@ -302,7 +302,7 @@ bool __fastcall PlayLayer::releaseButtonHook(void* self, uintptr_t, int state, b
 }
 
 int __fastcall PlayLayer::DeathHook(void* self, void*, void* go, void* powerrangers) {
-	if (setting.noclip == false or setting.nospk == false or setting.nohitbox or setting.nosoilds)
+	if (not(setting.noclip or setting.nospk or setting.nohitbox or setting.nosoilds))
 	{
 		hui = 0;
 	}
