@@ -491,7 +491,7 @@ void RenderMain()
 			if (getPlayLayer) { ImGui::TextColored(ImVec4(1.00f, 0.00f, 0.00f, 1.00f), "You cant use 'Show Info\nCan be game crashing!"); }
 			else { ImGui::TextColored(ImVec4(1.00f, 1.00f, 1.00f, 1.00f), "You can use 'Show Info'"); }
 
-			if (ImGui::Checkbox("FPS Counter", &hacks.fpscounter)) { PlayLayer::CPScounter = hacks.fpscounter; }
+			if (ImGui::Checkbox("FPS Counter", &hacks.fpscounter)) { PlayLayer::FPScounter = hacks.fpscounter; }
 			if (ImGui::Checkbox("CPS Counter", &hacks.cpscounter)) { PlayLayer::CPScounter = hacks.cpscounter; }
 			if (ImGui::Checkbox("Noclip Accuracy", &hacks.noclipaccuracy)) { PlayLayer::noclipAcc = hacks.noclipaccuracy;  }
 			
