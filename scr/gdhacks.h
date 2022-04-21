@@ -1,0 +1,1302 @@
+#include <windows.h>
+#include <vector>
+#include "handler/handler.h"
+#include "bools.cpp"
+
+typedef void* (__cdecl* fSharedApplication)();
+typedef void(__thiscall* fSetAnimationInterval)(void* instance, double delay);
+fSharedApplication sharedApplication;
+fSetAnimationInterval setAnimInterval;
+float interval = 0; //this is changed externally
+
+bool WriteBytesToMemory(uintptr_t const address, std::vector<uint8_t> const& bytes) {
+	return WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<LPVOID>(address), bytes.data(), bytes.size(), nullptr);
+};
+
+bool WriteFloatToMemory(const uintptr_t address, float Value) {
+	return WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &Value, sizeof(float), nullptr);
+};
+
+DWORD base = (DWORD)GetModuleHandleA(0);
+DWORD base2 = (DWORD)GetModuleHandleA(0);
+DWORD libcocosbase = (DWORD)GetModuleHandleA("libcocos2d.dll");
+DWORD retJMP = base + 0x190BD5;
+DWORD retJMP2 = base2 + 0x190BD5;
+
+void writeByte(BYTE* address, BYTE content)
+{
+	DWORD oldProtect, newProtect;
+	VirtualProtect(address, 1, PAGE_EXECUTE_READWRITE, &oldProtect);
+	*address = content;
+	VirtualProtect(address, 1, oldProtect, &newProtect);
+}
+
+
+namespace GDhacks {
+
+	namespace bypass
+	{
+		void UnlockAllIcons(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0xC50A8, { 0xB0, 0x01, 0x90, 0x90, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0xC54BA, { 0xB0, 0x01, 0x90, 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0xC50A8, { 0xE8, 0x7A, 0xCD, 0x19, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0xC54BA, { 0xE8, 0x68, 0xC9, 0x19, 0x00 });
+			}	
+		}
+
+		void TextBypass(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x21ACB, { 0xEB, 0x04 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x21ACB, { 0x7C, 0x04 });
+			}
+		}
+
+		void CharacterFilter(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x21A99, { 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x21A99, { 0x75, 0x04 });
+			}
+		}
+
+		void ScaleBypass(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x2E5CA, { 0xEB });
+				(BYTE*)WriteBytesToMemory(base + 0x2E5F8, { 0xEB });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x2E5CA, { 0x76 });
+				(BYTE*)WriteBytesToMemory(base + 0x2E5F8, { 0x76 });
+			}
+		}
+
+		void MainLevelsBypass(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x188CE1, { 0xE9, 0x8A, 0x00, 0x00, 0x00, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x188CE1, { 0x0F, 0x8E, 0x89, 0x00, 0x00, 0x00 });
+			}
+		}
+
+		void GuardVault(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1DE1DA, { 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1DE1DA, { 0x7C, 0x4A });
+			}
+		}
+
+		void KeymasterVault(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x4F268, { 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x4F268, { 0x74, 0x4A });
+			}
+		}
+
+		void KeymasterBasement(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x221759, { 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x221759, { 0x74, 0x4A });
+			}
+		}
+
+		void BasementKeyBypass(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x226E19, { 0xE9, 0x59, 0x01, 0x00, 0x00, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x226FB8, { 0xE9, 0x59, 0x01, 0x00, 0x00, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x227157, { 0xE9, 0x30, 0x02, 0x00, 0x00, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x226E19, { 0x0F, 0x85, 0x58, 0x01, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x226FB8, { 0x0F, 0x85, 0x58, 0x01, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x227157, { 0x0F, 0x85, 0x2F, 0x02, 0x00, 0x00 });
+			}
+		}
+
+		void ChallengeBypass(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x2214E0, { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x2214E0, { 0x0F, 0x84, 0x87, 0x00, 0x00, 0x00 });
+			}
+		}
+
+		void TreasureRoom(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x4F631, { 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x4F631, { 0x74, 0x4A });
+			}
+		}
+
+		void PotborShop(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x15706B, { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x4F631, { 0x0F, 0x8C, 0xB4, 0x01, 0x00, 0x00 });
+			}
+		}
+
+		void ScratchShop(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1562D3, { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x4F631, { 0x0F, 0x8C, 0xAF, 0x01, 0x00, 0x00 });
+			}
+		}
+
+		void ShopItems(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x14B339, { 0x90, 0x31, 0xF6, 0x89, 0xB3, 0x10, 0x01, 0x00, 0x00, 0x89, 0xB3, 0x14,0x01, 0x00, 0x00, 0xE8, 0x03, 0x6B, 0xFA, 0xFF, 0x8B, 0xC8, 0xE8, 0x2C,0x82, 0xFA, 0xFF, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x14B339, { 0x2B, 0xB3, 0x10, 0x01, 0x00, 0x00, 0x2B, 0xB3, 0x14, 0x01, 0x00, 0x00,0xE8, 0x06, 0x6B, 0xFA, 0xFF, 0x8B, 0xC8, 0xE8, 0x2F, 0x82, 0xFA, 0xFF,0x3B, 0xF0, 0x7F, 0x25 });
+			}
+		}
+
+		void GatekeeperVault(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x188836, { 0x90, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x18857F, { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x188836, { 0x74, 0x61 });
+				(BYTE*)WriteBytesToMemory(base + 0x18857F, { 0x0F, 0x84, 0xFC, 0x00, 0x00, 0x00 });
+			}
+		}
+
+		void BackupStarsLimit(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x3928E, { 0xEB, 0x3E });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x3928E, { 0x7D, 0x3E });
+			}
+		}
+	}
+
+	namespace player {
+		void Noclip(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x20A23C, { 0xE9, 0x79, 0x06, 0x00, 0x00 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x20A23C, { 0x6A, 0x14, 0x8B, 0xCB, 0xFF });
+			}
+		}
+
+		void NoSpikes(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x205347, { 0x75 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x205347, { 0x74 });
+			}
+		}
+
+		void NoHitbox(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x20456D, { 0xB8, 0x07, 0x00, 0x00, 0x00, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x20456D, { 0x8B, 0x83, 0x00, 0x03, 0x00, 0x00 });
+			}
+		}
+
+		void NoSolids(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x20456D, { 0xB8, 0x14, 0x00, 0x00, 0x00, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x20456D, { 0x8B, 0x83, 0x00, 0x03, 0x00, 0x00 });
+			}
+		}
+
+		void ForceBlockType(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x20456D, { 0x31, 0xC0, 0x83, 0x7B, 0x34, 0x00, 0xBA, 0x07, 0x00, 0x00, 0x00, 0x0F, 0x44, 0xC2, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x20456D, { 0x8B, 0x83, 0x00, 0x03, 0x00, 0x00, 0x83, 0xF8, 0x07, 0x0F, 0x84, 0x7F, 0x0A, 0x00, 0x00 });
+			}
+		}
+
+		void EverythingHurts(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x20456D, { 0xB8, 0x02, 0x00, 0x00, 0x00, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x20456D, { 0x8B, 0x83, 0x00, 0x03, 0x00, 0x00 });
+			}
+		}
+
+		void FreezePlayer(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x203519, { 0x90, 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x203519, { 0x50, 0xFF, 0xD6 });
+			}
+		}
+
+		void JumpHack(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1E9141, { 0x01 }),
+				(BYTE*)WriteBytesToMemory(base + 0x1E9498, { 0x01 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1E9141, { 0x00 }),
+				(BYTE*)WriteBytesToMemory(base + 0x1E9498, { 0x00 });
+			}
+		}
+
+		void TrailAlwaysOn(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(libcocosbase + 0xAEDCC, { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(libcocosbase + 0xAEDCC, { 0x0F, 0x84, 0x68, 0x02, 0x00, 0x00 });
+			}
+		}
+
+		void TrailAlwaysOff(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(libcocosbase + 0xAEDCC, { 0xE9, 0x69, 0x02, 0x00, 0x00, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(libcocosbase + 0xAEDCC, { 0x0F, 0x84, 0x68, 0x02, 0x00, 0x00 });
+			}
+		}
+
+		void TrailBugFix(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(libcocosbase + 0xAE9BD, { 0xBB, 0xFF, 0x00, 0x00, 0x00, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(libcocosbase + 0xAE9BD, { 0xF3, 0x0F, 0x2C, 0xC1, 0x2B, 0xD8 });
+			}
+		}
+
+		void InversedTrail(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(libcocosbase + 0xAEDCC, { 0x0F, 0x85, 0x68, 0x02, 0x00, 0x00 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(libcocosbase + 0xAEDCC, { 0x0F, 0x84, 0x68, 0x02, 0x00, 0x00 });
+			}
+		}
+
+		void HideAttempts(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x2D83B8, { 0x00 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x2D83B8, { 0x41 });
+			}
+		}
+
+		void PracticeMusicHack(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x20C925, { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
+					(BYTE*)WriteBytesToMemory(base + 0x20D143, { 0x90, 0x90 });
+					(BYTE*)WriteBytesToMemory(base + 0x20A563, { 0x90, 0x90 });
+					(BYTE*)WriteBytesToMemory(base + 0x20A595, { 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x20C925, { 0x0F, 0x85, 0xF7, 0x00, 0x00, 0x00 });
+					(BYTE*)WriteBytesToMemory(base + 0x20D143, { 0x75, 0x41 });
+					(BYTE*)WriteBytesToMemory(base + 0x20A563, { 0x75, 0x3E });
+					(BYTE*)WriteBytesToMemory(base + 0x20A595, { 0x75, 0x0C });
+			}
+		}
+
+		void NoPulse(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x2060D9, { 0xEB, 0x4A });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x2060D9, { 0x74, 0x4A });
+			}
+		}
+
+		void IgnoreESC(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1E644C, { 0x90, 0x90, 0x90, 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1E644C, { 0xE8, 0xBF, 0x73, 0x02, 0x00 });
+			}
+		}
+
+		void Suicide(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x203DA2, { 0xE9, 0x57, 0x02, 0x00, 0x00, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x20401A, { 0xE9, 0x27, 0x02, 0x00, 0x00, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x203DA2, { 0x0F, 0x86, 0x56, 0x02, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x20401A, { 0x0F, 0x87, 0x26, 0x02, 0x00, 0x00 });
+			}
+		}
+
+		void AccuratePercentage(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x2080FB, { 0xFF, 0x50, 0x64, 0xF3, 0x0F, 0x10, 0x00, 0x8B, 0x87, 0xC0, 0x03, 0x00, 0x00, 0x83, 0xEC, 0x08, 0x42 });
+				(BYTE*)WriteBytesToMemory(base + 0x208114, { 0xF3, 0x0F, 0x5E, 0x87, 0xB4, 0x03, 0x00, 0x00, 0xC7, 0x02, 0x25, 0x2E, 0x32, 0x66, 0xC7, 0x42, 0x04, 0x25, 0x25, 0x00, 0x00, 0x8B, 0xB0, 0x04, 0x01, 0x00, 0x00, 0xF3, 0x0F, 0x5A, 0xC0, 0xF2, 0x0F, 0x11, 0x04, 0x24, 0x52 });
+				(BYTE*)WriteBytesToMemory(base + 0x20813F, { 0x83, 0xC4, 0x0C });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x2080FB, { 0xFF, 0x50, 0x64, 0xF3, 0x0F, 0x10, 0x00, 0x8B, 0x87, 0xC0, 0x03, 0x00, 0x00, 0x83, 0xEC, 0x08, 0x42 });
+					(BYTE*)WriteBytesToMemory(base + 0x208114, { 0xF3, 0x0F, 0x5E, 0x87, 0xB4, 0x03, 0x00, 0x00, 0xC7, 0x02, 0x25, 0x2E, 0x30, 0x66, 0xC7, 0x42, 0x04, 0x25, 0x25, 0x00, 0x00, 0x8B, 0xB0, 0x04, 0x01, 0x00, 0x00, 0xF3, 0x0F, 0x5A, 0xC0, 0xF2, 0x0F, 0x11, 0x04, 0x24, 0x52 });
+					(BYTE*)WriteBytesToMemory(base + 0x20813F, { 0x83, 0xC4, 0x0C });
+			}
+		}
+
+		void NoParticles(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(libcocosbase + 0xB8ED6, { 0x00 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(libcocosbase + 0xB8ED6, { 0x01 });
+			}
+		}
+
+		void InstantRespawn(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x20A677, { 0xE8 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x20A677, { 0xD8 });
+			}
+		}
+
+		void InstantMirrorPortal(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x20ACA3, { 0xC7, 0x04, 0x24, 0x00, 0x00, 0x00, 0x00 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x20ACA3, { 0xC7, 0x04, 0x24, 0x00, 0x00, 0x00, 0x3F });
+			}
+		}
+
+		void PercentageOnly(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1FCE89, { 0x0F, 0x57, 0xC0, 0x90, 0x90, 0x90 });
+					(BYTE*)WriteBytesToMemory(base + 0x1FCF38, { 0x0D });
+					(BYTE*)WriteBytesToMemory(base + 0x1FCF6B, { 0x3F });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1FCE89, { 0xF3, 0x0F, 0x10, 0x44, 0x24, 0x48 });
+					(BYTE*)WriteBytesToMemory(base + 0x1FCF38, { 0x05 });
+					(BYTE*)WriteBytesToMemory(base + 0x1FCF6B, { 0x00 });
+			}
+		}
+
+		void HidePauseButton(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x25F4AC, { 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x25F4AC, { 0x75, 0x10 });
+			}
+		}
+
+		void NoGlow(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0xCFF35, { 0x90, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0xF02A4, { 0xE9, 0xC0, 0x00, 0x00, 0x00, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0xF0434, { 0xE9, 0xC0, 0x00, 0x00, 0x00, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0xCFF35, { 0x74, 0x0D });
+				(BYTE*)WriteBytesToMemory(base + 0xF02A4, { 0x0F, 0x84, 0xBF, 0x00, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0xF0434, { 0x0F, 0x84, 0xBF, 0x00, 0x00, 0x00 });
+			}
+		}
+
+		void NoMirror(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x204D08, { 0xE9, 0xDF, 0x01, 0x00, 0x00 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x204D08, { 0x8B, 0x03, 0x8B, 0xCB, 0xFF });
+			}
+		}
+
+		void MiniCubeIcon(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1E6DF4, { 0x31, 0xFF, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x1F7E51, { 0x31, 0xC9, 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1E6DF4, { 0x0F, 0x4F, 0xFA });
+				(BYTE*)WriteBytesToMemory(base + 0x1F7E51, { 0x0F, 0x4C, 0x4D, 0x08 });
+			}
+		}
+
+		void NoWaveTrail(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1F90C6, { 0xEB, 0x42 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1F90C6, { 0x74, 0x42 });
+			}
+		}
+
+		void SameDualColour(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1FC1C3, { 0x8B, 0x81, 0x48, 0x02, 0x00, 0x00, 0x2B, 0x81, 0x4C, 0x02, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x1FC142, { 0x8B, 0x88, 0x3C, 0x02, 0x00, 0x00, 0x2B, 0x88, 0x40, 0x02, 0x00, 0x00 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1E6DF4, { 0x8B, 0x81, 0x3C, 0x02, 0x00, 0x00, 0x2B, 0x81, 0x40, 0x02, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x1F7E51, { 0x8B, 0x88, 0x48, 0x02, 0x00, 0x00, 0x2B, 0x88, 0x4C, 0x02, 0x00, 0x00 });
+			}
+		}
+
+		void NoNewBestPopup(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1FE548, { 0xEB, 0x42 });
+				(BYTE*)WriteBytesToMemory(base + 0x1FE97E, { 0x00, 0x00, 0x00, 0x00 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1FE548, { 0x75, 0x47 });
+				(BYTE*)WriteBytesToMemory(base + 0x1FE97E, { 0xCD, 0xCC, 0x8C, 0x3F });
+			}
+		}
+
+		void PracticeUserCoins(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x204F10, { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x204F10, { 0x80, 0xBE, 0x95, 0x04, 0x00, 0x00, 0x00, 0x0F, 0x85, 0xDE, 0x00, 0x00,0x00 });
+			}
+		}
+
+		void NoRespawnFlash(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1EF36D, { 0xE9, 0xA8, 0x00, 0x00, 0x00, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1EF36D, { 0x0F, 0x85, 0xA7, 0x00, 0x00, 0x00 });
+			}
+		}
+
+		void CoinsShowUncollected(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0xE6706, { 0x8B, 0xC2, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0xE720F, { 0x8B, 0xD9, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0xE6706, { 0x0F, 0x44, 0xC2 });
+				(BYTE*)WriteBytesToMemory(base + 0xE720F, { 0x0F, 0x44, 0xD9 });
+			}
+		}
+
+		void SolidWaveTrail(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1E8162, { 0x90, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x1E816B, { 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1E8162, { 0x75, 0x18 });
+				(BYTE*)WriteBytesToMemory(base + 0x1E816B, { 0x75, 0x0F });
+			}
+		}
+
+		void NoDeathEffect(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1EFBA4, { 0x90, 0x90, 0x90, 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1EFBA4, { 0xE8, 0x37, 0x00, 0x00, 0x00 });
+			}
+		}
+
+		void NoForceGlow(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1F7953, { 0xEB });
+				(BYTE*)WriteBytesToMemory(base + 0x1F796C, { 0xEB });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1F7953, { 0x75 });
+				(BYTE*)WriteBytesToMemory(base + 0x1F796C, { 0x75 });
+			}
+		}
+
+		void PracticePulse(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x3DB26, { 0x90, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x205536, { 0x90, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x20553E, { 0xEB, 0x1F });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x3DB26, { 0x75, 0x0C });
+				(BYTE*)WriteBytesToMemory(base + 0x205536, { 0x75, 0x08 });
+				(BYTE*)WriteBytesToMemory(base + 0x20553E, { 0x74, 0x13 });
+			}
+		}
+
+		void CorrectiveMusicSync(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x208808, { 0xEB, 0x08 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x208808, { 0x75, 0x08 });
+			}
+		}
+
+		void NoPortalLightning(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1F9971, { 0xEB, 0x2C, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1F9971, { 0x83, 0xEC, 0x08 });
+			}
+		}
+
+		void NoSpiderDash(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1EDCE3, { 0xE9, 0x90, 0x01, 0x00, 0x00, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1EDCE3, { 0x0F, 0x84, 0x8F, 0x01, 0x00, 0x00 });
+			}
+		}
+	}
+
+	namespace creator {
+		void CopyHack(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x179B8E, { 0x90, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x176F5C, { 0x8B, 0xCA, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x176FE5, { 0xB0, 0x01, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x179B8E, { 0x75, 0x0E });
+				(BYTE*)WriteBytesToMemory(base + 0x176F5C, { 0x0F, 0x44, 0xCA });
+				(BYTE*)WriteBytesToMemory(base + 0x176FE5, { 0x0F, 0x95, 0xC0 });
+			}
+		}
+
+		void NoCMark(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0xA6B8B, { 0x2B, 0x87, 0xCC, 0x02, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x70E87, { 0xEB, 0x26 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0xA6B8B, { 0x2B, 0x87, 0xD0, 0x02, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x70E87, { 0x74, 0x26 });
+			}
+		}
+
+		void LevelEdit(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1E4A32, { 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1E4A32, { 0x75, 0x6C });
+			}
+		}
+
+		void ObjectBypass(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x73169, { 0xFF, 0xFF, 0xFF, 0x7F }),
+				(BYTE*)WriteBytesToMemory(base + 0x856A4, { 0xFF, 0xFF, 0xFF, 0x7F }),
+				(BYTE*)WriteBytesToMemory(base + 0x87B17, { 0xFF, 0xFF, 0xFF, 0x7F }),
+				(BYTE*)WriteBytesToMemory(base + 0x87BC7, { 0xFF, 0xFF, 0xFF, 0x7F }),
+				(BYTE*)WriteBytesToMemory(base + 0x87D95, { 0xFF, 0xFF, 0xFF, 0x7F }),
+				(BYTE*)WriteBytesToMemory(base + 0x880F4, { 0xFF, 0xFF, 0xFF, 0x7F }),
+				(BYTE*)WriteBytesToMemory(base + 0x160B06, { 0xFF, 0xFF, 0xFF, 0x7F });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x73169, { 0x80, 0x38, 0x01, 0x00 }),
+				(BYTE*)WriteBytesToMemory(base + 0x856A4, { 0x80, 0x38, 0x01, 0x00 }),
+				(BYTE*)WriteBytesToMemory(base + 0x87B17, { 0x80, 0x38, 0x01, 0x00 }),
+				(BYTE*)WriteBytesToMemory(base + 0x87BC7, { 0x80, 0x38, 0x01, 0x00 }),
+				(BYTE*)WriteBytesToMemory(base + 0x87D95, { 0x80, 0x38, 0x01, 0x00 }),
+				(BYTE*)WriteBytesToMemory(base + 0x880F4, { 0x80, 0x38, 0x01, 0x00 }),
+				(BYTE*)WriteBytesToMemory(base + 0x160B06, { 0x80, 0x38, 0x01, 0x00 });
+			}
+		}
+
+		void CustomObjectBypass(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x7A100, { 0xEB });
+				(BYTE*)WriteBytesToMemory(base + 0x7A022, { 0xEB });
+				(BYTE*)WriteBytesToMemory(base + 0x7A203, { 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x7A100, { 0x72 });
+				(BYTE*)WriteBytesToMemory(base + 0x7A022, { 0x76 });
+				(BYTE*)WriteBytesToMemory(base + 0x7A203, { 0x77, 0x3A });
+			}
+		}
+
+		void ZoomBypass(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x87801, { 0x90, 0x90, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x87806, { 0x90, 0x90, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x87871, { 0x90, 0x90, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x87876, { 0x90, 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x87801, { 0x0F, 0x2F, 0xC8 });
+				(BYTE*)WriteBytesToMemory(base + 0x87806, { 0x0F, 0x28, 0xC8 });
+				(BYTE*)WriteBytesToMemory(base + 0x87871, { 0x0F, 0x2F, 0xC8 });
+				(BYTE*)WriteBytesToMemory(base + 0x87876, { 0x0F, 0x28, 0xC8 });
+			}
+		}
+
+		void ToolboxBypass(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x13A548, { 0x83, 0xF9, 0x01 });
+				(BYTE*)WriteBytesToMemory(base + 0x13A559, { 0xB8, 0x01, 0x00, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x13A54D, { 0x83, 0xF9, 0x7F });
+				(BYTE*)WriteBytesToMemory(base + 0x13A552, { 0xB9, 0x7F, 0x00, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x13A5D8, { 0x83, 0xF9, 0x01 });
+				(BYTE*)WriteBytesToMemory(base + 0x13A5E9, { 0xB8, 0x01, 0x00, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x13A5dd, { 0x83, 0xF9, 0x7F });
+				(BYTE*)WriteBytesToMemory(base + 0x13A5E2, { 0xB9, 0x7F, 0x00, 0x00, 0x00 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x13A548, { 0x83, 0xF9, 0x06 });
+				(BYTE*)WriteBytesToMemory(base + 0x13A559, { 0xB8, 0x06, 0x00, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x13A54D, { 0x83, 0xF9, 0x0C });
+				(BYTE*)WriteBytesToMemory(base + 0x13A552, { 0xB9, 0x0C, 0x00, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x13A5D8, { 0x83, 0xF9, 0x02 });
+				(BYTE*)WriteBytesToMemory(base + 0x13A5E9, { 0xB8, 0x02, 0x00, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x13A5dd, { 0x83, 0xF9, 0x73 });
+				(BYTE*)WriteBytesToMemory(base + 0x13A5E2, { 0xB9, 0x03, 0x00, 0x00, 0x00 });
+			}
+		}
+
+		void VerifyHack(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x71D48, { 0xEB });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x71D48, { 0x74 });
+			}
+		}
+
+		void DefaultSongBypass(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x174407, { 0x90, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x174411, { 0x90, 0x90, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x174456, { 0x90, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x174460, { 0x90, 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x174407, { 0x74, 0x2F });
+				(BYTE*)WriteBytesToMemory(base + 0x174411, { 0x0F, 0x4F, 0xC6 });
+				(BYTE*)WriteBytesToMemory(base + 0x174456, { 0x74, 0x2F });
+				(BYTE*)WriteBytesToMemory(base + 0x174460, { 0x0F, 0x4F, 0xC6 });
+			}
+		}
+
+		void EditorExtension(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x2E67A4, { 0x00, 0x60, 0xEA, 0x4B });
+				(BYTE*)WriteBytesToMemory(base + 0x8FA4D, { 0x0F, 0x60, 0xEA, 0x4B });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x2E67A4, { 0x00, 0x60, 0x6A, 0x48 });
+				(BYTE*)WriteBytesToMemory(base + 0x8FA4D, { 0x80, 0x67, 0x6A, 0x48 });
+			}
+		}
+
+		void PlaceOver(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x160EE1, { 0x8B, 0xC1, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x160EF2, { 0xE9, 0x23, 0x02, 0x00, 0x00, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x160EE1, { 0x0F, 0x48, 0xC1 });
+				(BYTE*)WriteBytesToMemory(base + 0x160EF2, { 0x0F, 0x8F, 0x22, 0x02, 0x00, 0x00 });
+			}
+		}
+
+		void TestmodeBypass(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1FD270, { 0xE9, 0xB7, 0x00, 0x00, 0x00, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1FD270, { 0x0F, 0x84, 0xB6, 0x00, 0x00, 0x00 });
+			}
+		}
+
+		void RotationHack(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x85CBC, { 0xB8, 0x01, 0x00, 0x00, 0x00, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x8BDDD, { 0xB8, 0x01, 0x00, 0x00, 0x00, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x8BE16, { 0xB8, 0x01, 0x00, 0x00, 0x00, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0xECA3D, { 0xB8, 0x01, 0x00, 0x00, 0x00, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0xEE5A9, { 0xB8, 0x01, 0x00, 0x00, 0x00, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x20181E, { 0xB8, 0x01, 0x00, 0x00, 0x00, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x85CBC, { 0x8B, 0x80, 0x00, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x8BDDD, { 0x8B, 0x80, 0x00, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x8BE16, { 0x8B, 0x80, 0x00, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0xECA3D, { 0x8B, 0x87, 0x00, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0xEE5A9, { 0x8B, 0x86, 0x00, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x20181E, { 0x8B, 0x83, 0x00, 0x03, 0x00, 0x00 });
+			}
+		}
+
+		void FreeScroll(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x8FAAC, { 0xEB });
+				(BYTE*)WriteBytesToMemory(base + 0x8FA95, { 0xEB });
+				(BYTE*)WriteBytesToMemory(base + 0x8FAC5, { 0xEB });
+				(BYTE*)WriteBytesToMemory(base + 0x8FADC, { 0xEB });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x8FAAC, { 0x75 });
+				(BYTE*)WriteBytesToMemory(base + 0x8FA95, { 0x75 });
+				(BYTE*)WriteBytesToMemory(base + 0x8FAC5, { 0x75 });
+				(BYTE*)WriteBytesToMemory(base + 0x8FADC, { 0x75 });
+			}
+		}
+
+		void HideUI(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x8720A, { 0xB3, 0x00, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x8720A, { 0x0F, 0x44, 0xD9 });
+			}
+		}
+
+		void ZOrderBypass(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x22DEDE, { 0x90, 0x90, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x22DEE8, { 0x90, 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x22DEDE, { 0x0F, 0x4C, 0xC1 });
+				(BYTE*)WriteBytesToMemory(base + 0x22DEE8, { 0x0F, 0x4F, 0xC1 });
+			}
+		}
+
+		void AbsoluteScaling(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x8F2F9, { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x8F2F9, { 0x56, 0xE8, 0xB1, 0xEA, 0xFF, 0xFF });
+			}
+		}
+
+		void AbsolutePosition(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x8DDE4, { 0x90, 0x8B, 0xCE, 0x90, 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x8DDE4, { 0x51, 0x8B, 0xCE, 0xFF, 0x50, 0x5C });
+			}
+		}
+		
+		void GroupIDBypass(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1628F7, { 0x81, 0xFE, 0x4D, 0x04, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x22D66E, { 0xB9, 0x4C, 0x04, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x22D66E, { 0xB9, 0x4C, 0x04, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x132A60, { 0xB9, 0x4C, 0x04, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x131E31, { 0xB9, 0x4C, 0x04, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x230FA0, { 0xB9, 0x4C, 0x04, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x23CE90, { 0xB9, 0x4C, 0x04, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x23B790, { 0xB9, 0x4C, 0x04, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x247AA0, { 0xB9, 0x4C, 0x04, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x149820, { 0xB9, 0x4C, 0x04, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x14918E, { 0xB9, 0x4C, 0x04, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x124C10, { 0xB9, 0x4C, 0x04, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x1244C1, { 0xB9, 0x4C, 0x04, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x124CB0, { 0xB9, 0x4C, 0x04, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x12451E, { 0xB9, 0x4C, 0x04, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x232B60, { 0xB9, 0x4C, 0x04, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x135FE0, { 0xB9, 0x4C, 0x04, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x1358B1, { 0xB9, 0x4C, 0x04, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x2357E0, { 0xB9, 0x4C, 0x04, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x236EE0, { 0xB9, 0x4C, 0x04, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x2385E0, { 0xB9, 0x4C, 0x04, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x23E500, { 0xB9, 0x4C, 0x04, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x41940, { 0xB9, 0x4C, 0x04, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x235860, { 0xB9, 0x4C, 0x04, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x135FE0, { 0xB9, 0x4C, 0x04, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x2358E0, { 0xB9, 0x4C, 0x04, 0x00, 0x00 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1628F7, { 0x81, 0xFE, 0xE8, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x22D66E, { 0xB9, 0xE7, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x22D66E, { 0xB9, 0xE7, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x132A60, { 0xB9, 0xE7, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x131E31, { 0xB9, 0xE7, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x230FA0, { 0xB9, 0xE7, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x23CE90, { 0xB9, 0xE7, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x23B790, { 0xB9, 0xE7, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x247AA0, { 0xB9, 0xE7, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x149820, { 0xB9, 0xE7, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x14918E, { 0xB9, 0xE7, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x124C10, { 0xB9, 0xE7, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x1244C1, { 0xB9, 0xE7, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x124CB0, { 0xB9, 0xE7, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x12451E, { 0xB9, 0xE7, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x232B60, { 0xB9, 0xE7, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x135FE0, { 0xB9, 0xE7, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x1358B1, { 0xB9, 0xE7, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x2357E0, { 0xB9, 0xE7, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x236EE0, { 0xB9, 0xE7, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x2385E0, { 0xB9, 0xE7, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x23E500, { 0xB9, 0xE7, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x41940, { 0xB9, 0xE7, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x235860, { 0xB9, 0xE7, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x135FE0, { 0xB9, 0xE7, 0x03, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x2358E0, { 0xB9, 0xE7, 0x03, 0x00, 0x00 });
+			}
+		}	
+
+		void ScaleSnapBypass(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x948C5, { 0xEB });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x948C5, { 0x76 });
+			}
+		}
+
+		void ColourIDBypass(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x472FA, { 0x90, 0x90, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x473EB, { 0xEB });
+				(BYTE*)WriteBytesToMemory(base + 0x4754B, { 0x8B, 0xD0, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x4759B, { 0xEB });
+				(BYTE*)WriteBytesToMemory(base + 0x470DB, { 0x90, 0x90, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x470A0, { 0xEB });
+				(BYTE*)WriteBytesToMemory(base + 0x1628FD, { 0xEB });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x472FA, { 0x0F, 0x4F, 0xC1 });
+				(BYTE*)WriteBytesToMemory(base + 0x473EB, { 0x7C });
+				(BYTE*)WriteBytesToMemory(base + 0x4754B, { 0x0F, 0x4C, 0xD0 });
+				(BYTE*)WriteBytesToMemory(base + 0x4759B, { 0x7C });
+				(BYTE*)WriteBytesToMemory(base + 0x470DB, { 0x0F, 0x4F, 0xC1 });
+				(BYTE*)WriteBytesToMemory(base + 0x470A0, { 0x7C });
+				(BYTE*)WriteBytesToMemory(base + 0x1628FD, { 0x7C });
+			}
+		}
+
+		void PlaytestZoomBypass(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1697A9, { 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1697A9, { 0x77, 0x03 });
+			}
+		}
+
+		void SmoothEditorTrail(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x16AB0D, { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x16AB0D, { 0x0F, 0x82, 0x85, 0x00, 0x00, 0x00 });
+			}
+		}
+	}
+
+	namespace universal {
+		void AnticheatBypass(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x202AAA, { 0xEB, 0x2E });
+				(BYTE*)WriteBytesToMemory(base + 0x15FC2E, { 0xEB });
+				(BYTE*)WriteBytesToMemory(base + 0x20D3B3, { 0x90, 0x90, 0x90, 0x90, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x1FF7A2, { 0x90, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x18B2B4, { 0xB0, 0x01 });
+				(BYTE*)WriteBytesToMemory(base + 0x20C4E6, { 0xE9, 0xD7, 0x00, 0x00, 0x00, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x1FD557, { 0xEB, 0x0C });
+				(BYTE*)WriteBytesToMemory(base + 0x1FD742, { 0xC7, 0x87, 0xE0, 0x02, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xC7, 0x87, 0xE4, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x1FD756, { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x1FD79A, { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
+				(BYTE*)WriteBytesToMemory(base + 0x1FD7AF, { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x202AAA, { 0x74, 0x2E });
+				(BYTE*)WriteBytesToMemory(base + 0x15FC2E, { 0x74 });
+				(BYTE*)WriteBytesToMemory(base + 0x20D3B3, { 0xE8, 0x58, 0x04, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x1FF7A2, { 0x74, 0x6E });
+				(BYTE*)WriteBytesToMemory(base + 0x18B2B4, { 0x88, 0xD8 });
+				(BYTE*)WriteBytesToMemory(base + 0x20C4E6, { 0x0F, 0x85, 0xD6, 0x00, 0x00, 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x1FD557, { 0x74, 0x0C });
+				(BYTE*)WriteBytesToMemory(base + 0x1FD742, { 0x80, 0xBF, 0xDD, 0x02, 0x00, 0x00, 0x00, 0x0F, 0x85, 0x0A, 0xFE, 0xFF, 0xFF, 0x80, 0xBF, 0x34, 0x05, 0x00, 0x00, 0x00, 0x0F, 0x84, 0xFD, 0xFD, 0xFF, 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x1FD557, { 0x74, 0x0C });
+				(BYTE*)WriteBytesToMemory(base + 0x1FD756, { 0x0F, 0x84, 0xFD, 0xFD, 0xFF, 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x1FD79A, { 0x0F, 0x84, 0xB9, 0xFD, 0xFF, 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x1FD7AF, { 0x0F, 0x85, 0xA4, 0xFD, 0xFF, 0xFF });
+			}
+		}
+
+		void ForceVisibility(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(libcocosbase + 0x60753, { 0xB0, 0x01, 0x90 });
+				(BYTE*)WriteBytesToMemory(libcocosbase + 0x60C5A, { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(libcocosbase + 0x60753, { 0x8A, 0x45, 0x08 });
+				(BYTE*)WriteBytesToMemory(libcocosbase + 0x60C5A, { 0x0F, 0x84, 0xCB, 0x00, 0x00, 0x00 });
+			}
+		}
+
+		void NoRotation(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(libcocosbase + 0x60554, { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(libcocosbase + 0x60554, { 0xF3, 0x0F, 0x11, 0x49, 0x24, 0xF3, 0x0F, 0x11, 0x49, 0x20 });
+			}
+		}
+
+		void FreeWindowResize(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(libcocosbase + 0x11388B, { 0x90, 0x90, 0x90, 0x90, 0x90 });
+				(BYTE*)WriteBytesToMemory(libcocosbase + 0x11339D, { 0xB9, 0xFF, 0xFF, 0xFF, 0x7F, 0x90, 0x90 });
+				(BYTE*)WriteBytesToMemory(libcocosbase + 0x1133C0, { 0x48 });
+				(BYTE*)WriteBytesToMemory(libcocosbase + 0x1133C6, { 0x48 });
+				(BYTE*)WriteBytesToMemory(libcocosbase + 0x112536, { 0xEB, 0x11, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(libcocosbase + 0x11388B, { 0xE8, 0xB0, 0xF3, 0xFF, 0xFF });
+				(BYTE*)WriteBytesToMemory(libcocosbase + 0x11339D, { 0xE8, 0xEE, 0xF6, 0xFF, 0xFF, 0x8B, 0xC8 });
+				(BYTE*)WriteBytesToMemory(libcocosbase + 0x1133C0, { 0x50 });
+				(BYTE*)WriteBytesToMemory(libcocosbase + 0x1133C6, { 0x50 });
+				(BYTE*)WriteBytesToMemory(libcocosbase + 0x112536, { 0x50, 0x6A, 0x00 });
+			}
+		}
+
+		void NoTransition(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(libcocosbase + 0xA5424, { 0x90, 0x90, 0x90, 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(libcocosbase + 0xA5424, { 0xF3, 0x0F, 0x10, 0x45, 0x08 });
+			}
+		}
+
+		void SafeMode(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x20A3B2, { 0xE9, 0x9A, 0x01, 0x00, 0x00, 0x90, 0x90 }),
+				(BYTE*)WriteBytesToMemory(base + 0x1FD40F, { 0xE9, 0x13, 0x06, 0x00, 0x00, 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x20A3B2, { 0x80, 0xBB, 0x94, 0x04, 0x00, 0x00, 0x00 }),
+				(BYTE*)WriteBytesToMemory(base + 0x1FD40F, { 0x83, 0xB9, 0x64, 0x03, 0x00, 0x00, 0x01 });
+			}
+		}
+
+		void TransparentBG(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x15A174, { 0xFF }),
+				(BYTE*)WriteBytesToMemory(base + 0x15A175, { 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x15A16F, { 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x15A16D, { 0x90, 0xB1 });
+				(BYTE*)WriteBytesToMemory(base + 0x15891D, { 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x15891E, { 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x158917, { 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x158915, { 0x90, 0xB1 });
+				(BYTE*)WriteBytesToMemory(base + 0x6F7FB, { 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x6F7FC, { 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x6F7F6, { 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x6F7F4, { 0x90, 0xB1 });
+				(BYTE*)WriteBytesToMemory(base + 0x1979AD, { 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x1979AE, { 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x1979A7, { 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x1979A5, { 0x90, 0xB1 });
+				(BYTE*)WriteBytesToMemory(base + 0x17DBC1, { 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x17DBC2, { 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x17DBBB, { 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x17DBB9, { 0x90, 0xB1 });
+				(BYTE*)WriteBytesToMemory(base + 0x176032, { 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x176033, { 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x176036, { 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x176034, { 0x90, 0xB1 });
+				(BYTE*)WriteBytesToMemory(base + 0x4DF7E, { 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x4DF7F, { 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x4DF78, { 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x4DF76, { 0x90, 0xB1 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x15A174, { 0x00 }),
+				(BYTE*)WriteBytesToMemory(base + 0x15A175, { 0x66 });
+				(BYTE*)WriteBytesToMemory(base + 0x15A16F, { 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x15A16D, { 0x80, 0xC9 });
+				(BYTE*)WriteBytesToMemory(base + 0x15891D, { 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x15891E, { 0x66 });
+				(BYTE*)WriteBytesToMemory(base + 0x158917, { 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x158915, { 0x80, 0xC9 });
+				(BYTE*)WriteBytesToMemory(base + 0x6F7FB, { 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x6F7FC, { 0x66 });
+				(BYTE*)WriteBytesToMemory(base + 0x6F7F6, { 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x6F7F4, { 0x80, 0xC9 });
+				(BYTE*)WriteBytesToMemory(base + 0x1979AD, { 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x1979AE, { 0x66 });
+				(BYTE*)WriteBytesToMemory(base + 0x1979A7, { 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x1979A5, { 0x80, 0xC9 });
+				(BYTE*)WriteBytesToMemory(base + 0x17DBC1, { 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x17DBC2, { 0x66 });
+				(BYTE*)WriteBytesToMemory(base + 0x17DBBB, { 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x17DBB9, { 0x80, 0xC9 });
+				(BYTE*)WriteBytesToMemory(base + 0x176032, { 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x176033, { 0x66 });
+				(BYTE*)WriteBytesToMemory(base + 0x176036, { 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x176034, { 0x80, 0xC9 });
+				(BYTE*)WriteBytesToMemory(base + 0x4DF7E, { 0x00 });
+				(BYTE*)WriteBytesToMemory(base + 0x4DF7F, { 0x66 });
+				(BYTE*)WriteBytesToMemory(base + 0x4DF78, { 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x4DF76, { 0x80, 0xC9 });
+			}
+		}
+
+		void TransparentLists(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x15C02C, { 0x00, 0x00, 0x00, 0x40 });
+				(BYTE*)WriteBytesToMemory(base + 0x5C70A, { 0x60 });
+				(BYTE*)WriteBytesToMemory(base + 0x5C6D9, { 0x20, 0x20 });
+				(BYTE*)WriteBytesToMemory(base + 0x5C6DC, { 0x20 });
+				(BYTE*)WriteBytesToMemory(base + 0x5C6CF, { 0x40, 0x40 });
+				(BYTE*)WriteBytesToMemory(base + 0x5C6D2, { 0x40 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x15C02C, { 0xBF, 0x72, 0x3E, 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x5C70A, { 0xFF });
+				(BYTE*)WriteBytesToMemory(base + 0x5C6D9, { 0xA1, 0x58 });
+				(BYTE*)WriteBytesToMemory(base + 0x5C6DC, { 0x2C });
+				(BYTE*)WriteBytesToMemory(base + 0x5C6CF, { 0xC2, 0x72 });
+				(BYTE*)WriteBytesToMemory(base + 0x5C6D2, { 0x3E });
+			}
+		}
+
+		void FastAltTab(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x3D02E, { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x3D02E, { 0x8B, 0x03, 0x8B, 0xCB, 0xFF, 0x50, 0x18 });
+			}
+		}
+
+		void AllowLowVolume(int value) {
+			if (value == 1)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1E5D7F, { 0xEB, 0x08 });
+				(BYTE*)WriteBytesToMemory(base + 0x1DDEC1, { 0xEB, 0x08 });
+			}
+			else if (value == 0)
+			{
+				(BYTE*)WriteBytesToMemory(base + 0x1E5D7F, { 0x76, 0x08 });
+				(BYTE*)WriteBytesToMemory(base + 0x1DDEC1, { 0x76, 0x08 });
+			}
+		}
+	}
+
+	void FPSBypass(int fps)
+	{
+		interval = 1.0f / fps;
+		HMODULE hMod = LoadLibrary("libcocos2d.dll");
+		sharedApplication = (fSharedApplication)GetProcAddress(hMod, "?sharedApplication@CCApplication@cocos2d@@SAPAV12@XZ");
+		void* application = sharedApplication();
+		setAnimInterval = (fSetAnimationInterval)GetProcAddress(hMod, "?setAnimationInterval@CCApplication@cocos2d@@UAEXN@Z");
+		setAnimInterval(application, interval);
+	}
+}
