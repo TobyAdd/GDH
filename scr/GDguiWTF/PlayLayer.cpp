@@ -106,39 +106,69 @@ std::string GetFPSText() {
 		frames += 1;
 		totalDelta += dt;
 	}
+	CCLabelBMFont* Fps = (CCLabelBMFont*)self->getChildByTag(200000);
+	CCLabelBMFont* CpsText = (CCLabelBMFont*)self->getChildByTag(150000);
+	CCLabelBMFont* noclipAccText = (CCLabelBMFont*)self->getChildByTag(100000);
 
+	if (!CPScounter) { fpsposition = 12; }
+	if (!noclipAcc) { fpsposition = 3; }
+	if (!noclipAcc) { cpsposition = 3; }
+	if (CPScounter && noclipAcc) { fpsposition = 21; }
 
 
 	size_t base = (size_t)GetModuleHandle(0);
 	if (FPScounter) {
-		CCLabelBMFont* Fps = (CCLabelBMFont*)self->getChildByTag(200000);
+
+		if (!noclipAcc) { fpsposition = 3; }
+		if (CPScounter && noclipAcc) { fpsposition = 21; }
 		auto FPSText = GetFPSText();
 		Fps->setString(FPSText.c_str());
 		auto cpssize = Fps->getScaledContentSize();
-
-		if (!CPScounter) { fpsposition = 12; }
-		if (!noclipAcc) { fpsposition = 3; }
-		if (CPScounter && noclipAcc) { fpsposition = 21; }
-		Fps->setPosition({ cpssize.width / 2 + 3, cpssize.height / 2 + fpsposition });
+		if (CPScounter && !noclipAcc)
+		{
+			Fps->setPosition({ cpssize.width / 2 + 3, cpssize.height / 2 + 12 });
+		}
+		else {
+			Fps->setPosition({ cpssize.width / 2 + 3, cpssize.height / 2 + fpsposition });
+		}
+		
+		Fps->setVisible(true);
+	}
+	else {
+		Fps->setVisible(false);
 	}
 
 	if (CPScounter) {
-		if (!noclipAcc) { cpsposition = 3; }
-		CCLabelBMFont* CpsText = (CCLabelBMFont*)self->getChildByTag(150000);
+		if (noclipAcc)
+		{
+			cpsposition = 12; 
+		}
+		else {
+			cpsposition = 3;
+		}
+		
 		auto CpsTextText = CPSText();
 		CpsText->setString(CpsTextText.c_str());
 		auto cpssize = CpsText->getScaledContentSize();
-
-		CpsText->setPosition({ cpssize.width / 2 + 3, cpssize.height / 2 + 12 });
+		CpsText->setPosition({ cpssize.width / 2 + 3, cpssize.height / 2 + cpsposition });
+		CpsText->setVisible(true);
+	} else {
+		CpsText->setVisible(false);
 	}
 
 	if (noclipAcc) {
-		CCLabelBMFont* noclipAccText = (CCLabelBMFont*)self->getChildByTag(100000);
+		if (!CPScounter) { fpsposition = 12; }
+		if (!noclipAcc) { fpsposition = 3; }
+		if (!noclipAcc) { cpsposition = 3; }
+		if (CPScounter && noclipAcc) { fpsposition = 21; }
 		auto text = getAccuracyText();
 		noclipAccText->setString(text.c_str());
 		auto nasize = noclipAccText->getScaledContentSize();
-
 		noclipAccText->setPosition({ nasize.width / 2 + 3, nasize.height / 2 + 3});
+		noclipAccText->setVisible(true);
+	}
+	else {
+		noclipAccText->setVisible(false);
 	}
 
 	if (CPScounter) {
@@ -193,82 +223,58 @@ std::string GetFPSText() {
 	bool __fastcall PlayLayer::initHook(gd::PlayLayer* self, void*, void* level) {
 		bool result = PlayLayer::init(self, level);
 		play_layer = self;
-
+		
 		size_t base = (size_t)GetModuleHandle(0);
 	
-	prevX = 0;
-	fpsposition = 21;
-	cpsposition = 12;
-	noclipaccuracyposition = 3;
+		prevX = 0;
+		fpsposition = 21;
+		cpsposition = 12;
+		noclipaccuracyposition = 3;
 
-	if (noclipAcc) {
 		CCLabelBMFont* noclipAccText = CCLabelBMFont::create("Accuracy: 100.00%", "chatFont.fnt");
+		CCLabelBMFont* CpsText = CCLabelBMFont::create("CPS: 0/0", "chatFont.fnt");
+		CCLabelBMFont* Fps = CCLabelBMFont::create("FPS: ", "chatFont.fnt");
 
 		noclipAccText->setZOrder(1000);
 		noclipAccText->setTag(100000);
 		noclipAccText->setScale(0.5);
-		auto nasize = noclipAccText->getScaledContentSize();
-
-		noclipAccText->setPosition({ nasize.width / 2 + 3, nasize.height / 2 + 3});
-
-		self->addChild(noclipAccText);
-	}
-	//Noclip Accuracy
-
-	if (CPScounter) {
-		if (!noclipAcc) { cpsposition = 3; }
-		CCLabelBMFont* CpsText = CCLabelBMFont::create("CPS: 0/0", "chatFont.fnt");
+		
+		Fps->setZOrder(2000);
+		Fps->setTag(200000);
+		Fps->setScale(0.5);
 
 		CpsText->setZOrder(1500);
 		CpsText->setTag(150000);
 		CpsText->setScale(0.5);
-		auto cpssize = CpsText->getScaledContentSize();
-
-		CpsText->setPosition({ cpssize.width / 2 + 3, cpssize.height / 2 + cpsposition });
-
-		self->addChild(CpsText);
-	}
-
-	if (FPScounter) {
-		if (!CPScounter) { fpsposition = 12; }
-		if (!noclipAcc) { fpsposition = 3; }
-		if (CPScounter && noclipAcc) { fpsposition = 21; }
-
-		CCLabelBMFont* Fps = CCLabelBMFont::create("CPS: 0/0", "chatFont.fnt");
-
-		Fps->setZOrder(2000);
-		Fps->setTag(200000);
-		Fps->setScale(0.5);
-		auto cpssize = Fps->getScaledContentSize();
-		Fps->setPosition(cpssize.width / 2 + 3, cpssize.height / 2 + fpsposition);
 
 
 		self->addChild(Fps);
-	}
-	//Auto Toggle Practice
-	if (practice)
-		play_layer->togglePracticeMode(true);
-	//Auto Toggle Practice	
+		self->addChild(noclipAccText);
+		self->addChild(CpsText);
+		//Auto Toggle Practice
+		if (practice)
+			play_layer->togglePracticeMode(true);
+		//Auto Toggle Practice	
 
-	//Rainbow
-	if (PlayLayer::player_rainbow == 1) {
-		CCAction* rgb1 = create_rgb(PlayLayer::player_rainbow_speed);
-		CCAction* rgb2 = create_rgb(PlayLayer::player_rainbow_speed, true);
-		((CCNode*)self->m_pPlayer1)->runAction((CCAction*)rgb1->copy());
-		((CCNode*)((CCNode*)self->m_pPlayer1->getChildren()->objectAtIndex(0))->getChildren()->objectAtIndex(0))->runAction((CCAction*)rgb2->copy());
-		((CCNode*)self->m_pPlayer1->getChildren()->objectAtIndex(1))->runAction((CCAction*)rgb1->copy());
-		((CCNode*)((CCNode*)self->m_pPlayer1->getChildren()->objectAtIndex(1))->getChildren()->objectAtIndex(0))->runAction((CCAction*)rgb2->copy());
-	}
+		//Rainbow
+		if (PlayLayer::player_rainbow == 1) {
+			CCAction* rgb1 = create_rgb(PlayLayer::player_rainbow_speed);
+			CCAction* rgb2 = create_rgb(PlayLayer::player_rainbow_speed, true);
+			((CCNode*)self->m_pPlayer1)->runAction((CCAction*)rgb1->copy());
+			((CCNode*)((CCNode*)self->m_pPlayer1->getChildren()->objectAtIndex(0))->getChildren()->objectAtIndex(0))->runAction((CCAction*)rgb2->copy());
+			((CCNode*)self->m_pPlayer1->getChildren()->objectAtIndex(1))->runAction((CCAction*)rgb1->copy());
+			((CCNode*)((CCNode*)self->m_pPlayer1->getChildren()->objectAtIndex(1))->getChildren()->objectAtIndex(0))->runAction((CCAction*)rgb2->copy());
+		}
 
-	if (PlayLayer::player3_rainbow) {
-		((CCNode*)self->m_pObjectLayer->getChildren()->objectAtIndex(49))->runAction(create_rgb(player3_rainbow_speed));
-	}
-	if (PlayLayer::player4_rainbow) {
-		((CCNode*)self->m_pObjectLayer->getChildren()->objectAtIndex(50))->runAction(create_rgb(player4_rainbow_speed));
-	}
-	//Rainbow
+		if (PlayLayer::player3_rainbow) {
+			((CCNode*)self->m_pObjectLayer->getChildren()->objectAtIndex(49))->runAction(create_rgb(player3_rainbow_speed));
+		}
+		if (PlayLayer::player4_rainbow) {
+			((CCNode*)self->m_pObjectLayer->getChildren()->objectAtIndex(50))->runAction(create_rgb(player4_rainbow_speed));
+		}
+		//Rainbow
 
-	return result;
+		return result;
 	}
 
 
