@@ -30,5 +30,5 @@ I want to say thanks to:
 
 - OneParsec
 
-And You!
+- And You!
 
