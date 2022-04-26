@@ -20,6 +20,7 @@ Global
 		{3F1493D4-8EE0-4A29-B329-DD4460A08663}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3F1493D4-8EE0-4A29-B329-DD4460A08663}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3F1493D4-8EE0-4A29-B329-DD4460A08663}.Release|x86.ActiveCfg = Release|x86
+		{3F1493D4-8EE0-4A29-B329-DD4460A08663}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
