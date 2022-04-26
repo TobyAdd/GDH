@@ -556,6 +556,8 @@ void RenderMain()
 			}ImGui::TreePop();
 		}
 
+		if (ImGui::TreeNode("Bruteforce")) {if (ImGui::Button("Bruteforce")) {system("start .gdh\\bruteforce.exe");}}ImGui::TreePop();
+
 		if (ImGui::TreeNode("GDH About")) {
 			ImGui::Text("GDH by TobyAdd");
 			if (ImGui::Button("Sourse code")) { ShellExecuteA(0, "open", "https://github.com/TobyAdd/GDH-Overlay", NULL, NULL, SW_SHOWMAXIMIZED); }
