@@ -111,9 +111,6 @@
     <ClInclude Include="GDguiWTF\PlayLayer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GDguiWTF\GameManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="GDguiWTF\random\random.cpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -180,9 +177,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GDguiWTF\PlayLayer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GDguiWTF\GameManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -20,7 +20,6 @@
 #include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include "bools.cpp"
 #include <gd.h>
-#include "GDguiWTF/GameManager.h"
 #include "GDguiWTF/PlayLayer.h"
 
 static uint32_t offsets[10] = { 0x1E8, 0x1F4, 0x200, 0x20C, 0x218, 0x224, 0x230, 0x23C, 0x248, 0x254 };
@@ -28,8 +27,6 @@ static uint32_t maxvals[10] = { 142, 51, 43, 35, 35, 26, 17, 41, 41, 7 };
 
 std::string gdFolder = hacks.gdname;
 std::string password = "Get password from level";
-
-bool randeath = false;
 
 using std::cout; using std::endl;
 using std::cin; using std::string;
@@ -53,7 +50,6 @@ bool InitTabUniversal = true;
 bool InitTabDisplay = true;
 bool InitTabUtilities = true;
 bool InitTabNong = true;
-bool InitTabRgb = true;
 
 void CustomStyle() {
 		ImGuiStyle& style = ImGui::GetStyle();
@@ -63,22 +59,22 @@ void CustomStyle() {
 		style.ItemSpacing = ImVec2(8.00f, 4.00f);
 		style.ItemInnerSpacing = ImVec2(4.00f, 4.00f);
 		style.TouchExtraPadding = ImVec2(0.00f, 0.00f);
-		style.IndentSpacing = 21.00f;
+		style.IndentSpacing = 24.00f;
 		style.ScrollbarSize = 14.00f;
 		style.GrabMinSize = 10.00f;
 		style.WindowBorderSize = 0.00f;
-		style.ChildBorderSize = 0.00f;
-		style.PopupBorderSize = 0.00f;
+		style.ChildBorderSize = 1.00f;
+		style.PopupBorderSize = 1.00f;
 		style.FrameBorderSize = 0.00f;
-		style.TabBorderSize = 0.00f;
-		style.WindowRounding = 0.00f;
-		style.ChildRounding = 0.00f;
-		style.FrameRounding = 0.00f;
-		style.PopupRounding = 0.00f;
-		style.ScrollbarRounding = 0.00f;
-		style.GrabRounding = 0.00f;
-		style.LogSliderDeadzone = 0.00f;
-		style.TabRounding = 0.00f;
+		style.TabBorderSize = 1.00f;
+		style.WindowRounding = 8.00f;
+		style.ChildRounding = 6.00f;
+		style.FrameRounding = 4.00f;
+		style.PopupRounding = 4.00f;
+		style.ScrollbarRounding = 4.00f;
+		style.GrabRounding = 4.00f;
+		style.LogSliderDeadzone = 4.00f;
+		style.TabRounding = 4.00f;
 		style.WindowTitleAlign = ImVec2(0.50f, 0.50f);
 		style.WindowMenuButtonPosition = 0;
 		style.ColorButtonPosition = 1;
@@ -87,60 +83,60 @@ void CustomStyle() {
 		style.DisplaySafeAreaPadding = ImVec2(3.00f, 3.00f);
 	}
 void CustomColor() {
-			auto* colors = ImGui::GetStyle().Colors;
-			colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
-			colors[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
-			colors[ImGuiCol_WindowBg] = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
-			colors[ImGuiCol_ChildBg] = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
-			colors[ImGuiCol_PopupBg] = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
-			colors[ImGuiCol_Border] = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
-			colors[ImGuiCol_BorderShadow] = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
-			colors[ImGuiCol_FrameBg] = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
-			colors[ImGuiCol_FrameBgHovered] = ImVec4(0.07f, 0.07f, 0.07f, 1.00f);
-			colors[ImGuiCol_FrameBgActive] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
-			colors[ImGuiCol_TitleBg] = ImVec4(0.09f, 0.09f, 0.09f, 1.00f);
-			colors[ImGuiCol_TitleBgActive] = ImVec4(0.09f, 0.09f, 0.09f, 1.00f);
-			colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.09f, 0.09f, 0.09f, 1.00f);
-			colors[ImGuiCol_MenuBarBg] = ImVec4(0.09f, 0.09f, 0.09f, 1.00f);
-			colors[ImGuiCol_ScrollbarBg] = ImVec4(0.09f, 0.09f, 0.09f, 1.00f);
-			colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.37f, 0.37f, 0.37f, 1.00f);
-			colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
-			colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.24f, 0.24f, 0.24f, 1.00f);
-			colors[ImGuiCol_CheckMark] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
-			colors[ImGuiCol_SliderGrab] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
-			colors[ImGuiCol_SliderGrabActive] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
-			colors[ImGuiCol_Button] = ImVec4(0.41f, 0.41f, 0.41f, 0.40f);
-			colors[ImGuiCol_ButtonHovered] = ImVec4(0.28f, 0.28f, 0.29f, 1.00f);
-			colors[ImGuiCol_ButtonActive] = ImVec4(0.36f, 0.36f, 0.36f, 1.00f);
-			colors[ImGuiCol_Header] = ImVec4(0.41f, 0.41f, 0.41f, 0.40f);
-			colors[ImGuiCol_HeaderHovered] = ImVec4(0.28f, 0.28f, 0.29f, 1.00f);
-			colors[ImGuiCol_HeaderActive] = ImVec4(0.36f, 0.36f, 0.36f, 1.00f);
-			colors[ImGuiCol_Separator] = ImVec4(0.41f, 0.41f, 0.41f, 0.40f);
-			colors[ImGuiCol_SeparatorHovered] = ImVec4(0.28f, 0.28f, 0.29f, 1.00f);
-			colors[ImGuiCol_SeparatorActive] = ImVec4(0.36f, 0.36f, 0.36f, 1.00f);
-			colors[ImGuiCol_ResizeGrip] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
-			colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.64f, 0.64f, 0.64f, 1.00f);
-			colors[ImGuiCol_ResizeGripActive] = ImVec4(0.49f, 0.49f, 0.49f, 0.95f);
-			colors[ImGuiCol_Tab] = ImVec4(0.41f, 0.41f, 0.41f, 0.40f);
-			colors[ImGuiCol_TabHovered] = ImVec4(0.28f, 0.28f, 0.29f, 1.00f);
-			colors[ImGuiCol_TabActive] = ImVec4(0.36f, 0.36f, 0.36f, 1.00f);
-			colors[ImGuiCol_TabUnfocused] = ImVec4(0.07f, 0.10f, 0.15f, 0.97f);
-			colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.14f, 0.26f, 0.42f, 1.00f);
-			colors[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
-			colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
-			colors[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
-			colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
-			colors[ImGuiCol_TableHeaderBg] = ImVec4(0.19f, 0.19f, 0.20f, 1.00f);
-			colors[ImGuiCol_TableBorderStrong] = ImVec4(0.31f, 0.31f, 0.35f, 1.00f);
-			colors[ImGuiCol_TableBorderLight] = ImVec4(0.23f, 0.23f, 0.25f, 1.00f);
-			colors[ImGuiCol_TableRowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-			colors[ImGuiCol_TableRowBgAlt] = ImVec4(1.00f, 1.00f, 1.00f, 0.06f);
-			colors[ImGuiCol_TextSelectedBg] = ImVec4(0.35f, 0.35f, 0.35f, 0.35f);
-			colors[ImGuiCol_DragDropTarget] = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
-			colors[ImGuiCol_NavHighlight] = ImVec4(0.35f, 0.35f, 0.35f, 0.35f);
-			colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
-			colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
-			colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+		auto* colors = ImGui::GetStyle().Colors;
+		colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+		colors[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+		colors[ImGuiCol_WindowBg] = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
+		colors[ImGuiCol_ChildBg] = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
+		colors[ImGuiCol_PopupBg] = ImVec4(0.16f, 0.16f, 0.16f, 0.94f);
+		colors[ImGuiCol_Border] = ImVec4(1.00f, 1.00f, 1.00f, 0.50f);
+		colors[ImGuiCol_BorderShadow] = ImVec4(1.00f, 1.00f, 1.00f, 0.50f);
+		colors[ImGuiCol_FrameBg] = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
+		colors[ImGuiCol_FrameBgHovered] = ImVec4(0.07f, 0.07f, 0.07f, 1.00f);
+		colors[ImGuiCol_FrameBgActive] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
+		colors[ImGuiCol_TitleBg] = ImVec4(0.09f, 0.09f, 0.09f, 1.00f);
+		colors[ImGuiCol_TitleBgActive] = ImVec4(0.09f, 0.09f, 0.09f, 1.00f);
+		colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.09f, 0.09f, 0.09f, 1.00f);
+		colors[ImGuiCol_MenuBarBg] = ImVec4(0.09f, 0.09f, 0.09f, 1.00f);
+		colors[ImGuiCol_ScrollbarBg] = ImVec4(0.09f, 0.09f, 0.09f, 1.00f);
+		colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.37f, 0.37f, 0.37f, 1.00f);
+		colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
+		colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.24f, 0.24f, 0.24f, 1.00f);
+		colors[ImGuiCol_CheckMark] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+		colors[ImGuiCol_SliderGrab] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+		colors[ImGuiCol_SliderGrabActive] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+		colors[ImGuiCol_Button] = ImVec4(0.41f, 0.41f, 0.41f, 0.40f);
+		colors[ImGuiCol_ButtonHovered] = ImVec4(0.28f, 0.28f, 0.29f, 1.00f);
+		colors[ImGuiCol_ButtonActive] = ImVec4(0.36f, 0.36f, 0.36f, 1.00f);
+		colors[ImGuiCol_Header] = ImVec4(0.41f, 0.41f, 0.41f, 0.40f);
+		colors[ImGuiCol_HeaderHovered] = ImVec4(0.28f, 0.28f, 0.29f, 1.00f);
+		colors[ImGuiCol_HeaderActive] = ImVec4(0.36f, 0.36f, 0.36f, 1.00f);
+		colors[ImGuiCol_Separator] = ImVec4(0.41f, 0.41f, 0.41f, 0.40f);
+		colors[ImGuiCol_SeparatorHovered] = ImVec4(0.28f, 0.28f, 0.29f, 1.00f);
+		colors[ImGuiCol_SeparatorActive] = ImVec4(0.36f, 0.36f, 0.36f, 1.00f);
+		colors[ImGuiCol_ResizeGrip] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+		colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.64f, 0.64f, 0.64f, 1.00f);
+		colors[ImGuiCol_ResizeGripActive] = ImVec4(0.49f, 0.49f, 0.49f, 0.95f);
+		colors[ImGuiCol_Tab] = ImVec4(0.41f, 0.41f, 0.41f, 0.40f);
+		colors[ImGuiCol_TabHovered] = ImVec4(0.28f, 0.28f, 0.29f, 1.00f);
+		colors[ImGuiCol_TabActive] = ImVec4(0.36f, 0.36f, 0.36f, 1.00f);
+		colors[ImGuiCol_TabUnfocused] = ImVec4(0.07f, 0.10f, 0.15f, 0.97f);
+		colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.14f, 0.26f, 0.42f, 1.00f);
+		colors[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
+		colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
+		colors[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
+		colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
+		colors[ImGuiCol_TableHeaderBg] = ImVec4(0.19f, 0.19f, 0.20f, 1.00f);
+		colors[ImGuiCol_TableBorderStrong] = ImVec4(1.00f, 1.00f, 1.00f, 0.50f);
+		colors[ImGuiCol_TableBorderLight] = ImVec4(1.00f, 1.00f, 1.00f, 0.50f);
+		colors[ImGuiCol_TableRowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+		colors[ImGuiCol_TableRowBgAlt] = ImVec4(1.00f, 1.00f, 1.00f, 0.06f);
+		colors[ImGuiCol_TextSelectedBg] = ImVec4(0.35f, 0.35f, 0.35f, 0.35f);
+		colors[ImGuiCol_DragDropTarget] = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
+		colors[ImGuiCol_NavHighlight] = ImVec4(0.35f, 0.35f, 0.35f, 0.35f);
+		colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
+		colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
+		colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 		}
 
 void IconRandomizer()
@@ -210,7 +206,8 @@ void InitHacks() {
 	if (hacks.alwaystrailoff) { GDhacks::player::TrailAlwaysOff(1); }
 	if (hacks.inversedtrail) { GDhacks::player::InversedTrail(1); }
 	if (hacks.trailbutfix) { GDhacks::player::TrailBugFix(1); }
-	if (hacks.hideatt) { GDhacks::player::HideAttempts(1); }
+	if (hacks.hideatt) { PlayLayer::hideattW = true; }
+	if (hacks.totalatt) { PlayLayer::totalattW = true; }
 	if (hacks.pmh) { GDhacks::player::PracticeMusicHack(1); }
 	if (hacks.nopulse) { GDhacks::player::NoPulse(1); }
 	if (hacks.ignoresc) { GDhacks::player::IgnoreESC(1); }
@@ -299,19 +296,6 @@ void InitHacks() {
 		PlayLayer::practice = hacks.autopractice;
 	}
 	//Auto Function
-
-	//RainBow Function
-	PlayLayer::player_rainbow = hacks.ImGui_player_rainbow;
-	PlayLayer::player_rainbow_speed = hacks.ImGui_player_rainbow_speed;
-	PlayLayer::player_rainbow_speed2 = hacks.ImGui_player_rainbow_speed2;
-	PlayLayer::player2_rainbow = hacks.ImGui_player2_rainbow;
-	PlayLayer::player2_rainbow_speed = hacks.ImGui_player2_rainbow_speed;
-	PlayLayer::player3_rainbow = hacks.ImGui_player3_rainbow;
-	PlayLayer::player3_rainbow_speed = hacks.ImGui_player3_rainbow_speed;
-	PlayLayer::player3_rainbow_speed = hacks.ImGui_player4_rainbow;
-	PlayLayer::player4_rainbow = hacks.ImGui_player4_rainbow;
-	PlayLayer::player4_rainbow_speed = hacks.ImGui_player4_rainbow_speed;
-	//RainBow Function
 }
 
 void RenderMain()
@@ -331,7 +315,7 @@ void RenderMain()
 
 	if (hacks.menu)
 	{
-		ImGui::Begin("Bypass", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollWithMouse);
+		ImGui::Begin("Bypass", 0, ImGuiWindowFlags_NoResize);
 		if (InitTabBypass) { ImGui::SetWindowSize(ImVec2(210 * hacks.pixelsize, 360 * hacks.pixelsize)); ImGui::SetWindowPos(ImVec2(10 * hacks.pixelsize, 10 * hacks.pixelsize)); ImGui::SetWindowFontScale(hacks.pixelsize);  InitTabBypass = false; }
 		if (ImGui::Checkbox("Unlock All Icons", &hacks.unlockall)) { if (hacks.unlockall) { GDhacks::bypass::UnlockAllIcons(1); } else { GDhacks::bypass::UnlockAllIcons(0); } }
 		if (ImGui::Checkbox("Text Bypass", &hacks.textbypass)) { if (hacks.textbypass) { GDhacks::bypass::TextBypass(1); } else { GDhacks::bypass::TextBypass(0); } }
@@ -351,7 +335,7 @@ void RenderMain()
 		if (ImGui::Checkbox("Backup Stars Limit", &hacks.backupsl)) { if (hacks.backupsl) { GDhacks::bypass::BackupStarsLimit(1); } else { GDhacks::bypass::BackupStarsLimit(0); } }
 		ImGui::End();
 
-		ImGui::Begin("Player", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollWithMouse);
+		ImGui::Begin("Player", 0, ImGuiWindowFlags_NoResize);
 		if (InitTabPlayer) { ImGui::SetWindowSize(ImVec2(210 * hacks.pixelsize, 580 * hacks.pixelsize)); ImGui::SetWindowPos(ImVec2(230 * hacks.pixelsize, 10 * hacks.pixelsize)); ImGui::SetWindowFontScale(hacks.pixelsize); InitTabPlayer = false; };
 		if (ImGui::Checkbox("NoClip", &hacks.noclip)) { if (hacks.noclip) { GDhacks::player::Noclip(1); } else { GDhacks::player::Noclip(0); } }
 		if (ImGui::Checkbox("No Spikes", &hacks.nospk)) { if (hacks.nospk) { GDhacks::player::NoSpikes(1); } else { GDhacks::player::NoSpikes(0); } }
@@ -365,7 +349,8 @@ void RenderMain()
 		if (ImGui::Checkbox("Trail Always Off", &hacks.alwaystrailoff)) { if (hacks.alwaystrailoff) { GDhacks::player::TrailAlwaysOff(1); } else { GDhacks::player::TrailAlwaysOff(0); } }
 		if (ImGui::Checkbox("Inversed Trail", &hacks.inversedtrail)) { if (hacks.inversedtrail) { GDhacks::player::InversedTrail(1); } else { GDhacks::player::InversedTrail(0); } }
 		if (ImGui::Checkbox("Trail Bug Fix", &hacks.trailbutfix)) { if (hacks.trailbutfix) { GDhacks::player::TrailBugFix(1); } else { GDhacks::player::TrailBugFix(0); } }
-		if (ImGui::Checkbox("Hide Attempts", &hacks.hideatt)) { if (hacks.hideatt) { GDhacks::player::HideAttempts(1); } else { GDhacks::player::HideAttempts(0); } }
+		if (ImGui::Checkbox("Hide Attempts", &hacks.hideatt)) { if (hacks.hideatt) { PlayLayer::hideattW = true; } else { PlayLayer::hideattW = false; } }
+		if (ImGui::Checkbox("Show Total Attempts", &hacks.totalatt)) { if (hacks.totalatt) { PlayLayer::totalattW = true; } else { PlayLayer::totalattW = false; } }
 		if (ImGui::Checkbox("Practice Music Hack", &hacks.pmh)) { if (hacks.pmh) { GDhacks::player::PracticeMusicHack(1); } else { GDhacks::player::PracticeMusicHack(0); } }
 		if (ImGui::Checkbox("No Pulse", &hacks.nopulse)) { if (hacks.nopulse) { GDhacks::player::NoPulse(1); } else { GDhacks::player::NoPulse(0); } }
 		if (ImGui::Checkbox("Ignore ESC", &hacks.ignoresc)) { if (hacks.ignoresc) { GDhacks::player::IgnoreESC(1); } else { GDhacks::player::IgnoreESC(0); } }
@@ -407,15 +392,11 @@ void RenderMain()
 				}
 			}
 		}
-
 		if (ImGui::Button("Random Icon", { 196.f * hacks.pixelsize,19.f * hacks.pixelsize })) { IconRandomizer(); }
-		if (ImGui::Button("Random Death Sound", { 196.f * hacks.pixelsize, 19.f * hacks.pixelsize })) {
-
-			randeath = true;
-		}
+		if (ImGui::Button("Refresh Textures", { 196.f * hacks.pixelsize,19.f * hacks.pixelsize })) { gd::GameManager::sharedState()->reloadAll(false, false, true);}
 		ImGui::End();
 
-		ImGui::Begin("Creator", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollWithMouse);
+		ImGui::Begin("Creator", 0, ImGuiWindowFlags_NoResize);
 		if (InitTabCreator) { ImGui::SetWindowSize(ImVec2(210 * hacks.pixelsize, 360 * hacks.pixelsize)); ImGui::SetWindowPos(ImVec2(450 * hacks.pixelsize, 10 * hacks.pixelsize)); ImGui::SetWindowFontScale(hacks.pixelsize); InitTabCreator = false; }
 
 		if (ImGui::Button(password.c_str(), { 196.f * hacks.pixelsize, 19.f * hacks.pixelsize })) {
@@ -455,7 +436,7 @@ void RenderMain()
 		if (ImGui::Checkbox("Playtest Zoom Bypass", &hacks.playtestzoombypass)) { if (hacks.playtestzoombypass) { GDhacks::creator::PlaytestZoomBypass(1); } else { GDhacks::creator::PlaytestZoomBypass(0); } }
 		if (ImGui::Checkbox("Smooth Editor Trail", &hacks.smootheditortrail)) { if (hacks.smootheditortrail) { GDhacks::creator::SmoothEditorTrail(1); } else { GDhacks::creator::SmoothEditorTrail(0); } }
 		ImGui::End();
-		ImGui::Begin("Speedhack", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollWithMouse);
+		ImGui::Begin("Speedhack", nullptr, ImGuiWindowFlags_NoResize);
 		if (InitTabSpeedhack) { ImGui::SetWindowSize(ImVec2(210 * hacks.pixelsize, 130 * hacks.pixelsize)); ImGui::SetWindowPos(ImVec2(10 * hacks.pixelsize, 380 * hacks.pixelsize)); ImGui::SetWindowFontScale(hacks.pixelsize); InitTabSpeedhack = false; }
 		ImGui::PushItemWidth(196.000000 * hacks.pixelsize); ImGui::InputFloat("##1", &hacks.speedvalue, 0, 500, 0);
 		if (ImGui::Button("Apply", { 196.f * hacks.pixelsize, 19.f * hacks.pixelsize })) { if (not(hacks.speedvalue == 0)) { CCDirector::sharedDirector()->getScheduler()->setTimeScale(hacks.speedvalue); if (hacks.speedhackaudio) { SpeedhackAudio::set(hacks.speedvalue); } } }
@@ -463,7 +444,7 @@ void RenderMain()
 		if (ImGui::Checkbox("Speedhack Audio", &hacks.speedhackaudio)) { if (hacks.speedhackaudio) { if (not(hacks.speedvalue == 0)) { SpeedhackAudio::set(hacks.speedvalue); } } else { SpeedhackAudio::set(1); } }
 		ImGui::End();
 
-		ImGui::Begin("Universal", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollWithMouse);
+		ImGui::Begin("Universal", nullptr, ImGuiWindowFlags_NoResize);
 		if (InitTabUniversal) { ImGui::SetWindowSize(ImVec2(210 * hacks.pixelsize, 270 * hacks.pixelsize)); ImGui::SetWindowPos(ImVec2(670 * hacks.pixelsize, 10 * hacks.pixelsize)); ImGui::SetWindowFontScale(hacks.pixelsize); InitTabUniversal = false; }
 		if (ImGui::Checkbox("Disable Anticheat", &hacks.anticheat)) { if (hacks.anticheat) { GDhacks::universal::AnticheatBypass(1); } else { GDhacks::universal::AnticheatBypass(0); } }
 		if (ImGui::Checkbox("Force Visibility", &hacks.forcev)) { if (hacks.forcev) { GDhacks::universal::ForceVisibility(1); } else { GDhacks::universal::ForceVisibility(0); } }
@@ -477,14 +458,14 @@ void RenderMain()
 		if (ImGui::Checkbox("Allow Low Volume", &hacks.allowlowvol)) { if (hacks.allowlowvol) { GDhacks::universal::AllowLowVolume(1); } else { GDhacks::universal::AllowLowVolume(0); } }
 		ImGui::End();
 
-		ImGui::Begin("Display FPS", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollWithMouse);
+		ImGui::Begin("FPS Bypass", nullptr, ImGuiWindowFlags_NoResize);
 		if (InitTabDisplay) { ImGui::SetWindowSize(ImVec2(210 * hacks.pixelsize, 110 * hacks.pixelsize)); ImGui::SetWindowPos(ImVec2(450 * hacks.pixelsize, 380 * hacks.pixelsize)); ImGui::SetWindowFontScale(hacks.pixelsize); InitTabDisplay = false; }
-		ImGui::PushItemWidth(196.000000 * hacks.pixelsize); ImGui::InputInt("", &hacks.fpslol, 0, 10000, 0);
-		if (ImGui::Button("Apply", { 196.f * hacks.pixelsize, 19.f * hacks.pixelsize })) { hacks.fpsvalue = hacks.fpslol; }
-		if (ImGui::Button("Default", { 196.f * hacks.pixelsize, 19.f * hacks.pixelsize })) { hacks.fpsvalue = 60; }
+		ImGui::PushItemWidth(196.000000 * hacks.pixelsize); ImGui::InputInt("##3", &hacks.fpslol, 0, 10000, 0);
+		if (ImGui::Button("Apply", { 196.f * hacks.pixelsize, 19.f * hacks.pixelsize })) { hacks.fpsvalue = hacks.fpslol; if (!hacks.fpsbypass) { hacks.fpsbypass = true; } }
+		if (ImGui::Button("Default", { 196.f * hacks.pixelsize, 19.f * hacks.pixelsize })) { hacks.fpsvalue = 60; hacks.fpslol = 60; if (!hacks.fpsbypass) { hacks.fpsbypass = true; }}
 		ImGui::End();
 
-		ImGui::Begin("Utilities", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollWithMouse);
+		ImGui::Begin("Utilities", nullptr, ImGuiWindowFlags_NoResize);
 		if (InitTabUtilities) { ImGui::SetWindowSize(ImVec2(210 * hacks.pixelsize, 380 * hacks.pixelsize)); ImGui::SetWindowPos(ImVec2(890 * hacks.pixelsize, 10 * hacks.pixelsize)); ImGui::SetWindowFontScale(hacks.pixelsize); InitTabUtilities = false; }
 		
 		if (ImGui::TreeNode("Show Info")) {
@@ -526,7 +507,6 @@ void RenderMain()
 		}
 
 		if (ImGui::TreeNode("Change Windwo Size")) {
-			//auto size = CCDirector::sharedDirector()->getWinSize();
 			std::pair<int, int> windowSize = gmd.GetWindowSize();
 			ImGui::PushItemWidth(130.000000 * hacks.pixelsize);
 			ImGui::InputInt("Width", &winsize.widthsize, 0, 50000, 0);
@@ -543,7 +523,7 @@ void RenderMain()
 		if (ImGui::TreeNode("GDH Seetting")) {
 			ImGui::Text("Pixel Size:");
 			ImGui::PushItemWidth(175.000000 * hacks.pixelsize);
-			if (ImGui::InputFloat("pixel", &hacks.pixelsize, 0.1, 0, 0)) {
+			if (ImGui::InputFloat("##4", &hacks.pixelsize, 0.1, 0, 0)) {
 				InitTabBypass = true;
 				InitTabCreator = true;
 				InitTabPlayer = true;
@@ -552,96 +532,22 @@ void RenderMain()
 				InitTabDisplay = true;
 				InitTabUtilities = true;
 				InitTabNong = true;
-				InitTabRgb = true;
 			}ImGui::TreePop();
 		}
 
-		if (ImGui::TreeNode("Bruteforce")) {if (ImGui::Button("Bruteforce")) {system("start .gdh\\bruteforce.exe");}}ImGui::TreePop();
+		if (ImGui::TreeNode("Bruteforce")) { if (ImGui::Button("Bruteforce")) { system("start .gdh\\bruteforce.exe"); }ImGui::TreePop(); };
 
 		if (ImGui::TreeNode("GDH About")) {
 			ImGui::Text("GDH by TobyAdd");
 			if (ImGui::Button("Sourse code")) { ShellExecuteA(0, "open", "https://github.com/TobyAdd/GDH-Overlay", NULL, NULL, SW_SHOWMAXIMIZED); }
 			if (ImGui::Button("Support project")) { ShellExecuteA(0, "open", "https://new.donatepay.ru/@TobyAdd", NULL, NULL, SW_SHOWMAXIMIZED); }
 			if (ImGui::Button("Special thanks")) { ShellExecuteA(0, "open", "SpecialThx.txt", NULL, NULL, SW_SHOWMAXIMIZED); }
-		}ImGui::TreePop();
+			ImGui::TreePop();
+		}
 
 		ImGui::End();
-		
-		ImGui::Begin("Player/Rainbow", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollWithMouse);
-		if (InitTabRgb) { ImGui::SetWindowSize(ImVec2(210 * hacks.pixelsize, 200 * hacks.pixelsize)); ImGui::SetWindowPos(ImVec2(890 * hacks.pixelsize, 400 * hacks.pixelsize)); ImGui::SetWindowFontScale(hacks.pixelsize); InitTabRgb = false; }
-		if (ImGui::Begin("Player/Rainbow"), nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize) {
-			if (ImGui::TreeNode("Player 1")) {
-				if (ImGui::RadioButton("Off", &hacks.ImGui_player_rainbow, 0)) {
-					PlayLayer::player_rainbow = hacks.ImGui_player_rainbow;
-				PlayLayer::update_rainbow(0, hacks.ImGui_player_rainbow, hacks.ImGui_player_rainbow_speed, hacks.ImGui_player_rainbow_speed2);
-				} ImGui::SameLine();
-				if (ImGui::RadioButton("RGB", &hacks.ImGui_player_rainbow, 1)) {
-					PlayLayer::player_rainbow = hacks.ImGui_player_rainbow;
-					PlayLayer::update_rainbow(0, hacks.ImGui_player_rainbow, hacks.ImGui_player_rainbow_speed, hacks.ImGui_player_rainbow_speed2);
-				}
-				if (ImGui::DragFloat("Time", &hacks.ImGui_player_rainbow_speed, 0.5f, 0.01f, 500.0f, "%f", 0)) {
-					PlayLayer::player_rainbow_speed = hacks.ImGui_player_rainbow_speed;
-					PlayLayer::update_rainbow(0, hacks.ImGui_player_rainbow, hacks.ImGui_player_rainbow_speed, hacks.ImGui_player_rainbow_speed2);
-				}
-				if (ImGui::DragFloat("Time2", &hacks.ImGui_player_rainbow_speed2, 0.5f, 0.01f, 500.0f, "%f", 0)) {
-					PlayLayer::player_rainbow_speed2 = hacks.ImGui_player_rainbow_speed2;
-					PlayLayer::update_rainbow(0, hacks.ImGui_player_rainbow, hacks.ImGui_player_rainbow_speed, hacks.ImGui_player_rainbow_speed2);
-				}
-				ImGui::TreePop();
-			}
-			if (ImGui::TreeNode("Player 2")) {
-				if (ImGui::RadioButton("Off", &hacks.ImGui_player2_rainbow, 0)) {
-					PlayLayer::player2_rainbow = hacks.ImGui_player2_rainbow;
-					PlayLayer::update_rainbow(1, hacks.ImGui_player2_rainbow, hacks.ImGui_player2_rainbow_speed, hacks.ImGui_player2_rainbow_speed2);
-				} ImGui::SameLine();
-				if (ImGui::RadioButton("RGB", &hacks.ImGui_player2_rainbow, 1)) {
-					PlayLayer::player2_rainbow = hacks.ImGui_player2_rainbow;
-					PlayLayer::update_rainbow(1, hacks.ImGui_player2_rainbow, hacks.ImGui_player2_rainbow_speed, hacks.ImGui_player2_rainbow_speed2);
-				}
-				if (ImGui::DragFloat("Time", &hacks.ImGui_player2_rainbow_speed, 0.5f, 0.01f, 500.0f, "%f", 0)) {
-					PlayLayer::player2_rainbow_speed = hacks.ImGui_player2_rainbow_speed;
-					PlayLayer::update_rainbow(1, hacks.ImGui_player2_rainbow, hacks.ImGui_player2_rainbow_speed, hacks.ImGui_player2_rainbow_speed2);
-				}
-				if (ImGui::DragFloat("Time2", &hacks.ImGui_player2_rainbow_speed2, 0.5f, 0.01f, 500.0f, "%f", 0)) {
-					PlayLayer::player2_rainbow_speed = hacks.ImGui_player2_rainbow_speed;
-					PlayLayer::update_rainbow(1, hacks.ImGui_player2_rainbow, hacks.ImGui_player2_rainbow_speed, hacks.ImGui_player2_rainbow_speed2);
-				}
-				ImGui::TreePop();
-			}
-			if (ImGui::TreeNode("Trail")) {
-				if (ImGui::RadioButton("Off", &hacks.ImGui_player3_rainbow, 0)) {
-					PlayLayer::player3_rainbow = hacks.ImGui_player3_rainbow;
-					PlayLayer::update_rainbow(2, hacks.ImGui_player3_rainbow, hacks.ImGui_player3_rainbow_speed, 0.0f);
-				} ImGui::SameLine();
-				if (ImGui::RadioButton("RGB", &hacks.ImGui_player3_rainbow, 1)) {
-					PlayLayer::player3_rainbow = hacks.ImGui_player3_rainbow;
-					PlayLayer::update_rainbow(2, hacks.ImGui_player3_rainbow, hacks.ImGui_player3_rainbow_speed, 0.0f);
-				}
-				if (ImGui::DragFloat("Time", &hacks.ImGui_player3_rainbow_speed, 0.5f, 0.01f, 500.0f, "%f", 0)) {
-				PlayLayer::player3_rainbow_speed = hacks.ImGui_player3_rainbow_speed;
-				PlayLayer::update_rainbow(2, hacks.ImGui_player3_rainbow, hacks.ImGui_player3_rainbow_speed, 0.0f);
-				}
-				ImGui::TreePop();
-			}
-			if (ImGui::TreeNode("Wave Trail")) {
-				if (ImGui::RadioButton("Off", &hacks.ImGui_player4_rainbow, 0)) {
-					PlayLayer::player3_rainbow_speed = hacks.ImGui_player4_rainbow;
-					PlayLayer::update_rainbow(3, hacks.ImGui_player4_rainbow, hacks.ImGui_player4_rainbow_speed, 0.0f);
-				} ImGui::SameLine();
-				if (ImGui::RadioButton("RGB", &hacks.ImGui_player4_rainbow, 1)) {
-					PlayLayer::player4_rainbow = hacks.ImGui_player4_rainbow;
-					PlayLayer::update_rainbow(3, hacks.ImGui_player4_rainbow, hacks.ImGui_player4_rainbow_speed, 0.0f);
-				}
-				if (ImGui::DragFloat("Time", &hacks.ImGui_player4_rainbow_speed, 0.5f, 0.01f, 500.0f, "%f", 0)) {
-					PlayLayer::player4_rainbow_speed = hacks.ImGui_player4_rainbow_speed;
-					PlayLayer::update_rainbow(3, hacks.ImGui_player4_rainbow, hacks.ImGui_player4_rainbow_speed, 0.0f);
-				}
-				ImGui::TreePop();
-			}
 
-			ImGui::End();
-
-			ImGui::Begin("Nong Downloader", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollWithMouse);
+			ImGui::Begin("Nong Downloader", nullptr, ImGuiWindowFlags_NoResize);
 			if (InitTabNong) { ImGui::SetWindowSize(ImVec2(210 * hacks.pixelsize, 200 * hacks.pixelsize));  ImGui::SetWindowPos(ImVec2(670 * hacks.pixelsize, 290 * hacks.pixelsize)); ImGui::SetWindowFontScale(hacks.pixelsize); InitTabNong = false; }
 			ImGui::Text("ID:");
 			ImGui::PushItemWidth(196.000000 * hacks.pixelsize);
@@ -661,19 +567,26 @@ void RenderMain()
 				char* sAppDataPath; size_t iAppDataPathLength;
 				_dupenv_s(&sAppDataPath, &iAppDataPathLength, "LOCALAPPDATA");
 				std::string stdAppData(sAppDataPath);
-
 				std::string delcommand = stdAppData + '\\' + gdFolder + '\\' + std::to_string(hacks.songid) + ".mp3";
 				MessageBoxA(0, delcommand.c_str(), 0, MB_OK);
 				std::filesystem::remove(delcommand.c_str());
 			}
 			ImGui::End();
-		}
 	}
 }
 
+inline int(__thiscall* MenuLayer_init)(gd::MenuLayer* self);
+int __fastcall MenuLayer_initHook(gd::MenuLayer* self);
+bool was = true;
 
-
-
+int __fastcall MenuLayer_initHook(gd::MenuLayer* self) {	
+	if (was) {
+		InitSettings();
+		InitHacks();
+		was = false;
+	}
+	return (int)MenuLayer_init(self);
+}
 
 BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
 {
@@ -681,20 +594,22 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
 	{
 	case DLL_PROCESS_ATTACH:
 		DisableThreadLibraryCalls(hModule);
-		ImGuiHook::Load(RenderMain);	
+		ImGuiHook::Load(RenderMain);
 		if (!std::filesystem::is_directory(".gdh") || !std::filesystem::exists(".gdh"))
 		{
 			std::filesystem::create_directory(".gdh");
 		}
-		InitSettings();
 		MH_Initialize();
 		SpeedhackAudio::init();
 		PlayLayer::mem_init();
-		GameManager::mem_init();
+		MH_CreateHook(
+			(PVOID)(base + 0x1907B0),
+			MenuLayer_initHook,
+			(PVOID*)&MenuLayer_init
+		);
 		MH_EnableHook(MH_ALL_HOOKS);
 		break;
 	case DLL_PROCESS_DETACH:
-		ImGuiHook::Unload();
 		SaveSettings();
 		break;
 	}

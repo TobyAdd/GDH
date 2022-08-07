@@ -15,16 +15,6 @@ namespace PlayLayer {
 
 	extern bool practice;
 
-	extern int player_rainbow;
-	extern float player_rainbow_speed;
-	extern float player_rainbow_speed2;
-	extern int player2_rainbow;
-	extern float player2_rainbow_speed;
-	extern float player2_rainbow_speed2;
-	extern int player3_rainbow;
-	extern float player3_rainbow_speed;
-	extern int player4_rainbow;
-	extern float player4_rainbow_speed;
 	extern bool CPScounter;
 	extern int cpsint;
 	extern int cpscount;
@@ -32,6 +22,8 @@ namespace PlayLayer {
 
 	extern int fpsint;
 
+	extern bool hideattW;
+	extern bool totalattW;
 
 
 	inline void(__thiscall* update)(gd::PlayLayer* self, float dt);

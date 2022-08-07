@@ -1,6 +1,5 @@
 #pragma once
 #include "PlayLayer.h"
-#include "GameManager.h"
 #include <vector>
 #include "../imgui/kiero/minhook/include/MinHook.h"
 #include "../bools.cpp"
@@ -18,16 +17,6 @@ float PlayLayer::prevX = 0;
 bool PlayLayer::practice;
 
 //RainBow Var
-int PlayLayer::player_rainbow;
-float PlayLayer::player_rainbow_speed;
-float PlayLayer::player_rainbow_speed2;
-int PlayLayer::player2_rainbow;
-float PlayLayer::player2_rainbow_speed;
-float PlayLayer::player2_rainbow_speed2;
-int PlayLayer::player3_rainbow;
-float PlayLayer::player3_rainbow_speed;
-int PlayLayer::player4_rainbow;
-float PlayLayer::player4_rainbow_speed;
 gd::PlayLayer* play_layer;
 //RainBow Var
 
@@ -44,6 +33,9 @@ bool PlayLayer::FPScounter;
 int PlayLayer::fpsint;
 //FPS Var
 
+bool PlayLayer::hideattW;
+bool PlayLayer::totalattW;
+
 int fpsposition;
 int cpsposition;
 int noclipaccuracyposition;
@@ -54,28 +46,6 @@ void WriteBytes(void* location, std::vector<BYTE> bytes) {
 	memcpy(location, bytes.data(), bytes.size());	
 	VirtualProtect(location, bytes.size(), old_prot, &old_prot);
 }
-
-CCAction* create_rgb(float speed, bool is_reverse = false) {
-	return is_reverse ?
-		CCRepeatForever::create(CCSequence::create(
-			CCTintTo::create(speed, 0, 255, 255),
-			CCTintTo::create(speed, 0, 0, 255),
-			CCTintTo::create(speed, 255, 0, 255),
-			CCTintTo::create(speed, 255, 0, 0),
-			CCTintTo::create(speed, 255, 255, 0),
-			CCTintTo::create(speed, 0, 255, 0),
-			nullptr
-		)) : CCRepeatForever::create(CCSequence::create(
-			CCTintTo::create(speed, 255, 0, 0),
-			CCTintTo::create(speed, 255, 255, 0),
-			CCTintTo::create(speed, 0, 255, 0),
-			CCTintTo::create(speed, 0, 255, 255),
-			CCTintTo::create(speed, 0, 0, 255),
-			CCTintTo::create(speed, 255, 0, 255),
-			nullptr
-		));
-}
-
 
 std::string getAccuracyText() {
 	if (PlayLayer::frames == 0) return "Accuracy: 100.00%";
@@ -118,7 +88,6 @@ std::string GetFPSText() {
 
 	size_t base = (size_t)GetModuleHandle(0);
 	if (FPScounter) {
-
 		if (!noclipAcc) { fpsposition = 3; }
 		if (CPScounter && noclipAcc) { fpsposition = 21; }
 		auto FPSText = GetFPSText();
@@ -205,14 +174,11 @@ std::string GetFPSText() {
 
 	cpscount = 0; //cps
 	PlayLayer::resetLevel(self);
-	if (player2_rainbow == 1) {
-		CCAction* rgb1 = create_rgb(player2_rainbow_speed);
-		CCAction* rgb2 = create_rgb(player2_rainbow_speed, true);
-		((CCNode*)self->m_pPlayer2)->runAction((CCAction*)rgb2->copy());
-		((CCNode*)((CCNode*)self->m_pPlayer2->getChildren()->objectAtIndex(0))->getChildren()->objectAtIndex(0))->runAction((CCAction*)rgb1->copy());
-		((CCNode*)self->m_pPlayer2->getChildren()->objectAtIndex(1))->runAction((CCAction*)rgb2->copy());
-		((CCNode*)((CCNode*)self->m_pPlayer2->getChildren()->objectAtIndex(1))->getChildren()->objectAtIndex(0))->runAction((CCAction*)rgb1->copy());
-	}
+	self->m_attemptLabel->setVisible(!PlayLayer::hideattW);
+		if (PlayLayer::totalattW) {
+			std::string totalcount = "Attempt " + std::to_string(self->m_level->m_nAttempts);
+			self->m_attemptLabel->setCString(totalcount.c_str());
+		}	
 	}
 
 	void __fastcall PlayLayer::onQuitHook(gd::PlayLayer* self, void*) {
@@ -221,10 +187,7 @@ std::string GetFPSText() {
 	}
 
 	bool __fastcall PlayLayer::initHook(gd::PlayLayer* self, void*, void* level) {
-		bool result = PlayLayer::init(self, level);
 		play_layer = self;
-		
-		size_t base = (size_t)GetModuleHandle(0);
 	
 		prevX = 0;
 		fpsposition = 21;
@@ -256,51 +219,9 @@ std::string GetFPSText() {
 			play_layer->togglePracticeMode(true);
 		//Auto Toggle Practice	
 
-		//Rainbow
-		if (PlayLayer::player_rainbow == 1) {
-			CCAction* rgb1 = create_rgb(PlayLayer::player_rainbow_speed);
-			CCAction* rgb2 = create_rgb(PlayLayer::player_rainbow_speed, true);
-			((CCNode*)self->m_pPlayer1)->runAction((CCAction*)rgb1->copy());
-			((CCNode*)((CCNode*)self->m_pPlayer1->getChildren()->objectAtIndex(0))->getChildren()->objectAtIndex(0))->runAction((CCAction*)rgb2->copy());
-			((CCNode*)self->m_pPlayer1->getChildren()->objectAtIndex(1))->runAction((CCAction*)rgb1->copy());
-			((CCNode*)((CCNode*)self->m_pPlayer1->getChildren()->objectAtIndex(1))->getChildren()->objectAtIndex(0))->runAction((CCAction*)rgb2->copy());
-		}
+		return PlayLayer::init(self, level);
 
-		if (PlayLayer::player3_rainbow) {
-			((CCNode*)self->m_pObjectLayer->getChildren()->objectAtIndex(49))->runAction(create_rgb(player3_rainbow_speed));
-		}
-		if (PlayLayer::player4_rainbow) {
-			((CCNode*)self->m_pObjectLayer->getChildren()->objectAtIndex(50))->runAction(create_rgb(player4_rainbow_speed));
-		}
-		//Rainbow
-
-		return result;
-	}
-
-
-	void PlayLayer::update_rainbow(int idx, int type, float speed, float speed2) {
-		if (idx == 0) {
-			PlayLayer::player_rainbow = type;
-			PlayLayer::player_rainbow_speed = speed;
-			PlayLayer::player_rainbow_speed2 = speed2;
-			return;
-		}
-		if (idx == 1) {
-			PlayLayer::player2_rainbow = type;
-			PlayLayer::player2_rainbow_speed = speed;
-			PlayLayer::player2_rainbow_speed2 = speed2;
-			return;
-		}
-		if (idx == 2) {
-			PlayLayer::player3_rainbow = type;
-			PlayLayer::player3_rainbow_speed = speed;
-			return;
-		}
-		if (idx == 3) {
-			PlayLayer::player4_rainbow = type;
-			PlayLayer::player4_rainbow_speed = speed;
-			return;
-		}
+		
 	}
 	
 	int __fastcall PlayLayer::hkDeath(void* self, void*, void* go, void* powerrangers) {
@@ -316,17 +237,15 @@ std::string GetFPSText() {
 	return PlayLayer::death(self, go, powerrangers);
 }
 	bool __fastcall PlayLayer::pushButtonHook(gd::PlayerObject* self, int edx, void* PlayerButton) {
-
-
+		if (CPScounter) { cpscount++; cpsint++; }
 		return PlayLayer::pushButton(self, PlayerButton);
 	}
 
 	bool __fastcall PlayLayer::releaseButtonHook(gd::PlayerObject* self, int edx, void* PlayerButton) {
-		if (CPScounter) { cpscount++; cpsint++; }
 		return PlayLayer::releaseButton(self, PlayerButton);
 	}
 
-
+	//0x20D3C0
 	void PlayLayer::mem_init() {
 		size_t base = (size_t)GetModuleHandle(0);
 
