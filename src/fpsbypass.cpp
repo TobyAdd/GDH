@@ -69,7 +69,7 @@ namespace FPSMultiplier{
                     gd::PlayLayer::get()->m_pPlayer1->m_position.x = FLT_MAX;
                 }
                 if (key == 'R') {
-                    PlayLayer::resetLevel(gd::PlayLayer::get());
+                    PlayLayer::resetLevelHook(gd::PlayLayer::get());
                 }
                 if (key == 'J') {
                     spambot::enable = !spambot::enable;

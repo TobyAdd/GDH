@@ -150,16 +150,51 @@ namespace PlayLayer {
 	}
 
 	void __fastcall PlayLayer::updateHook(gd::PlayLayer* self, int edx, float deltaTime) {
-		PlayLayer::update(self, deltaTime);	
-		if (spambot::enable) {
-			if (spambot::NextFrame()) {
-				if (spambot::downed) {
-					if (spambot::player1) PlayLayer::releaseButton(self, 0, true);
-					if (spambot::player2) PlayLayer::releaseButton(self, 0, false);
-				}
-				else {
-					if (spambot::player1) PlayLayer::pushButton(self, 0, true);
-					if (spambot::player2) PlayLayer::pushButton(self, 0, false);
+		PlayLayer::update(self, deltaTime);			
+		if (self->m_pPlayer1->m_position.x != 0 && !self->m_isDead) DashReplayEngine::frame++;
+		if (DashReplayEngine::frame) {
+			if (DashReplayEngine::mode == 1) {
+				replaydata newdata_p1 = {DashReplayEngine::frame, self->m_pPlayer1->m_position.x, self->m_pPlayer1->m_position.y, self->m_pPlayer1->getRotation(), (float)self->m_pPlayer1->m_yAccel,
+					DashReplayEngine::DownP1};
+				DashReplayEngine::replay_p1.push_back(newdata_p1);
+
+				replaydata newdata_p2 = {DashReplayEngine::frame, self->m_pPlayer2->m_position.x, self->m_pPlayer2->m_position.y, self->m_pPlayer2->getRotation(), (float)self->m_pPlayer1->m_yAccel,
+					DashReplayEngine::DownP2};
+				DashReplayEngine::replay_p2.push_back(newdata_p2);
+			}
+			else if (DashReplayEngine::mode == 2) {
+				if (DashReplayEngine::frame < (int)DashReplayEngine::replay_p1.size()) {
+					if (std::find(DashReplayEngine::invframes.begin(), DashReplayEngine::invframes.end(), DashReplayEngine::frame) != DashReplayEngine::invframes.end()) noclip = true;
+					else noclip = false;
+					self->m_pPlayer1->m_position.x = DashReplayEngine::replay_p1[DashReplayEngine::frame - 1].pos_x;
+					self->m_pPlayer1->m_position.y = DashReplayEngine::replay_p1[DashReplayEngine::frame - 1].pos_y;
+					self->m_pPlayer1->setRotation(DashReplayEngine::replay_p1[DashReplayEngine::frame - 1].rotation);
+					self->m_pPlayer1->m_yAccel = DashReplayEngine::replay_p1[DashReplayEngine::frame - 1].y_vel;
+
+					if (DashReplayEngine::replay_p1[DashReplayEngine::frame].down && !DashReplayEngine::DownP1) {
+						DashReplayEngine::DownP1 = true;
+						PlayLayer::pushButton(self, 0, true);
+					}
+
+					if (!DashReplayEngine::replay_p1[DashReplayEngine::frame].down && DashReplayEngine::DownP1) {
+						DashReplayEngine::DownP1 = false;
+						PlayLayer::releaseButton(self, 0, true);
+					}
+
+					self->m_pPlayer2->m_position.x = DashReplayEngine::replay_p2[DashReplayEngine::frame - 1].pos_x;
+					self->m_pPlayer2->m_position.y = DashReplayEngine::replay_p2[DashReplayEngine::frame - 1].pos_y;
+					self->m_pPlayer2->setRotation(DashReplayEngine::replay_p2[DashReplayEngine::frame - 1].rotation);
+					self->m_pPlayer2->m_yAccel = DashReplayEngine::replay_p2[DashReplayEngine::frame - 1].y_vel;
+
+					if (DashReplayEngine::replay_p2[DashReplayEngine::frame].down && !DashReplayEngine::DownP2) {
+						DashReplayEngine::DownP2 = true;
+						PlayLayer::pushButton(self, 0, false);
+					}
+
+					if (!DashReplayEngine::replay_p2[DashReplayEngine::frame].down && DashReplayEngine::DownP2) {
+						DashReplayEngine::DownP2 = false;
+						PlayLayer::releaseButton(self, 0, false);
+					}
 				}
 			}
 		}
@@ -177,50 +212,16 @@ namespace PlayLayer {
 				}
 			}
 		}
-		
-		if (self->m_pPlayer1->m_position.x != 0 && !self->m_isDead) DashReplayEngine::frame++;
-		if (DashReplayEngine::frame) {
-			if (DashReplayEngine::mode == 1) {
-				replaydata newdata_p1 = {DashReplayEngine::frame, self->m_pPlayer1->m_position.x, self->m_pPlayer1->m_position.y, self->m_pPlayer1->getRotation(), (float)self->m_pPlayer1->m_yAccel,
-					DashReplayEngine::DownP1};
-				DashReplayEngine::replay_p1.push_back(newdata_p1);
 
-				replaydata newdata_p2 = {DashReplayEngine::frame, self->m_pPlayer2->m_position.x, self->m_pPlayer2->m_position.y, self->m_pPlayer2->getRotation(), (float)self->m_pPlayer1->m_yAccel,
-					DashReplayEngine::DownP2};
-				DashReplayEngine::replay_p2.push_back(newdata_p2);
-			}
-			else if (DashReplayEngine::mode == 2) {
-				if (DashReplayEngine::frame > (int)DashReplayEngine::replay_p1.size()) return;
-				if (std::find(DashReplayEngine::invframes.begin(), DashReplayEngine::invframes.end(), DashReplayEngine::frame) != DashReplayEngine::invframes.end()) noclip = true;
-				else noclip = false;
-				self->m_pPlayer1->m_position.x = DashReplayEngine::replay_p1[DashReplayEngine::frame - 1].pos_x;
-				self->m_pPlayer1->m_position.y = DashReplayEngine::replay_p1[DashReplayEngine::frame - 1].pos_y;
-				self->m_pPlayer1->setRotation(DashReplayEngine::replay_p1[DashReplayEngine::frame - 1].rotation);
-				self->m_pPlayer1->m_yAccel = DashReplayEngine::replay_p1[DashReplayEngine::frame - 1].y_vel;
-
-				if (DashReplayEngine::replay_p1[DashReplayEngine::frame].down && !DashReplayEngine::DownP1) {
-					DashReplayEngine::DownP1 = true;
-					PlayLayer::pushButton(self, 0, true);
+		if (spambot::enable) {
+			if (spambot::NextFrame()) {
+				if (spambot::downed) {
+					if (spambot::player1) { PlayLayer::releaseButtonHook(self, 0, 0, true);}
+					if (spambot::player2) { PlayLayer::releaseButtonHook(self, 0, 0, false);} 
 				}
-
-				if (!DashReplayEngine::replay_p1[DashReplayEngine::frame].down && DashReplayEngine::DownP1) {
-					DashReplayEngine::DownP1 = false;
-					PlayLayer::releaseButton(self, 0, true);
-				}
-
-				self->m_pPlayer2->m_position.x = DashReplayEngine::replay_p2[DashReplayEngine::frame - 1].pos_x;
-				self->m_pPlayer2->m_position.y = DashReplayEngine::replay_p2[DashReplayEngine::frame - 1].pos_y;
-				self->m_pPlayer2->setRotation(DashReplayEngine::replay_p2[DashReplayEngine::frame - 1].rotation);
-				self->m_pPlayer2->m_yAccel = DashReplayEngine::replay_p2[DashReplayEngine::frame - 1].y_vel;
-
-				if (DashReplayEngine::replay_p2[DashReplayEngine::frame].down && !DashReplayEngine::DownP2) {
-					DashReplayEngine::DownP2 = true;
-					PlayLayer::pushButton(self, 0, false);
-				}
-
-				if (!DashReplayEngine::replay_p2[DashReplayEngine::frame].down && DashReplayEngine::DownP2) {
-					DashReplayEngine::DownP2 = false;
-					PlayLayer::releaseButton(self, 0, false);
+				else {
+					if (spambot::player1) { PlayLayer::pushButtonHook(self, 0, 0, true);}
+					if (spambot::player2) { PlayLayer::pushButtonHook(self, 0, 0, false);} 
 				}
 			}
 		}
