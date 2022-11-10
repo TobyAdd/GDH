@@ -1,0 +1,136 @@
+{
+  "hacks": [
+	{
+	  "name": "Icons",
+	  "desc": "Unlocks all icons",
+	  "opcodes": [
+	    {"addr": "0xC50A8", "on": "B0 01 90 90 90", "off": "E8 7A CD 19 00"},
+		{"addr": "0xC54BA", "on": "B0 01 90 90 90", "off": "E8 68 C9 19 00"}
+	  ]
+	},
+	
+	{
+	  "name": "Text Length",
+	  "desc": "Allows for unlimited text length in text inputs",
+	  "opcodes": [
+	    {"addr": "0x21ACB", "on": "EB 04", "off": "7C 04"}
+	  ]
+	},
+	
+	{
+	  "name": "Character Filter",
+	  "desc": "Lets you input any character in text inputs",
+	  "opcodes": [
+	    {"addr": "0x21A99", "on": "90 90", "off": "75 04"}
+	  ]
+	},
+	
+	{
+	  "name": "Slider Limit",
+	  "desc": "Lets sliders be dragged beyond the visible limit.",
+	  "opcodes": [
+	    {"addr": "0x2E5CA", "on": "EB", "off": "76"},
+	    {"addr": "0x2E5F8", "on": "EB", "off": "76"}
+	  ]
+	},
+	
+	{
+	  "name": "Main Levels",
+	  "desc": "Unlocks main demon levels",
+	  "opcodes": [
+	    {"addr": "0x188CE1", "on": "E9 8A 00 00 00 90", "off": "0F 8E 89 00 00 00"}
+	  ]
+	},
+	
+	{
+	  "name": "Guard Vault",
+	  "desc": "Unlocks the guard's vault",
+	  "opcodes": [
+	    {"addr": "0x1DE1DA", "on": "90 90", "off": "7C 4A"}
+	  ]
+	},
+	
+	{
+	  "name": "Keymaster Vault",
+	  "desc": "Unlocks the keymaster's vault",
+	  "opcodes": [
+	    {"addr": "0x4F268", "on": "90 90", "off": "74 4A"}
+	  ]
+	},
+	
+	{
+	  "name": "Keymaster Basement",
+	  "desc": "Unlocks the keymaster's basement",
+	  "opcodes": [
+	    {"addr": "0x221759", "on": "90 90", "off": "74 4A"}
+	  ]
+	},
+	
+	{
+	  "name": "Basement Key Bypass",
+	  "desc": "Lets you unlock the locks in the basement",
+	  "opcodes": [
+	    {"addr": "0x226E19", "on": "E9 59 01 00 00 90", "off": "0F 85 58 01 00 00"},
+		{"addr": "0x226FB8", "on": "E9 59 01 00 00 90", "off": "0F 85 58 01 00 00"},
+		{"addr": "0x227157", "on": "E9 30 02 00 00 90", "off": "0F 85 2F 02 00 00"}
+	  ]
+	},
+	
+	{
+	  "name": "Challenge Bypass",
+	  "desc": "Unlocks 'The Challenge' level",
+	  "opcodes": [
+	    {"addr": "0x2214E0", "on": "90 90 90 90 90 90", "off": "0F 84 87 00 00 00"}
+	  ]
+	},
+	
+	{
+	  "name": "Treasure Room",
+	  "desc": "Unlocks the treasure room",
+	  "opcodes": [
+	    {"addr": "0x4F631", "on": "90 90", "off": "74 4A"}
+	  ]
+	},
+	
+	{
+	  "name": "Potbor Shop",
+	  "desc": "Unlocks Potbor's shop in the treasure room",
+	  "opcodes": [
+	    {"addr": "0x15706B", "on": "90 90 90 90 90 90", "off": "0F 8C B4 01 00 00"}
+	  ]
+	},
+	
+	{
+	  "name": "Scratch Shop",
+	  "desc": "Unlocks Scratch's shop in the treasure room",
+	  "opcodes": [
+	    {"addr": "0x1562D3", "on": "90 90 90 90 90 90", "off": "0F 8C AF 01 00 00"}
+	  ]
+	},
+	
+	{
+	  "name": "Shop Items",
+	  "desc": "Allows all shop items to be bought for 0 mana orbs",
+	  "opcodes": [
+	    {"addr": "0x14B339", "on": "90 31 F6 89 B3 10 01 00 00 89 B3 14 01 00 00 E8 03 6B FA FF 8B C8 E8 2C 82 FA FF 90", "off": "2B B3 10 01 00 00 2B B3 14 01 00 00 E8 06 6B FA FF 8B C8 E8 2F 82 FA FF 3B F0 7F 25"}
+	  ]
+	},
+	
+	{
+	  "name": "Gatekeeper Vault",
+	  "desc": "Unlocks the Gatekeeper's vault",
+	  "opcodes": [
+	    {"addr": "0x188836", "on": "90 90", "off": "74 61"},
+		{"addr": "0x18857F", "on": "90 90 90 90 90 90", "off": "0F 84 FC 00 00 00"}
+	  ]
+	},
+	
+	{
+	  "name": "Backup Stars Limit",
+	  "desc": "Lets you backup data with less than 10 stars",
+	  "opcodes": [
+	    {"addr": "0x3928E", "on": "EB 3E", "off": "7D 3E"}
+	  ]
+	}
+  ]
+}
