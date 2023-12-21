@@ -1,5 +1,11 @@
-# End of Life
-GDH temporarily ceases development due to the fact that there is a better mod menu than mine, perhaps this menu mod will continue its development after 2.2 release (who knows)
 # GDH
-Geometry Dash Mod Tool
-![image](https://user-images.githubusercontent.com/66429886/201069550-fc3bdbcc-c091-4d1f-b6cd-1c3f8f911327.png)
+Mod Menu for Geometry Dash 2.2
+# Screenshot
+![GeometryDash_u2hmObcgOf](https://github.com/TobyAdd/GDH/assets/66429886/14aba1a5-4c0d-42fd-87da-e4af25b08dde)
+# How to install?
+1. Go to [Releases](https://github.com/TobyAdd/GDH/releases/latest)
+2. Download Archive
+3. Extract archive to Geometry Dash folder
+4. Open Geometry Dash and press Tab to toggle UI
+# Special Thanks
+Ocornut for [ImGui](https://github.com/ocornut/imgui)
