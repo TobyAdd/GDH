@@ -1,35 +1,21 @@
 cmake_minimum_required(VERSION 3.0.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-project(GDH)
+set(PROJECT GDH)
+project(${PROJECT})
 
-file(GLOB_RECURSE SOURCES 
-    src/*.cpp
-)
+file(GLOB_RECURSE SOURCE_FILES source/*.cpp)
+add_library(${PROJECT} SHARED ${SOURCE_FILES})
 
-add_library(GDH SHARED ${SOURCES})
-
-target_include_directories(GDH PRIVATE
+target_include_directories(${PROJECT} PRIVATE
   libraries/minhook/include
-  libraries/gd.h/include
-  libraries/gd.h/
-  libraries/cocos-headers/cocos2dx/
-  libraries/cocos-headers/cocos2dx/include
-  libraries/cocos-headers/cocos2dx/kazmath/include
-  libraries/cocos-headers/cocos2dx/platform/win32
-  libraries/cocos-headers/cocos2dx/platform/third_party/win32
-  libraries/cocos-headers/cocos2dx/platform/third_party/win32/OGLES
-  libraries/cocos-headers/extensions/
   libraries/imgui-hook
   libraries/imgui-hook/imgui
+  libraries
 )
 
 add_subdirectory(libraries/minhook)
 add_subdirectory(libraries/imgui-hook)
-target_link_libraries(GDH 
-  ${CMAKE_SOURCE_DIR}/libraries/cocos-headers/cocos2dx/libcocos2d.lib
-  imgui-hook
-  minhook
-  opengl32
-)
+target_link_libraries(${PROJECT} minhook imgui-hook opengl32)
