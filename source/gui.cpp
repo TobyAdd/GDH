@@ -6,11 +6,14 @@
 #include "hooks.h"
 #include "hacks.h"
 #include <shellapi.h>
+#include "speedhackAudio.hpp"
 
 bool gui::show = false;
 bool gui::inited = false;
 
 bool secret = false;
+
+bool speedhack_audio = true;
 
 extern "C"
 {
@@ -64,9 +67,9 @@ void gui::Render()
                             sscanf_s(addrStr.c_str(), "%x", &address);
 
                             DWORD base = (DWORD)GetModuleHandleA(0);
-                            if (!opcode["lib"].is_null() && string(opcode["lib"]) == "libcocos2d.dll")
+                            if (!opcode["lib"].is_null())
                             {
-                                base = (DWORD)GetModuleHandleA("libcocos2d.dll");
+                                base = (DWORD)GetModuleHandleA(string(opcode["lib"]).c_str());
                             }
 
                             hacks::writemem(base + address, bytesStr);
@@ -79,7 +82,19 @@ void gui::Render()
                 }
 
                 if (item.key() == "Player") {
-                    ImGui::DragFloat("##Speed", &speed, 0.01f, 0, FLT_MAX, "Speed: %.2f");
+                    if (ImGui::DragFloat("##Speed", &speed, 0.01f, 0, FLT_MAX, "Speed: %.2f")) {
+                        speedhackAudio::set(speed);
+                    }
+
+                    ImGui::SameLine();
+                    if (ImGui::Checkbox("Audio", &speedhack_audio)) {
+                        if (speedhack_audio) {
+                            speedhackAudio::set(speed);
+                        }
+                        else {
+                            speedhackAudio::set(1);
+                        }
+                    }
                 }
 
                 ImGui::EndChild();
@@ -98,7 +113,7 @@ void gui::Render()
         }
 
         if (ImGui::BeginTabItem("About")){ 
-            ImGui::Text("GDH v2 Beta for Geometry Dash 2.2");
+            ImGui::Text("GDH v2.2 Beta for Geometry Dash 2.2");
             ImGui::Text("Created by TobyAdd");
             if (ImGui::MenuItem("Discord Server"))
                 ShellExecuteA(0, "open", "https://discord.gg/ahYEz4MAwP", 0, 0, 0);

@@ -25,9 +25,9 @@ void hacks::load()
                     uintptr_t address;
                     sscanf_s(opcode["addr"].get<string>().c_str(), "%x", &address);
                     DWORD base = (DWORD)GetModuleHandleA(0);
-                    if (!opcode["lib"].is_null() && string(opcode["lib"]) == "libcocos2d.dll")
+                    if (!opcode["lib"].is_null())
                     {
-                        base = (DWORD)GetModuleHandleA("libcocos2d.dll");
+                        base = (DWORD)GetModuleHandleA(string(opcode["lib"]).c_str());
                     }
                     writemem(base + address, opcode["on"].get<string>());
                 }

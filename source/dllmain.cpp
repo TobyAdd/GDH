@@ -4,6 +4,7 @@
 #include "gui.h"
 #include "hooks.h"
 #include "hacks.h"
+#include "speedhackAudio.hpp"
 
 DWORD WINAPI ThreadMain(LPVOID lpParam)
 {
@@ -15,6 +16,7 @@ DWORD WINAPI ThreadMain(LPVOID lpParam)
                             { MH_CreateHook(target, hook, trampoline); });
         hooks::init();
         hacks::load();
+        speedhackAudio::init();
         MH_EnableHook(MH_ALL_HOOKS);
     }
     return true;
