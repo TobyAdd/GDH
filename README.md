@@ -20,7 +20,7 @@ Install CMake
 1. `cmake -B build -DCMAKE_BUILD_TYPE=Release -T host=x86 -A win32`
 2. `cmake --build build --config Release --target ALL_BUILD`
 
-**_Move GDH.dll (build/Releases), libExtionsions.dll and hacks.json into your GD folder._**
+**_Move GDH.dll (build/Releases), libExtensions.dll and hacks.json into your GD folder._**
 
 # Special Thanks
 
