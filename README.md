@@ -1,11 +1,20 @@
-# GDH
-Mod Menu for Geometry Dash 2.2
-# Screenshot
-![GeometryDash_u2hmObcgOf](https://github.com/TobyAdd/GDH/assets/66429886/14aba1a5-4c0d-42fd-87da-e4af25b08dde)
-# How to install?
-1. Go to [Releases](https://github.com/TobyAdd/GDH/releases/latest)
-2. Download Archive
-3. Extract archive to Geometry Dash folder
-4. Open Geometry Dash and press Tab to toggle UI
-# Special Thanks
-Ocornut for [ImGui](https://github.com/ocornut/imgui)
+<div align="center">
+
+  # GDH: Now for 2.2!
+  ### GDH - Free, integrated and first Geometry Dash mod menu for 2.2!
+  
+  <a href="https://github.com/TobyAdd/GDH/releases" target="_blank" rel="noreferrer"> <img src="https://github.com/TobyAdd/GDH/assets/66429886/14aba1a5-4c0d-42fd-87da-e4af25b08dde" alt="GDH Menu" title="GDH Menu"/> </a>
+</div>
+
+---
+
+<h2 align="center">How to use?</h2>
+
+1. Open [latest release](https://github.com/TobyAdd/GDH/releases/latest) link
+2. Download "**Release.zip**" archive
+3. Extract all files from archive to **Geometry Dash** folder (that contains the **GeometryDash.exe**)
+5. Run Geometry Dash and press: **Tab** for show integrated menu
+
+---
+
+<p align="center"> Special Thanks: Ocornut for <a href="https://github.com/ocornut/imgui">Imgui</a> ; <a href="https://github.com/howhathe">howhathe</a> for the ReadMe </p>
