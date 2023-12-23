@@ -8,7 +8,7 @@ HGLRC originalContext = 0, newContext = 0;
 
 bool isInitialized = false;
 std::function<void()> drawFunc = []() {};
-std::function<void()> toggleFunction = []() {};
+std::function<void(int)> keyPressHandler = [](int _) {};
 HWND hWnd;
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -66,9 +66,9 @@ LRESULT CALLBACK HookedWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 {
     ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam);
 
-    if (msg == WM_KEYDOWN && wParam == VK_TAB && !ImGui::GetIO().WantCaptureKeyboard)
+    if (msg == WM_KEYDOWN && !ImGui::GetIO().WantCaptureKeyboard)
     {
-        toggleFunction();
+        keyPressHandler(wParam);
     }
 
     if (ImGui::GetIO().WantCaptureMouse)
@@ -115,7 +115,7 @@ void ImGuiHook::setRenderFunction(std::function<void()> func)
     drawFunc = func;
 }
 
-void ImGuiHook::setToggleFunction(std::function<void()> func)
+void ImGuiHook::setKeyPressHandler(std::function<void(int)> func)
 {
-    toggleFunction = func;
+    keyPressHandler = func;
 }
