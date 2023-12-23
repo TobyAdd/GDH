@@ -13,7 +13,7 @@
 1. Open [latest release](https://github.com/TobyAdd/GDH/releases/latest) link
 2. Download "**Release.zip**" archive
 3. Extract all files from archive to **Geometry Dash** folder (that contains the **GeometryDash.exe**)
-5. Run Geometry Dash and press: **Tab** for show integrated menu
+4. Run Geometry Dash and press: **Tab** for show integrated menu
 
 ---
 
