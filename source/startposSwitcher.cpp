@@ -6,7 +6,7 @@ namespace startposSwitcher
     void(__thiscall *setStartPosObject)(void *, void *) = nullptr;
     void(__thiscall *playLayerInit)(void *) = nullptr;
     void(__thiscall *startposObjectInit)(void *) = nullptr;
-    void(__thiscall *playLayerExit)(void *) = nullptr;
+    void(__thiscall *playLayerDestructor)(void *) = nullptr;
 
     void *playLayer = nullptr;
     std::vector<float *> startposObjects;
@@ -29,10 +29,10 @@ namespace startposSwitcher
         playLayerInit(self);
     }
 
-    void __fastcall playLayerExitHook(void *self, void *_) 
+    void __fastcall playLayerDestructorHook(void *self, void *_) 
     {
         playLayer = nullptr;
-        playLayerExit(self);
+        playLayerDestructor(self);
     }
 
     void init()
@@ -41,7 +41,7 @@ namespace startposSwitcher
 
         MH_CreateHook((LPVOID)(base + 0x3A0D10), startposObjectInitHook, (LPVOID *)&startposObjectInit);
         MH_CreateHook((LPVOID)(base + 0x18CC80), playLayerInitHook, (LPVOID *)&playLayerInit);
-        MH_CreateHook((LPVOID)(base + 0x2E5910), playLayerExitHook, (LPVOID *)&playLayerExit);
+        MH_CreateHook((LPVOID)(base + 0x2D6580), playLayerDestructorHook, (LPVOID *)&playLayerDestructor);
         resetLevel = (decltype(resetLevel))(base + 0x2E42B0);
         setStartPosObject = (decltype(setStartPosObject))(base + 0x195FC0);
     }
