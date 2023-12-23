@@ -1,11 +1,27 @@
 # GDH
+
 Mod Menu for Geometry Dash 2.2
-# Screenshot
-![GeometryDash_u2hmObcgOf](https://github.com/TobyAdd/GDH/assets/66429886/14aba1a5-4c0d-42fd-87da-e4af25b08dde)
+
+![In Game Screenshot](assets/menu.png)
+
 # How to install?
+
 1. Go to [Releases](https://github.com/TobyAdd/GDH/releases/latest)
-2. Download Archive
-3. Extract archive to Geometry Dash folder
-4. Open Geometry Dash and press Tab to toggle UI
+2. Download Release.zip
+3. Extract the archive to your Geometry Dash folder
+4. Open Geometry Dash and press tab to toggle the UI
+
+# Compiling
+
+Install CMake
+
+### Run these commands
+
+1. `cmake -B build -DCMAKE_BUILD_TYPE=Release -T host=x86 -A win32`
+2. `cmake --build build --config Release --target ALL_BUILD`
+
+**_Move GDH.dll (build/Releases), libExtionsions.dll and hacks.json into your GD folder._**
+
 # Special Thanks
+
 Ocornut for [ImGui](https://github.com/ocornut/imgui)

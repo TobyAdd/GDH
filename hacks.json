@@ -1,0 +1,263 @@
+{
+    "Creator": [
+        {
+            "enabled": false,
+            "name": "Custom object Bypass",
+            "opcodes": [
+                {
+                    "addr": "0xA76A4",
+                    "off": "0F 86 82",
+                    "on": "E9 83 00"
+                },
+                {
+                    "addr": "0xA7854",
+                    "off": "77 3A",
+                    "on": "90 90"
+                }
+            ]
+        },
+        {
+            "enabled": false,
+            "name": "Copy Hack",
+            "opcodes": [
+                {
+                    "addr": "0x24E1B4",
+                    "off": "90 90 90 90 90",
+                    "on": "90 90 90 90 90"
+                }
+            ]
+        },
+        {
+            "enabled": false,
+            "name": "Level Edit",
+            "opcodes": [
+                {
+                    "addr": "0x2B3A33",
+                    "off": "83 B9 BC 03 00 00 02 0F 85 89 00 00 00",
+                    "on": "90 90 90 90 90 90 90 90 90 90 90 90 90"
+                },
+                {
+                    "addr": "0x2B3A96",
+                    "off": "83 B8 BC 03 00 00 02 0F 44 CA",
+                    "on": "90 90 90 90 90 90 90 8B CA 90"
+                },
+                {
+                    "addr": "0x2B4D98",
+                    "off": "83 B8 BC 03 00 00 02 0F 85 BD 00 00 00",
+                    "on": "90 90 90 90 90 90 90 90 90 90 90 90 90"
+                },
+                {
+                    "addr": "0x2B4E15",
+                    "off": "74",
+                    "on": "EB"
+                },
+                {
+                    "addr": "0x270AC4",
+                    "off": "8A C3",
+                    "on": "B0 01"
+                }
+            ]
+        },
+        {
+            "enabled": false,
+            "name": "Slider Limit",
+            "opcodes": [
+                {
+                    "addr": "0x4CDAA",
+                    "off": "76",
+                    "on": "EB"
+                },
+                {
+                    "addr": "0x4CDD8",
+                    "off": "76",
+                    "on": "EB"
+                }
+            ]
+        },
+        {
+            "enabled": false,
+            "name": "Testmode Bypass",
+            "opcodes": [
+                {
+                    "addr": "0x2D7D75",
+                    "off": "0F 84 B2",
+                    "on": "E9 B3 00"
+                }
+            ]
+        }
+    ],
+    "Experimental": [
+        {
+            "enabled": false,
+            "name": "Practice Mode for Platform",
+            "opcodes": [
+                {
+                    "addr": "0x2B3AE1",
+                    "off": "74",
+                    "on": "EB"
+                }
+            ]
+        }
+    ],
+    "Player": [
+        {
+            "enabled": false,
+            "name": "NoClip",
+            "opcodes": [
+                {
+                    "addr": "0x2E0ABC",
+                    "off": "8B D9 8B 7D 08",
+                    "on": "E9 B9 07 00 00"
+                }
+            ]
+        },
+        {
+            "enabled": false,
+            "name": "Practice Music Hack",
+            "opcodes": [
+                {
+                    "addr": "0x2E4F35",
+                    "off": "75",
+                    "on": "EB"
+                },
+                {
+                    "addr": "0x2E0EBA",
+                    "off": "74 0C",
+                    "on": "90 90"
+                },
+                {
+                    "addr": "0x2E54B8",
+                    "off": "0F 85 8A 00 00 00",
+                    "on": "90 90 90 90 90 90"
+                },
+                {
+                    "addr": "0x3A18A",
+                    "off": "75 1C",
+                    "on": "90 90"
+                },
+                {
+                    "addr": "0x2E4A34",
+                    "off": "75 0F",
+                    "on": "90 90"
+                },
+                {
+                    "addr": "0x2E4A30",
+                    "off": "74 13",
+                    "on": "90 90"
+                },
+                {
+                    "addr": "0x2E4A3C",
+                    "off": "75 07",
+                    "on": "90 90"
+                }
+            ]
+        },
+        {
+            "enabled": false,
+            "name": "Unlock All Icons",
+            "opcodes": [
+                {
+                    "addr": "0x12019B",
+                    "off": "8B D9 8B 7D 0C",
+                    "on": "E9 A5 00 00 00"
+                },
+                {
+                    "addr": "0x12069B",
+                    "off": "8B D9",
+                    "on": "EB 77"
+                }
+            ]
+        },
+        {
+            "enabled": false,
+            "name": "No Transition",
+            "opcodes": [
+                {
+                    "addr": "0xA7414",
+                    "lib": "libcocos2d.dll",
+                    "off": "F3 0F 10 45 08",
+                    "on": "90 90 90 90 90"
+                }
+            ]
+        },
+        {
+            "enabled": false,
+            "name": "No Respawn Flash",
+            "opcodes": [
+                {
+                    "addr": "0x2CBD5A",
+                    "off": "0F 85 A7",
+                    "on": "E9 A8 00"
+                }
+            ]
+        },
+        {
+            "enabled": false,
+            "name": "No Death Effect",
+            "opcodes": [
+                {
+                    "addr": "0x2CC3B2",
+                    "off": "E8 39 8D FE FF",
+                    "on": "90 90 90 90 90"
+                }
+            ]
+        },
+        {
+            "enabled": false,
+            "name": "Coins In Practice",
+            "opcodes": [
+                {
+                    "addr": "0x198CEC",
+                    "off": "0F 85 6A 01 00 00",
+                    "on": "90 90 90 90 90 90"
+                }
+            ]
+        },
+        {
+            "enabled": false,
+            "name": "Ignore ESC",
+            "opcodes": [
+                {
+                    "addr": "0x2B4F31",
+                    "off": "E8 1A 07 03 00",
+                    "on": "90 90 90 90 90"
+                }
+            ]
+        },
+        {
+            "enabled": false,
+            "name": "Unlock All Levels",
+            "opcodes": [
+                {
+                    "addr": "0x2676A4",
+                    "off": "7E",
+                    "on": "EB"
+                }
+            ]
+        },
+        {
+            "enabled": false,
+            "name": "No Particles",
+            "opcodes": [
+                {
+                    "addr": "0xBD24A",
+                    "lib": "libcocos2d.dll",
+                    "off": "0F 84 24 01 00 00",
+                    "on": "E9 25 01 00 00 90"
+                }
+            ]
+        },
+        {
+            "enabled": false,
+            "name": "Trail Always Off",
+            "opcodes": [
+                {
+                    "addr": "0xB0B70",
+                    "lib": "libcocos2d.dll",
+                    "off": "C6 81 1E 01 00 00 01",
+                    "on": "90 90 90 90 90 90 90"
+                }
+            ]
+        }
+    ]
+}
