@@ -7,6 +7,23 @@
 
 ---
 
+<div align="center">
+  <h2>Features</h2>
+
+| Player                           | Creator               | Bypass                   | Stuff              |
+| -------------------------------- | --------------------- | ------------------------ | ------------------ |
+| Noclip                           | Copy Hack             | Text / Character Bypass  | Speedhack          |
+| Practice Music Hack              | Level Edit            | Vault of Secrets Bypass  | StartPos Switcher  |
+| Unlock all Icons & Levels        | Slider Limit          | Treasure Room Bypass     | Smart Startpos     |
+| No Transition / Particles / etc  | Custom Object Bypass  | The Mechanic Bypass      | GD-Bot (Soon)      |
+| Practice Music Hack              | Testmode Bypass       | Shopkeeper Bypass        |
+| Trail Always On/Off              |                       | Porbor / Scratch Bypass  |
+| And more!                        | More soon!            | And more!                | More soon!         |
+
+</div>
+
+---
+
 <h2 align="center">How to use?</h2>
 
 1. Open [latest release](https://github.com/TobyAdd/GDH/releases/latest) link
@@ -34,4 +51,4 @@ Run this in your terminal on the folder where you want all the code:
 
 ---
 
-<p align="center"> Special Thanks: Ocornut for <a href="https://github.com/ocornut/imgui">Imgui</a> ; <a href="https://github.com/howhathe">howhathe</a> for the ReadMe </p>
+<p align="center"> Special Thanks: Ocornut for <a href="https://github.com/ocornut/imgui">ImGui</a> ; <a href="https://github.com/howhathe">howhathe</a> for the ReadMe </p>
