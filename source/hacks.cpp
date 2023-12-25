@@ -1,4 +1,5 @@
 #include "hacks.hpp"
+#include <filesystem>
 
 json hacks::content;
 
@@ -70,4 +71,29 @@ bool hacks::writemem(uintptr_t address, std::string bytes)
     {
         return false;
     }
+}
+
+std::filesystem::path get_executable_path()
+{
+    wchar_t path[MAX_PATH] = { 0 };
+    GetModuleFileNameW(NULL, path, MAX_PATH);
+    return path;
+}
+
+void hacks::inject_extensions() {
+    // create gdh-extensions folder if it doesn't exist
+    const auto extensions_path = get_executable_path().parent_path() / "gdh-extensions";
+    if (!std::filesystem::is_directory(extensions_path) || !std::filesystem::exists(extensions_path))
+    {
+        std::filesystem::create_directory(extensions_path);
+    }
+
+    // load all dlls from it
+    for (const auto& file : std::filesystem::directory_iterator(extensions_path))
+	{
+        if (file.path().extension() == ".dll")
+        {
+		    LoadLibrary(file.path().generic_string().c_str());
+        }
+	}
 }

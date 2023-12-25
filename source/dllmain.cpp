@@ -30,6 +30,7 @@ DWORD WINAPI ThreadMain(LPVOID lpParam)
         startposSwitcher::init();
         smartStartpos::init();
         MH_EnableHook(MH_ALL_HOOKS);
+        hacks::inject_extensions();
     }
     return true;
 }
