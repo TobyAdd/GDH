@@ -6,6 +6,7 @@
 #include "hacks.h"
 #include "speedhackAudio.hpp"
 #include "startposSwitcher.hpp"
+#include "smartStartpos.hpp"
 
 DWORD WINAPI ThreadMain(LPVOID lpParam)
 {
@@ -17,12 +18,9 @@ DWORD WINAPI ThreadMain(LPVOID lpParam)
             case VK_TAB:
                 gui::Toggle();
                 break;
-
-            case VK_LEFT:
-            case VK_RIGHT:
-                startposSwitcher::switchStartPos(keyCode == VK_RIGHT);
-                break;
             }
+
+            startposSwitcher::handleKeyPress(keyCode);
         });
     if (MH_Initialize() == MH_OK)
     {
@@ -32,6 +30,7 @@ DWORD WINAPI ThreadMain(LPVOID lpParam)
         hacks::load();
         speedhackAudio::init();
         startposSwitcher::init();
+        smartStartpos::init();
         MH_EnableHook(MH_ALL_HOOKS);
     }
     return true;

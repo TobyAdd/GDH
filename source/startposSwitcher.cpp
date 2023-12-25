@@ -1,4 +1,5 @@
 #include "startposSwitcher.hpp"
+#include "smartStartpos.hpp"
 
 namespace startposSwitcher 
 {
@@ -13,6 +14,7 @@ namespace startposSwitcher
     int startposIndex = -1;
     float tmp[] = { 0, 0 };
     bool enabled = false;
+    bool alternateKeys = false;
 
     void __fastcall startposObjectInitHook(void *self, void *_) 
     {
@@ -26,6 +28,7 @@ namespace startposSwitcher
         startposObjects = {};
         startposIndex = 0;
         playLayer = self;
+        smartStartpos::resetObjects();
         playLayerInit(self);
     }
 
@@ -46,9 +49,22 @@ namespace startposSwitcher
         setStartPosObject = (decltype(setStartPosObject))(base + 0x195FC0);
     }
 
+    void handleKeyPress(int keyCode)
+    {
+        if (!enabled) return;
+        if (!alternateKeys && (keyCode == VK_LEFT || keyCode == VK_RIGHT))
+        {
+            switchStartPos(keyCode == VK_RIGHT);
+        }
+        else if (alternateKeys && (keyCode == 'A' || keyCode == 'D'))
+        {
+            switchStartPos(keyCode == 'D');
+        }
+    }
+
     void switchStartPos(bool direction)
     {
-        if (playLayer == nullptr) 
+        if (playLayer == nullptr || !enabled) 
         {
             return;
         }
@@ -82,6 +98,11 @@ namespace startposSwitcher
         }
 
         resetLevel(playLayer);
+    }
+
+    void setAlternateKeys(bool alternate)
+    {
+        alternateKeys = alternate;
     }
 
     void setEnabled(bool enable) 
