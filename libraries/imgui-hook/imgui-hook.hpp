@@ -11,6 +11,6 @@ namespace ImGuiHook {
     void Load(std::function<void(void*, void*, void**)> hookFunc);
     void Unload();
     void setRenderFunction(std::function<void()> func);
-    void setToggleFunction(std::function<void()> func);
+    void setKeyPressHandler(std::function<void(int)> func);
 }
 

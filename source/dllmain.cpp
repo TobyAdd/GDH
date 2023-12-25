@@ -5,11 +5,23 @@
 #include "hooks.h"
 #include "hacks.h"
 #include "speedhackAudio.hpp"
+#include "startposSwitcher.hpp"
+#include "smartStartpos.hpp"
 
 DWORD WINAPI ThreadMain(LPVOID lpParam)
 {
     ImGuiHook::setRenderFunction(gui::Render);
-    ImGuiHook::setToggleFunction([]() { gui::Toggle(); });
+    ImGuiHook::setKeyPressHandler([](int keyCode) 
+        {
+            switch (keyCode)
+            {
+            case VK_TAB:
+                gui::Toggle();
+                break;
+            }
+
+            startposSwitcher::handleKeyPress(keyCode);
+        });
     if (MH_Initialize() == MH_OK)
     {
         ImGuiHook::Load([](void *target, void *hook, void **trampoline)
@@ -17,6 +29,8 @@ DWORD WINAPI ThreadMain(LPVOID lpParam)
         hooks::init();
         hacks::load();
         speedhackAudio::init();
+        startposSwitcher::init();
+        smartStartpos::init();
         MH_EnableHook(MH_ALL_HOOKS);
     }
     return true;

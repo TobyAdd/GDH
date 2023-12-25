@@ -7,6 +7,8 @@
 #include "hacks.h"
 #include <shellapi.h>
 #include "speedhackAudio.hpp"
+#include "startposSwitcher.hpp"
+#include "smartStartpos.hpp"
 
 bool gui::show = false;
 bool gui::inited = false;
@@ -14,6 +16,9 @@ bool gui::inited = false;
 bool secret = false;
 
 bool speedhack_audio = true;
+bool startpos_switcher = false;
+bool alternate_keys_for_startpos = false;
+bool smart_startpos = false;
 
 extern "C"
 {
@@ -82,6 +87,18 @@ void gui::Render()
                 }
 
                 if (item.key() == "Player") {
+                    if (ImGui::Checkbox("StartPos Switcher", &startpos_switcher)) {
+                        startposSwitcher::setEnabled(startpos_switcher);
+                    }
+
+                    if (ImGui::Checkbox("Use A/D for StartPos Switcher ", &alternate_keys_for_startpos)) {
+                        startposSwitcher::setAlternateKeys(alternate_keys_for_startpos);
+                    }
+
+                    if (ImGui::Checkbox("Smart Startpos", &smart_startpos)) {
+                        smartStartpos::enabled = smart_startpos;
+                    }
+
                     if (ImGui::DragFloat("##Speed", &speed, 0.01f, 0, FLT_MAX, "Speed: %.2f")) {
                         speedhackAudio::set(speed);
                     }
