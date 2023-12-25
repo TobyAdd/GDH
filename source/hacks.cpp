@@ -3,9 +3,42 @@
 
 json hacks::content;
 
+std::filesystem::path get_game_path()
+{
+    wchar_t path_str[MAX_PATH] = { 0 };
+    GetModuleFileNameW(NULL, path_str, MAX_PATH);
+    const std::filesystem::path path(path_str);
+    return path.parent_path();
+}
+
+std::filesystem::path get_gdh_path()
+{
+    const auto path = get_game_path() / "GDH/";
+    // make sure it exists
+    try {
+        if (!std::filesystem::exists(path))
+        {
+            std::filesystem::create_directory(path);
+        }
+    } catch (...) {}
+    return path;
+}
+
+// move hacks.json from game directory to GDH directory if it exists
+void move_hacks_file()
+{   
+    const auto orig_path = get_game_path() / "hacks.json";
+    try {
+        if (std::filesystem::exists(orig_path)) {
+            std::filesystem::rename(orig_path, get_gdh_path() / "hacks.json");
+        }
+    } catch (...) {}
+}
+
 void hacks::load()
 {
-    ifstream file("hacks.json");
+    move_hacks_file();
+    ifstream file(get_gdh_path() / "hacks.json");
     if (!file.is_open())
         return;
     string file_content((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
@@ -73,20 +106,15 @@ bool hacks::writemem(uintptr_t address, std::string bytes)
     }
 }
 
-std::filesystem::path get_executable_path()
-{
-    wchar_t path[MAX_PATH] = { 0 };
-    GetModuleFileNameW(NULL, path, MAX_PATH);
-    return path;
-}
-
 void hacks::inject_extensions() {
-    // create gdh-extensions folder if it doesn't exist
-    const auto extensions_path = get_executable_path().parent_path() / "gdh-extensions";
-    if (!std::filesystem::is_directory(extensions_path) || !std::filesystem::exists(extensions_path))
-    {
-        std::filesystem::create_directory(extensions_path);
-    }
+    // create GDH/extensions folder if it doesn't exist
+    const auto extensions_path = get_gdh_path() / "extensions";
+    try {
+        if (!std::filesystem::exists(extensions_path))
+        {
+            std::filesystem::create_directory(extensions_path);
+        }
+    } catch (...) {}
 
     // load all dlls from it
     for (const auto& file : std::filesystem::directory_iterator(extensions_path))
