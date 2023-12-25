@@ -1,4 +1,4 @@
-#include "hooks.h"
+#include "hooks.hpp"
 
 float speed = 1.0f;
 

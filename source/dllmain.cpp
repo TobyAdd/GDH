@@ -1,10 +1,9 @@
-#include "include.h"
+#include "include.hpp"
 #include <imgui-hook.hpp>
 #include <imgui.h>
-#include "gui.h"
-#include "hooks.h"
-#include "hacks.h"
-#include "speedhackAudio.hpp"
+#include "gui.hpp"
+#include "hooks.hpp"
+#include "hacks.hpp"
 #include "startposSwitcher.hpp"
 #include "smartStartpos.hpp"
 
@@ -28,7 +27,6 @@ DWORD WINAPI ThreadMain(LPVOID lpParam)
                             { MH_CreateHook(target, hook, trampoline); });
         hooks::init();
         hacks::load();
-        speedhackAudio::init();
         startposSwitcher::init();
         smartStartpos::init();
         MH_EnableHook(MH_ALL_HOOKS);
@@ -41,6 +39,13 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
     if (ul_reason_for_call == DLL_PROCESS_ATTACH)
     {
         CloseHandle(CreateThread(0, 0, &ThreadMain, 0, 0, 0));
+    }
+    else if (ul_reason_for_call == DLL_PROCESS_DETACH) {
+        if (!hacks::content.is_null()) {
+            ofstream outputFile("hacks.json");
+            outputFile << hacks::content.dump(4);
+            outputFile.close();
+        }
     }
     return true;
 }

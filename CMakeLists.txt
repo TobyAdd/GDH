@@ -19,3 +19,8 @@ target_include_directories(${PROJECT} PRIVATE
 add_subdirectory(libraries/minhook)
 add_subdirectory(libraries/imgui-hook)
 target_link_libraries(${PROJECT} minhook imgui-hook opengl32)
+
+add_custom_command(TARGET ${PROJECT} POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy
+                       $<TARGET_FILE:${PROJECT}>
+                        D:/Games/GD22/GDH.dll)

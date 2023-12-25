@@ -13,4 +13,3 @@ namespace ImGuiHook {
     void setRenderFunction(std::function<void()> func);
     void setKeyPressHandler(std::function<void(int)> func);
 }
-

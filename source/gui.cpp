@@ -1,12 +1,12 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
-#include "gui.h"
+#include "gui.hpp"
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <imgui-hook.hpp>
-#include "hooks.h"
-#include "hacks.h"
+#include "hooks.hpp"
+#include "hacks.hpp"
 #include <shellapi.h>
-#include "speedhackAudio.hpp"
+#include <gl/GL.h>
 #include "startposSwitcher.hpp"
 #include "smartStartpos.hpp"
 
@@ -14,55 +14,61 @@ bool gui::show = false;
 bool gui::inited = false;
 
 bool secret = false;
-
-bool speedhack_audio = true;
 bool startpos_switcher = false;
 bool alternate_keys_for_startpos = false;
 bool smart_startpos = false;
 
 extern "C"
 {
-    __declspec(dllexport) int __stdcall GDH();
-}
-
-int __stdcall GDH()
-{
-    secret = true;
-    return secret;
+    __declspec(dllexport) int __stdcall GDH() {
+        secret = true;
+        return secret;
+    };
 }
 
 void gui::Render()
 {
-    if (!gui::show) return;
+    if (!gui::show)
+        return;
 
-    if (!gui::inited) {
-        gui::inited = true;
-        ImGui::SetNextWindowSize({426, 240});
-        ImVec2 center = ImGui::GetMainViewport()->GetCenter();
-        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));        
-    }
-    
-    ImGui::Begin("GDH");
-    if (ImGui::BeginTabBar("Tabs", ImGuiTabBarFlags_::ImGuiTabBarFlags_Reorderable))
-	{        
-        for (auto &item : hacks::content.items())
+    static std::vector<std::string> stretchedWindows;
+
+    for (auto &item : hacks::content.items())
+    {
+        std::string windowName = item.key();
+
+        if (std::find(stretchedWindows.begin(), stretchedWindows.end(), windowName) == stretchedWindows.end()) {
+            ImVec2 windowSize = ImVec2(float(item.value()["windowSize"]["width"]),
+                                       float(item.value()["windowSize"]["height"]));
+            ImVec2 windowPos = ImVec2(float(item.value()["windowPosition"]["x"]),
+                                      float(item.value()["windowPosition"]["y"]));
+
+            ImGui::SetNextWindowSize(windowSize);
+            ImGui::SetNextWindowPos(windowPos);
+
+            stretchedWindows.push_back(windowName);
+        }
+
+        ImGui::Begin(windowName.c_str());
+
+        item.value()["windowSize"]["width"] = ImGui::GetWindowSize().x;
+        item.value()["windowSize"]["height"] = ImGui::GetWindowSize().y;
+        item.value()["windowPosition"]["x"] = ImGui::GetWindowPos().x;
+        item.value()["windowPosition"]["y"] = ImGui::GetWindowPos().y;
+
+        auto &components = item.value()["components"];
+        if (!components.is_null())
         {
-            if (ImGui::BeginTabItem(item.key().c_str()))
+            for (auto &component : components)
             {
-                ImGui::BeginChild("HacksChild");
-
-                json &tabContent = item.value();
-
-                for (size_t i = 0; i < tabContent.size(); i++)
+                std::string type = component["type"];
+                if (type == "hack")
                 {
-                    json &itemHack = tabContent.at(i);
-                    bool enabled = itemHack["enabled"];
-
-                    if (ImGui::Checkbox(itemHack["name"].get<string>().c_str(), &enabled))
+                    bool enabled = component["enabled"];
+                    if (ImGui::Checkbox(component["name"].get<std::string>().c_str(), &enabled))
                     {
-                        itemHack["enabled"] = enabled;
-
-                        json opcodes = itemHack["opcodes"];
+                        component["enabled"] = enabled;
+                        json opcodes = component["opcodes"];
                         for (auto &opcode : opcodes)
                         {
                             string addrStr = opcode["addr"];
@@ -79,72 +85,54 @@ void gui::Render()
 
                             hacks::writemem(base + address, bytesStr);
                         }
-
-                        ofstream outputFile("hacks.json");
-                        outputFile << hacks::content.dump(4);
-                        outputFile.close();
                     }
                 }
+                else if (type == "text")
+                {
+                    std::string text = component["text"];
+                    ImGui::Text(text.c_str());
+                }
+                else if (type == "text_url")
+                {
+                    std::string text = component["text"];
+                    std::string url = component["url"];
+                    if (ImGui::MenuItem(text.c_str()))
+                    {
+                        ShellExecuteA(0, "open", url.c_str(), 0, 0, 0);
+                    }
 
-                if (item.key() == "Player") {
+                    if (ImGui::IsItemHovered())
+                        ImGui::SetTooltip(url.c_str());
+                }
+                else if (type == "speedhack")
+                {
+                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                    ImGui::DragFloat("##speed", &speed, 0.01f, 0, FLT_MAX, "Speed %.2f");
+                }
+                else if (type == "separator")
+                {
+                    ImGui::Separator();
+                }                
+                else if (type == "startpos_checkbox")
+                {
                     if (ImGui::Checkbox("StartPos Switcher", &startpos_switcher)) {
                         startposSwitcher::setEnabled(startpos_switcher);
                     }
-
                     if (ImGui::Checkbox("Use A/D for StartPos Switcher ", &alternate_keys_for_startpos)) {
                         startposSwitcher::setAlternateKeys(alternate_keys_for_startpos);
                     }
-
+                }
+                else if (type == "smart_startpos_checkbox")
+                {
                     if (ImGui::Checkbox("Smart Startpos", &smart_startpos)) {
                         smartStartpos::enabled = smart_startpos;
                     }
-
-                    if (ImGui::DragFloat("##Speed", &speed, 0.01f, 0, FLT_MAX, "Speed: %.2f")) {
-                        speedhackAudio::set(speed);
-                    }
-
-                    ImGui::SameLine();
-                    if (ImGui::Checkbox("Audio", &speedhack_audio)) {
-                        if (speedhack_audio) {
-                            speedhackAudio::set(speed);
-                        }
-                        else {
-                            speedhackAudio::set(1);
-                        }
-                    }
                 }
-
-                ImGui::EndChild();
-                ImGui::EndTabItem();
             }
         }
 
-        if (hacks::content.empty()) {
-            if (ImGui::BeginTabItem("No hacks")){ 
-                ImGui::Text("Download hacks.json and copy it to GD folder");
-                if (ImGui::Button("Update")) {
-                    hacks::load();
-                }
-                ImGui::EndTabItem(); 
-            }
-        }
-
-        if (ImGui::BeginTabItem("About")){ 
-            ImGui::Text("GDH v2.2 Beta for Geometry Dash 2.2");
-            ImGui::Text("Created by TobyAdd");
-            if (ImGui::MenuItem("Discord Server"))
-                ShellExecuteA(0, "open", "https://discord.gg/ahYEz4MAwP", 0, 0, 0);
-
-            if (secret) {
-                ImGui::Text("You found a secret!");
-            }
-
-            ImGui::EndTabItem(); 
-        }
-
-		ImGui::EndTabBar();
-	}
-	ImGui::End();
+        ImGui::End();
+    }
 }
 
 void gui::Toggle()

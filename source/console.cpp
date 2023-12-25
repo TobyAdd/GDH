@@ -1,5 +1,5 @@
 #define _CRT_SECURE_NO_WARNINGS
-#include "console.h"
+#include "console.hpp"
 
 namespace Console
 {

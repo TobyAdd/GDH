@@ -6,7 +6,7 @@
 #include <windows.h>
 #include <MinHook.h>
 #include <json.hpp>
-#include "console.h"
+#include "console.hpp"
 
 using namespace std;
 

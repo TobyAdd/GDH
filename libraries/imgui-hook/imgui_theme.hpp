@@ -16,7 +16,7 @@ void ApplyColor() {
     colors[ImGuiCol_TitleBgActive]          = ImVec4(0.40f, 0.25f, 0.55f, 1.00f);
     colors[ImGuiCol_TitleBgCollapsed]       = ImVec4(0.30f, 0.15f, 0.45f, 1.00f);
     colors[ImGuiCol_MenuBarBg]              = ImVec4(0.25f, 0.15f, 0.35f, 1.00f);
-    colors[ImGuiCol_ScrollbarBg]            = ImVec4(0.20f, 0.10f, 0.30f, 1.00f);
+    colors[ImGuiCol_ScrollbarBg]            = ImVec4(0.20f, 0.10f, 0.30f, 0);
     colors[ImGuiCol_ScrollbarGrab]          = ImVec4(0.40f, 0.25f, 0.60f, 0.54f);
     colors[ImGuiCol_ScrollbarGrabHovered]   = ImVec4(0.50f, 0.30f, 0.70f, 0.54f);
     colors[ImGuiCol_ScrollbarGrabActive]    = ImVec4(0.45f, 0.35f, 0.65f, 0.54f);
@@ -55,4 +55,36 @@ void ApplyColor() {
     colors[ImGuiCol_NavWindowingHighlight]  = ImVec4(0.70f, 0.30f, 0.70f, 0.70f);
     colors[ImGuiCol_NavWindowingDimBg]      = ImVec4(0.50f, 0.50f, 0.50f, 0.20f);
     colors[ImGuiCol_ModalWindowDimBg]       = ImVec4(0.50f, 0.50f, 0.50f, 0.35f);
+}
+
+void ApplyStyle() {
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.WindowPadding = ImVec2(8.00f, 8.00f);
+    style.FramePadding = ImVec2(4.00f, 4.00f);
+    style.CellPadding = ImVec2(4.00f, 2.00f);
+    style.ItemSpacing = ImVec2(4.00f, 4.00f);
+    style.ItemInnerSpacing = ImVec2(4.00f, 4.00f);
+    style.TouchExtraPadding = ImVec2(0.00f, 0.00f);
+    style.IndentSpacing = 21.00f;
+    style.ScrollbarSize = 16.00f;
+    style.GrabMinSize = 12.00f;
+    style.WindowBorderSize = 0.00f;
+    style.ChildBorderSize = 1.00f;
+    style.PopupBorderSize = 1.00f;
+    style.FrameBorderSize = 0.00f;
+    style.TabBorderSize = 0.00f;
+    style.WindowRounding = 6.00f;
+    style.ChildRounding = 6.00f;
+    style.FrameRounding = 6.00f;
+    style.PopupRounding = 6.00f;
+    style.ScrollbarRounding = 6.00f;
+    style.GrabRounding = 6.00f;
+    style.LogSliderDeadzone = 6.00f;
+    style.TabRounding = 6.00f;
+    style.WindowTitleAlign = ImVec2(0.50f, 0.50f);
+    style.WindowMenuButtonPosition = 0;
+    style.ColorButtonPosition = 1;
+    style.ButtonTextAlign = ImVec2(0.50f, 0.50f);
+    style.SelectableTextAlign = ImVec2(0.00f, 0.00f);
+    style.DisplaySafeAreaPadding = ImVec2(3.00f, 3.00f);
 }

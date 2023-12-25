@@ -1,6 +1,7 @@
 #include <functional>
 #include "imgui-hook.hpp"
 #include "imgui_theme.hpp"
+#include "ubuntu_font.hpp"
 
 SwapBuffersType originalSwapBuffers = nullptr;
 WNDPROC originalWndProc = nullptr;
@@ -25,7 +26,8 @@ BOOL WINAPI HookedSwapBuffers(HDC hdc)
         ImGuiIO& io = ImGui::GetIO();      
         io.IniFilename = nullptr;
         ApplyColor();
-
+        ApplyStyle();
+        io.Fonts->AddFontFromMemoryTTF(fontData, sizeof(fontData), 14.f);
         hWnd = WindowFromDC(hdc);
         originalWndProc = (WNDPROC)GetWindowLongPtr(hWnd, GWLP_WNDPROC);
         SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR)HookedWndProc);

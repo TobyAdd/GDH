@@ -1,4 +1,4 @@
-#include "hacks.h"
+#include "hacks.hpp"
 
 json hacks::content;
 
@@ -10,26 +10,37 @@ void hacks::load()
     string file_content((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
     file.close();
     hacks::content = json::parse(file_content);
-    for (auto item : content.items())
-    {
-        json tabContent = item.value();
-        for (size_t i = 0; i < tabContent.size(); i++)
+
+    for (auto item : hacks::content.items()) {
+        std::string windowName = item.key();
+        auto &components = item.value()["components"];
+        if (!components.is_null())
         {
-            json itemHack = tabContent.at(i);
-            if (itemHack["enabled"])
+            for (auto &component : components)
             {
-                json opcodes = itemHack["opcodes"];
-                for (int j = 0; j < (int)opcodes.size(); j++)
+                std::string type = component["type"];
+                if (type == "hack")
                 {
-                    json opcode = opcodes.at(j);
-                    uintptr_t address;
-                    sscanf_s(opcode["addr"].get<string>().c_str(), "%x", &address);
-                    DWORD base = (DWORD)GetModuleHandleA(0);
-                    if (!opcode["lib"].is_null())
-                    {
-                        base = (DWORD)GetModuleHandleA(string(opcode["lib"]).c_str());
+                    bool enabled = component["enabled"];
+                    if (enabled) {
+                        json opcodes = component["opcodes"];
+                        for (auto &opcode : opcodes)
+                        {
+                            string addrStr = opcode["addr"];
+                            string bytesStr = opcode["on"];
+
+                            uintptr_t address;
+                            sscanf_s(addrStr.c_str(), "%x", &address);
+
+                            DWORD base = (DWORD)GetModuleHandleA(0);
+                            if (!opcode["lib"].is_null())
+                            {
+                                base = (DWORD)GetModuleHandleA(string(opcode["lib"]).c_str());
+                            }
+
+                            hacks::writemem(base + address, bytesStr);
+                        }
                     }
-                    writemem(base + address, opcode["on"].get<string>());
                 }
             }
         }
