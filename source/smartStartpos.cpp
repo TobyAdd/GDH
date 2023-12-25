@@ -30,7 +30,7 @@ namespace smartStartpos
         //case 45:
         //case 46:
         //    mirrorPortals.push_back(object);
-        //   updateStartPos();
+        //    updateStartPos();
         //    break;
 
         case 99:
@@ -87,13 +87,15 @@ namespace smartStartpos
             uint32_t *startposSettings = (uint32_t *)startpos[0x19E];
             uint32_t *levelSettings = (uint32_t *)(((uint32_t *)playLayer)[0x21E]);
             float startposX = ((float *)startpos)[0x12];
+            float maxPortalX = -1;
             
             startposSettings[0x43] = levelSettings[0x43];
             for (uint32_t *gamemodePortal : gamemodePortals) {
                 float portalX = ((float *)gamemodePortal)[0x12];
                 uint32_t id = gamemodePortal[0xE1];
                 if (portalX - 10 > startposX) break;
-                if (portalX - 10 < startposX) {
+                if (portalX - 10 < startposX && maxPortalX < portalX) {
+                    maxPortalX = portalX;
                     switch (id) {
                     case 12:
                         startposSettings[0x43] = 0;
@@ -123,22 +125,26 @@ namespace smartStartpos
                 }
             }
 
+            maxPortalX = -1;
             startposSettings[0x45] = levelSettings[0x45];
             for (uint32_t *sizePortal : sizePortals) {
                 float portalX = ((float *)sizePortal)[0x12];
                 uint32_t id = sizePortal[0xE1];
                 if (portalX - 10 > startposX) break;
-                if (portalX - 10 < startposX) {
+                if (portalX - 10 < startposX && maxPortalX < portalX) {
+                    maxPortalX = portalX;
                     startposSettings[0x45] = (int)(id == 101);
                 }
             }
 
+            maxPortalX = -1;
             startposSettings[0x44] = levelSettings[0x44];
             for (uint32_t *speedPortal : speedPortals) {
                 float portalX = ((float *)speedPortal)[0x12];
                 uint32_t id = speedPortal[0xE1];
                 if (portalX - 10 > startposX) break;
-                if (portalX - 10 < startposX) {
+                if (portalX - 10 < startposX && maxPortalX < portalX) {
+                    maxPortalX = portalX;
                     switch (id) {
                     case 200:
                     case 201:
