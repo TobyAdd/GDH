@@ -20,7 +20,8 @@ bool smart_startpos = false;
 
 extern "C"
 {
-    __declspec(dllexport) int __stdcall GDH() {
+    __declspec(dllexport) int __stdcall GDH()
+    {
         secret = true;
         return secret;
     };
@@ -32,12 +33,16 @@ void gui::Render()
         return;
 
     static std::vector<std::string> stretchedWindows;
+    // Below are IMGUI darkmode colors
+    static float color[4] = { 0.06f, 0.06f, 0.06f, 0.94f };
+    static float default_color[4] = { 0.06f, 0.06f, 0.06f, 0.94f };
 
     for (auto &item : hacks::content.items())
     {
         std::string windowName = item.key();
 
-        if (std::find(stretchedWindows.begin(), stretchedWindows.end(), windowName) == stretchedWindows.end()) {
+        if (std::find(stretchedWindows.begin(), stretchedWindows.end(), windowName) == stretchedWindows.end())
+        {
             ImVec2 windowSize = ImVec2(float(item.value()["windowSize"]["width"]),
                                        float(item.value()["windowSize"]["height"]));
             ImVec2 windowPos = ImVec2(float(item.value()["windowPosition"]["x"]),
@@ -45,6 +50,7 @@ void gui::Render()
 
             ImGui::SetNextWindowSize(windowSize);
             ImGui::SetNextWindowPos(windowPos);
+            ImGui::StyleColorsDark();
 
             stretchedWindows.push_back(windowName);
         }
@@ -62,6 +68,79 @@ void gui::Render()
             for (auto &component : components)
             {
                 std::string type = component["type"];
+                if (type == "transparency_slider")
+                {
+                    color[3] = component["value"];
+                    ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
+                    if (ImGui::SliderFloat("Transparency", &color[3], 0.0f, 1.0f))
+                    {
+                        ImGui::StyleColorsDark();
+                        ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
+                        component["value"] = color[3];
+                    }
+                }
+                if (type == "red_slider")
+                {
+                    color[0] = component["value"];
+                    ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
+                    if (ImGui::SliderFloat("Red", &color[0], 0.0f, 1.0f))
+                    {
+                        ImGui::StyleColorsDark();
+                        ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
+                        component["value"] = color[0];
+                    }
+                }
+                else if (type == "green_slider")
+                {
+                    color[1] = component["value"];
+                    ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
+                    if (ImGui::SliderFloat("Green", &color[1], 0.0f, 1.0f))
+                    {
+                        ImGui::StyleColorsDark();
+                        ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
+                        component["value"] = color[1];
+                    }
+                }
+                else if (type == "blue_slider")
+                {
+                    color[2] = component["value"];
+                    ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
+                    if (ImGui::SliderFloat("Blue", &color[2], 0.0f, 1.0f))
+                    {
+                        ImGui::StyleColorsDark();
+                        ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
+                        component["value"] = color[2];
+                    }
+                }
+                if (type == "reset_button")
+                {
+                    if (ImGui::Button("Reset Theme"))
+                    {
+                        memcpy(color, default_color, sizeof(color));
+                        ImGui::StyleColorsDark();
+                        ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
+                        for (auto &component : components)
+                        {
+                            std::string type = component["type"];
+                            if (type == "transparency_slider")
+                            {
+                                component["value"] = default_color[3];
+                            }
+                            else if (type == "red_slider")
+                            {
+                                component["value"] = default_color[0];
+                            }
+                            else if (type == "green_slider")
+                            {
+                                component["value"] = default_color[1];
+                            }
+                            else if (type == "blue_slider")
+                            {
+                                component["value"] = default_color[2];
+                            }
+                        }
+                    }
+                }
                 if (type == "hack")
                 {
                     bool enabled = component["enabled"];
@@ -112,19 +191,22 @@ void gui::Render()
                 else if (type == "separator")
                 {
                     ImGui::Separator();
-                }                
+                }
                 else if (type == "startpos_checkbox")
                 {
-                    if (ImGui::Checkbox("StartPos Switcher", &startpos_switcher)) {
+                    if (ImGui::Checkbox("StartPos Switcher", &startpos_switcher))
+                    {
                         startposSwitcher::setEnabled(startpos_switcher);
                     }
-                    if (ImGui::Checkbox("Use A/D for StartPos Switcher ", &alternate_keys_for_startpos)) {
+                    if (ImGui::Checkbox("Use A/D for StartPos Switcher ", &alternate_keys_for_startpos))
+                    {
                         startposSwitcher::setAlternateKeys(alternate_keys_for_startpos);
                     }
                 }
                 else if (type == "smart_startpos_checkbox")
                 {
-                    if (ImGui::Checkbox("Smart Startpos", &smart_startpos)) {
+                    if (ImGui::Checkbox("Smart Startpos", &smart_startpos))
+                    {
                         smartStartpos::enabled = smart_startpos;
                     }
                 }

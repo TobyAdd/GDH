@@ -37,13 +37,15 @@ DWORD WINAPI ThreadMain(LPVOID lpParam)
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 {
+    std::filesystem::path get_gdh_path();
     if (ul_reason_for_call == DLL_PROCESS_ATTACH)
     {
         CloseHandle(CreateThread(0, 0, &ThreadMain, 0, 0, 0));
     }
     else if (ul_reason_for_call == DLL_PROCESS_DETACH) {
         if (!hacks::content.is_null()) {
-            ofstream outputFile("hacks.json");
+            std::filesystem::path gdh_path = get_gdh_path();
+            ofstream outputFile(gdh_path / "hacks.json");
             outputFile << hacks::content.dump(4);
             outputFile.close();
         }
