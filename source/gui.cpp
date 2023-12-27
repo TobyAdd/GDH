@@ -33,9 +33,9 @@ void gui::Render()
         return;
 
     static std::vector<std::string> stretchedWindows;
-    // Below are IMGUI darkmode colors
-    static float color[4] = { 0.06f, 0.06f, 0.06f, 0.94f };
-    static float default_color[4] = { 0.06f, 0.06f, 0.06f, 0.94f };
+    // IMGUI pinkish colors
+    static float color[4] = { 0.2f, 0.15f, 0.25f, 1.0f };
+    static float default_color[4] = { 0.2f, 0.15f, 0.25f, 1.0f };
 
     for (auto &item : hacks::content.items())
     {
@@ -50,7 +50,6 @@ void gui::Render()
 
             ImGui::SetNextWindowSize(windowSize);
             ImGui::SetNextWindowPos(windowPos);
-            ImGui::StyleColorsDark();
 
             stretchedWindows.push_back(windowName);
         }
@@ -74,7 +73,6 @@ void gui::Render()
                     ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
                     if (ImGui::SliderFloat("Transparency", &color[3], 0.0f, 1.0f))
                     {
-                        ImGui::StyleColorsDark();
                         ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
                         component["value"] = color[3];
                     }
@@ -85,7 +83,6 @@ void gui::Render()
                     ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
                     if (ImGui::SliderFloat("Red", &color[0], 0.0f, 1.0f))
                     {
-                        ImGui::StyleColorsDark();
                         ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
                         component["value"] = color[0];
                     }
@@ -96,7 +93,6 @@ void gui::Render()
                     ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
                     if (ImGui::SliderFloat("Green", &color[1], 0.0f, 1.0f))
                     {
-                        ImGui::StyleColorsDark();
                         ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
                         component["value"] = color[1];
                     }
@@ -107,7 +103,6 @@ void gui::Render()
                     ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
                     if (ImGui::SliderFloat("Blue", &color[2], 0.0f, 1.0f))
                     {
-                        ImGui::StyleColorsDark();
                         ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
                         component["value"] = color[2];
                     }
@@ -117,7 +112,6 @@ void gui::Render()
                     if (ImGui::Button("Reset Theme"))
                     {
                         memcpy(color, default_color, sizeof(color));
-                        ImGui::StyleColorsDark();
                         ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
                         for (auto &component : components)
                         {
