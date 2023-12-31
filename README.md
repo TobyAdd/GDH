@@ -2,7 +2,7 @@
 
   # GDH: Now for 2.2!
   ### GDH - Free, integrated and first Geometry Dash mod menu for 2.2!
-  <a href="https://github.com/TobyAdd/GDH" target="_blank" rel="noreferrer"> <img src="https://github.com/TobyAdd/GDH/assets/66429886/79a25fe6-4dce-4d93-8dff-c35b047042e0" alt="GDH Menu Screen" title="GDH Menu"/> </a>
+  <a href="https://github.com/TobyAdd/GDH" target="_blank" rel="noreferrer"> <img src="https://github.com/TobyAdd/GDH/assets/66429886/c72b42ef-4599-4f02-8035-d1f4a9f9bfe3" alt="GDH Menu Screen" title="GDH Menu"/> </a>
 </div>
 
 ---
