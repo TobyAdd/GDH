@@ -1,44 +1,25 @@
 #include "hacks.hpp"
+#include "hooks.hpp"
 #include <filesystem>
+#include "startposSwitcher.hpp"
+#include "smartStartpos.hpp"
 
 json hacks::content;
 
-std::filesystem::path get_game_path()
+void CheckDir(string dir)
 {
-    wchar_t path_str[MAX_PATH] = { 0 };
-    GetModuleFileNameW(NULL, path_str, MAX_PATH);
-    const std::filesystem::path path(path_str);
-    return path.parent_path();
-}
-
-std::filesystem::path get_gdh_path()
-{
-    const auto path = get_game_path() / "GDH/";
-    // make sure it exists
-    try {
-        if (!std::filesystem::exists(path))
-        {
-            std::filesystem::create_directory(path);
-        }
-    } catch (...) {}
-    return path;
-}
-
-// move hacks.json from game directory to GDH directory if it exists
-void move_hacks_file()
-{   
-    const auto orig_path = get_game_path() / "hacks.json";
-    try {
-        if (std::filesystem::exists(orig_path)) {
-            std::filesystem::rename(orig_path, get_gdh_path() / "hacks.json");
-        }
-    } catch (...) {}
+    if (!filesystem::is_directory(dir) || !filesystem::exists(dir))
+    {
+        filesystem::create_directory(dir);
+    }
 }
 
 void hacks::load()
 {
-    move_hacks_file();
-    ifstream file(get_gdh_path() / "hacks.json");
+    CheckDir("GDH");
+    CheckDir("GDH/extensions");
+    CheckDir("GDH/macros");
+    ifstream file("GDH/hacks.json");
     if (!file.is_open())
         return;
     string file_content((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
@@ -73,19 +54,102 @@ void hacks::load()
                             }
 
                             hacks::writemem(base + address, bytesStr);
+
+                            
+                        }
+
+                        json references = component["references"];
+                        for (auto &reference : references)
+                        {
+                            if(reference["on"].is_null()){
+                                continue;
+                            }
+                            string addrStr = reference["addr"];
+                            string addRefStr = reference["on"];
+
+                            uintptr_t address, refAdress;
+                            sscanf_s(addrStr.c_str(), "%x", &address);
+                            sscanf_s(addRefStr.c_str(), "%x", &refAdress);
+
+                            DWORD baseAddr = (DWORD)GetModuleHandleA(0);
+                            if (!reference["libAddr"].is_null() && !string(reference["libAddr"]).empty())
+                            {
+                                baseAddr = (DWORD)GetModuleHandleA(string(reference["libAddr"]).c_str());
+                            }
+
+                            auto refSwitch = reference["libON"];
+
+                            DWORD baseRef = (DWORD)GetModuleHandleA(0);
+                            if (!refSwitch.is_null() && !string(refSwitch).empty())
+                            {
+                                baseRef = (DWORD)GetModuleHandleA(string(refSwitch).c_str());
+                            }
+
+                            uintptr_t reference_address = baseAddr + address;
+                            uintptr_t reference_value = baseRef + refAdress;
+
+                            hacks::push_write(reference_address, reference_value);   
+                            
                         }
                     }
+                }
+                else if (type == "speedhack") {
+                    auto value = component["value"];
+                    engine.speed = value.is_null() ? 1.0f : value;
+                }
+                else if (type == "fps_bypass") {
+                    auto value = component["value"];
+                    engine.fps = value.is_null() ? 60.0f : value;
+                }
+                else if (type == "transitionCustomizerCBX") {
+                    auto value = component["value"];
+                    hooks::transitionSelect = value;
+                }
+                else if (type == "startpos_checkbox")
+                {
+                    auto value = component["value"];
+                    startposSwitcher::setEnabled(value);
+                }
+                else if (type == "a_d_startpos")
+                {
+                    auto value = component["value"];
+                    startposSwitcher::setAlternateKeys(value);
+                }                
+                else if (type == "smart_startpos_checkbox")
+                {
+                    auto value = component["value"];
+                    smartStartpos::enabled = value;
+                }
+                else if (type == "pmb_checkbox")
+                {
+                    auto value = component["value"];
+                    hooks::musicUnlocker = value;
                 }
             }
         }
     }
 }
 
+bool hacks::push_write(const uintptr_t address, const DWORD destination_address)
+{
+    DWORD oldProtect, newProtect;
+
+    if (VirtualProtect(reinterpret_cast<LPVOID>(address), 4, PAGE_EXECUTE_READWRITE, &oldProtect))
+    {
+        if (WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<LPVOID>(address), &destination_address, 4, nullptr))
+        {
+            return VirtualProtect(reinterpret_cast<LPVOID>(address), 4, oldProtect, &newProtect);
+        }
+    }
+
+    return false;
+}
+
 bool hacks::writemem(uintptr_t address, std::string bytes)
 {
     std::vector<unsigned char> byteVec;
     std::stringstream byteStream(bytes);
-    std::string byteStr;
+    std::string byteStr; 
 
     while (getline(byteStream, byteStr, ' '))
     {
@@ -106,22 +170,12 @@ bool hacks::writemem(uintptr_t address, std::string bytes)
     }
 }
 
-void hacks::inject_extensions() {
-    // create GDH/extensions folder if it doesn't exist
-    const auto extensions_path = get_gdh_path() / "extensions";
-    try {
-        if (!std::filesystem::exists(extensions_path))
-        {
-            std::filesystem::create_directory(extensions_path);
-        }
-    } catch (...) {}
-
-    // load all dlls from it
-    for (const auto& file : std::filesystem::directory_iterator(extensions_path))
+void hacks::inject_extensions() {  
+    for (const auto& file : std::filesystem::directory_iterator("GDH/extensions"))
 	{
         if (file.path().extension() == ".dll")
         {
-		    LoadLibrary(file.path().generic_string().c_str());
+		    LoadLibraryA(file.path().generic_string().c_str());
         }
 	}
 }

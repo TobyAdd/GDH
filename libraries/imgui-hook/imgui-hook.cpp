@@ -27,7 +27,7 @@ BOOL WINAPI HookedSwapBuffers(HDC hdc)
         io.IniFilename = nullptr;
         ApplyColor();
         ApplyStyle();
-        io.Fonts->AddFontFromMemoryTTF(fontData, sizeof(fontData), 14.f);
+        io.Fonts->AddFontFromMemoryTTF(fontData, sizeof(fontData), 14.f, NULL, io.Fonts->GetGlyphRangesCyrillic());
         hWnd = WindowFromDC(hdc);
         originalWndProc = (WNDPROC)GetWindowLongPtr(hWnd, GWLP_WNDPROC);
         SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR)HookedWndProc);

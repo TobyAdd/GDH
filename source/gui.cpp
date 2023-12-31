@@ -6,7 +6,7 @@
 #include "hooks.hpp"
 #include "hacks.hpp"
 #include <shellapi.h>
-#include <gl/GL.h>
+#include "xorstr.hpp"
 #include "startposSwitcher.hpp"
 #include "smartStartpos.hpp"
 
@@ -14,9 +14,6 @@ bool gui::show = false;
 bool gui::inited = false;
 
 bool secret = false;
-bool startpos_switcher = false;
-bool alternate_keys_for_startpos = false;
-bool smart_startpos = false;
 
 extern "C"
 {
@@ -27,6 +24,11 @@ extern "C"
     };
 }
 
+bool isEmpty(char *str)
+{
+    return (str != NULL && str[0] == '\0');
+}
+
 void gui::Render()
 {
     if (!gui::show)
@@ -34,8 +36,8 @@ void gui::Render()
 
     static std::vector<std::string> stretchedWindows;
     // IMGUI pinkish colors
-    static float color[4] = { 0.2f, 0.15f, 0.25f, 1.0f };
-    static float default_color[4] = { 0.2f, 0.15f, 0.25f, 1.0f };
+    static float color[4] = {0.2f, 0.15f, 0.25f, 1.0f};
+    static float default_color[4] = {0.2f, 0.15f, 0.25f, 1.0f};
 
     for (auto &item : hacks::content.items())
     {
@@ -67,6 +69,140 @@ void gui::Render()
             for (auto &component : components)
             {
                 std::string type = component["type"];
+                if (type == "hack")
+                {
+                    bool enabled = component["enabled"];
+                    if (ImGui::Checkbox(component["name"].get<std::string>().c_str(), &enabled))
+                    {
+                        component["enabled"] = enabled;
+                        json opcodes = component["opcodes"];
+                        for (auto &opcode : opcodes)
+                        {
+                            string addrStr = opcode["addr"];
+                            string bytesStr = enabled ? opcode["on"] : opcode["off"];
+
+                            uintptr_t address;
+                            sscanf_s(addrStr.c_str(), "%x", &address);
+
+                            DWORD base = (DWORD)GetModuleHandleA(0);
+                            if (!opcode["lib"].is_null())
+                            {
+                                base = (DWORD)GetModuleHandleA(string(opcode["lib"]).c_str());
+                            }
+
+                            hacks::writemem(base + address, bytesStr);
+                        }
+
+                        json references = component["references"];
+                        for (auto &reference : references)
+                        {
+                            if (enabled && reference["on"].is_null())
+                            {
+                                continue;
+                            }
+
+                            if (!enabled && reference["off"].is_null())
+                            {
+                                continue;
+                            }
+
+                            string addrStr = reference["addr"];
+                            string addRefStr = enabled ? reference["on"] : reference["off"];
+
+                            uintptr_t address, refAdress;
+                            sscanf_s(addrStr.c_str(), "%x", &address);
+                            sscanf_s(addRefStr.c_str(), "%x", &refAdress);
+
+                            DWORD baseAddr = (DWORD)GetModuleHandleA(0);
+                            if (!reference["libAddr"].is_null() && !string(reference["libAddr"]).empty())
+                            {
+                                baseAddr = (DWORD)GetModuleHandleA(string(reference["libAddr"]).c_str());
+                            }
+
+                            auto refSwitch = enabled ? reference["libON"] : reference["libOff"];
+
+                            DWORD baseRef = (DWORD)GetModuleHandleA(0);
+                            if (!refSwitch.is_null() && !string(refSwitch).empty())
+                            {
+                                baseRef = (DWORD)GetModuleHandleA(string(refSwitch).c_str());
+                            }
+
+                            uintptr_t reference_address = baseAddr + address;
+                            uintptr_t reference_value = baseRef + refAdress;
+
+                            hacks::push_write(reference_address, reference_value);
+                        }
+                    }
+                }
+                else if (type == "text")
+                {
+                    std::string text = component["text"];
+                    ImGui::Text(text.c_str());
+                }
+                else if (type == "text_url")
+                {
+                    std::string text = component["text"];
+                    std::string url = component["url"];
+                    if (ImGui::MenuItem(text.c_str()))
+                    {
+                        ShellExecuteA(0, "open", url.c_str(), 0, 0, 0);
+                    }
+
+                    if (ImGui::IsItemHovered())
+                        ImGui::SetTooltip(url.c_str());
+                }
+                else if (type == "speedhack")
+                {
+                    float value = component["value"];
+                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                    if (ImGui::DragFloat("##speed", &value, 0.01f, 0, FLT_MAX, "Speed %.2f"))
+                    {
+                        component["value"] = value;
+                        engine.speed = value;
+                    }
+                }
+                else if (type == "fps_bypass")
+                {
+                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 25);
+                    if (ImGui::DragFloat("##fps", &engine.fps, 1.00f, 1, 240.f, "FPS %.2f"))
+                    {
+                        component["value"] = engine.fps;
+                    }
+
+                    ImGui::SameLine();
+                    ImGui::Checkbox("##fps_enabled", &engine.fps_enabled);
+                    ImGui::Checkbox("Real Time", &engine.realtime);
+                }
+                else if (type == "separator")
+                {
+                    ImGui::Separator();
+                }
+                else if (type == "startpos_checkbox")
+                {
+                    bool value = component["value"];
+                    if (ImGui::Checkbox("StartPos Switcher", &value))
+                    {
+                        component["value"] = value;
+                        startposSwitcher::setEnabled(value);
+                    }
+                }
+                else if (type == "a_d_startpos") {
+                    bool value = component["value"];
+                    if (ImGui::Checkbox("Use A/D for StartPos Switcher ", &value))
+                    {
+                        component["value"] = value;
+                        startposSwitcher::setAlternateKeys(value);
+                    }
+                }
+                else if (type == "smart_startpos_checkbox")
+                {
+                    bool value = component["value"];
+                    if (ImGui::Checkbox("Smart Startpos", &value))
+                    {
+                        component["value"] = value;
+                        smartStartpos::enabled = value;
+                    }
+                }
                 if (type == "transparency_slider")
                 {
                     color[3] = component["value"];
@@ -135,80 +271,146 @@ void gui::Render()
                         }
                     }
                 }
-                if (type == "hack")
+                else if (type == "pmb_checkbox")
                 {
-                    bool enabled = component["enabled"];
-                    if (ImGui::Checkbox(component["name"].get<std::string>().c_str(), &enabled))
+                    bool value = component["value"];
+                    if (ImGui::Checkbox("Practice Music Bypass", &value))
                     {
-                        component["enabled"] = enabled;
-                        json opcodes = component["opcodes"];
-                        for (auto &opcode : opcodes)
+                        component["value"] = value;
+                        hooks::musicUnlocker = value;
+                    }
+                }
+                else if (type == "transitionCustomizerCBX")
+                {
+                    const char *e[] = {"Fade", "CrossFade", "Fade Bottom Left", "Fade Down", "Fade Top Right", "Fade Up", "Flip Angular", "Flip X", "Flip Y", "Jump Zoom", "Move In Bottom", "Move In Left", "Move In Right", "Move In Top", "Page Turn", "Progress Horizontal", "Progress In Out", "Progress Out In", "Progress Radial CWW", "Progress Radial CW", "Progress Vertical", "Rotation Zoom", "Shrink Grow", "Slider In Bottom", "Slider In Left", "Slider In Right", "Slider In Top", "Split Columns", "Split Rows", "Titles", "Zoom Flip Angular", "Zoom Flip X", "Zoom Flip Y"};
+                    int value = component["value"];
+                    if (ImGui::Combo("Transition", &value, e, 33, 5)) {
+                        component["value"] = value;
+                        hooks::transitionSelect = value;
+                    }
+                }
+                else if (type == "replay_engine")
+                {
+                    static string log = "Record/Replay or Save/Load Macros!";
+                    int mode = (int)engine.mode;
+
+                    if (ImGui::RadioButton("Disable", &mode, 0))
+                        engine.mode = state::disable;
+                    ImGui::SameLine();
+
+                    if (ImGui::RadioButton("Record", &mode, 1))
+                    {
+                        if (engine.mode != state::record)
+                            engine.replay.clear();
+                        engine.mode = state::record;
+                    }
+                    ImGui::SameLine();
+
+                    if (ImGui::RadioButton("Play", &mode, 2))
+                        engine.mode = state::play;
+
+                    ImGui::Separator();
+
+                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                    ImGui::InputText("##replay_name", engine.replay_name, IM_ARRAYSIZE(engine.replay_name));
+
+                    if (ImGui::Button("Save", {60, NULL}))
+                    {
+                        if (engine.replay.empty())
                         {
-                            string addrStr = opcode["addr"];
-                            string bytesStr = enabled ? opcode["on"] : opcode["off"];
-
-                            uintptr_t address;
-                            sscanf_s(addrStr.c_str(), "%x", &address);
-
-                            DWORD base = (DWORD)GetModuleHandleA(0);
-                            if (!opcode["lib"].is_null())
+                            log = "Replay doens't have actions";
+                        }
+                        else
+                        {
+                            if (isEmpty(engine.replay_name))
                             {
-                                base = (DWORD)GetModuleHandleA(string(opcode["lib"]).c_str());
+                                log = "Replay name is empty";
                             }
+                            else
+                            {
+                                std::ofstream file("GDH/macros/" + (string)engine.replay_name + ".txt");
 
-                            hacks::writemem(base + address, bytesStr);
+                                if (file.is_open())
+                                {
+                                    file << engine.fps << "\n";
+                                    for (auto &action : engine.replay)
+                                    {
+                                        file << action.frame << " " << action.hold << " " << action.player_button << " " << action.player << "\n";
+                                    }
+                                    file.close();
+                                    log = "Replay Saved";
+                                }
+                            }
                         }
                     }
-                }
-                else if (type == "text")
-                {
-                    std::string text = component["text"];
-                    ImGui::Text(text.c_str());
-                }
-                else if (type == "text_url")
-                {
-                    std::string text = component["text"];
-                    std::string url = component["url"];
-                    if (ImGui::MenuItem(text.c_str()))
+
+                    ImGui::SameLine();
+
+                    if (ImGui::Button("Load", {60, NULL}))
                     {
-                        ShellExecuteA(0, "open", url.c_str(), 0, 0, 0);
+                        if (!engine.replay.empty())
+                        {
+                            log = "Please clear replay before loading another";
+                        }
+                        else
+                        {
+                            if (isEmpty(engine.replay_name))
+                            {
+                                log = "Replay name is empty";
+                            }
+                            else
+                            {
+                                std::ifstream file("GDH/macros/" + (string)engine.replay_name + ".txt");
+                                std::string line;
+
+                                if (file.is_open())
+                                {
+                                    std::getline(file, line);
+                                    engine.fps = stof(line);
+                                    while (std::getline(file, line))
+                                    {
+                                        std::istringstream iss(line);
+                                        int value1, value2, value3, value4;
+
+                                        if (iss >> value1 >> value2 >> value3 >> value4)
+                                        {
+                                            engine.replay.push_back({(unsigned)value1, (bool)value2, (int)value3, (bool)value4});
+                                        }
+                                    }
+                                    file.close();
+                                    log = "Replay Loaded";
+                                }
+                                else
+                                {
+                                    log = "Replay doens't exists";
+                                }
+                            }
+                        }
                     }
 
-                    if (ImGui::IsItemHovered())
-                        ImGui::SetTooltip(url.c_str());
-                }
-                else if (type == "speedhack")
-                {
-                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                    ImGui::DragFloat("##speed", &speed, 0.01f, 0, FLT_MAX, "Speed %.2f");
-                }
-                else if (type == "separator")
-                {
+                    ImGui::SameLine();
+
+                    if (ImGui::Button("Clear Replay", {80, NULL}))
+                    {
+                        log = "Replay has been cleared";
+                        engine.replay.clear();
+                    }
+
                     ImGui::Separator();
-                }
-                else if (type == "startpos_checkbox")
-                {
-                    if (ImGui::Checkbox("StartPos Switcher", &startpos_switcher))
-                    {
-                        startposSwitcher::setEnabled(startpos_switcher);
-                    }
-                    if (ImGui::Checkbox("Use A/D for StartPos Switcher ", &alternate_keys_for_startpos))
-                    {
-                        startposSwitcher::setAlternateKeys(alternate_keys_for_startpos);
-                    }
-                }
-                else if (type == "smart_startpos_checkbox")
-                {
-                    if (ImGui::Checkbox("Smart Startpos", &smart_startpos))
-                    {
-                        smartStartpos::enabled = smart_startpos;
-                    }
+
+                    ImGui::Text("Replay size: %i", engine.replay.size());
+                    ImGui::Text("Frame: %i", hooks::frame);
+
+                    ImGui::Separator();
+
+                    ImGui::Text(log.c_str());
                 }
             }
         }
 
         ImGui::End();
     }
+    ImGui::End();
 }
 
 void gui::Toggle()

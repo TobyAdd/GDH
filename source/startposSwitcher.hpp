@@ -7,4 +7,9 @@ namespace startposSwitcher
     void switchStartPos(bool direction);
     void setAlternateKeys(bool alternate);
     void setEnabled(bool enable);
+    void fix_music();
+
+    extern bool enabled;
+
+    extern void* playLayer;
 }

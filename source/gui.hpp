@@ -8,5 +8,3 @@ namespace gui
     void Render();
     void Toggle();
 }
-
-

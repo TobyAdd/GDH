@@ -5,14 +5,13 @@ namespace startposSwitcher
 {
     void(__thiscall *resetLevel)(void *) = nullptr;
     void(__thiscall *setStartPosObject)(void *, void *) = nullptr;
-    void(__thiscall *playLayerInit)(void *) = nullptr;
+    
     void(__thiscall *startposObjectInit)(void *) = nullptr;
-    void(__thiscall *playLayerDestructor)(void *) = nullptr;
 
+    void *GJBaseGameLayer = nullptr;
     void *playLayer = nullptr;
     std::vector<float *> startposObjects;
     int startposIndex = -1;
-    float tmp[] = {0, 0};
     bool enabled = false;
     bool alternateKeys = false;
 
@@ -23,28 +22,40 @@ namespace startposSwitcher
         startposObjectInit(self);
     }
 
-    void __fastcall playLayerInitHook(void *self, void *_)
+    void(__thiscall *GJBaseGameLayer_init)(void *) = nullptr;
+    void __fastcall GJBaseGameLayer_init_H(void *self, void *_)
     {
         startposObjects = {};
         startposIndex = 0;
-        playLayer = self;
+        GJBaseGameLayer = self;
         smartStartpos::resetObjects();
-        playLayerInit(self);
+        GJBaseGameLayer_init(self);
     }
 
-    void __fastcall playLayerDestructorHook(void *self, void *_)
-    {
-        playLayer = nullptr;
-        playLayerDestructor(self);
+    void *self_;
+    void* channel_;
+    unsigned int position_;
+    unsigned int time_;
+
+    inline void(__thiscall *setPositionFunc)(void *self, void*, unsigned int, unsigned int);
+    inline void __fastcall setPositionFunc_H(void *self, int edx, void* channel, unsigned int position, unsigned int time) {
+        self_ = self;
+        channel_ = channel;
+        position_ = position;
+        time_ = time;
+        setPositionFunc(self, channel, position, time);
     }
+
 
     void init()
     {
         uintptr_t base = (uintptr_t)GetModuleHandleA(0);
 
+        void* setPositionAddr = GetProcAddress(GetModuleHandleA("fmod.dll"), "?setPosition@Channel@FMOD@@QAG?AW4FMOD_RESULT@@II@Z");
+        MH_CreateHook(setPositionAddr, &setPositionFunc_H, reinterpret_cast<void**>(&setPositionFunc));
+
         MH_CreateHook((LPVOID)(base + 0x3A0D10), startposObjectInitHook, (LPVOID *)&startposObjectInit);
-        MH_CreateHook((LPVOID)(base + 0x18CC80), playLayerInitHook, (LPVOID *)&playLayerInit);
-        MH_CreateHook((LPVOID)(base + 0x2D6580), playLayerDestructorHook, (LPVOID *)&playLayerDestructor);
+        MH_CreateHook((LPVOID)(base + 0x18CC80), GJBaseGameLayer_init_H, (LPVOID *)&GJBaseGameLayer_init);
         resetLevel = (decltype(resetLevel))(base + 0x2E42B0);
         setStartPosObject = (decltype(setStartPosObject))(base + 0x195FC0);
     }
@@ -63,6 +74,10 @@ namespace startposSwitcher
         }
     }
 
+    void fix_music() {
+        setPositionFunc(self_, channel_, *(double*)(((char*)playLayer) + 0x328) * 1000, time_);
+    }
+
     void switchStartPos(bool direction)
     {
         if (playLayer == nullptr || !enabled)
@@ -72,18 +87,18 @@ namespace startposSwitcher
 
         if (direction)
         {
-            startposIndex = startposIndex + 1;
-            if (static_cast<unsigned int>(startposIndex) >= startposObjects.size())
-            {
-                startposIndex = -1;
-            }
-        }
-        else
-        {
             startposIndex = startposIndex - 1;
             if (startposIndex < -1)
             {
                 startposIndex = startposObjects.size() - 1;
+            }
+        }
+        else
+        {
+            startposIndex = startposIndex + 1;
+            if (static_cast<unsigned int>(startposIndex) >= startposObjects.size())
+            {
+                startposIndex = -1;
             }
         }
 
@@ -99,6 +114,8 @@ namespace startposSwitcher
         }
 
         resetLevel(playLayer);
+        fix_music();
+
     }
 
     void setAlternateKeys(bool alternate)
