@@ -2,7 +2,6 @@
 #include <imgui-hook.hpp>
 #include <imgui.h>
 #include "gui.hpp"
-#include "hooks.hpp"
 #include "hacks.hpp"
 #include "startposSwitcher.hpp"
 #include "smartStartpos.hpp"
@@ -25,7 +24,6 @@ DWORD WINAPI ThreadMain(LPVOID lpParam)
     {
         ImGuiHook::Load([](void *target, void *hook, void **trampoline)
                             { MH_CreateHook(target, hook, trampoline); });
-        hooks::init();
         hacks::load();
         startposSwitcher::init();
         smartStartpos::init();
