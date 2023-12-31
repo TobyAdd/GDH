@@ -3,12 +3,12 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <imgui-hook.hpp>
-#include "hooks.hpp"
 #include "hacks.hpp"
 #include <shellapi.h>
 #include <gl/GL.h>
 #include "startposSwitcher.hpp"
 #include "smartStartpos.hpp"
+#include "sdk.hpp"
 
 bool gui::show = false;
 bool gui::inited = false;
@@ -17,6 +17,8 @@ bool secret = false;
 bool startpos_switcher = false;
 bool alternate_keys_for_startpos = false;
 bool smart_startpos = false;
+bool speed_audio = false;
+float speed = 1.f;
 
 extern "C"
 {
@@ -180,7 +182,12 @@ void gui::Render()
                 else if (type == "speedhack")
                 {
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+
                     ImGui::DragFloat("##speed", &speed, 0.01f, 0, FLT_MAX, "Speed %.2f");
+                    ImGui::Checkbox("Speedhack Audio", &speed_audio);
+
+                    sdk::cc_director::shared_director()->get_scheduler()->set_time_scale(speed);
+                    sdk::channel_control::get_gd_channel()->set_pitch(speed_audio ? speed : 1.f);
                 }
                 else if (type == "separator")
                 {
