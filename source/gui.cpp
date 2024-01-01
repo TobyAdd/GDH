@@ -301,8 +301,6 @@ void gui::Render()
 
                     char bindkey[1];
                     bindkey[0] = (char) currentkeycode;
-                    // Console::WriteLine(bindkey);
-                    Console::WriteLine(bindkey);
                     ImGui::InputText("##bindkey", bindkey, 0);
 
                     ImGui::SameLine();
@@ -313,25 +311,21 @@ void gui::Render()
                         {
                             RecordButtonText = "Cancel Recording";
                             recording = true;
-                            Console::WriteLine("Recording started");
                         }
                         else
                         {
                             RecordButtonText = "Record Key";
                             recording = false;
-                            Console::WriteLine("Recording stopped");
                         }
                     }
 
                     if (ImGui::Button("Bind"))
                     {
                         keybinds::AddKeybind(hackname, currentkeycode);
-                        Console::WriteLine(hackname);
                     }
                     ImGui::SameLine();
                     if (ImGui::Button("Remove ALL Keybinds"))
                     {
-                        Console::WriteLine("kinda removing");
                         keybinds::binds = json();
                     }
                 }

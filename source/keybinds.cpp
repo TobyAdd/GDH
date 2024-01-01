@@ -14,17 +14,11 @@ namespace keybinds
 
     void AddKeybind(string hackName, int keycode)
     {
-        Console::WriteLine("adding keybind");
-
-        // *static_cast<bool*>(switcher) = true;
-
         binds[to_string(keycode)] = hackName;
     }
 
     void keypress(int keycode)
     {
-        Console::WriteLine(to_string(binds));
-        Console::WriteLine(to_string(keycode));
         if (binds.contains(to_string(keycode))) {
             for (auto item : hacks::content.items()) {
                 auto &components = item.value()["components"];
@@ -34,10 +28,8 @@ namespace keybinds
                     {
                         std::string type = component["type"];
                         if (component.contains("name") == true){
-                            // Console::WriteLine(component["name"]);
                             if (type == "hack" && component["name"] == binds[to_string(keycode)])
                             {
-                                Console::WriteLine(component["name"]);
                                 component["enabled"] = !component["enabled"];
                                 component["bind"] = keycode;
                                 bool enabled = component["enabled"];
