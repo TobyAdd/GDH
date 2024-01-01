@@ -3,6 +3,7 @@
 #include <filesystem>
 #include "startposSwitcher.hpp"
 #include "smartStartpos.hpp"
+#include "keybinds.hpp"
 
 json hacks::content;
 
@@ -37,6 +38,10 @@ void hacks::load()
                 if (type == "hack")
                 {
                     bool enabled = component["enabled"];
+                    if (component.contains("bind")) 
+                    {
+                        keybinds::AddKeybind(component["name"], component["bind"]);
+                    }
                     if (enabled) {
                         json opcodes = component["opcodes"];
                         for (auto &opcode : opcodes)

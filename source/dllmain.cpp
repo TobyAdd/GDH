@@ -6,10 +6,11 @@
 #include "hacks.hpp"
 #include "startposSwitcher.hpp"
 #include "smartStartpos.hpp"
+#include "keybinds.hpp"
 
 DWORD WINAPI ThreadMain(LPVOID lpParam)
 {
-    //Console::Init();
+    Console::Init();
     ImGuiHook::setRenderFunction(gui::Render);
     ImGuiHook::setKeyPressHandler([](int keyCode) 
         {
@@ -21,6 +22,9 @@ DWORD WINAPI ThreadMain(LPVOID lpParam)
             }
 
             startposSwitcher::handleKeyPress(keyCode);
+            keybinds::keypress(keyCode);
+            if (gui::recording == true)
+                gui::currentkeycode = keyCode;
         });
     if (MH_Initialize() == MH_OK)
     {
