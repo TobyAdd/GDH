@@ -13,13 +13,14 @@
 
 bool gui::show = false;
 bool gui::inited = false;
-char* RecordButtonText = "Record Key";
-int gui::currentkeycode;
+bool gui::recording = true;
+int gui::currentkeycode = -1;
+int oldkeycode;
 bool secret = false;
-bool gui::recording = false;
-char hackname[128];
 
 float opacity_factor = 0.1f;
+bool binding_mode = false;
+std::string binding_now = "please dont create a hack with this name i will be very depressed";
 
 extern "C"
 {
@@ -141,66 +142,96 @@ void gui::Render()
                 std::string type = component["type"];
                 if (type == "hack")
                 {
-                    bool enabled = component["enabled"];
-                    if (ImGui::Checkbox(component["name"].get<std::string>().c_str(), &enabled))
-                    {
-                        component["enabled"] = enabled;
-                        json opcodes = component["opcodes"];
-                        for (auto &opcode : opcodes)
-                        {
-                            string addrStr = opcode["addr"];
-                            string bytesStr = enabled ? opcode["on"] : opcode["off"];
-
-                            uintptr_t address;
-                            sscanf_s(addrStr.c_str(), "%x", &address);
-
-                            DWORD base = (DWORD)GetModuleHandleA(0);
-                            if (!opcode["lib"].is_null())
-                            {
-                                base = (DWORD)GetModuleHandleA(string(opcode["lib"]).c_str());
-                            }
-
-                            hacks::writemem(base + address, bytesStr);
+                    if (binding_mode) {
+                        std::string keybind = "";
+                        for (auto &bind : keybinds::binds.items()) {
+                            if (bind.value() == component["name"])
+                                keybind.append(1, (char) std::stoi(bind.key()));
+                        }
+                        if (keybind == "") {
+                            keybind = "None";
                         }
 
-                        json references = component["references"];
-                        for (auto &reference : references)
+                        if (binding_now == component["name"].get<std::string>())
+                            keybind = "???";
+
+                        if (ImGui::Button((component["name"].get<std::string>() + (std::string) ": " + keybind).c_str())) {
+                            binding_now = component["name"].get<std::string>();
+                            recording = true;
+                            oldkeycode = currentkeycode;
+                        }
+
+                        if (binding_now == component["name"].get<std::string>()) {
+                            if (oldkeycode != currentkeycode) {
+                                binding_now = "please dont create a hack with this name i will be very depressed";
+                                recording = false;
+                                keybinds::AddKeybind(component["name"], currentkeycode);
+                                currentkeycode = -1;
+                            }
+                        }
+                    }
+                    else {
+                        bool enabled = component["enabled"];
+                        if (ImGui::Checkbox(component["name"].get<std::string>().c_str(), &enabled))
                         {
-                            if (enabled && reference["on"].is_null())
+                            component["enabled"] = enabled;
+                            json opcodes = component["opcodes"];
+                            for (auto& opcode : opcodes)
                             {
-                                continue;
+                                string addrStr = opcode["addr"];
+                                string bytesStr = enabled ? opcode["on"] : opcode["off"];
+
+                                uintptr_t address;
+                                sscanf_s(addrStr.c_str(), "%x", &address);
+
+                                DWORD base = (DWORD)GetModuleHandleA(0);
+                                if (!opcode["lib"].is_null())
+                                {
+                                    base = (DWORD)GetModuleHandleA(string(opcode["lib"]).c_str());
+                                }
+
+                                hacks::writemem(base + address, bytesStr);
                             }
 
-                            if (!enabled && reference["off"].is_null())
+                            json references = component["references"];
+                            for (auto& reference : references)
                             {
-                                continue;
+                                if (enabled && reference["on"].is_null())
+                                {
+                                    continue;
+                                }
+
+                                if (!enabled && reference["off"].is_null())
+                                {
+                                    continue;
+                                }
+
+                                string addrStr = reference["addr"];
+                                string addRefStr = enabled ? reference["on"] : reference["off"];
+
+                                uintptr_t address, refAdress;
+                                sscanf_s(addrStr.c_str(), "%x", &address);
+                                sscanf_s(addRefStr.c_str(), "%x", &refAdress);
+
+                                DWORD baseAddr = (DWORD)GetModuleHandleA(0);
+                                if (!reference["libAddr"].is_null() && !string(reference["libAddr"]).empty())
+                                {
+                                    baseAddr = (DWORD)GetModuleHandleA(string(reference["libAddr"]).c_str());
+                                }
+
+                                auto refSwitch = enabled ? reference["libON"] : reference["libOff"];
+
+                                DWORD baseRef = (DWORD)GetModuleHandleA(0);
+                                if (!refSwitch.is_null() && !string(refSwitch).empty())
+                                {
+                                    baseRef = (DWORD)GetModuleHandleA(string(refSwitch).c_str());
+                                }
+
+                                uintptr_t reference_address = baseAddr + address;
+                                uintptr_t reference_value = baseRef + refAdress;
+
+                                hacks::push_write(reference_address, reference_value);
                             }
-
-                            string addrStr = reference["addr"];
-                            string addRefStr = enabled ? reference["on"] : reference["off"];
-
-                            uintptr_t address, refAdress;
-                            sscanf_s(addrStr.c_str(), "%x", &address);
-                            sscanf_s(addRefStr.c_str(), "%x", &refAdress);
-
-                            DWORD baseAddr = (DWORD)GetModuleHandleA(0);
-                            if (!reference["libAddr"].is_null() && !string(reference["libAddr"]).empty())
-                            {
-                                baseAddr = (DWORD)GetModuleHandleA(string(reference["libAddr"]).c_str());
-                            }
-
-                            auto refSwitch = enabled ? reference["libON"] : reference["libOff"];
-
-                            DWORD baseRef = (DWORD)GetModuleHandleA(0);
-                            if (!refSwitch.is_null() && !string(refSwitch).empty())
-                            {
-                                baseRef = (DWORD)GetModuleHandleA(string(refSwitch).c_str());
-                            }
-
-                            uintptr_t reference_address = baseAddr + address;
-                            uintptr_t reference_value = baseRef + refAdress;
-
-                            hacks::push_write(reference_address, reference_value);
                         }
                     }
                 }
@@ -273,7 +304,7 @@ void gui::Render()
                         smartStartpos::enabled = value;
                     }
                 }
-                if (type == "color_picker")
+                else if (type == "color_picker")
                 {
                     color[0] = component["color"][0];
                     color[1] = component["color"][1];
@@ -317,39 +348,11 @@ void gui::Render()
                 }
                 else if (type == "keybinds_window")
                 {
-                    ImGui::InputText("##hackname", hackname, 128);
-                    ImGui::SameLine();
-                    ImGui::Text("Hack Name");
-
-                    char bindkey[1];
-                    bindkey[0] = (char) currentkeycode;
-                    ImGui::InputText("##bindkey", bindkey, 0);
-
-                    ImGui::SameLine();
-
-                    if (ImGui::Button(RecordButtonText))
-                    {
-                        if (RecordButtonText == "Record Key")
-                        {
-                            RecordButtonText = "Cancel Recording";
-                            recording = true;
-                        }
-                        else
-                        {
-                            RecordButtonText = "Record Key";
-                            recording = false;
-                        }
-                    }
-
-                    if (ImGui::Button("Bind"))
-                    {
-                        keybinds::AddKeybind(hackname, currentkeycode);
-                    }
-                    ImGui::SameLine();
-                    if (ImGui::Button("Remove ALL Keybinds"))
-                    {
+                    ImGui::Checkbox("Bind Mode", &binding_mode);
+                    if (ImGui::Button("Reset All Binds")) {
                         keybinds::binds = json();
                     }
+                    
                 }
                 else if (type == "fade_speed") {
                     opacity_factor = component["speed"];

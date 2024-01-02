@@ -431,21 +431,6 @@
             "width": 224.0
         }
     },
-	"Keybinds": {
-        "components": [
-            {
-                "type": "keybinds_window"
-            }
-        ],
-        "windowPosition": {
-            "x": 693.0,
-            "y": 450.0
-        },
-        "windowSize": {
-            "height": 118.0,
-            "width": 375.0
-        }
-    },
     "Player": {
         "components": [
             {
@@ -998,6 +983,9 @@
             {
                 "speed": 0.1,
                 "type": "fade_speed"
+            },
+            {
+                "type": "keybinds_window"
             }
         ],
         "windowPosition": {
