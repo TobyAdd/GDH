@@ -9,11 +9,15 @@
 #include "xorstr.hpp"
 #include "startposSwitcher.hpp"
 #include "smartStartpos.hpp"
+#include "keybinds.hpp"
 
 bool gui::show = false;
 bool gui::inited = false;
-
+char* RecordButtonText = "Record Key";
+int gui::currentkeycode;
 bool secret = false;
+bool gui::recording = false;
+char hackname[128];
 
 extern "C"
 {
@@ -287,6 +291,42 @@ void gui::Render()
                     if (ImGui::Combo("Transition", &value, e, 33, 5)) {
                         component["value"] = value;
                         hooks::transitionSelect = value;
+                    }
+                }
+                else if (type == "keybinds_window")
+                {
+                    ImGui::InputText("##hackname", hackname, 128);
+                    ImGui::SameLine();
+                    ImGui::Text("Hack Name");
+
+                    char bindkey[1];
+                    bindkey[0] = (char) currentkeycode;
+                    ImGui::InputText("##bindkey", bindkey, 0);
+
+                    ImGui::SameLine();
+
+                    if (ImGui::Button(RecordButtonText))
+                    {
+                        if (RecordButtonText == "Record Key")
+                        {
+                            RecordButtonText = "Cancel Recording";
+                            recording = true;
+                        }
+                        else
+                        {
+                            RecordButtonText = "Record Key";
+                            recording = false;
+                        }
+                    }
+
+                    if (ImGui::Button("Bind"))
+                    {
+                        keybinds::AddKeybind(hackname, currentkeycode);
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("Remove ALL Keybinds"))
+                    {
+                        keybinds::binds = json();
                     }
                 }
                 else if (type == "replay_engine")
