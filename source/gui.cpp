@@ -33,6 +33,55 @@ bool isEmpty(char *str)
     return (str != NULL && str[0] == '\0');
 }
 
+ImVec4 colorMultiply(float color[4], float multiplier) {
+    return ImVec4(std::clamp(color[0] * multiplier, 0.0f, 1.0f),
+                  std::clamp(color[1] * multiplier, 0.0f, 1.0f),
+                  std::clamp(color[2] * multiplier, 0.0f, 1.0f), color[3]);
+}
+
+void setStyle(ImGuiStyle &style, float accent[4])
+{
+    float average = (accent[0] + accent[1] + accent[2]) / 3.0f;
+    ImVec4 color = ImVec4(0.0f, 0.0f, 0.0f, accent[3]);;
+
+    if (average < 0.5f) color = ImVec4(1.0f, 1.0f, 1.0f, accent[3]);
+
+    style.Colors[ImGuiCol_Text] = color;
+    style.Colors[ImGuiCol_TextSelectedBg] = colorMultiply(accent, 0.8f);
+
+    style.Colors[ImGuiCol_CheckMark] = color;
+
+    style.Colors[ImGuiCol_WindowBg] = colorMultiply(accent, 0.8f);
+
+    style.Colors[ImGuiCol_FrameBg] = colorMultiply(accent, 0.6f);
+    style.Colors[ImGuiCol_FrameBgHovered] = colorMultiply(accent, 0.4f);
+    style.Colors[ImGuiCol_FrameBgActive] = colorMultiply(accent, 0.6f);
+
+    style.Colors[ImGuiCol_TitleBg] = colorMultiply(accent, 0.9f);
+    style.Colors[ImGuiCol_TitleBgCollapsed] = colorMultiply(accent, 0.8f);
+    style.Colors[ImGuiCol_TitleBgActive] = colorMultiply(accent, 1.0f);
+
+    style.Colors[ImGuiCol_ScrollbarBg] = colorMultiply(accent, 0.6f);
+    style.Colors[ImGuiCol_ScrollbarGrab] = colorMultiply(accent, 0.8f);
+    style.Colors[ImGuiCol_ScrollbarGrabHovered] = colorMultiply(accent, 0.9f);
+    style.Colors[ImGuiCol_ScrollbarGrabActive] = colorMultiply(accent, 1.0f);
+
+    style.Colors[ImGuiCol_SliderGrab] = colorMultiply(accent, 0.8f);
+    style.Colors[ImGuiCol_SliderGrabActive] = colorMultiply(accent, 1.0f);
+
+    style.Colors[ImGuiCol_Button] = colorMultiply(accent, 0.6f);
+    style.Colors[ImGuiCol_ButtonHovered] = colorMultiply(accent, 1.0f);
+    style.Colors[ImGuiCol_ButtonActive] = colorMultiply(accent, 1.0f);
+
+    style.Colors[ImGuiCol_Separator] = colorMultiply(accent, 0.6f);
+
+    style.Colors[ImGuiCol_ResizeGrip] = colorMultiply(accent, 1.0f);
+    style.Colors[ImGuiCol_ResizeGripHovered] = colorMultiply(accent, 1.2f);
+    style.Colors[ImGuiCol_ResizeGripActive] = colorMultiply(accent, 1.2f);
+
+    style.Colors[ImGuiCol_PopupBg] = colorMultiply(accent, 0.8f);
+}
+
 void gui::Render()
 {
     if (!gui::show)
@@ -40,8 +89,8 @@ void gui::Render()
 
     static std::vector<std::string> stretchedWindows;
     // IMGUI pinkish colors
-    static float color[4] = {0.2f, 0.15f, 0.25f, 1.0f};
-    static float default_color[4] = {0.2f, 0.15f, 0.25f, 1.0f};
+    static float color[4] = { 0.337f, 0.176f, 0.464f, 1.000f };
+    static float default_color[4] = { 0.337f, 0.176f, 0.464f, 1.000f };
 
     for (auto &item : hacks::content.items())
     {
@@ -207,72 +256,28 @@ void gui::Render()
                         smartStartpos::enabled = value;
                     }
                 }
-                if (type == "transparency_slider")
+                if (type == "color_picker")
                 {
-                    color[3] = component["value"];
-                    ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
-                    if (ImGui::SliderFloat("Transparency", &color[3], 0.0f, 1.0f))
+                    color[0] = component["color"][0];
+                    color[1] = component["color"][1];
+                    color[2] = component["color"][2];
+                    color[3] = component["color"][3];
+                    setStyle(ImGui::GetStyle(), color);
+                    if (ImGui::ColorEdit4("Menu Theme", (float*) &color))
                     {
-                        ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
-                        component["value"] = color[3];
+                        json color_json = { color[0], color[1], color[2], color[3] };
+                        component["color"] = color_json;
+                        setStyle(ImGui::GetStyle(), color);
                     }
-                }
-                if (type == "red_slider")
-                {
-                    color[0] = component["value"];
-                    ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
-                    if (ImGui::SliderFloat("Red", &color[0], 0.0f, 1.0f))
-                    {
-                        ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
-                        component["value"] = color[0];
-                    }
-                }
-                else if (type == "green_slider")
-                {
-                    color[1] = component["value"];
-                    ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
-                    if (ImGui::SliderFloat("Green", &color[1], 0.0f, 1.0f))
-                    {
-                        ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
-                        component["value"] = color[1];
-                    }
-                }
-                else if (type == "blue_slider")
-                {
-                    color[2] = component["value"];
-                    ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
-                    if (ImGui::SliderFloat("Blue", &color[2], 0.0f, 1.0f))
-                    {
-                        ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
-                        component["value"] = color[2];
-                    }
-                }
-                if (type == "reset_button")
-                {
                     if (ImGui::Button("Reset Theme"))
                     {
-                        memcpy(color, default_color, sizeof(color));
-                        ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
-                        for (auto &component : components)
-                        {
-                            std::string type = component["type"];
-                            if (type == "transparency_slider")
-                            {
-                                component["value"] = default_color[3];
-                            }
-                            else if (type == "red_slider")
-                            {
-                                component["value"] = default_color[0];
-                            }
-                            else if (type == "green_slider")
-                            {
-                                component["value"] = default_color[1];
-                            }
-                            else if (type == "blue_slider")
-                            {
-                                component["value"] = default_color[2];
-                            }
-                        }
+                        color[0] = default_color[0];
+                        color[1] = default_color[1];
+                        color[2] = default_color[2];
+                        color[3] = default_color[3];
+                        json color_json = { color[0], color[1], color[2], color[3] };
+                        component["color"] = color_json;
+                        setStyle(ImGui::GetStyle(), color);
                     }
                 }
                 else if (type == "pmb_checkbox")
