@@ -19,6 +19,8 @@ bool secret = false;
 bool gui::recording = false;
 char hackname[128];
 
+float opacity_factor = 0.1f;
+
 extern "C"
 {
     __declspec(dllexport) int __stdcall GDH()
@@ -84,8 +86,23 @@ void setStyle(ImGuiStyle &style, float accent[4])
 
 void gui::Render()
 {
-    if (!gui::show)
-        return;
+    if (!gui::inited) {
+        gui::inited = true;
+        ImGui::GetStyle().Alpha = 0;
+    }
+
+    if (!gui::show) {
+        if (ImGui::GetStyle().Alpha > 0.0f) {
+            ImGui::GetStyle().Alpha -= opacity_factor;
+        }
+        else {
+            return;
+        }
+    }
+
+    if (gui::show && ImGui::GetStyle().Alpha < 1.0f) {
+        ImGui::GetStyle().Alpha += opacity_factor;
+    }
 
     static std::vector<std::string> stretchedWindows;
     // IMGUI pinkish colors
@@ -332,6 +349,13 @@ void gui::Render()
                     if (ImGui::Button("Remove ALL Keybinds"))
                     {
                         keybinds::binds = json();
+                    }
+                }
+                else if (type == "fade_speed") {
+                    opacity_factor = component["speed"];
+                    if (ImGui::DragFloat("Fade Speed", &opacity_factor, 0.01f, 0.01f, 1.0f, "%.2f"))
+                    {
+                        component["speed"] = opacity_factor;
                     }
                 }
                 else if (type == "replay_engine")
