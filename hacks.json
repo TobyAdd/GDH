@@ -992,42 +992,8 @@
     "Settings": {
         "components": [
             {
-                "text": "Transparency",
-                "type": "text"
-            },
-            {
-                "type": "transparency_slider",
-                "value": 1.0
-            },
-            {
-                "text": "Red",
-                "type": "text"
-            },
-            {
-                "type": "red_slider",
-                "value": 0.20000000298023224
-            },
-            {
-                "text": "Green",
-                "type": "text"
-            },
-            {
-                "type": "green_slider",
-                "value": 0.15000000596046448
-            },
-            {
-                "text": "Blue",
-                "type": "text"
-            },
-            {
-                "type": "blue_slider",
-                "value": 0.25
-            },
-            {
-                "type": "separator"
-            },
-            {
-                "type": "reset_button"
+                "color": [0.337, 0.176, 0.464, 1.000],
+                "type": "color_picker"
             }
         ],
         "windowPosition": {
