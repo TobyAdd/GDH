@@ -994,6 +994,10 @@
             {
                 "color": [0.337, 0.176, 0.464, 1.000],
                 "type": "color_picker"
+            },
+            {
+                "speed": 0.1,
+                "type": "fade_speed"
             }
         ],
         "windowPosition": {
