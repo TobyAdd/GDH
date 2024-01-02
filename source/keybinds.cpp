@@ -14,6 +14,11 @@ namespace keybinds
 
     void AddKeybind(string hackName, int keycode)
     {
+        for (auto &bind : binds.items()) {
+            if (bind.value() == hackName) {
+                binds.erase(bind.key());
+            }
+        }
         binds[to_string(keycode)] = hackName;
     }
 
