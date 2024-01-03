@@ -18,7 +18,8 @@ int gui::currentkeycode = -1;
 int oldkeycode;
 bool secret = false;
 
-float opacity_factor = 0.1f;
+int anim_durr = -1;
+auto anim_starttime = std::chrono::steady_clock::now();
 bool binding_mode = false;
 std::string binding_now = "please dont create a hack with this name i will be very depressed";
 
@@ -85,6 +86,16 @@ void setStyle(ImGuiStyle &style, float accent[4])
     style.Colors[ImGuiCol_PopupBg] = colorMultiply(accent, 0.8f);
 }
 
+float get_opacity() {
+    auto now = std::chrono::steady_clock::now();
+
+    long long diff = std::chrono::duration_cast<std::chrono::milliseconds>(now - anim_starttime).count();
+    if (gui::show)
+        return (float)diff / (float)anim_durr;
+    else
+        return 1.0f - ((float)diff / (float)anim_durr);
+}
+
 void gui::Render()
 {
     if (!gui::inited) {
@@ -92,17 +103,9 @@ void gui::Render()
         ImGui::GetStyle().Alpha = 0;
     }
 
-    if (!gui::show) {
-        if (ImGui::GetStyle().Alpha > 0.0f) {
-            ImGui::GetStyle().Alpha -= opacity_factor;
-        }
-        else {
-            return;
-        }
-    }
-
-    if (gui::show && ImGui::GetStyle().Alpha < 1.0f) {
-        ImGui::GetStyle().Alpha += opacity_factor;
+    ImGui::GetStyle().Alpha = get_opacity();
+    if (!gui::show && ImGui::GetStyle().Alpha <= 0.0f) {
+        return;
     }
 
     static std::vector<std::string> stretchedWindows;
@@ -255,7 +258,7 @@ void gui::Render()
                 {
                     std::string text = component["text"];
                     std::string url = component["url"];
-                    if (ImGui::MenuItem(text.c_str()))
+                    if (ImGui::Button(text.c_str()))
                     {
                         ShellExecuteA(0, "open", url.c_str(), 0, 0, 0);
                     }
@@ -367,10 +370,10 @@ void gui::Render()
                     
                 }
                 else if (type == "fade_speed") {
-                    opacity_factor = component["speed"];
-                    if (ImGui::DragFloat("Fade Speed", &opacity_factor, 0.01f, 0.01f, 1.0f, "%.2f"))
+                    anim_durr = component["speed"];
+                    if (ImGui::DragInt("Fade Speed", &anim_durr, 10.0f, 0, 10000, "%dms"))
                     {
-                        component["speed"] = opacity_factor;
+                        component["speed"] = anim_durr;
                     }
                 }
                 else if (type == "replay_engine")
@@ -500,4 +503,5 @@ void gui::Render()
 void gui::Toggle()
 {
     gui::show = !gui::show;
+    anim_starttime = std::chrono::steady_clock::now();
 }
