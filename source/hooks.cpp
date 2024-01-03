@@ -7,6 +7,9 @@ bool hooks::musicUnlocker = true;
 int hooks::transitionSelect = 0;
 unsigned hooks::frame;
 
+typedef void(__stdcall* zcblive_action_callback)(bool, bool);
+typedef void(__stdcall* zcblive_set_playlayer)(void*);
+
 float left_over = 0.f;
 void(__thiscall *CCScheduler_update)(void *, float);
 void __fastcall CCScheduler_update_H(void *self, int, float dt)
@@ -39,6 +42,15 @@ bool __fastcall hooks::PlayLayer_init_H(void *self, int edx, void *GJGameLevel, 
     const auto res = PlayLayer_init(self, GJGameLevel, a3, a4);
     if (res) {
         startposSwitcher::playLayer = self;
+
+        // try to call zcblive callback
+        HMODULE zcblive = GetModuleHandleA("zcblive.dll");
+        if (zcblive) {
+            auto set_playlayer = (zcblive_set_playlayer)GetProcAddress(zcblive, "zcblive_set_playlayer");
+            if (set_playlayer) {
+                set_playlayer(self);
+            }
+        }
     }
         
     return res;
@@ -58,6 +70,16 @@ void __fastcall hooks::playLayer_update_H(void* self, int edx, float deltaTime)
         {
             auto& replayData = engine.replay[engine.index];
             hooks::GJBaseGameLayer_HandleButton(self, replayData.hold, replayData.player_button, replayData.player);
+
+            // try to call zcblive callback
+            HMODULE zcblive = GetModuleHandleA("zcblive.dll");
+            if (zcblive) {
+                auto action_callback = (zcblive_action_callback)GetProcAddress(zcblive, "zcblive_action_callback");
+                if (action_callback) {
+                    action_callback(replayData.hold, !replayData.player);
+                }
+            }
+
             engine.index++;
         }
     }
