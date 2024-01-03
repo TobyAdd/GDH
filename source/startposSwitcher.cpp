@@ -80,6 +80,7 @@ namespace startposSwitcher
 
     void switchStartPos(bool direction)
     {
+        if (startposObjects.size() == 0) return;
         if (playLayer == nullptr || !enabled)
         {
             return;

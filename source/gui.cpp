@@ -233,6 +233,9 @@ void gui::Render()
                                 hacks::push_write(reference_address, reference_value);
                             }
                         }
+
+                        if (ImGui::IsItemHovered() && component.contains("description"))
+                            ImGui::SetTooltip(component["description"].get<std::string>().c_str());
                     }
                 }
                 else if (type == "text")
@@ -331,7 +334,7 @@ void gui::Render()
                 else if (type == "pmb_checkbox")
                 {
                     bool value = component["value"];
-                    if (ImGui::Checkbox("Practice Music Bypass", &value))
+                    if (ImGui::Checkbox(binding_mode ? "no shit" : "Practice Music Bypass", &value))
                     {
                         component["value"] = value;
                         hooks::musicUnlocker = value;
@@ -349,6 +352,7 @@ void gui::Render()
                 else if (type == "keybinds_window")
                 {
                     ImGui::Checkbox("Bind Mode", &binding_mode);
+                    ImGui::SameLine();
                     if (ImGui::Button("Reset All Binds")) {
                         keybinds::binds = json();
                     }
