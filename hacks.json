@@ -10,8 +10,11 @@
                 "type": "text"
             },
             {
-                "text": "Special thanks to wint0r, zeo, qwix,\nTpdEA and RobbyV2",
+                "text": "Special thanks to wint0r, zeo, qwix,\nTpdEA, RobbyV2 and acidgd",
                 "type": "text"
+            },
+            {
+                "type": "separator"
             },
             {
                 "text": "Discord Server",
@@ -24,7 +27,7 @@
             "y": 442.0
         },
         "windowSize": {
-            "height": 130.0,
+            "height": 132.0,
             "width": 226.0
         }
     },
@@ -33,6 +36,7 @@
             {
                 "enabled": false,
                 "name": "Text Bypass",
+                "description": "Allows entering more charachters in text input than allowed",
                 "opcodes": [
                     {
                         "addr": "0x2F9A7",
@@ -46,6 +50,7 @@
             {
                 "enabled": false,
                 "name": "Character filter",
+                "description": "Allows entering more charachters in text input than allowed",
                 "opcodes": [
                     {
                         "addr": "0x2F974",
@@ -62,6 +67,7 @@
             {
                 "enabled": false,
                 "name": "Free Shops",
+                "description": "Allows bying shop items even if you dont have enough currency",
                 "opcodes": [
                     {
                         "addr": "0x168223",
@@ -85,6 +91,7 @@
             {
                 "enabled": false,
                 "name": "Free Chests",
+                "description": "Allows opening chests even if you dont have enough keys",
                 "opcodes": [
                     {
                         "addr": "0x17811B",
@@ -121,6 +128,7 @@
             {
                 "enabled": false,
                 "name": "Diamond Shopkeeper Bypass",
+                "description": "Opens Diamond Shopkeeper's shop for free",
                 "opcodes": [
                     {
                         "addr": "0x2F7156",
@@ -134,6 +142,7 @@
             {
                 "enabled": false,
                 "name": "The Mechanic Bypass",
+                "description": "Opens Mechanic's shop for free",
                 "opcodes": [
                     {
                         "addr": "0x2F7132",
@@ -147,6 +156,7 @@
             {
                 "enabled": false,
                 "name": "Potbor Bypass",
+                "description": "Opens community shop for free",
                 "opcodes": [
                     {
                         "addr": "0x2F710E",
@@ -160,6 +170,7 @@
             {
                 "enabled": false,
                 "name": "Scratch Bypass",
+                "description": "Opens shop for free",
                 "opcodes": [
                     {
                         "addr": "0x2F70EA",
@@ -173,6 +184,7 @@
             {
                 "enabled": false,
                 "name": "Vault of Secrets Bypass",
+                "description": "Opens Vault of Secrets for free",
                 "opcodes": [
                     {
                         "addr": "0x70991",
@@ -219,6 +231,7 @@
             {
                 "enabled": false,
                 "name": "The Treasure Room Bypass",
+                "description": "Opens The Treasure Room for free",
                 "opcodes": [
                     {
                         "addr": "0x70CB5",
@@ -249,6 +262,7 @@
             {
                 "enabled": false,
                 "name": "Custom object Bypass",
+                "description": "Allows custom objects to have more than 100 objects",
                 "opcodes": [
                     {
                         "addr": "0xA76A4",
@@ -267,6 +281,7 @@
             {
                 "enabled": false,
                 "name": "Copy Hack",
+                "description": "Allows copying any level",
                 "opcodes": [
                     {
                         "addr": "0x24E077",
@@ -280,6 +295,7 @@
             {
                 "enabled": false,
                 "name": "Level Edit",
+                "description": "Allows editing online levels (local only)",
                 "opcodes": [
                     {
                         "addr": "0x2B3A33",
@@ -313,6 +329,7 @@
             {
                 "enabled": false,
                 "name": "Slider Limit",
+                "description": "Removes slider boundaries",
                 "opcodes": [
                     {
                         "addr": "0x4CDAA",
@@ -336,6 +353,7 @@
             {
                 "enabled": false,
                 "name": "Testmode Bypass",
+                "description": "Removes \"Testmode\" label when playing from startpos",
                 "opcodes": [
                     {
                         "addr": "0x2D7D75",
@@ -385,6 +403,7 @@
             {
                 "enabled": false,
                 "name": "Verify Hack",
+                "description": "Allows uploading level without verifying it",
                 "opcodes": [
                     {
                         "addr": "0x381BF5",
@@ -436,6 +455,7 @@
             {
                 "enabled": false,
                 "name": "NoClip",
+                "description": "You know what it does",
                 "opcodes": [
                     {
                         "addr": "0x2E0AD9",
@@ -493,6 +513,7 @@
             {
                 "enabled": false,
                 "name": "Unlock All Levels",
+                "description": "Unlocks all official demon levels",
                 "opcodes": [
                     {
                         "addr": "0x2676A4",
@@ -509,6 +530,7 @@
             {
                 "enabled": false,
                 "name": "No Transition",
+                "description": "Removes transitions in menu",
                 "opcodes": [
                     {
                         "addr": "0xA7414",
@@ -686,6 +708,7 @@
             {
                 "enabled": false,
                 "name": "Coins In Practice",
+                "description": "Allows picking up coins in practice",
                 "opcodes": [
                     {
                         "addr": "0x198CEC",
@@ -699,6 +722,7 @@
             {
                 "enabled": true,
                 "name": "Ignore ESC",
+                "description": "Hitting ESC in pause menu will no longer kick you out of the level",
                 "opcodes": [
                     {
                         "addr": "0x2B4F31",
@@ -712,6 +736,7 @@
             {
                 "enabled": false,
                 "name": "Practice Pulse",
+                "description": "Pulsing objects will work in practice",
                 "opcodes": [
                     {
                         "addr": "0x2DD33D",
@@ -735,6 +760,7 @@
             {
                 "enabled": false,
                 "name": "Safe Mode",
+                "description": "Dont count any statistics or coins collected in level",
                 "opcodes": [
                     {
                         "addr": "0x2E0CDF",
@@ -797,6 +823,7 @@
             {
                 "enabled": false,
                 "name": "Replay Last Checkpoint",
+                "description": "Replaying from complete level menu will replay from last checkpoint",
                 "opcodes": null,
                 "references": [
                     {
@@ -981,7 +1008,7 @@
                 "type": "color_picker"
             },
             {
-                "speed": 0.1,
+                "speed": 100,
                 "type": "fade_speed"
             },
             {
