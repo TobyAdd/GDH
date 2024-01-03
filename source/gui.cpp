@@ -165,7 +165,15 @@ void gui::Render()
                             if (oldkeycode != currentkeycode) {
                                 binding_now = "please dont create a hack with this name i will be very depressed";
                                 recording = false;
-                                keybinds::AddKeybind(component["name"], currentkeycode);
+                                if (currentkeycode == VK_ESCAPE) {
+                                    for (auto& bind : keybinds::binds.items()) {
+                                        if (bind.value() == component["name"]) {
+                                            keybinds::binds.erase(bind.key());
+                                        }
+                                    }
+                                }
+                                else
+                                    keybinds::AddKeybind(component["name"], currentkeycode);
                                 currentkeycode = -1;
                             }
                         }
@@ -259,7 +267,7 @@ void gui::Render()
                 {
                     float value = component["value"];
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                    if (ImGui::DragFloat("##speed", &value, 0.01f, 0, FLT_MAX, "Speed %.2f"))
+                    if (ImGui::DragFloat("##speed", &value, 0.01f, 0, FLT_MAX, "Speed: %.2f"))
                     {
                         component["value"] = value;
                         engine.speed = value;
@@ -268,7 +276,7 @@ void gui::Render()
                 else if (type == "fps_bypass")
                 {
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 25);
-                    if (ImGui::DragFloat("##fps", &engine.fps, 1.00f, 1, 240.f, "FPS %.2f"))
+                    if (ImGui::DragFloat("##fps", &engine.fps, 1.00f, 1, 240.f, "FPS: %.2f"))
                     {
                         component["value"] = engine.fps;
                     }
