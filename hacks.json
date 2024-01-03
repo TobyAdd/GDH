@@ -419,7 +419,7 @@
         "components": [
             {
                 "type": "fps_bypass",
-                "value": 152.0
+                "value": 240.0
             }
         ],
         "windowPosition": {
