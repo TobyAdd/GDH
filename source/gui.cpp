@@ -502,6 +502,8 @@ void gui::Render()
 
 void gui::Toggle()
 {
-    gui::show = !gui::show;
-    anim_starttime = std::chrono::steady_clock::now();
+    if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - anim_starttime).count() > anim_durr) {
+        gui::show = !gui::show;
+        anim_starttime = std::chrono::steady_clock::now();
+    }
 }
