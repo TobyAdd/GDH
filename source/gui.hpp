@@ -1,4 +1,5 @@
 #include "include.hpp"
+#include <imgui_notify.h>
 
 namespace gui
 {
@@ -6,7 +7,14 @@ namespace gui
     extern bool inited;
     extern bool recording;
     extern int currentkeycode;
-    void BeginWindow(const char *title);
+
+    extern void ReplaysList();
+    extern void StylesList();
+
+    void import_style(std::string path);
+	void export_style(std::string path);
+    
+    void Init();
     void Render();
     void Toggle();
 }

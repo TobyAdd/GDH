@@ -13,13 +13,17 @@ add_library(${PROJECT} SHARED ${SOURCE_FILES})
 
 target_include_directories(${PROJECT} PRIVATE
   libraries/minhook/include
+
+  libraries/imgui
   libraries/imgui-hook
-  libraries/imgui-hook/imgui
+  libraries/imgui-notify
+  
   libraries
 )
 
 add_subdirectory(libraries/minhook)
 add_subdirectory(libraries/imgui-hook)
+
 target_link_libraries(${PROJECT} minhook imgui-hook opengl32)
 
 # add_custom_command(TARGET ${PROJECT} POST_BUILD

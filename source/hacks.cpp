@@ -19,10 +19,14 @@ void hacks::load()
 {
     CheckDir("GDH");
     CheckDir("GDH/extensions");
-    CheckDir("GDH/macros");
+    CheckDir("GDH/replays");
+    CheckDir("GDH/styles");
+    
     ifstream file("GDH/hacks.json");
+
     if (!file.is_open())
         return;
+
     string file_content((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
     file.close();
     hacks::content = json::parse(file_content);
@@ -64,11 +68,13 @@ void hacks::load()
                         }
 
                         json references = component["references"];
+                        
                         for (auto &reference : references)
                         {
                             if(reference["on"].is_null()){
                                 continue;
                             }
+
                             string addrStr = reference["addr"];
                             string addRefStr = reference["on"];
 

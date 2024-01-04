@@ -9,6 +9,7 @@ HGLRC originalContext = 0, newContext = 0;
 
 bool isInitialized = false;
 std::function<void()> drawFunc = []() {};
+std::function<void()> initFunc = []() {};
 std::function<void(int)> keyPressHandler = [](int _) {};
 HWND hWnd;
 
@@ -33,6 +34,8 @@ BOOL WINAPI HookedSwapBuffers(HDC hdc)
         SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR)HookedWndProc);
         ImGui_ImplWin32_Init(hWnd);
         ImGui_ImplOpenGL2_Init();
+
+        initFunc();
 
         isInitialized = true;
     }
@@ -115,6 +118,10 @@ void ImGuiHook::Load(std::function<void(void*, void*, void**)> hookFunc)
 void ImGuiHook::setRenderFunction(std::function<void()> func)
 {
     drawFunc = func;
+}
+
+void ImGuiHook::setInitFunction(std::function<void()> func) {
+    initFunc = func;
 }
 
 void ImGuiHook::setKeyPressHandler(std::function<void(int)> func)

@@ -75,7 +75,7 @@ namespace startposSwitcher
     }
 
     void fix_music() {
-        setPositionFunc(self_, channel_, *(double*)(((char*)playLayer) + 0x328) * 1000, time_);
+        setPositionFunc(self_, channel_, static_cast<unsigned int>(*(double*)(((char*)playLayer) + 0x328) * 1000), time_);
     }
 
     void switchStartPos(bool direction)

@@ -17,23 +17,31 @@ enum state
 
 class ReplayEngine
 {
-public:
-    state mode = disable;
+    public:
+        state mode = disable;
 
-    int index = 0;
-    vector<replay_data> replay;
+        bool style_init = false;
 
-    char replay_name[128];
+        int sequence_index = 0;
+        bool sequence_state = false, sequence_random = false, sequence_first = false;
+        void sequence_work();
 
-    bool fps_enabled = true;
-    bool realtime = true;
-    
-    float fps = 60.f;
-    float speed = 1.f;
+        int index = 0;
+        vector<replay_data> replay;
+        vector<std::string> sequence;
 
-    void handle_action(void* self, bool hold, int player_button, bool player);
-    void handle_playing(void* self);
-    unsigned getFrame(void* self);
+        bool fps_enabled = true;
+        bool realtime = true;
+        
+        float fps = 60.f;
+        float speed = 1.f;
+
+        void save(std::string replay_name);
+        void load(std::string replay_name);
+        int random(int min, int max);
+
+        void handle_action(void* self, bool hold, int player_button, bool player);
+        unsigned getFrame(void* self);
 };
 
 extern ReplayEngine engine;

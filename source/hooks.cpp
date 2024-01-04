@@ -2,17 +2,16 @@
 #include "hacks.hpp"
 #include "startposSwitcher.hpp"
 #include "smartStartpos.hpp"
+#include <random>
 
 bool hooks::musicUnlocker = true;
 int hooks::transitionSelect = 0;
 unsigned hooks::frame;
-
-typedef void(__stdcall* zcblive_action_callback)(bool, bool);
-typedef void(__stdcall* zcblive_set_playlayer)(void*);
+unsigned hooks::checkpoint_frame;
+void* hooks::playLayer;
 
 float left_over = 0.f;
-void(__thiscall *CCScheduler_update)(void *, float);
-void __fastcall CCScheduler_update_H(void *self, int, float dt)
+void __fastcall hooks::CCScheduler_update_H(void *self, int, float dt)
 {
     dt *= engine.speed;
 
@@ -39,21 +38,15 @@ void __fastcall CCScheduler_update_H(void *self, int, float dt)
 
 bool __fastcall hooks::PlayLayer_init_H(void *self, int edx, void *GJGameLevel, bool a3, bool a4)
 {
-    const auto res = PlayLayer_init(self, GJGameLevel, a3, a4);
-    if (res) {
+    const auto result = PlayLayer_init(self, GJGameLevel, a3, a4); playLayer = self;
+
+    if (result) {
         startposSwitcher::playLayer = self;
 
-        // try to call zcblive callback
-        HMODULE zcblive = GetModuleHandleA("zcblive.dll");
-        if (zcblive) {
-            auto set_playlayer = (zcblive_set_playlayer)GetProcAddress(zcblive, "zcblive_set_playlayer");
-            if (set_playlayer) {
-                set_playlayer(self);
-            }
-        }
+        checkpoint_frame = 0;
     }
         
-    return res;
+    return result;
 }
 
 void __fastcall hooks::playLayer_update_H(void* self, int edx, float deltaTime)
@@ -66,20 +59,10 @@ void __fastcall hooks::playLayer_update_H(void* self, int edx, float deltaTime)
     if (engine.mode == state::play)
     {
         while (engine.index < static_cast<int>(engine.replay.size()) &&
-               engine.getFrame(self) >= engine.replay[engine.index].frame)
+               frame >= engine.replay[engine.index].frame)
         {
             auto& replayData = engine.replay[engine.index];
             hooks::GJBaseGameLayer_HandleButton(self, replayData.hold, replayData.player_button, replayData.player);
-
-            // try to call zcblive callback
-            HMODULE zcblive = GetModuleHandleA("zcblive.dll");
-            if (zcblive) {
-                auto action_callback = (zcblive_action_callback)GetProcAddress(zcblive, "zcblive_action_callback");
-                if (action_callback) {
-                    action_callback(replayData.hold, !replayData.player);
-                }
-            }
-
             engine.index++;
         }
     }
@@ -89,14 +72,14 @@ void __fastcall hooks::PlayLayer_resetLevel_H(void *self)
 {
     PlayLayer_resetLevel(self);
     startposSwitcher::playLayer = self;
+    engine.sequence_work();
 
     if (engine.mode == state::play) {
-        engine.index = 0;        
-    }
-    else if (engine.mode == state::record) {
+        engine.index = 0;
+    } else if (engine.mode == state::record) {
         unsigned frame = engine.getFrame(self);
-        //m_isPracticeMode
-        if (*(bool*)(((char*)self) + 0x2a74)) {
+
+        if (*(bool*)(((char*)self) + 0x2a74)) { // m_isPracticeMode
             auto check = [&](replay_data& action) -> bool {
                 return action.frame >= frame;
             };
@@ -106,11 +89,11 @@ void __fastcall hooks::PlayLayer_resetLevel_H(void *self)
             if (!engine.replay.empty() && engine.replay.back().hold) {
                 engine.replay.push_back({frame, false, engine.replay.back().player_button, engine.replay.back().player});
             }
+        } else {
+            if (frame == 0)
+                engine.replay.clear();
         }
-        else {
-            engine.replay.clear();
-        }
-    } 
+    }
 }
 
 void __fastcall hooks::playLayer_levelComplate_H(int *self) {
@@ -127,13 +110,13 @@ void __fastcall hooks::PlayLayer_destructor_H(void *self)
         engine.mode = state::disable;    
 }
 
-int __fastcall hooks::GJBaseGameLayer_HandleButton_H(void *self, uintptr_t, int push, int player_button, BOOL is_player1)
+int __fastcall hooks::GJBaseGameLayer_HandleButton_H(void *self, uintptr_t, int push, int player_button, BOOL is_player1) // Push : Pressed / Released ; PlayerButton : 1 - Up / 2 - Left / 3 - Right
 {
-    auto ret = GJBaseGameLayer_HandleButton(self, push, player_button, is_player1);
     if (engine.mode == state::record) {
         engine.handle_action(self, push, player_button, is_player1);
-    }        
-    return ret;
+    }
+
+    return GJBaseGameLayer_HandleButton(self, push, player_button, is_player1);
 }
 
 
@@ -150,8 +133,7 @@ bool __fastcall noseH(void *self, int, int a, int b)
     return n;
 }
 
-void *(__cdecl *CCTransitionFade_create)(float, void *);
-void *__cdecl CCTransitionFade_createH(float duration, void *scene)
+void *__cdecl hooks::CCTransitionFade_create_H(float duration, void *scene)
 {
     auto cocos = GetModuleHandleA("libcocos2d.dll");
 
@@ -322,18 +304,71 @@ void *__cdecl CCTransitionFade_createH(float duration, void *scene)
     }
 }
 
+void __fastcall hooks::dispatchKeyboardMSG_H(void *self, uintptr_t *, int key, bool down)
+{
+    return dispatchKeyboardMSG(self, key, down);
+
+    if (key == 0x52 && down) { // R Key for restart level for example (idk).
+        PlayLayer_resetLevel_H(playLayer);
+    }
+}
+
+void __fastcall hooks::playLayer_loadFromCheckpoint_H(void* self, void*, void* checkpoint)
+{
+    if (engine.mode == state::record) {
+        if (*(bool*)(((char*)self) + 0x2a74) == false) {
+            auto check = [&](replay_data& action) -> bool {
+                return action.frame >= checkpoint_frame;
+            };
+
+            engine.replay.erase(remove_if(engine.replay.begin(), engine.replay.end(), check), engine.replay.end());
+
+            if (!engine.replay.empty() && engine.replay.back().hold) {
+                engine.replay.push_back({checkpoint_frame, false, engine.replay.back().player_button, engine.replay.back().player});
+            }
+        }
+    }
+
+    return playLayer_loadFromCheckpoint(self, checkpoint);
+}
+
+void* __fastcall hooks::checkpointObjectInit_H(void* self, void*)
+{
+	if (frame > 0)
+        checkpoint_frame = frame;
+
+	return checkpointObjectInit(self);
+}
+
+const char* __fastcall hooks::splashString_H()
+{
+	if (engine.random(0, 100) == 3)
+		return "its me, howhathe! =3";
+	else
+		return "Geometry Dash Hack by TobyAdd";
+}
+
 void hooks::init()
 {
     auto gd_base = GetModuleHandleA(0);
     auto cocos = GetModuleHandleA("libcocos2d.dll");
+
     MH_CreateHook((void *)(base + 0x2D69A0), PlayLayer_init_H, (void **)&PlayLayer_init);
     MH_CreateHook((void *)(base + 0x1B75E0), playLayer_update_H, (void **)&playLayer_update);
     MH_CreateHook((void *)(base + 0x2D6580), PlayLayer_destructor_H, (void **)&PlayLayer_destructor);
     MH_CreateHook((void *)(base + 0x2E42B0), PlayLayer_resetLevel_H, (void **)&PlayLayer_resetLevel);
     MH_CreateHook((void *)(base + 0x1B2880), GJBaseGameLayer_HandleButton_H, (void **)&GJBaseGameLayer_HandleButton);
     MH_CreateHook((void *)(base + 0x2D7F30), playLayer_levelComplate_H, (void **)&playLayer_levelComplate);
+    MH_CreateHook((void *)(base + 0x2E28D0), playLayer_loadFromCheckpoint_H, (void **)&playLayer_loadFromCheckpoint);
+    MH_CreateHook((void *)(base + 0x2D5F00), checkpointObjectInit_H, (void **)&checkpointObjectInit);
+    MH_CreateHook((void *)(base + 0x272A20), splashString_H, (void **)&splashString);
 
-    MH_CreateHook(GetProcAddress(cocos, "?create@CCTransitionFade@cocos2d@@SAPAV12@MPAVCCScene@2@@Z"), CCTransitionFade_createH, (void **)&CCTransitionFade_create);
+    // MH_CreateHook((void *)(base + 0x2E0A90), playLayer_destroyPlayer_H, (void **)&playLayer_destroyPlayer);
+
+    MH_CreateHook(GetProcAddress(cocos, "?create@CCTransitionFade@cocos2d@@SAPAV12@MPAVCCScene@2@@Z"), CCTransitionFade_create_H, (void **)&CCTransitionFade_create);
     MH_CreateHook(GetProcAddress(cocos, "?update@CCScheduler@cocos2d@@UAEXM@Z"), CCScheduler_update_H, (void **)&CCScheduler_update);
+    MH_CreateHook(GetProcAddress(cocos, "?dispatchKeyboardMSG@CCKeyboardDispatcher@cocos2d@@QAE_NW4enumKeyCodes@2@_N1@Z"), dispatchKeyboardMSG_H, (void **)&dispatchKeyboardMSG);
     MH_CreateHook((void *)(base + 0x173D10), noseH, (void **)&nose);
 }
+
+// ?create@CCTransitionMoveInT@cocos2d@@SAPAV12@MPAVCCScene@2@@Z // ?sharedApplication@CCApplication@cocos2d@@SAPAV12@XZ // ?toggleVerticalSync@CCApplication@cocos2d@@QAEX_N@Z //

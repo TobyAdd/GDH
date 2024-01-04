@@ -1,6 +1,16 @@
 {
-    "About": {
+    "GDH": {
         "components": [
+            {
+                "speed": 50,
+                "type": "fade_speed"
+            },
+            {
+                "type": "keybinds_window"
+            },
+            {
+                "type": "separator"
+            },
             {
                 "text": "GDH v2.4 Beta for Geometry Dash 2.2",
                 "type": "text"
@@ -10,7 +20,7 @@
                 "type": "text"
             },
             {
-                "text": "Special thanks to wint0r, zeo, qwix,\nTpdEA, RobbyV2 and acidgd",
+                "text": "Special thanks to howhathe, zeo, qwix,\nwint0r, TpdEA and RobbyV2",
                 "type": "text"
             },
             {
@@ -18,17 +28,17 @@
             },
             {
                 "text": "Discord Server",
-                "type": "text_url",
+                "type": "button_url",
                 "url": "https://discord.gg/ahYEz4MAwP"
             }
         ],
         "windowPosition": {
             "x": 462.0,
-            "y": 442.0
+            "y": 439.0
         },
         "windowSize": {
-            "height": 132.0,
-            "width": 226.0
+            "height": 203.0,
+            "width": 252.0
         }
     },
     "Bypass": {
@@ -36,7 +46,6 @@
             {
                 "enabled": false,
                 "name": "Text Bypass",
-                "description": "Allows entering more charachters in text input than allowed",
                 "opcodes": [
                     {
                         "addr": "0x2F9A7",
@@ -50,7 +59,6 @@
             {
                 "enabled": false,
                 "name": "Character filter",
-                "description": "Allows entering more charachters in text input than allowed",
                 "opcodes": [
                     {
                         "addr": "0x2F974",
@@ -67,7 +75,6 @@
             {
                 "enabled": false,
                 "name": "Free Shops",
-                "description": "Allows bying shop items even if you dont have enough currency",
                 "opcodes": [
                     {
                         "addr": "0x168223",
@@ -91,7 +98,6 @@
             {
                 "enabled": false,
                 "name": "Free Chests",
-                "description": "Allows opening chests even if you dont have enough keys",
                 "opcodes": [
                     {
                         "addr": "0x17811B",
@@ -128,7 +134,6 @@
             {
                 "enabled": false,
                 "name": "Diamond Shopkeeper Bypass",
-                "description": "Opens Diamond Shopkeeper's shop for free",
                 "opcodes": [
                     {
                         "addr": "0x2F7156",
@@ -142,7 +147,6 @@
             {
                 "enabled": false,
                 "name": "The Mechanic Bypass",
-                "description": "Opens Mechanic's shop for free",
                 "opcodes": [
                     {
                         "addr": "0x2F7132",
@@ -156,7 +160,6 @@
             {
                 "enabled": false,
                 "name": "Potbor Bypass",
-                "description": "Opens community shop for free",
                 "opcodes": [
                     {
                         "addr": "0x2F710E",
@@ -170,7 +173,6 @@
             {
                 "enabled": false,
                 "name": "Scratch Bypass",
-                "description": "Opens shop for free",
                 "opcodes": [
                     {
                         "addr": "0x2F70EA",
@@ -184,7 +186,6 @@
             {
                 "enabled": false,
                 "name": "Vault of Secrets Bypass",
-                "description": "Opens Vault of Secrets for free",
                 "opcodes": [
                     {
                         "addr": "0x70991",
@@ -231,7 +232,6 @@
             {
                 "enabled": false,
                 "name": "The Treasure Room Bypass",
-                "description": "Opens The Treasure Room for free",
                 "opcodes": [
                     {
                         "addr": "0x70CB5",
@@ -262,7 +262,6 @@
             {
                 "enabled": false,
                 "name": "Custom object Bypass",
-                "description": "Allows custom objects to have more than 100 objects",
                 "opcodes": [
                     {
                         "addr": "0xA76A4",
@@ -281,7 +280,6 @@
             {
                 "enabled": false,
                 "name": "Copy Hack",
-                "description": "Allows copying any level",
                 "opcodes": [
                     {
                         "addr": "0x24E077",
@@ -295,7 +293,6 @@
             {
                 "enabled": false,
                 "name": "Level Edit",
-                "description": "Allows editing online levels (local only)",
                 "opcodes": [
                     {
                         "addr": "0x2B3A33",
@@ -329,7 +326,6 @@
             {
                 "enabled": false,
                 "name": "Slider Limit",
-                "description": "Removes slider boundaries",
                 "opcodes": [
                     {
                         "addr": "0x4CDAA",
@@ -353,7 +349,6 @@
             {
                 "enabled": false,
                 "name": "Testmode Bypass",
-                "description": "Removes \"Testmode\" label when playing from startpos",
                 "opcodes": [
                     {
                         "addr": "0x2D7D75",
@@ -403,7 +398,6 @@
             {
                 "enabled": false,
                 "name": "Verify Hack",
-                "description": "Allows uploading level without verifying it",
                 "opcodes": [
                     {
                         "addr": "0x381BF5",
@@ -431,7 +425,22 @@
         },
         "windowSize": {
             "height": 244.0,
-            "width": 222.0
+            "width": 251.0
+        }
+    },
+    "Customize": {
+        "components": [
+            {
+                "type": "theme_editor"
+            }
+        ],
+        "windowPosition": {
+            "x": 722.0,
+            "y": 194.0
+        },
+        "windowSize": {
+            "height": 451.0,
+            "width": 282.0
         }
     },
     "FPS": {
@@ -447,7 +456,22 @@
         },
         "windowSize": {
             "height": 91.0,
-            "width": 224.0
+            "width": 252.0
+        }
+    },
+    "Macro Editor": {
+        "components": [
+            {
+                "type": "replay_engine.macro_editor"
+            }
+        ],
+        "windowPosition": {
+            "x": 1302.0,
+            "y": 3.0
+        },
+        "windowSize": {
+            "height": 289.0,
+            "width": 287.0
         }
     },
     "Player": {
@@ -455,7 +479,6 @@
             {
                 "enabled": false,
                 "name": "NoClip",
-                "description": "You know what it does",
                 "opcodes": [
                     {
                         "addr": "0x2E0AD9",
@@ -482,8 +505,8 @@
                     },
                     {
                         "addr": "0x384D94",
-                        "on": "E9 BA 00 00 00 90",
-                        "off": "0F 85 B9 00 00 00"
+                        "off": "0F 85 B9 00 00 00",
+                        "on": "E9 BA 00 00 00 90"
                     }
                 ],
                 "references": null,
@@ -513,7 +536,6 @@
             {
                 "enabled": false,
                 "name": "Unlock All Levels",
-                "description": "Unlocks all official demon levels",
                 "opcodes": [
                     {
                         "addr": "0x2676A4",
@@ -528,9 +550,8 @@
                 "type": "separator"
             },
             {
-                "enabled": false,
+                "enabled": true,
                 "name": "No Transition",
-                "description": "Removes transitions in menu",
                 "opcodes": [
                     {
                         "addr": "0xA7414",
@@ -681,7 +702,7 @@
             {
                 "type": "separator"
             },
-			{
+            {
                 "enabled": false,
                 "name": "Fast Chest Open",
                 "opcodes": [
@@ -708,7 +729,6 @@
             {
                 "enabled": false,
                 "name": "Coins In Practice",
-                "description": "Allows picking up coins in practice",
                 "opcodes": [
                     {
                         "addr": "0x198CEC",
@@ -720,9 +740,8 @@
                 "type": "hack"
             },
             {
-                "enabled": true,
+                "enabled": false,
                 "name": "Ignore ESC",
-                "description": "Hitting ESC in pause menu will no longer kick you out of the level",
                 "opcodes": [
                     {
                         "addr": "0x2B4F31",
@@ -734,9 +753,8 @@
                 "type": "hack"
             },
             {
-                "enabled": false,
+                "enabled": true,
                 "name": "Practice Pulse",
-                "description": "Pulsing objects will work in practice",
                 "opcodes": [
                     {
                         "addr": "0x2DD33D",
@@ -760,7 +778,6 @@
             {
                 "enabled": false,
                 "name": "Safe Mode",
-                "description": "Dont count any statistics or coins collected in level",
                 "opcodes": [
                     {
                         "addr": "0x2E0CDF",
@@ -823,7 +840,6 @@
             {
                 "enabled": false,
                 "name": "Replay Last Checkpoint",
-                "description": "Replaying from complete level menu will replay from last checkpoint",
                 "opcodes": null,
                 "references": [
                     {
@@ -934,7 +950,7 @@
                 "type": "hack"
             },
             {
-                "enabled": false,
+                "enabled": true,
                 "name": "Practice Mode for Platform",
                 "opcodes": [
                     {
@@ -982,7 +998,7 @@
             "y": 8.0
         },
         "windowSize": {
-            "height": 504.0,
+            "height": 560.0,
             "width": 213.0
         }
     },
@@ -993,35 +1009,27 @@
             }
         ],
         "windowPosition": {
-            "x": 694.0,
-            "y": 8.0
+            "x": 726.0,
+            "y": 9.0
         },
         "windowSize": {
-            "height": 182.0,
-            "width": 285.0
+            "height": 176.0,
+            "width": 279.0
         }
     },
-    "Settings": {
+    "Sequence": {
         "components": [
             {
-                "color": [0.337, 0.176, 0.464, 1.000],
-                "type": "color_picker"
-            },
-            {
-                "speed": 100,
-                "type": "fade_speed"
-            },
-            {
-                "type": "keybinds_window"
+                "type": "replay_engine.sequence"
             }
         ],
         "windowPosition": {
-            "x": 695.0,
-            "y": 198.0
+            "x": 1013.0,
+            "y": 4.0
         },
         "windowSize": {
-            "height": 245.0,
-            "width": 285.0
+            "height": 343.0,
+            "width": 286.0
         }
     },
     "Speedhack": {
@@ -1029,6 +1037,10 @@
             {
                 "type": "speedhack",
                 "value": 1.0
+            },
+            {
+                "type": "speedhack_audio",
+                "value": true
             }
         ],
         "windowPosition": {
@@ -1037,14 +1049,14 @@
         },
         "windowSize": {
             "height": 71.0,
-            "width": 222.0
+            "width": 251.0
         }
     },
     "Startpos": {
         "components": [
             {
                 "type": "startpos_checkbox",
-                "value": false
+                "value": true
             },
             {
                 "type": "a_d_startpos",
