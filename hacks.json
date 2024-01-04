@@ -467,7 +467,7 @@
                 "type": "hack"
             },
             {
-                "enabled": true,
+                "enabled": false,
                 "name": "Music Unlocker",
                 "opcodes": [
                     {
@@ -556,7 +556,7 @@
                 "type": "hack"
             },
             {
-                "enabled": true,
+                "enabled": false,
                 "name": "No Death Effect",
                 "opcodes": [
                     {
@@ -720,7 +720,7 @@
                 "type": "hack"
             },
             {
-                "enabled": true,
+                "enabled": false,
                 "name": "Ignore ESC",
                 "description": "Hitting ESC in pause menu will no longer kick you out of the level",
                 "opcodes": [
@@ -961,7 +961,7 @@
             },
             {
                 "type": "pmb_checkbox",
-                "value": true
+                "value": false
             },
             {
                 "enabled": false,
@@ -1004,8 +1004,8 @@
     "Settings": {
         "components": [
             {
-                "color": [0.337, 0.176, 0.464, 1.000],
-                "text_color": [1.000, 1.000, 1.000, 1.000],
+                "color": [ 0.337, 0.176, 0.464 ],
+                "text_color": [ 1.000, 1.000, 1.000 ],
                 "type": "color_picker"
             },
             {
@@ -1014,6 +1014,13 @@
             },
             {
                 "type": "keybinds_window"
+            },
+            {
+                "type": "separator"
+            },
+            {
+                "type": "text",
+                "text": "ProTip: change font by dropping font.ttf file\nin GDH/ folder"
             }
         ],
         "windowPosition": {
