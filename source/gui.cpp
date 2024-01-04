@@ -43,12 +43,15 @@ ImVec4 colorMultiply(float color[4], float multiplier) {
                   std::clamp(color[2] * multiplier, 0.0f, 1.0f), color[3]);
 }
 
-void setStyle(ImGuiStyle &style, float accent[4])
+void setStyle(ImGuiStyle &style, float accent[4], float text[4])
 {
+    /*
     float average = (accent[0] + accent[1] + accent[2]) / 3.0f;
     ImVec4 color = ImVec4(0.0f, 0.0f, 0.0f, accent[3]);;
 
     if (average < 0.5f) color = ImVec4(1.0f, 1.0f, 1.0f, accent[3]);
+    */
+    ImVec4 color = colorMultiply(text, 1.0f);
 
     style.Colors[ImGuiCol_Text] = color;
     style.Colors[ImGuiCol_TextSelectedBg] = colorMultiply(accent, 0.8f);
@@ -112,6 +115,8 @@ void gui::Render()
     // IMGUI pinkish colors
     static float color[4] = { 0.337f, 0.176f, 0.464f, 1.000f };
     static float default_color[4] = { 0.337f, 0.176f, 0.464f, 1.000f };
+    static float text_color[4] = { 1.0f, 1.0f, 1.0f, 1.000f };
+    static float default_text_color[4] = { 1.0f, 1.0f, 1.0f, 1.000f };
 
     for (auto &item : hacks::content.items())
     {
@@ -324,12 +329,26 @@ void gui::Render()
                     color[1] = component["color"][1];
                     color[2] = component["color"][2];
                     color[3] = component["color"][3];
-                    setStyle(ImGui::GetStyle(), color);
-                    if (ImGui::ColorEdit4("Menu Theme", (float*) &color))
+                    text_color[0] = component["text_color"][0];
+                    text_color[1] = component["text_color"][1];
+                    text_color[2] = component["text_color"][2];
+                    text_color[3] = component["text_color"][3];
+                    setStyle(ImGui::GetStyle(), color, text_color);
+                    if (ImGui::ColorEdit4("Accent Color", (float*)&color))
                     {
                         json color_json = { color[0], color[1], color[2], color[3] };
+                        json text_color_json = { text_color[0], text_color[1], text_color[2], text_color[3] };
                         component["color"] = color_json;
-                        setStyle(ImGui::GetStyle(), color);
+                        component["text_color"] = text_color_json;
+                        setStyle(ImGui::GetStyle(), color, text_color);
+                    }
+                    if (ImGui::ColorEdit4("Text Color", (float*)&text_color))
+                    {
+                        json color_json = { color[0], color[1], color[2], color[3] };
+                        json text_color_json = { text_color[0], text_color[1], text_color[2], text_color[3] };
+                        component["color"] = color_json;
+                        component["text_color"] = text_color_json;
+                        setStyle(ImGui::GetStyle(), color, text_color);
                     }
                     if (ImGui::Button("Reset Theme"))
                     {
@@ -337,9 +356,15 @@ void gui::Render()
                         color[1] = default_color[1];
                         color[2] = default_color[2];
                         color[3] = default_color[3];
+                        text_color[0] = default_text_color[0];
+                        text_color[1] = default_text_color[1];
+                        text_color[2] = default_text_color[2];
+                        text_color[3] = default_text_color[3];
                         json color_json = { color[0], color[1], color[2], color[3] };
+                        json text_color_json = { text_color[0], text_color[1], text_color[2], text_color[3] };
                         component["color"] = color_json;
-                        setStyle(ImGui::GetStyle(), color);
+                        component["text_color"] = text_color_json;
+                        setStyle(ImGui::GetStyle(), color, text_color);
                     }
                 }
                 else if (type == "pmb_checkbox")
