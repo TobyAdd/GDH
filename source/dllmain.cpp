@@ -10,7 +10,7 @@
 
 DWORD WINAPI ThreadMain(LPVOID lpParam)
 {
-    // Console::Init();
+     Console::Init();
     ImGuiHook::setRenderFunction(gui::Render);
     ImGuiHook::setKeyPressHandler([](int keyCode) 
         {

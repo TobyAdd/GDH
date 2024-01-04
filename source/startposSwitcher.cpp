@@ -81,7 +81,7 @@ namespace startposSwitcher
     void switchStartPos(bool direction)
     {
         if (startposObjects.size() == 0) return;
-        if (playLayer == nullptr || !enabled)
+        if (playLayer == nullptr || !enabled || MBO(bool, playLayer, 0x2e91) || MBO(bool, playLayer, 0x2c20))
         {
             return;
         }
@@ -114,9 +114,15 @@ namespace startposSwitcher
             setStartPosObject(playLayer, nullptr);
         }
 
+        if(MBO(bool, playLayer, 0x2a74)){
+            auto gdBaseA = (DWORD)GetModuleHandleA(0);
+            reinterpret_cast<void(__thiscall*)(void*)>(gdBaseA + 0x2e4210)(playLayer);//remove all checkpoints
+        }
+
         resetLevel(playLayer);
         fix_music();
-
+        auto gdBaseA = (DWORD)GetModuleHandleA(0);
+        reinterpret_cast<void(__thiscall*)(void*)>(gdBaseA + 0x2e5570)(playLayer);//startmusic
     }
 
     void setAlternateKeys(bool alternate)

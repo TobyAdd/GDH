@@ -9,11 +9,13 @@ namespace smartStartpos
     std::vector<uint32_t *> sizePortals;
     std::vector<uint32_t *> speedPortals;
     std::vector<uint32_t *> startPositions;
+    std::vector<uint32_t*> smartStartpos::coinsObject = {};
 
     void(__thiscall *addObject)(void *, void *) = nullptr;
 
     void __fastcall addObjectHook(void *self, void *_, uint32_t *object) {
         uint32_t objectID = object[0xE1];
+
         switch (objectID) {
         case 12:
         case 13:
@@ -38,7 +40,6 @@ namespace smartStartpos
             sizePortals.push_back(object);
             updateStartPos(self);
             break;
-
         case 200:
         case 201:
         case 202:
@@ -52,6 +53,9 @@ namespace smartStartpos
             startPositions.push_back(object);
             updateStartPos(self);
             break;
+        case 142:
+        case 1329:
+            coinsObject.push_back(object);
         }
 
         addObject(self, object);
@@ -69,6 +73,7 @@ namespace smartStartpos
         sizePortals = {};
         speedPortals = {};
         startPositions = {};
+        smartStartpos::coinsObject.clear();
     }
 
     void setEnabled(bool enable) {

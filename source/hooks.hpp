@@ -4,6 +4,9 @@
 namespace hooks {
     extern bool musicUnlocker;
     extern int transitionSelect;
+    extern bool g_enabledEKG;
+    extern bool g_enabledAutoPickupCoins;
+    extern bool g_enabledNoEffectCircle;
     extern unsigned frame;
 
     inline auto base = reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr));

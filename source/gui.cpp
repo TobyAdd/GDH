@@ -243,10 +243,10 @@ void gui::Render()
 
                                 hacks::push_write(reference_address, reference_value);
                             }
-                        }
 
-                        if (ImGui::IsItemHovered() && component.contains("description"))
-                            ImGui::SetTooltip(component["description"].get<std::string>().c_str());
+                            if (ImGui::IsItemHovered() && component.contains("description"))
+                                ImGui::SetTooltip(component["description"].get<std::string>().c_str());
+                        }
                     }
                 }
                 else if (type == "text")
@@ -270,7 +270,7 @@ void gui::Render()
                 {
                     float value = component["value"];
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                    if (ImGui::DragFloat("##speed", &value, 0.01f, 0, FLT_MAX, "Speed: %.2f"))
+                    if (ImGui::DragFloat("##speed", &value, 0.01f, 0, FLT_MAX, "%.2fx Speed"))
                     {
                         component["value"] = value;
                         engine.speed = value;
@@ -279,7 +279,7 @@ void gui::Render()
                 else if (type == "fps_bypass")
                 {
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 25);
-                    if (ImGui::DragFloat("##fps", &engine.fps, 1.00f, 1, 240.f, "FPS: %.2f"))
+                    if (ImGui::DragFloat("##fps", &engine.fps, 1.00f, 1, 240.f, "%.2f FPS"))
                     {
                         component["value"] = engine.fps;
                     }
@@ -345,10 +345,37 @@ void gui::Render()
                 else if (type == "pmb_checkbox")
                 {
                     bool value = component["value"];
-                    if (ImGui::Checkbox(binding_mode ? "no shit" : "Practice Music Bypass", &value))
+                    if (ImGui::Checkbox("Practice Music Bypass", &value))
                     {
                         component["value"] = value;
                         hooks::musicUnlocker = value;
+                    }
+                }
+                else if (type == "ekj_checkbox")
+                {
+                    bool value = component["value"];
+                    if (ImGui::Checkbox("Every Key Jumps", &value))
+                    {
+                        component["value"] = value;
+                        hooks::g_enabledEKG = value;
+                    }
+                }
+                else if (type == "acoinpick_checkbox")
+                {
+                    bool value = component["value"];
+                    if (ImGui::Checkbox("Auto Pickup Coins", &value))
+                    {
+                        component["value"] = value;
+                        hooks::g_enabledAutoPickupCoins = value;
+                    }
+                }
+                else if (type == "noeffectcirle_checkbox")
+                {
+                    bool value = component["value"];
+                    if (ImGui::Checkbox("No Effect Circle", &value))
+                    {
+                        component["value"] = value;
+                        hooks::g_enabledNoEffectCircle = value;
                     }
                 }
                 else if (type == "transitionCustomizerCBX")
