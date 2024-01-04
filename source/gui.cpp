@@ -37,13 +37,13 @@ bool isEmpty(char *str)
     return (str != NULL && str[0] == '\0');
 }
 
-ImVec4 colorMultiply(float color[4], float multiplier) {
+ImVec4 colorMultiply(float color[3], float multiplier) {
     return ImVec4(std::clamp(color[0] * multiplier, 0.0f, 1.0f),
                   std::clamp(color[1] * multiplier, 0.0f, 1.0f),
-                  std::clamp(color[2] * multiplier, 0.0f, 1.0f), color[3]);
+                  std::clamp(color[2] * multiplier, 0.0f, 1.0f), 1.0f);
 }
 
-void setStyle(ImGuiStyle &style, float accent[4], float text[4])
+void setStyle(ImGuiStyle &style, float accent[3], float text[3])
 {
     /*
     float average = (accent[0] + accent[1] + accent[2]) / 3.0f;
@@ -113,10 +113,10 @@ void gui::Render()
 
     static std::vector<std::string> stretchedWindows;
     // IMGUI pinkish colors
-    static float color[4] = { 0.337f, 0.176f, 0.464f, 1.000f };
-    static float default_color[4] = { 0.337f, 0.176f, 0.464f, 1.000f };
-    static float text_color[4] = { 1.0f, 1.0f, 1.0f, 1.000f };
-    static float default_text_color[4] = { 1.0f, 1.0f, 1.0f, 1.000f };
+    static float color[4] = { 0.337f, 0.176f, 0.464f };
+    static float default_color[4] = { 0.337f, 0.176f, 0.464f };
+    static float text_color[4] = { 1.0f, 1.0f, 1.0f };
+    static float default_text_color[4] = { 1.0f, 1.0f, 1.0f };
 
     for (auto &item : hacks::content.items())
     {
@@ -328,24 +328,22 @@ void gui::Render()
                     color[0] = component["color"][0];
                     color[1] = component["color"][1];
                     color[2] = component["color"][2];
-                    color[3] = component["color"][3];
                     text_color[0] = component["text_color"][0];
                     text_color[1] = component["text_color"][1];
                     text_color[2] = component["text_color"][2];
-                    text_color[3] = component["text_color"][3];
                     setStyle(ImGui::GetStyle(), color, text_color);
-                    if (ImGui::ColorEdit4("Accent Color", (float*)&color))
+                    if (ImGui::ColorEdit3("Accent Color", (float*)&color))
                     {
-                        json color_json = { color[0], color[1], color[2], color[3] };
-                        json text_color_json = { text_color[0], text_color[1], text_color[2], text_color[3] };
+                        json color_json = { color[0], color[1], color[2] };
+                        json text_color_json = { text_color[0], text_color[1], text_color[2] };
                         component["color"] = color_json;
                         component["text_color"] = text_color_json;
                         setStyle(ImGui::GetStyle(), color, text_color);
                     }
-                    if (ImGui::ColorEdit4("Text Color", (float*)&text_color))
+                    if (ImGui::ColorEdit3("Text Color", (float*)&text_color))
                     {
-                        json color_json = { color[0], color[1], color[2], color[3] };
-                        json text_color_json = { text_color[0], text_color[1], text_color[2], text_color[3] };
+                        json color_json = { color[0], color[1], color[2] };
+                        json text_color_json = { text_color[0], text_color[1], text_color[2] };
                         component["color"] = color_json;
                         component["text_color"] = text_color_json;
                         setStyle(ImGui::GetStyle(), color, text_color);
@@ -355,13 +353,11 @@ void gui::Render()
                         color[0] = default_color[0];
                         color[1] = default_color[1];
                         color[2] = default_color[2];
-                        color[3] = default_color[3];
                         text_color[0] = default_text_color[0];
                         text_color[1] = default_text_color[1];
                         text_color[2] = default_text_color[2];
-                        text_color[3] = default_text_color[3];
-                        json color_json = { color[0], color[1], color[2], color[3] };
-                        json text_color_json = { text_color[0], text_color[1], text_color[2], text_color[3] };
+                        json color_json = { color[0], color[1], color[2] };
+                        json text_color_json = { text_color[0], text_color[1] };
                         component["color"] = color_json;
                         component["text_color"] = text_color_json;
                         setStyle(ImGui::GetStyle(), color, text_color);
