@@ -1,4 +1,6 @@
 #include <functional>
+#include <fstream>
+#include <sstream>
 #include "imgui-hook.hpp"
 #include "imgui_theme.hpp"
 #include "ubuntu_font.hpp"
@@ -27,7 +29,12 @@ BOOL WINAPI HookedSwapBuffers(HDC hdc)
         io.IniFilename = nullptr;
         ApplyColor();
         ApplyStyle();
-        io.Fonts->AddFontFromMemoryTTF(fontData, sizeof(fontData), 14.f, NULL, io.Fonts->GetGlyphRangesCyrillic());
+        std::ifstream f("GDH/font.ttf");
+        if (f.good())
+            io.Fonts->AddFontFromFileTTF("GDH/font.ttf", 14.f, NULL, io.Fonts->GetGlyphRangesCyrillic());
+        else
+            io.Fonts->AddFontFromMemoryTTF(fontData, sizeof(fontData), 14.f, NULL, io.Fonts->GetGlyphRangesCyrillic());
+        f.close();
         hWnd = WindowFromDC(hdc);
         originalWndProc = (WNDPROC)GetWindowLongPtr(hWnd, GWLP_WNDPROC);
         SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR)HookedWndProc);
