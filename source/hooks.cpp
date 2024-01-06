@@ -2,16 +2,23 @@
 #include "hacks.hpp"
 #include "startposSwitcher.hpp"
 #include "smartStartpos.hpp"
+#include "gui.hpp"
+#include <imgui.h>
 
 bool hooks::musicUnlocker = true;
 bool hooks::g_enabledEKG = false;
 bool hooks::g_enabledAutoPickupCoins = false;
 bool hooks::g_enabledNoEffectCircle = false;
 int hooks::transitionSelect = 0;
+bool hooks::confirm_exit = false;
 unsigned hooks::frame;
 
-typedef void(__stdcall* zcblive_action_callback)(bool, bool);
-typedef void(__stdcall* zcblive_set_playlayer)(void*);
+bool hooks::frame_advance = false;
+bool next_frame = false;
+
+bool hooks::noclip_accuracy_enabled = true;  
+NoclipAccuracy hooks::noclip_accuracy;
+CPSCounter hooks::cps_counter;
 
 float left_over = 0.f;
 void(__thiscall *CCScheduler_update)(void *, float);
@@ -23,9 +30,19 @@ void __fastcall CCScheduler_update_H(void *self, int, float dt)
         return CCScheduler_update(self, dt);
     
     float newdt = 1.f / engine.fps; 
+
+    if (hooks::frame_advance) {
+        if (next_frame) {
+            next_frame = false;
+            return CCScheduler_update(self, newdt);
+        }
+
+        return;
+    }
+
     if (!engine.realtime)
         return CCScheduler_update(self, newdt);
-    
+ 
     unsigned times = static_cast<int>((dt + left_over) / newdt);  
     auto start = chrono::high_resolution_clock::now();
 
@@ -46,14 +63,6 @@ bool __fastcall hooks::PlayLayer_init_H(void *self, int edx, void *GJGameLevel, 
     if (res) {
         startposSwitcher::playLayer = self;
     }
-    // try to call zcblive callback
-    HMODULE zcblive = GetModuleHandleA("zcblive.dll");
-    if (zcblive) {
-        auto set_playlayer = (zcblive_set_playlayer)GetProcAddress(zcblive, "zcblive_set_playlayer");
-        if (set_playlayer) {
-            set_playlayer(self);
-        }
-    }
         
     return res;
 }
@@ -63,10 +72,12 @@ void __fastcall hooks::playLayer_update_H(void* self, int edx, float deltaTime)
 {
     playLayer_update(self, deltaTime);
 
-
     startposSwitcher::playLayer = self;
     frame = engine.getFrame(self);
-    
+
+    if (noclip_accuracy_enabled)
+        noclip_accuracy.handle_update(self, deltaTime);
+
     if (engine.mode == state::play)
     {
         while (engine.index < static_cast<int>(engine.replay.size()) &&
@@ -74,16 +85,6 @@ void __fastcall hooks::playLayer_update_H(void* self, int edx, float deltaTime)
         {
             auto& replayData = engine.replay[engine.index];
             hooks::GJBaseGameLayer_HandleButton(self, replayData.hold, replayData.player_button, replayData.player);
-
-            // try to call zcblive callback
-            HMODULE zcblive = GetModuleHandleA("zcblive.dll");
-            if (zcblive) {
-                auto action_callback = (zcblive_action_callback)GetProcAddress(zcblive, "zcblive_action_callback");
-                if (action_callback) {
-                    action_callback(replayData.hold, !replayData.player);
-                }
-            }
-
             engine.index++;
         }
     }
@@ -93,6 +94,9 @@ void __fastcall hooks::PlayLayer_resetLevel_H(void *self)
 {
     PlayLayer_resetLevel(self);
     startposSwitcher::playLayer = self;
+    if (noclip_accuracy_enabled)
+        noclip_accuracy.handle_reset(self);
+    cps_counter.reset();
 
     if (engine.mode == state::play) {
         engine.index = 0;        
@@ -149,11 +153,35 @@ void __fastcall hooks::PlayLayer_destructor_H(void *self)
 
 int __fastcall hooks::GJBaseGameLayer_HandleButton_H(void *self, uintptr_t, int push, int player_button, BOOL is_player1)
 {
+    if (push)
+        cps_counter.recordClick();
+
+    if (engine.mode == state::play) {
+        return 0;
+    }
+
     auto ret = GJBaseGameLayer_HandleButton(self, push, player_button, is_player1);
     if (engine.mode == state::record) {
         engine.handle_action(self, push, player_button, is_player1);
     }        
     return ret;
+}
+
+int __fastcall hooks::playLayer_exit_H(void *self) {
+    if (confirm_exit) {
+        gui::confirm_exit = true;
+        return 1;
+    }
+
+    frame_advance = false;
+    return playLayer_exit(self);
+}
+
+void __fastcall hooks::playLayer_death_H(void* self, int edx, void* player, void* obj)
+{ 
+    if (noclip_accuracy_enabled)
+        noclip_accuracy.handle_death();
+	playLayer_death(self, player, obj);
 }
 
 
@@ -254,13 +282,11 @@ bool g_right_shift = false;
 
 void*(__thiscall* dispatchKeyboardMSG)(void* self, int key, bool down, bool idk);
 void* __fastcall dispatchKeyboardMSGHook(void* self, void*, int key, bool down, bool idk) {
-    if (!hooks::g_enabledEKG) return dispatchKeyboardMSG(self, key, down, idk);
     auto base = reinterpret_cast<uintptr_t>(GetModuleHandle(0));
     auto gm = reinterpret_cast<void*(__fastcall*)()>(base + 0x11f720)();
     auto play_layer = MBO(void*, gm, 0x198);
 
-    
-    if (play_layer && should_key_jump(key)) {
+    if (hooks::g_enabledEKG && play_layer && should_key_jump(key) /*&& key != 'C' && key != 'V'*/) {
         auto is_practice_mode = *(bool*)(((char*)play_layer) + 0x2a74);
         if (!is_practice_mode || (key != 'Z' && key != 'X')) {
             bool player1 = true;
@@ -292,10 +318,18 @@ void* __fastcall dispatchKeyboardMSGHook(void* self, void*, int key, bool down, 
 
             if(!idk)
               reinterpret_cast<int(__thiscall*)(void*, int push, int player_button, bool is_player1)>(base + 0x1b2880)(play_layer, down, 1, player1);
-           
-
-        }
+        }            
     }
+
+    // if (play_layer && down && key == 'C') {
+    //     hooks::frame_advance = true;
+    //     next_frame = true;
+    // }        
+    // else if (play_layer && down && key == 'V') {
+    //     hooks::frame_advance = false;
+    //     next_frame = false;
+    // }    
+
     return dispatchKeyboardMSG(self, key, down, idk);
 }
 
@@ -341,6 +375,9 @@ void hooks::init()
     MH_CreateHook((void *)(base + 0x2E42B0), PlayLayer_resetLevel_H, (void **)&PlayLayer_resetLevel);
     MH_CreateHook((void *)(base + 0x1B2880), GJBaseGameLayer_HandleButton_H, (void **)&GJBaseGameLayer_HandleButton);
     MH_CreateHook((void *)(base + 0x2D7F30), playLayer_levelComplate_H, (void **)&playLayer_levelComplate);
+    MH_CreateHook((void *)(base + 0x2E5650), playLayer_exit_H, (void **)&playLayer_exit);
+    MH_CreateHook((void *)(base + 0x2e0a90), playLayer_death_H, (void **)(&playLayer_death));
+
     MH_CreateHook((void *)(base + 0x232f0), CCCircle_initH, (void **)&CCCircle_init);
     MH_CreateHook((void *)(base + 0x23840), CCCircle_drawH, (void **)&CCCircle_draw);
     MH_CreateHook((void *)(base + 0x2e2880), UILayer_onCheckH, (void **)&UILayer_onCheck);

@@ -12,9 +12,9 @@ void ApplyColor() {
     colors[ImGuiCol_FrameBg]                = ImVec4(0.35f, 0.25f, 0.45f, 0.54f);
     colors[ImGuiCol_FrameBgHovered]         = ImVec4(0.45f, 0.30f, 0.60f, 0.54f);
     colors[ImGuiCol_FrameBgActive]          = ImVec4(0.40f, 0.35f, 0.55f, 0.54f);
-    colors[ImGuiCol_TitleBg]                = ImVec4(0.35f, 0.20f, 0.50f, 1.00f);
+    colors[ImGuiCol_TitleBg]                = ImVec4(0.40f, 0.25f, 0.55f, 1.00f);
     colors[ImGuiCol_TitleBgActive]          = ImVec4(0.40f, 0.25f, 0.55f, 1.00f);
-    colors[ImGuiCol_TitleBgCollapsed]       = ImVec4(0.30f, 0.15f, 0.45f, 1.00f);
+    colors[ImGuiCol_TitleBgCollapsed]       = ImVec4(0.40f, 0.25f, 0.55f, 1.00f);
     colors[ImGuiCol_MenuBarBg]              = ImVec4(0.25f, 0.15f, 0.35f, 1.00f);
     colors[ImGuiCol_ScrollbarBg]            = ImVec4(0.20f, 0.10f, 0.30f, 0);
     colors[ImGuiCol_ScrollbarGrab]          = ImVec4(0.40f, 0.25f, 0.60f, 0.54f);

@@ -4,6 +4,7 @@
 #include "startposSwitcher.hpp"
 #include "smartStartpos.hpp"
 #include "keybinds.hpp"
+#include "gui.hpp"
 
 json hacks::content;
 
@@ -15,14 +16,14 @@ void CheckDir(string dir)
     }
 }
 
-void hacks::load()
+bool hacks::load()
 {
     CheckDir("GDH");
     CheckDir("GDH/extensions");
     CheckDir("GDH/macros");
     ifstream file("GDH/hacks.json");
     if (!file.is_open())
-        return;
+        return false;
     string file_content((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
     file.close();
     hacks::content = json::parse(file_content);
@@ -40,7 +41,7 @@ void hacks::load()
                     bool enabled = component["enabled"];
                     if (component.contains("bind")) 
                     {
-                        keybinds::AddKeybind(component["name"], component["bind"]);
+                        keybinds::AddKeybind(component["name"], component["bind"], &component);
                     }
                     if (enabled) {
                         json opcodes = component["opcodes"];
@@ -105,6 +106,12 @@ void hacks::load()
                 else if (type == "fps_bypass") {
                     auto value = component["value"];
                     engine.fps = value.is_null() ? 60.0f : value;
+
+                    auto enabled = component["enabled"];
+                    engine.fps_enabled = enabled;
+
+                    auto real_time_enabled = component["real_time"];
+                    engine.realtime = real_time_enabled;
                 }
                 else if (type == "transitionCustomizerCBX") {
                     auto value = component["value"];
@@ -129,10 +136,20 @@ void hacks::load()
                 {
                     auto value = component["value"];
                     hooks::musicUnlocker = value;
+                }                
+                else if (type == "pmb_checkbox")
+                {
+                    auto value = component["value"];
+                    hooks::musicUnlocker = value;
+                }
+                else if (type == "confirm_exit") {
+                    auto value = component["value"];
+                    hooks::confirm_exit = value;
                 }
             }
         }
     }
+    return true;
 }
 
 bool hacks::push_write(const uintptr_t address, const DWORD destination_address)

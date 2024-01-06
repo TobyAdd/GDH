@@ -63,7 +63,7 @@ namespace smartStartpos
 
     void init() {
         uintptr_t base = (uintptr_t)GetModuleHandleA(0);
-
+        
         MH_CreateHook((LPVOID)(base + 0x2DBD30), addObjectHook, (LPVOID *)&addObject);
     }
 

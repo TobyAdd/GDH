@@ -11,6 +11,7 @@ HGLRC originalContext = 0, newContext = 0;
 
 bool isInitialized = false;
 std::function<void()> drawFunc = []() {};
+std::function<void()> uninitFunc = []() {};
 std::function<void(int)> keyPressHandler = [](int _) {};
 HWND hWnd;
 
@@ -30,10 +31,16 @@ BOOL WINAPI HookedSwapBuffers(HDC hdc)
         ApplyColor();
         ApplyStyle();
         std::ifstream f("GDH/font.ttf");
-        if (f.good())
+        if (f.good()) {
             io.Fonts->AddFontFromFileTTF("GDH/font.ttf", 14.f, NULL, io.Fonts->GetGlyphRangesCyrillic());
-        else
+            io.Fonts->AddFontFromFileTTF("GDH/font.ttf", 18.f, NULL, io.Fonts->GetGlyphRangesCyrillic());
+            io.Fonts->AddFontFromFileTTF("GDH/font.ttf", 24.f, NULL, io.Fonts->GetGlyphRangesCyrillic());            
+        }
+        else {
             io.Fonts->AddFontFromMemoryTTF(fontData, sizeof(fontData), 14.f, NULL, io.Fonts->GetGlyphRangesCyrillic());
+            io.Fonts->AddFontFromMemoryTTF(fontData, sizeof(fontData), 18.f, NULL, io.Fonts->GetGlyphRangesCyrillic());
+            io.Fonts->AddFontFromMemoryTTF(fontData, sizeof(fontData), 24.f, NULL, io.Fonts->GetGlyphRangesCyrillic());            
+        }            
         f.close();
         hWnd = WindowFromDC(hdc);
         originalWndProc = (WNDPROC)GetWindowLongPtr(hWnd, GWLP_WNDPROC);
@@ -64,6 +71,7 @@ BOOL WINAPI HookedSwapBuffers(HDC hdc)
 
 void ImGuiHook::Unload()
 {
+    uninitFunc();
     ImGui_ImplOpenGL2_Shutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
@@ -122,6 +130,11 @@ void ImGuiHook::Load(std::function<void(void*, void*, void**)> hookFunc)
 void ImGuiHook::setRenderFunction(std::function<void()> func)
 {
     drawFunc = func;
+}
+
+void ImGuiHook::setUnloadFunction(std::function<void()> func)
+{
+    uninitFunc = func;
 }
 
 void ImGuiHook::setKeyPressHandler(std::function<void(int)> func)

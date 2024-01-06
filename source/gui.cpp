@@ -18,10 +18,34 @@ int gui::currentkeycode = -1;
 int oldkeycode;
 bool secret = false;
 
+int r_hue = 0;
+
+bool rainbow_accent = false;
+float ra_brightness = 1.0f;
+float ra_saturation = 1.0f;
+
+bool rainbow_text = false;
+float rt_brightness = 1.0f;
+float rt_saturation = 1.0f;
+
 int anim_durr = -1;
 auto anim_starttime = std::chrono::steady_clock::now();
 bool binding_mode = false;
 std::string binding_now = "please dont create a hack with this name i will be very depressed";
+
+bool gui::nc_acc = false;
+bool gui::cps_counter = false;
+bool gui::fps_label = false;
+bool gui::message = false;
+bool gui::noclip_deaths = false;
+
+char gui::custom_message[256];
+
+font_size current_font_size = font_size::small;
+
+bool gui::confirm_exit = false;
+
+bool gui::hacks_missing = false;
 
 extern "C"
 {
@@ -64,8 +88,8 @@ void setStyle(ImGuiStyle &style, float accent[3], float text[3])
     style.Colors[ImGuiCol_FrameBgHovered] = colorMultiply(accent, 0.4f);
     style.Colors[ImGuiCol_FrameBgActive] = colorMultiply(accent, 0.6f);
 
-    style.Colors[ImGuiCol_TitleBg] = colorMultiply(accent, 0.9f);
-    style.Colors[ImGuiCol_TitleBgCollapsed] = colorMultiply(accent, 0.8f);
+    style.Colors[ImGuiCol_TitleBg] = colorMultiply(accent, 1.0f);
+    style.Colors[ImGuiCol_TitleBgCollapsed] = colorMultiply(accent, 1.0f);
     style.Colors[ImGuiCol_TitleBgActive] = colorMultiply(accent, 1.0f);
 
     style.Colors[ImGuiCol_ScrollbarBg] = colorMultiply(accent, 0.6f);
@@ -87,6 +111,8 @@ void setStyle(ImGuiStyle &style, float accent[3], float text[3])
     style.Colors[ImGuiCol_ResizeGripActive] = colorMultiply(accent, 1.2f);
 
     style.Colors[ImGuiCol_PopupBg] = colorMultiply(accent, 0.8f);
+
+    style.Colors[ImGuiCol_Border] = colorMultiply(accent, 0.6f);
 }
 
 float get_opacity() {
@@ -99,8 +125,129 @@ float get_opacity() {
         return 1.0f - ((float)diff / (float)anim_durr);
 }
 
+bool opennedSP = false;
+vector<string> replay_list;
+
+void SelectReplay()
+{
+    auto itemRectMin = ImGui::GetItemRectMin();
+    auto itemRectMax = ImGui::GetItemRectMax();
+    auto itemRectSize = ImGui::GetItemRectSize();
+
+    ImGui::SameLine();
+
+    if (ImGui::ArrowButton("##comboopen", ImGuiDir_Down))
+    {
+        opennedSP = true;
+        replay_list.clear();
+        for (const auto &entry : filesystem::directory_iterator("GDH/macros"))
+        {
+            string replay = entry.path().filename().string();
+            if (replay.substr(replay.size() - 4, replay.size()) == ".txt")
+            {
+                replay_list.push_back(entry.path().filename().string().erase(replay.size() - 4, replay.size()));
+            }
+        }
+    }
+
+    if (opennedSP)
+    {
+        ImGui::SetNextWindowPos(ImVec2(itemRectMin.x, itemRectMax.y + 4));
+        ImGui::SetNextWindowSize(ImVec2(itemRectSize.x + ImGui::GetItemRectSize().x + 5, 150));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1);
+        ImGui::Begin("##replaylist", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+        if (!ImGui::IsWindowFocused()) {
+            opennedSP = false;
+        }
+        for (int i = 0; i < (int)replay_list.size(); i++)
+        {
+            if (ImGui::MenuItem(replay_list[i].c_str()))
+            {
+                strcpy_s(engine.replay_name, replay_list[i].c_str());
+                opennedSP = false;
+            }
+        }
+        ImGui::End();
+        ImGui::PopStyleVar();
+    }
+}
+
+void MetaRender()
+{
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1);
+    ImGui::Begin("Meta", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoBringToFrontOnFocus);
+    if (startposSwitcher::playLayer != nullptr)
+    {
+        ImGui::PushStyleColor(ImGuiCol_Text, ImColor(255, 255, 255, 200).Value);
+        
+        if (current_font_size == font_size::small) {
+            ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);
+        }
+        else if (current_font_size == font_size::normal) {
+            ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]);
+        }        
+        else if (current_font_size == font_size::large) {
+            ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[2]);
+        }
+
+        if (gui::nc_acc)
+            ImGui::Text("%.2f%%", hooks::noclip_accuracy.getPercentage()); 
+
+        if (gui::cps_counter)
+            ImGui::Text("%i/%i", hooks::cps_counter.cps, hooks::cps_counter.highscore);     
+
+        if (gui::fps_label)
+            ImGui::Text("%.2f FPS", ImGui::GetIO().Framerate);
+
+        if (gui::message)
+            ImGui::Text("%s", gui::custom_message);
+
+        if (gui::noclip_deaths)
+            ImGui::Text("%d death%s", hooks::noclip_accuracy.deaths_full, hooks::noclip_accuracy.deaths_full == 1 ? "" : "s");
+
+        ImGui::PopFont();
+        ImGui::PopStyleColor();
+    }
+    ImGui::End();
+    ImGui::PopStyleVar();
+}
+
+std::vector<std::string> stretchedWindows;
+
 void gui::Render()
 {
+    MetaRender();
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1);
+
+    if (gui::confirm_exit) {
+        ImGui::OpenPopup("ConfirmExitPopup");
+        gui::confirm_exit = false;
+    }
+
+    if (ImGui::BeginPopupModal("ConfirmExitPopup", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Text("Are you sure you want to exit the level?");
+        
+        ImGui::Separator();
+
+        if (ImGui::Button("Yes")) {
+            hooks::playLayer_exit(startposSwitcher::playLayer);
+            hooks::frame_advance = false;
+            ImGui::CloseCurrentPopup();
+        }        
+        
+        ImGui::SameLine();
+               
+        if (ImGui::Button("No")) {
+            ImGui::CloseCurrentPopup();
+        }
+        
+        ImGui::EndPopup();
+    }
+
+
+    ImGui::PopStyleVar();
+
     if (!gui::inited) {
         gui::inited = true;
         ImGui::GetStyle().Alpha = 0;
@@ -111,7 +258,14 @@ void gui::Render()
         return;
     }
 
-    static std::vector<std::string> stretchedWindows;
+    if (!hacks_missing) {
+        ImGuiIO &io = ImGui::GetIO();
+        ImGui::SetNextWindowPos(ImVec2(0, io.DisplaySize.y), ImGuiCond_Always, ImVec2(0.0f, 1.0f));
+        ImGui::Begin("BottomRightText", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoBringToFrontOnFocus);
+        ImGui::Text("hacks.json is missing. Please reinstall GDH as it is broken.");
+        ImGui::End();
+    }
+
     // IMGUI pinkish colors
     static float color[4] = { 0.337f, 0.176f, 0.464f };
     static float default_color[4] = { 0.337f, 0.176f, 0.464f };
@@ -125,9 +279,9 @@ void gui::Render()
         if (std::find(stretchedWindows.begin(), stretchedWindows.end(), windowName) == stretchedWindows.end())
         {
             ImVec2 windowSize = ImVec2(float(item.value()["windowSize"]["width"]),
-                                       float(item.value()["windowSize"]["height"]));
+                                    float(item.value()["windowSize"]["height"]));
             ImVec2 windowPos = ImVec2(float(item.value()["windowPosition"]["x"]),
-                                      float(item.value()["windowPosition"]["y"]));
+                                    float(item.value()["windowPosition"]["y"]));
 
             ImGui::SetNextWindowSize(windowSize);
             ImGui::SetNextWindowPos(windowPos);
@@ -137,10 +291,14 @@ void gui::Render()
 
         ImGui::Begin(windowName.c_str());
 
-        item.value()["windowSize"]["width"] = ImGui::GetWindowSize().x;
-        item.value()["windowSize"]["height"] = ImGui::GetWindowSize().y;
-        item.value()["windowPosition"]["x"] = ImGui::GetWindowPos().x;
-        item.value()["windowPosition"]["y"] = ImGui::GetWindowPos().y;
+        // if (!ImGui::IsWindowCollapsed()) {
+        //     item.value()["windowSize"]["width"] = ImGui::GetWindowSize().x;
+        //     item.value()["windowSize"]["height"] = ImGui::GetWindowSize().y;
+        // }
+
+        // item.value()["windowPosition"]["x"] = ImGui::GetWindowPos().x;
+        // item.value()["windowPosition"]["y"] = ImGui::GetWindowPos().y;
+
 
         auto &components = item.value()["components"];
         if (!components.is_null())
@@ -148,6 +306,7 @@ void gui::Render()
             for (auto &component : components)
             {
                 std::string type = component["type"];
+
                 if (type == "hack")
                 {
                     if (binding_mode) {
@@ -177,11 +336,12 @@ void gui::Render()
                                     for (auto& bind : keybinds::binds.items()) {
                                         if (bind.value() == component["name"]) {
                                             keybinds::binds.erase(bind.key());
+                                            component.erase("bind");
                                         }
                                     }
                                 }
                                 else
-                                    keybinds::AddKeybind(component["name"], currentkeycode);
+                                    keybinds::AddKeybind(component["name"], currentkeycode, &component);
                                 currentkeycode = -1;
                             }
                         }
@@ -248,10 +408,10 @@ void gui::Render()
 
                                 hacks::push_write(reference_address, reference_value);
                             }
-
-                            if (ImGui::IsItemHovered() && component.contains("description"))
-                                ImGui::SetTooltip(component["description"].get<std::string>().c_str());
                         }
+
+                        if (ImGui::IsItemHovered() && component.contains("description"))
+                            ImGui::SetTooltip(component["description"].get<std::string>().c_str());
                     }
                 }
                 else if (type == "text")
@@ -275,7 +435,7 @@ void gui::Render()
                 {
                     float value = component["value"];
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                    if (ImGui::DragFloat("##speed", &value, 0.01f, 0, FLT_MAX, "%.2fx Speed"))
+                    if (ImGui::DragFloat("##speed", &value, 0.01f, 0, FLT_MAX, "Speed %.2f"))
                     {
                         component["value"] = value;
                         engine.speed = value;
@@ -284,14 +444,24 @@ void gui::Render()
                 else if (type == "fps_bypass")
                 {
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 25);
-                    if (ImGui::DragFloat("##fps", &engine.fps, 1.00f, 1, 240.f, "%.2f FPS"))
+                    if (ImGui::DragFloat("##fps", &engine.fps, 1.00f, 1, 240.f, "FPS %.2f"))
                     {
                         component["value"] = engine.fps;
                     }
 
                     ImGui::SameLine();
-                    ImGui::Checkbox("##fps_enabled", &engine.fps_enabled);
-                    ImGui::Checkbox("Real Time", &engine.realtime);
+
+                    bool enabled = component["enabled"];
+                    if (ImGui::Checkbox("##fps_enabled", &enabled)) {
+                        engine.fps_enabled = enabled;
+                        component["enabled"] = enabled;
+                    }
+
+                    bool real_time_enabled = component["real_time"];
+                    if (ImGui::Checkbox("Real Time", &real_time_enabled)) {
+                        engine.realtime = real_time_enabled;
+                        component["real_time"] = real_time_enabled;
+                    }
                 }
                 else if (type == "separator")
                 {
@@ -325,6 +495,12 @@ void gui::Render()
                 }
                 else if (type == "color_picker")
                 {
+                    rainbow_accent = component["rainbow"]["enabled"][0];
+                    rainbow_text = component["rainbow"]["enabled"][1];
+                    ra_brightness = component["rainbow"]["accent"][0];
+                    ra_saturation = component["rainbow"]["accent"][1];
+                    rt_brightness = component["rainbow"]["text"][0];
+                    rt_saturation = component["rainbow"]["text"][1];
                     color[0] = component["color"][0];
                     color[1] = component["color"][1];
                     color[2] = component["color"][2];
@@ -332,36 +508,79 @@ void gui::Render()
                     text_color[1] = component["text_color"][1];
                     text_color[2] = component["text_color"][2];
                     setStyle(ImGui::GetStyle(), color, text_color);
-                    if (ImGui::ColorEdit3("Accent Color", (float*)&color))
-                    {
-                        json color_json = { color[0], color[1], color[2] };
-                        json text_color_json = { text_color[0], text_color[1], text_color[2] };
-                        component["color"] = color_json;
-                        component["text_color"] = text_color_json;
-                        setStyle(ImGui::GetStyle(), color, text_color);
+
+                    ImGui::Checkbox("##rainbowAccent", &rainbow_accent);
+                    if (ImGui::IsItemHovered())
+                        ImGui::SetTooltip("Rainbow Color");
+
+                    ImGui::SameLine();
+
+                    r_hue = (r_hue + 1) % 360;
+                    if (rainbow_accent) {
+                        ImGui::SetNextItemWidth(95.0f);
+                        ImGui::DragFloat("##raBrightness", &ra_brightness, 0.01f, 0.0f, 1.0f, "Brightness: %.2f");
+                        ImGui::SameLine();
+                        ImGui::SetNextItemWidth(95.0f);
+                        ImGui::DragFloat("##raSaturation", &ra_saturation, 0.01f, 0.0f, 1.0f, "Saturation: %.2f");
+                        ImGui::SameLine();
+                        ImGui::Text("Accent");
+                        float r, g, b;
+                        ImGui::ColorConvertHSVtoRGB(r_hue / 360.0f, ra_saturation, ra_brightness, r, g, b);
+                        color[0] = r;
+                        color[1] = g;
+                        color[2] = b;
                     }
-                    if (ImGui::ColorEdit3("Text Color", (float*)&text_color))
-                    {
-                        json color_json = { color[0], color[1], color[2] };
-                        json text_color_json = { text_color[0], text_color[1], text_color[2] };
-                        component["color"] = color_json;
-                        component["text_color"] = text_color_json;
-                        setStyle(ImGui::GetStyle(), color, text_color);
+                    else {
+                        ImGui::ColorEdit3("Accent", (float*)&color);
                     }
+
+                    ImGui::Checkbox("##rainbowText", &rainbow_text);
+                    if (ImGui::IsItemHovered())
+                        ImGui::SetTooltip("Rainbow Color");
+
+                    ImGui::SameLine();
+
+                    if (rainbow_text) {
+                        ImGui::SetNextItemWidth(95.0f);
+                        ImGui::DragFloat("##rtBrightness", &rt_brightness, 0.01f, 0.0f, 1.0f, "Brightness: %.2f");
+                        ImGui::SameLine();
+                        ImGui::SetNextItemWidth(95.0f);
+                        ImGui::DragFloat("##rtSaturation", &rt_saturation, 0.01f, 0.0f, 1.0f, "Saturation: %.2f");
+                        ImGui::SameLine();
+                        ImGui::Text("Text");
+                        float r, g, b;
+                        ImGui::ColorConvertHSVtoRGB(r_hue / 360.0f, rt_saturation, rt_brightness, r, g, b);
+                        text_color[0] = r;
+                        text_color[1] = g;
+                        text_color[2] = b;
+                    }
+                    else {
+                        ImGui::ColorEdit3("Text", (float*)&text_color);
+                    }
+
                     if (ImGui::Button("Reset Theme"))
                     {
+                        rainbow_text = false;
+                        rainbow_accent = false;
                         color[0] = default_color[0];
                         color[1] = default_color[1];
                         color[2] = default_color[2];
                         text_color[0] = default_text_color[0];
                         text_color[1] = default_text_color[1];
                         text_color[2] = default_text_color[2];
-                        json color_json = { color[0], color[1], color[2] };
-                        json text_color_json = { text_color[0], text_color[1] };
-                        component["color"] = color_json;
-                        component["text_color"] = text_color_json;
-                        setStyle(ImGui::GetStyle(), color, text_color);
                     }
+
+                    json color_json = { color[0], color[1], color[2] };
+                    json text_color_json = { text_color[0], text_color[1], text_color[2] };
+                    json rainbow_json = {ra_brightness, ra_saturation};
+                    json text_rainbow_json = {rt_brightness, rt_saturation};
+                    json rainbow_enabled = {rainbow_accent, rainbow_text};
+                    component["color"] = color_json;
+                    component["text_color"] = text_color_json;
+                    component["rainbow"]["enabled"] = rainbow_enabled;
+                    component["rainbow"]["accent"] = rainbow_json;
+                    component["rainbow"]["text"] = text_rainbow_json;
+                    setStyle(ImGui::GetStyle(), color, text_color);
                 }
                 else if (type == "pmb_checkbox")
                 {
@@ -423,7 +642,7 @@ void gui::Render()
                     {
                         component["speed"] = anim_durr;
                     }
-                }
+                }                
                 else if (type == "replay_engine")
                 {
                     static string log = "Record/Replay or Save/Load Macros!";
@@ -446,8 +665,9 @@ void gui::Render()
 
                     ImGui::Separator();
 
-                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 25);
                     ImGui::InputText("##replay_name", engine.replay_name, IM_ARRAYSIZE(engine.replay_name));
+                    SelectReplay();
 
                     if (ImGui::Button("Save", {60, NULL}))
                     {
@@ -540,6 +760,40 @@ void gui::Render()
 
                     ImGui::Text(log.c_str());
                 }
+                else if (type == "confirm_exit") {
+                    bool value = component["value"];
+                    if (ImGui::Checkbox("Confirm Exit", &value)) {
+                        component["value"] = value;
+                        hooks::confirm_exit = value;
+                    }
+                }      
+                else if (type == "labels") {
+                    const char *e[] = {"Small", "Normal", "Large"};
+                    int size = component["size"];
+                    if (ImGui::Combo("Font Size", &size, e, IM_ARRAYSIZE(e), 3)) {
+                        component["size"] = size;
+                        current_font_size = (font_size)size;
+                    }
+                    nc_acc = component["noclip_acc"];
+                    cps_counter = component["cps"];
+                    fps_label = component["fps"];
+                    message = component["message"];
+                    strcpy_s(custom_message, component["messageContent"].get<std::string>().c_str());
+                    noclip_deaths = component["noclip_deaths"];
+                    ImGui::Checkbox("Noclip Accuracy", &nc_acc);
+                    ImGui::Checkbox("CPS Counter", &cps_counter);
+                    ImGui::Checkbox("FPS Label", &fps_label);
+                    ImGui::Checkbox("Message", &message);
+                    if (message)
+                        ImGui::InputText("##customMessage", (char*) &custom_message, 256);
+                    ImGui::Checkbox("Noclip Deaths", &noclip_deaths);
+                    component["noclip_acc"] = nc_acc;
+                    component["cps"] = cps_counter;
+                    component["fps"] = fps_label;
+                    component["message"] = message;
+                    component["messageContent"] = custom_message;
+                    component["noclip_deaths"] = noclip_deaths;
+                }
             }
         }
 
@@ -554,4 +808,10 @@ void gui::Toggle()
         gui::show = !gui::show;
         anim_starttime = std::chrono::steady_clock::now();
     }
+}
+
+void gui::UnLoad()
+{
+    stretchedWindows.clear();
+    gui::show = false;
 }

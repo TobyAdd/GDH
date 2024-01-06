@@ -12,7 +12,7 @@ namespace keybinds
 {
     json binds;
 
-    void AddKeybind(string hackName, int keycode)
+    void AddKeybind(string hackName, int keycode, json *jsonObj)
     {
         for (auto &bind : binds.items()) {
             if (bind.value() == hackName) {
@@ -20,6 +20,7 @@ namespace keybinds
             }
         }
         binds[to_string(keycode)] = hackName;
+        (*jsonObj)["bind"] = keycode;
     }
 
     void keypress(int keycode)

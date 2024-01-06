@@ -1,5 +1,7 @@
 #include "include.hpp"
 #include "replayEngine.hpp"
+#include "noclipAccuracy.hpp"
+#include "cps_counter.hpp"
 
 namespace hooks {
     extern bool musicUnlocker;
@@ -8,6 +10,13 @@ namespace hooks {
     extern bool g_enabledAutoPickupCoins;
     extern bool g_enabledNoEffectCircle;
     extern unsigned frame;
+    extern bool confirm_exit;
+    extern bool frame_advance;
+
+    extern bool noclip_accuracy_enabled;  
+    extern NoclipAccuracy noclip_accuracy;
+
+    extern CPSCounter cps_counter;
 
     inline auto base = reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr));
 
@@ -31,6 +40,12 @@ namespace hooks {
 
     inline void(__thiscall* togglePractice)(void* self, bool practice);
     void __fastcall togglePractice_H(void* self, int edx, bool practice);
+
+    inline int (__thiscall* playLayer_exit)(void *self);
+    int __fastcall playLayer_exit_H(void *self);
+
+    inline void(__thiscall* playLayer_death)(void* self, void* player, void* obj);
+    void __fastcall playLayer_death_H(void* self, int edx, void* player, void* obj);
 
     void init();
 }

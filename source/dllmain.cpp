@@ -10,8 +10,9 @@
 
 DWORD WINAPI ThreadMain(LPVOID lpParam)
 {
-     Console::Init();
+    Console::Init();
     ImGuiHook::setRenderFunction(gui::Render);
+    ImGuiHook::setUnloadFunction(gui::UnLoad);
     ImGuiHook::setKeyPressHandler([](int keyCode) 
         {
             switch (keyCode)
@@ -31,7 +32,8 @@ DWORD WINAPI ThreadMain(LPVOID lpParam)
         ImGuiHook::Load([](void *target, void *hook, void **trampoline)
                             { MH_CreateHook(target, hook, trampoline); });
         hooks::init();
-        hacks::load();
+        hooks::cps_counter.init();
+        gui::hacks_missing = hacks::load();
         startposSwitcher::init();
         smartStartpos::init();
         MH_EnableHook(MH_ALL_HOOKS);

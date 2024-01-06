@@ -11,6 +11,6 @@ namespace hacks {
     bool writemem2(uintptr_t address, DWORD destination_address);    
     bool push_write(const uintptr_t address, const DWORD destination_address);
     
-    void load();
+    bool load();
     void inject_extensions();
 }

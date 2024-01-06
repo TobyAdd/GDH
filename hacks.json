@@ -2,7 +2,7 @@
     "About": {
         "components": [
             {
-                "text": "GDH v2.4 Beta for Geometry Dash 2.2",
+                "text": "GDH v2.41 Beta for Geometry Dash 2.2",
                 "type": "text"
             },
             {
@@ -23,20 +23,20 @@
             }
         ],
         "windowPosition": {
-            "x": 462.0,
-            "y": 442.0
+            "x": 447.0,
+            "y": 422.0
         },
         "windowSize": {
-            "height": 132.0,
-            "width": 226.0
+            "height": 137.0,
+            "width": 236.0
         }
     },
     "Bypass": {
         "components": [
             {
+                "description": "Allows entering more charachters in text input than allowed",
                 "enabled": false,
                 "name": "Text Bypass",
-                "description": "Allows entering more charachters in text input than allowed",
                 "opcodes": [
                     {
                         "addr": "0x2F9A7",
@@ -48,9 +48,9 @@
                 "type": "hack"
             },
             {
+                "description": "Allows entering more charachters in text input than allowed",
                 "enabled": false,
                 "name": "Character filter",
-                "description": "Allows entering more charachters in text input than allowed",
                 "opcodes": [
                     {
                         "addr": "0x2F974",
@@ -65,9 +65,9 @@
                 "type": "separator"
             },
             {
+                "description": "Allows bying shop items even if you dont have enough currency",
                 "enabled": false,
                 "name": "Free Shops",
-                "description": "Allows bying shop items even if you dont have enough currency",
                 "opcodes": [
                     {
                         "addr": "0x168223",
@@ -89,9 +89,9 @@
                 "type": "hack"
             },
             {
+                "description": "Allows opening chests even if you dont have enough keys",
                 "enabled": false,
                 "name": "Free Chests",
-                "description": "Allows opening chests even if you dont have enough keys",
                 "opcodes": [
                     {
                         "addr": "0x17811B",
@@ -126,9 +126,9 @@
                 "type": "separator"
             },
             {
+                "description": "Opens Diamond Shopkeeper's shop for free",
                 "enabled": false,
                 "name": "Diamond Shopkeeper Bypass",
-                "description": "Opens Diamond Shopkeeper's shop for free",
                 "opcodes": [
                     {
                         "addr": "0x2F7156",
@@ -140,9 +140,9 @@
                 "type": "hack"
             },
             {
+                "description": "Opens Mechanic's shop for free",
                 "enabled": false,
                 "name": "The Mechanic Bypass",
-                "description": "Opens Mechanic's shop for free",
                 "opcodes": [
                     {
                         "addr": "0x2F7132",
@@ -154,9 +154,9 @@
                 "type": "hack"
             },
             {
+                "description": "Opens community shop for free",
                 "enabled": false,
                 "name": "Potbor Bypass",
-                "description": "Opens community shop for free",
                 "opcodes": [
                     {
                         "addr": "0x2F710E",
@@ -168,9 +168,9 @@
                 "type": "hack"
             },
             {
+                "description": "Opens shop for free",
                 "enabled": false,
                 "name": "Scratch Bypass",
-                "description": "Opens shop for free",
                 "opcodes": [
                     {
                         "addr": "0x2F70EA",
@@ -182,9 +182,9 @@
                 "type": "hack"
             },
             {
+                "description": "Opens Vault of Secrets for free",
                 "enabled": false,
                 "name": "Vault of Secrets Bypass",
-                "description": "Opens Vault of Secrets for free",
                 "opcodes": [
                     {
                         "addr": "0x70991",
@@ -229,9 +229,9 @@
                 "type": "hack"
             },
             {
+                "description": "Opens The Treasure Room for free",
                 "enabled": false,
                 "name": "The Treasure Room Bypass",
-                "description": "Opens The Treasure Room for free",
                 "opcodes": [
                     {
                         "addr": "0x70CB5",
@@ -249,20 +249,20 @@
             }
         ],
         "windowPosition": {
-            "x": 11.0,
-            "y": 10.0
+            "x": 6.0,
+            "y": 5.0
         },
         "windowSize": {
-            "height": 330.0,
-            "width": 221.0
+            "height": 329.0,
+            "width": 213.0
         }
     },
     "Creator": {
         "components": [
             {
+                "description": "Allows custom objects to have more than 100 objects",
                 "enabled": false,
                 "name": "Custom object Bypass",
-                "description": "Allows custom objects to have more than 100 objects",
                 "opcodes": [
                     {
                         "addr": "0xA76A4",
@@ -279,9 +279,9 @@
                 "type": "hack"
             },
             {
+                "description": "Allows copying any level",
                 "enabled": false,
                 "name": "Copy Hack",
-                "description": "Allows copying any level",
                 "opcodes": [
                     {
                         "addr": "0x24E077",
@@ -293,9 +293,9 @@
                 "type": "hack"
             },
             {
+                "description": "Allows editing online levels (local only)",
                 "enabled": false,
                 "name": "Level Edit",
-                "description": "Allows editing online levels (local only)",
                 "opcodes": [
                     {
                         "addr": "0x2B3A33",
@@ -327,9 +327,9 @@
                 "type": "hack"
             },
             {
+                "description": "Removes slider boundaries",
                 "enabled": false,
                 "name": "Slider Limit",
-                "description": "Removes slider boundaries",
                 "opcodes": [
                     {
                         "addr": "0x4CDAA",
@@ -351,9 +351,9 @@
                 "type": "hack"
             },
             {
+                "description": "Removes \"Testmode\" label when playing from startpos",
                 "enabled": false,
                 "name": "Testmode Bypass",
-                "description": "Removes \"Testmode\" label when playing from startpos",
                 "opcodes": [
                     {
                         "addr": "0x2D7D75",
@@ -401,9 +401,9 @@
                 "type": "hack"
             },
             {
+                "description": "Allows uploading level without verifying it",
                 "enabled": false,
                 "name": "Verify Hack",
-                "description": "Allows uploading level without verifying it",
                 "opcodes": [
                     {
                         "addr": "0x381BF5",
@@ -426,36 +426,60 @@
             }
         ],
         "windowPosition": {
-            "x": 464.0,
-            "y": 9.0
+            "x": 450.0,
+            "y": 5.0
         },
         "windowSize": {
-            "height": 244.0,
-            "width": 222.0
+            "height": 245.0,
+            "width": 234.0
         }
     },
-    "FPS": {
+    "FPS Multiplier": {
         "components": [
             {
+                "enabled": true,
+                "real_time": true,
                 "type": "fps_bypass",
                 "value": 240.0
             }
         ],
         "windowPosition": {
-            "x": 464.0,
-            "y": 261.0
+            "x": 448.0,
+            "y": 254.0
         },
         "windowSize": {
             "height": 91.0,
-            "width": 224.0
+            "width": 236.0
+        }
+    },
+    "Labels": {
+        "components": [
+            {
+                "type": "labels",
+                "size": 2,
+                "noclip_acc": false,
+                "cps": false,
+                "fps": false,
+                "message": false,
+                "messageContent": ":^)",
+                "noclip_deaths": false
+            }
+        ],
+        "windowPosition": {
+            "x": 690.0,
+            "y": 195.0
+        },
+        "windowSize": {
+            "height": 151.0,
+            "width": 276.0
         }
     },
     "Player": {
         "components": [
             {
-                "enabled": false,
-                "name": "NoClip",
                 "description": "You know what it does",
+                "enabled": true,
+                "name": "NoClip",
                 "opcodes": [
                     {
                         "addr": "0x2E0AD9",
@@ -482,8 +506,8 @@
                     },
                     {
                         "addr": "0x384D94",
-                        "on": "E9 BA 00 00 00 90",
-                        "off": "0F 85 B9 00 00 00"
+                        "off": "0F 85 B9 00 00 00",
+                        "on": "E9 BA 00 00 00 90"
                     }
                 ],
                 "references": null,
@@ -511,9 +535,9 @@
                 "type": "hack"
             },
             {
+                "description": "Unlocks all official demon levels",
                 "enabled": false,
                 "name": "Unlock All Levels",
-                "description": "Unlocks all official demon levels",
                 "opcodes": [
                     {
                         "addr": "0x2676A4",
@@ -528,9 +552,9 @@
                 "type": "separator"
             },
             {
+                "description": "Removes transitions in menu",
                 "enabled": false,
                 "name": "No Transition",
-                "description": "Removes transitions in menu",
                 "opcodes": [
                     {
                         "addr": "0xA7414",
@@ -681,7 +705,7 @@
             {
                 "type": "separator"
             },
-			{
+            {
                 "enabled": false,
                 "name": "Fast Chest Open",
                 "opcodes": [
@@ -706,9 +730,9 @@
                 "type": "hack"
             },
             {
+                "description": "Allows picking up coins in practice",
                 "enabled": false,
                 "name": "Coins In Practice",
-                "description": "Allows picking up coins in practice",
                 "opcodes": [
                     {
                         "addr": "0x198CEC",
@@ -720,9 +744,9 @@
                 "type": "hack"
             },
             {
+                "description": "Hitting ESC in pause menu will no longer kick you out of the level",
                 "enabled": false,
                 "name": "Ignore ESC",
-                "description": "Hitting ESC in pause menu will no longer kick you out of the level",
                 "opcodes": [
                     {
                         "addr": "0x2B4F31",
@@ -734,9 +758,9 @@
                 "type": "hack"
             },
             {
+                "description": "Pulsing objects will work in practice",
                 "enabled": false,
                 "name": "Practice Pulse",
-                "description": "Pulsing objects will work in practice",
                 "opcodes": [
                     {
                         "addr": "0x2DD33D",
@@ -758,9 +782,9 @@
                 "type": "hack"
             },
             {
+                "description": "Dont count any statistics or coins collected in level",
                 "enabled": false,
                 "name": "Safe Mode",
-                "description": "Dont count any statistics or coins collected in level",
                 "opcodes": [
                     {
                         "addr": "0x2E0CDF",
@@ -821,9 +845,9 @@
                 "type": "hack"
             },
             {
+                "description": "Replaying from complete level menu will replay from last checkpoint",
                 "enabled": false,
                 "name": "Replay Last Checkpoint",
-                "description": "Replaying from complete level menu will replay from last checkpoint",
                 "opcodes": null,
                 "references": [
                     {
@@ -975,14 +999,152 @@
                 ],
                 "references": null,
                 "type": "hack"
+            },
+            {
+                "type": "separator"
+            },
+            {
+                "type": "confirm_exit",
+                "value": false
+            },
+            {
+                "type": "separator"
+            },
+            {
+                "enabled": false,
+                "name": "Force Visibility",
+                "opcodes": [
+                    {
+                        "addr": "0x615C3",
+                        "lib": "libcocos2d.dll",
+                        "off": "8A 45 08",
+                        "on": "B0 01 90"
+                    },
+                    {
+                        "addr": "0x61B6A",
+                        "lib": "libcocos2d.dll",
+                        "off": "0F 84 C1 00 00 00",
+                        "on": "90 90 90 90 90 90"
+                    }
+                ],
+                "references": null,
+                "type": "hack"
+            },
+            {
+                "enabled": false,
+                "name": "No Rotation",
+                "opcodes": [
+                    {
+                        "addr": "0x61374",
+                        "lib": "libcocos2d.dll",
+                        "off": "F3 0F 11 49 38 F3 0F 11 49 34",
+                        "on": "90 90 90 90 90 90 90 90 90 90"
+                    }
+                ],
+                "references": null,
+                "type": "hack"
+            },
+            {
+                "enabled": false,
+                "name": "Free Window Resize",
+                "opcodes": [
+                    {
+                        "addr": "0x11848B",
+                        "lib": "libcocos2d.dll",
+                        "off": "E8 B0 F3 FF FF",
+                        "on": "90 90 90 90 90"
+                    }
+                ],
+                "references": null,
+                "type": "hack"
+            },
+            {
+                "enabled": false,
+                "name": "Allow Low Volume",
+                "opcodes": [
+                    {
+                        "addr": "0x2AC040",
+                        "off": "76 08",
+                        "on": "EB 08"
+                    },
+                    {
+                        "addr": "0x2AC131",
+                        "off": "76 08",
+                        "on": "EB 08"
+                    }
+                ],
+                "references": null,
+                "type": "hack"
+            },
+            {
+                "enabled": false,
+                "name": "No Glow",
+                "opcodes": [
+                    {
+                        "addr": "0x2D6B3D",
+                        "off": "74 05",
+                        "on": "90 90"
+                    },
+                    {
+                        "addr": "0x141960",
+                        "off": "0F 84 B6 00 00 00",
+                        "on": "E9 B7 00 00 00 90"
+                    },
+                    {
+                        "addr": "0x141AF0",
+                        "off": "0F 84 B6 00 00 00",
+                        "on": "E9 B7 00 00 00 90"
+                    }
+                ],
+                "references": null,
+                "type": "hack"
+            },
+            {
+                "enabled": false,
+                "name": "Mode Console",
+                "opcodes": [
+                    {
+                        "addr": "0xC4A54",
+                        "lib": "libcocos2d.dll",
+                        "off": "00",
+                        "on": "01"
+                    }
+                ],
+                "references": null,
+                "type": "hack"
+            },
+            {
+                "type": "ekj_checkbox",
+                "value": true
+            },
+            {
+                "type": "acoinpick_checkbox",
+                "value": false
+            },
+            {
+                "type": "noeffectcirle_checkbox",
+                "value": false
+            },
+            {
+                "enabled": false,
+                "name": "No Orb Ring",
+                "opcodes": [
+                    {
+                        "addr": "0x393398",
+                        "off": "83 B8 98 01 00 00 00 0F 84 B9 00 00 00",
+                        "on": "90 90 90 90 90 90 90 E9 BA 00 00 00 90"
+                    }
+                ],
+                "references": null,
+                "type": "hack"
             }
         ],
         "windowPosition": {
-            "x": 243.0,
-            "y": 8.0
+            "x": 227.0,
+            "y": 6.0
         },
         "windowSize": {
-            "height": 504.0,
+            "height": 553.0,
             "width": 213.0
         }
     },
@@ -993,12 +1155,12 @@
             }
         ],
         "windowPosition": {
-            "x": 694.0,
-            "y": 8.0
+            "x": 690.0,
+            "y": 5.0
         },
         "windowSize": {
-            "height": 182.0,
-            "width": 285.0
+            "height": 185.0,
+            "width": 273.0
         }
     },
     "Settings": {
@@ -1006,6 +1168,11 @@
             {
                 "color": [ 0.337, 0.176, 0.464 ],
                 "text_color": [ 1.000, 1.000, 1.000 ],
+                "rainbow": {
+                    "enabled": [false, false],
+                    "accent": [0.4, 1.0],
+                    "text": [1.0, 0.4]
+                },
                 "type": "color_picker"
             },
             {
@@ -1019,17 +1186,17 @@
                 "type": "separator"
             },
             {
-                "type": "text",
-                "text": "ProTip: change font by dropping font.ttf file\nin GDH/ folder"
+                "text": "ProTip: change font by dropping font.ttf file\nin GDH/ folder",
+                "type": "text"
             }
         ],
         "windowPosition": {
-            "x": 695.0,
-            "y": 198.0
+            "x": 691.0,
+            "y": 350.0
         },
         "windowSize": {
-            "height": 245.0,
-            "width": 285.0
+            "height": 200.0,
+            "width": 277.0
         }
     },
     "Speedhack": {
@@ -1040,12 +1207,12 @@
             }
         ],
         "windowPosition": {
-            "x": 463.0,
-            "y": 361.0
+            "x": 448.0,
+            "y": 350.0
         },
         "windowSize": {
-            "height": 71.0,
-            "width": 222.0
+            "height": 65.0,
+            "width": 236.0
         }
     },
     "Startpos": {
@@ -1064,12 +1231,12 @@
             }
         ],
         "windowPosition": {
-            "x": 9.0,
-            "y": 347.0
+            "x": 4.0,
+            "y": 339.0
         },
         "windowSize": {
-            "height": 120.0,
-            "width": 224.0
+            "height": 112.0,
+            "width": 215.0
         }
     },
     "Transition Customizer": {
@@ -1080,12 +1247,12 @@
             }
         ],
         "windowPosition": {
-            "x": 10.0,
-            "y": 472.0
+            "x": 3.0,
+            "y": 455.0
         },
         "windowSize": {
-            "height": 67.0,
-            "width": 224.0
+            "height": 80.0,
+            "width": 218.0
         }
     }
 }
