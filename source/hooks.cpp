@@ -374,7 +374,7 @@ void hooks::init()
     MH_CreateHook((void *)(base + 0x2DA240), PlayLayer_destructor_H, (void **)&PlayLayer_destructor);
     MH_CreateHook((void *)(base + 0x2E8200), PlayLayer_resetLevel_H, (void **)&PlayLayer_resetLevel);
     MH_CreateHook((void *)(base + 0x1B59A0), GJBaseGameLayer_HandleButton_H, (void **)&GJBaseGameLayer_HandleButton);
-    MH_CreateHook((void *)(base + 0x2D7F30), playLayer_levelComplate_H, (void **)&playLayer_levelComplate);
+    // MH_CreateHook((void *)(base + 0x2D7F30), playLayer_levelComplate_H, (void **)&playLayer_levelComplate);
     // MH_CreateHook((void *)(base + 0x2E5650), playLayer_exit_H, (void **)&playLayer_exit);
     // MH_CreateHook((void *)(base + 0x2e0a90), playLayer_death_H, (void **)(&playLayer_death));
 
