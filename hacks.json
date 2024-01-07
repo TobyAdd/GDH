@@ -482,9 +482,9 @@
                 "name": "NoClip",
                 "opcodes": [
                     {
-                        "addr": "0x2E0AD9",
-                        "off": "0F 85 9B 07 00 00 38 83 BA 2A 00 00 0F 85 8F 07 00 00",
-                        "on": "90 90 90 90 90 90 C6 83 80 2D 00 00 01 E9 8F 07 00 00"
+                        "addr": "0x2E4889",
+                        "off": "0F 85 9B 07 00 00 38 83 C2 2A 00 00 0F 85 8F 07 00 00",
+                        "on": "90 90 90 90 90 90 C6 83 88 2D 00 00 01 E9 8F 07 00 00"
                     }
                 ],
                 "references": null,
@@ -495,19 +495,19 @@
                 "name": "Music Unlocker",
                 "opcodes": [
                     {
-                        "addr": "0x385293",
+                        "addr": "0x388CD3",
                         "off": "75",
                         "on": "EB"
                     },
                     {
-                        "addr": "0x385313",
+                        "addr": "0x388D53",
                         "off": "75",
                         "on": "EB"
                     },
                     {
-                        "addr": "0x384D94",
-                        "off": "0F 85 B9 00 00 00",
-                        "on": "E9 BA 00 00 00 90"
+                        "addr": "0x3887D4",
+                        "on": "E9 BA 00 00 00 90",
+                        "off": "0F 85 B9 00 00 00"
                     }
                 ],
                 "references": null,
@@ -813,12 +813,12 @@
                 "name": "Freeze Jumps Counter",
                 "opcodes": [
                     {
-                        "addr": "0x2E4E50",
+                        "addr": "0x2E8DA0",
                         "off": "FF 81 8C 2E 00 00",
                         "on": "90 90 90 90 90 90"
                     },
                     {
-                        "addr": "0x2E4E77",
+                        "addr": "0x2E8DC7",
                         "off": "46",
                         "on": "90"
                     }
@@ -831,12 +831,12 @@
                 "name": "Freeze Attempts Counter",
                 "opcodes": [
                     {
-                        "addr": "0x2E49AA",
+                        "addr": "0x2E88F0",
                         "off": "01",
                         "on": "00"
                     },
                     {
-                        "addr": "0x2E49C7",
+                        "addr": "0x2E890D",
                         "off": "46",
                         "on": "90"
                     }
@@ -863,7 +863,7 @@
                 "name": "No Camera Move",
                 "opcodes": [
                     {
-                        "addr": "0x3ABFB0",
+                        "addr": "0x3AFA20",
                         "off": "55 8B EC",
                         "on": "C2 0C 00"
                     }
@@ -876,7 +876,7 @@
                 "name": "No Camera Zoom",
                 "opcodes": [
                     {
-                        "addr": "0x396FC4",
+                        "addr": "0x39AA84",
                         "off": "FF B7 E0 05 00 00",
                         "on": "EB 44 90 90 90 90"
                     }
@@ -926,12 +926,12 @@
                 "name": "All Modes Platformer",
                 "opcodes": [
                     {
-                        "addr": "0x198837",
+                        "addr": "0x19B857",
                         "off": "0F 85 1F 06 00 00",
                         "on": "90 90 90 90 90 90"
                     },
                     {
-                        "addr": "0x198898",
+                        "addr": "0x19B8B8",
                         "off": "0F 85 BE 05 00 00",
                         "on": "90 90 90 90 90 90"
                     }
@@ -944,25 +944,12 @@
                 "name": "Force Platformer",
                 "opcodes": [
                     {
-                        "addr": "0x1B9639",
+                        "addr": "0x1BC739",
                         "off": "8A 90 19 01 00 00",
                         "on": "B2 01 90 90 90 90"
                     },
                     {
-                        "addr": "0x1B966A",
-                        "off": "74",
-                        "on": "EB"
-                    }
-                ],
-                "references": null,
-                "type": "hack"
-            },
-            {
-                "enabled": false,
-                "name": "Practice Mode for Platform",
-                "opcodes": [
-                    {
-                        "addr": "0x2B3AE1",
+                        "addr": "0x1BC76A",
                         "off": "74",
                         "on": "EB"
                     }
