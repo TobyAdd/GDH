@@ -369,21 +369,21 @@ void hooks::init()
 {
     auto gd_base = GetModuleHandleA(0);
     auto cocos = GetModuleHandleA("libcocos2d.dll");
-    MH_CreateHook((void *)(base + 0x2D69A0), PlayLayer_init_H, (void **)&PlayLayer_init);
-    MH_CreateHook((void *)(base + 0x1B75E0), playLayer_update_H, (void **)&playLayer_update);
-    MH_CreateHook((void *)(base + 0x2D6580), PlayLayer_destructor_H, (void **)&PlayLayer_destructor);
-    MH_CreateHook((void *)(base + 0x2E42B0), PlayLayer_resetLevel_H, (void **)&PlayLayer_resetLevel);
-    MH_CreateHook((void *)(base + 0x1B2880), GJBaseGameLayer_HandleButton_H, (void **)&GJBaseGameLayer_HandleButton);
+    MH_CreateHook((void *)(base + 0x2DA660), PlayLayer_init_H, (void **)&PlayLayer_init);
+    MH_CreateHook((void *)(base + 0x1BA700), playLayer_update_H, (void **)&playLayer_update);
+    MH_CreateHook((void *)(base + 0x2DA240), PlayLayer_destructor_H, (void **)&PlayLayer_destructor);
+    MH_CreateHook((void *)(base + 0x2E8200), PlayLayer_resetLevel_H, (void **)&PlayLayer_resetLevel);
+    MH_CreateHook((void *)(base + 0x1B59A0), GJBaseGameLayer_HandleButton_H, (void **)&GJBaseGameLayer_HandleButton);
     MH_CreateHook((void *)(base + 0x2D7F30), playLayer_levelComplate_H, (void **)&playLayer_levelComplate);
-    MH_CreateHook((void *)(base + 0x2E5650), playLayer_exit_H, (void **)&playLayer_exit);
-    MH_CreateHook((void *)(base + 0x2e0a90), playLayer_death_H, (void **)(&playLayer_death));
+    // MH_CreateHook((void *)(base + 0x2E5650), playLayer_exit_H, (void **)&playLayer_exit);
+    // MH_CreateHook((void *)(base + 0x2e0a90), playLayer_death_H, (void **)(&playLayer_death));
 
-    MH_CreateHook((void *)(base + 0x232f0), CCCircle_initH, (void **)&CCCircle_init);
-    MH_CreateHook((void *)(base + 0x23840), CCCircle_drawH, (void **)&CCCircle_draw);
-    MH_CreateHook((void *)(base + 0x2e2880), UILayer_onCheckH, (void **)&UILayer_onCheck);
+    // MH_CreateHook((void *)(base + 0x232f0), CCCircle_initH, (void **)&CCCircle_init);
+    // MH_CreateHook((void *)(base + 0x23840), CCCircle_drawH, (void **)&CCCircle_draw);
+    // MH_CreateHook((void *)(base + 0x2e2880), UILayer_onCheckH, (void **)&UILayer_onCheck);
 
-    MH_CreateHook(GetProcAddress(cocos, "?create@CCTransitionFade@cocos2d@@SAPAV12@MPAVCCScene@2@@Z"), CCTransitionFade_createH, (void **)&CCTransitionFade_create);
-    MH_CreateHook(GetProcAddress(cocos, "?dispatchKeyboardMSG@CCKeyboardDispatcher@cocos2d@@QAE_NW4enumKeyCodes@2@_N1@Z"), dispatchKeyboardMSGHook, (void **)&dispatchKeyboardMSG);
-    MH_CreateHook(GetProcAddress(cocos, "?update@CCScheduler@cocos2d@@UAEXM@Z"), CCScheduler_update_H, (void **)&CCScheduler_update);
-    MH_CreateHook((void *)(base + 0x173D10), GameStatsManager_isItemUnlockedH, (void **)&GameStatsManager_isItemUnlocked);
+    // MH_CreateHook(GetProcAddress(cocos, "?create@CCTransitionFade@cocos2d@@SAPAV12@MPAVCCScene@2@@Z"), CCTransitionFade_createH, (void **)&CCTransitionFade_create);
+    // MH_CreateHook(GetProcAddress(cocos, "?dispatchKeyboardMSG@CCKeyboardDispatcher@cocos2d@@QAE_NW4enumKeyCodes@2@_N1@Z"), dispatchKeyboardMSGHook, (void **)&dispatchKeyboardMSG);
+    // MH_CreateHook(GetProcAddress(cocos, "?update@CCScheduler@cocos2d@@UAEXM@Z"), CCScheduler_update_H, (void **)&CCScheduler_update);
+    // MH_CreateHook((void *)(base + 0x173D10), GameStatsManager_isItemUnlockedH, (void **)&GameStatsManager_isItemUnlocked);
 }
