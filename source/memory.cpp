@@ -1,35 +1,46 @@
 #include "memory.hpp"
 
+struct PatternByte {
+    bool isWildcard;
+    uint8_t value;
+};
+
 uintptr_t memory::PatternScan(uintptr_t base, uintptr_t scanSize, const std::string signature) {
-    std::vector<char> patternBytes;
+    std::vector<PatternByte> patternData;
 
-    std::istringstream byteStream(signature);
-    std::string byteStr;
+    // Parse the signature
+    for (size_t i = 0; i < signature.size(); ++i) {
+        if (signature[i] == ' ') {
+            continue;
+        }
 
-    while (getline(byteStream, byteStr, ' ')) {
-        if (byteStr == "?") {
-            patternBytes.push_back('\?');
-        } else {
-            patternBytes.push_back(static_cast<char>(std::stoul(byteStr, nullptr, 16)));
+        if (signature[i] == '?') {
+            patternData.push_back({ true, 0 });
+        }
+        else {
+            std::string byteStr = signature.substr(i, 2);
+            patternData.push_back({ false, static_cast<uint8_t>(std::stoul(byteStr, nullptr, 16)) });
+            i += 2;
         }
     }
 
-    const size_t patternLength = patternBytes.size();
-    const char* patternData = patternBytes.data();
-
-    std::vector<char> buffer(scanSize);
-
-    if (!ReadProcessMemory(GetCurrentProcess(), reinterpret_cast<LPCVOID>(base), buffer.data(), scanSize, 0)) {
-        return 0;
-    }
-
-    for (uintptr_t i = 0; i < scanSize - patternLength; ++i) {
+    // Search for the signature in the target region
+    for (uintptr_t i = base; i < base + scanSize; ++i) {
         bool found = true;
-        for (size_t j = 0; j < patternLength; ++j) {
-            found &= patternData[j] == '\?' || patternData[j] == buffer[i + j];
+
+        for (size_t j = 0; j < patternData.size(); ++j) {
+            if (patternData[j].isWildcard) {
+                continue;
+            }
+
+            if (patternData[j].value != *reinterpret_cast<uint8_t *>(i + j)) {
+                found = false;
+                break;
+            }
         }
+
         if (found) {
-            return base + i;
+            return i;
         }
     }
 
