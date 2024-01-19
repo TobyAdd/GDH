@@ -1,0 +1,983 @@
+{
+    "Hacks": {
+        "Bypass": {
+            "components": [
+                {
+                    "enabled": false,
+                    "name": "Text Bypass",
+                    "opcodes": [
+                        {
+                            "pattern": "7c ? 85 c9 7f ? 32 db",
+                            "address": "0002F9A7",
+                            "on": "EB",
+                            "off": "7C",
+                            "lib": null,
+                            "enabled": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "Character filter",
+                    "opcodes": [
+                        {
+                            "pattern": "75 ? 33 c9 eb ? 8b cf 8d 51 ? 90 8a 01 41 84 c0 75 ? 2b ca 51 6a",
+                            "address": "0002F974",
+                            "on": "74",
+                            "off": "75",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "type": "separator"
+                },
+                {
+                    "enabled": false,
+                    "name": "Free Shops",
+                    "opcodes": [
+                        {
+                            "pattern": "52 50 e8 ? ? ? ? 56",
+                            "address": "0016A1B3",
+                            "on": "90 90 90 90 90 90 90",
+                            "off": "52 50 E8 56 0D 00 00",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "74 ? 57 8b ce e8 ? ? ? ? eb",
+                            "address": "0021B3A6",
+                            "on": "EB",
+                            "off": "74",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "7d ? 32 db eb ? 2b 83",
+                            "address": "0016A195",
+                            "on": "EB",
+                            "off": "7D",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "Free Chests",
+                    "opcodes": [
+                        {
+                            "pattern": "7e ? b8 ? ? ? ? eb ? e8",
+                            "address": "0017A90B",
+                            "on": "90 90 B8 00",
+                            "off": "7E 07 B8 64",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "7e ? b8 ? ? ? ? eb ? 81 f9 ? ? ? ? 7e ? b8 ? ? ? ? eb ? 81 f9 ? ? ? ? 7e ? b8 ? ? ? ? eb ? 81 f9",
+                            "address": "0017563D",
+                            "on": "90 90 B8 00",
+                            "off": "7E 07 B8 64",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "7e ? bb ? ? ? ? eb ? 81 fe ? ? ? ? 7e ? bb ? ? ? ? eb ? 81 fe ? ? ? ? 7e ? bb ? ? ? ? eb ? 81 fe",
+                            "address": "002FE29E",
+                            "on": "90 90 B8 00",
+                            "off": "7E 07 BB 64",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "0f 8d ? ? ? ? ff 15",
+                            "address": "002FE8FA",
+                            "on": "E9 5D 01 00",
+                            "off": "0F 8D 5C 01",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "0f 8d ? ? ? ? 6a ? 8b f3",
+                            "address": "002FE2E8",
+                            "on": "E9 D7 01 00",
+                            "off": "0F 8D D6 01",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "type": "separator"
+                },
+                {
+                    "enabled": false,
+                    "name": "All Shops Bypass",
+                    "opcodes": [
+                        {
+                            "pattern": "75 ? 8b ce e8 ? ? ? ? 5f 5e 8b e5 5d c2 ? ? 8b cf",
+                            "address": "002FE626",
+                            "on": "EB",
+                            "off": "75",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "75 ? 8b ce e8 ? ? ? ? 5f 5e 8b e5 5d c2 ? ? 68 ? ? ? ? e8 ? ? ? ? 8b c8 e8 ? ? ? ? 84 c0 75 ? 8b ce e8 ? ? ? ? 5f 5e 8b e5 5d c2 ? ? 8b cf",
+                            "address": "002FE602",
+                            "on": "EB",
+                            "off": "75",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "75 ? 8b ce e8 ? ? ? ? 5f 5e 8b e5 5d c2 ? ? 68 ? ? ? ? e8 ? ? ? ? 8b c8 e8 ? ? ? ? 84 c0 75 ? 8b ce e8 ? ? ? ? 5f 5e 8b e5 5d c2 ? ? 68 ? ? ? ? e8 ? ? ? ? 8b c8 e8 ? ? ? ? 84 c0 75 ? 8b ce e8 ? ? ? ? 5f 5e 8b e5 5d c2 ? ? 8b cf",
+                            "address": "002FE5DE",
+                            "on": "EB",
+                            "off": "75",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "75 ? 8b ce e8 ? ? ? ? 5f 5e 8b e5 5d c2 ? ? 68 ? ? ? ? e8 ? ? ? ? 8b c8 e8 ? ? ? ? 84 c0 75 ? 8b ce e8 ? ? ? ? 5f 5e 8b e5 5d c2 ? ? 68 ? ? ? ? e8 ? ? ? ? 8b c8 e8 ? ? ? ? 84 c0 75 ? 8b ce e8 ? ? ? ? 5f 5e 8b e5 5d c2 ? ? 68",
+                            "address": "002FE5BA",
+                            "on": "EB",
+                            "off": "75",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "Vault of Secrets Bypass",
+                    "opcodes": [
+                        {
+                            "pattern": "74 ? ff 15 ? ? ? ? 8b f0 ff 15 ? ? ? ? 89 b0 ? ? ? ? e8 ? ? ? ? 8b 16 8b ce 50 ff 92 ? ? ? ? 56 51 c7 04 24 ? ? ? ? ff 15 ? ? ? ? 83 c4 ? 50 ff 15 ? ? ? ? 8b c8 ff 15 ? ? ? ? e9 ? ? ? ? 6a ? 68 ? ? ? ? 8d 4c 24 ? c7 44 24 ? ? ? ? ? c7 44 24 ? ? ? ? ? c6 44 24 ? ? e8 ? ? ? ? c7 44 24",
+                            "address": "00070E51",
+                            "on": "75",
+                            "off": "74",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "74 ? ff 15 ? ? ? ? 8b f0 ff 15 ? ? ? ? 89 b0 ? ? ? ? e8 ? ? ? ? 8b 16 8b ce 50 ff 92 ? ? ? ? 56 51 c7 04 24 ? ? ? ? ff 15 ? ? ? ? 83 c4 ? 50 ff 15 ? ? ? ? 8b c8 ff 15 ? ? ? ? e9 ? ? ? ? 6a ? 68 ? ? ? ? 8d 4c 24 ? c7 44 24 ? ? ? ? ? c7 44 24 ? ? ? ? ? c6 44 24 ? ? e8 ? ? ? ? c7 84 24",
+                            "address": "00306E7C",
+                            "on": "75",
+                            "off": "74",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "0f 9d ? 84 c9",
+                            "address": "0006FEAB",
+                            "on": "90 90 90",
+                            "off": "0F 9D C1",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "Vault of Secrets Key Bypass",
+                    "opcodes": [
+                        {
+                            "pattern": null,
+                            "address": "0030C39F",
+                            "on": "0F 84",
+                            "off": "0F 85",
+                            "lib": null
+                        },
+                        {
+                            "pattern": null,
+                            "address": "0x30c547",
+                            "on": "0F 84",
+                            "off": "0F 85",
+                            "lib": null
+                        },
+                        {
+                            "pattern": null,
+                            "address": "0x30c6f3",
+                            "on": "0F 84",
+                            "off": "0F 85",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "The Treasure Room Bypass",
+                    "opcodes": [
+                        {
+                            "pattern": "74 ? ff 15 ? ? ? ? 8b f0 ff 15 ? ? ? ? 32 c9",
+                            "address": "00071175",
+                            "on": "90 90",
+                            "off": "74 4C",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                }
+            ],
+            "windowPosition": {
+                "x": 11.0,
+                "y": 14.0
+            },
+            "windowSize": {
+                "width": 218.0,
+                "height": 259.0
+            }
+        },
+        "Player": {
+            "components": [
+                {
+                    "enabled": false,
+                    "name": "NoClip",
+                    "opcodes": [
+                        {
+                            "pattern": "74 ? 8b 8b ? ? ? ? 85 c9 74 ? 8b 80",
+                            "address": "002E6790",
+                            "on": "90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90",
+                            "off": "74 41 8B 8B 7C 2D 00 00 85 C9 74 37 8B 80 18 03 00 00 3B 81 18 03 00 00 75 29",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "Unlock All Icons",
+                    "opcodes": [
+                        {
+                            "pattern": "8b d9 8b 7d ? 8b 75 ? 85 ff",
+                            "address": "00121FBB",
+                            "on": "E9 A5 00 00 00",
+                            "off": "8B D9 8B 7D 0C",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "8b d9 8b 75 ? 8b 7d",
+                            "address": "001224BB",
+                            "on": "EB 77",
+                            "off": "8B D9",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "Unlock All Levels",
+                    "opcodes": [
+                        {
+                            "pattern": "7e ? 2b c7 50",
+                            "address": "0026C113",
+                            "on": "EB",
+                            "off": "7E",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "No Transition",
+                    "opcodes": [
+                        {
+                            "pattern": "F3 ? ? ? ? 68 ? ? ? ? FF",
+                            "address": "000A7764",
+                            "on": "90 90 90 90 90",
+                            "off": "F3 0F 10 45 08",
+                            "lib": "libcocos2d.dll"
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "No Respawn Flash",
+                    "opcodes": [
+                        {
+                            "pattern": "0f 85 ? ? ? ? 56 6a",
+                            "address": "002D165A",
+                            "on": "E9 A8 00",
+                            "off": "0F 85 A7",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "No Death Effect",
+                    "opcodes": [
+                        {
+                            "pattern": "e8 ? ? ? ? 5f 5e 59 5d c2 ? ? 8b 86",
+                            "address": "002D1C12",
+                            "on": "90 90 90 90 90",
+                            "off": "E8 59 88 FE FF",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "No Wave Pulse",
+                    "opcodes": [
+                        {
+                            "pattern": "C1 8B ? ? ? ? ? F3 0F 11 80 ? ? ? ? 8B",
+                            "address": "002E2FFB",
+                            "on": "C0",
+                            "off": "C1",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "No Particles",
+                    "opcodes": [
+                        {
+                            "pattern": "0F 84 ? ? ? ? 83 BE ? ? ? ? ? 0F",
+                            "address": "000BD52A",
+                            "on": "E9 25 01 00 00 90",
+                            "off": "0F 84 24 01 00 00",
+                            "lib": "libcocos2d.dll"
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "Trail Always Off",
+                    "opcodes": [
+                        {
+                            "pattern": "0F 84 ? ? ? ? 85 C0",
+                            "address": "000B11DC",
+                            "on": "E9 69 02 00 00 90",
+                            "off": "0F 84 68 02 00 00",
+                            "lib": "libcocos2d.dll"
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "Trail Always On",
+                    "opcodes": [
+                        {
+                            "pattern": "0F 84 ? ? ? ? 85 C0",
+                            "address": "000B11DC",
+                            "on": "90 90 90 90 90 90",
+                            "off": "0F 84 68 02 00 00",
+                            "lib": "libcocos2d.dll"
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "Inversed Trail",
+                    "opcodes": [
+                        {
+                            "pattern": "0F 84 ? ? ? ? 85 C0",
+                            "address": "000B11DC",
+                            "on": "0F 85 68 02 00 00",
+                            "off": "0F 84 68 02 00 00",
+                            "lib": "libcocos2d.dll"
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "Forever Trail",
+                    "opcodes": [
+                        {
+                            "pattern": "C1 F3 ? 59 0D",
+                            "address": "000B0D90",
+                            "on": "C9",
+                            "off": "C1",
+                            "lib": "libcocos2d.dll"
+                        },
+                        {
+                            "pattern": "00 C3 CC CC CC CC CC CC CC CC 55 8B EC 56",
+                            "address": "000B0FA6",
+                            "on": "01",
+                            "off": "00",
+                            "lib": "libcocos2d.dll"
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "Solid Wave Trail",
+                    "opcodes": [
+                        {
+                            "pattern": "75 ? 80 BE A2",
+                            "address": "002C3FB1",
+                            "on": "90 90",
+                            "off": "75 18",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "75 ? 8b 86 ? ? ? ? c6 80 ? ? ? ? ? eb",
+                            "address": "002C3FBA",
+                            "on": "90 90",
+                            "off": "75 0F",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "Fast Chest Open",
+                    "opcodes": [
+                        {
+                            "pattern": "c7 04 24 ? ? ? ? ff 15 ? ? ? ? 8b 3d ? ? ? ? c7 04 24",
+                            "address": "002F840D",
+                            "on": "C7 04 24 00 00 00 00",
+                            "off": "C7 04 24 9A 99 99 3F",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "Pause During Complete",
+                    "opcodes": [
+                        {
+                            "pattern": "80 bf ? ? ? ? ? 0f 85 ? ? ? ? 80 bf ? ? ? ? ? 0f 85 ? ? ? ? ff 15",
+                            "address": "002EAE98",
+                            "on": "90 90 90 90 90 90 90 90 90 90 90 90 90",
+                            "off": "80 BF 28 2C 00 00 00 0F 85 1B 01 00 00",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "User-Coins In Practice",
+                    "opcodes": [
+                        {
+                            "pattern": "0f 85 ? ? ? ? 8b 8f ? ? ? ? 6a ? ff b6",
+                            "address": "0019CCCC",
+                            "on": "90 90 90 90 90 90",
+                            "off": "0F 85 6A 01 00 00",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "Ignore ESC",
+                    "opcodes": [
+                        {
+                            "pattern": "E8 ? ? ? ? 83 EC ? 8B CC 89 65 F0 6A",
+                            "address": "002BA2A1",
+                            "on": "90 90 90 90 90",
+                            "off": "E8 DA 11 03 00",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "No Camera Move",
+                    "opcodes": [
+                        {
+                            "pattern": "55 8b ec 83 e4 ? 83 ec ? 56 8b f1 8b 86 ? ? ? ? 3d",
+                            "address": "003B2B40",
+                            "on": "C2 0C 00",
+                            "off": "55 8B EC",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "No Camera Zoom",
+                    "opcodes": [
+                        {
+                            "pattern": "FF B7 ? ? ? ? F3 0F 10 87 ? ? ? ? FF B7 ? ? ? ? F3",
+                            "address": "0039DBE4",
+                            "on": "EB 44 90 90 90 90",
+                            "off": "FF B7 E0 05 00 00",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "No Shaders",
+                    "opcodes": [
+                        {
+                            "pattern": "0F 8B ? ? ? ? 8B 8E ? ? ? ? ? ? ? ? ? ? ? ? C6",
+                            "address": "003836DD",
+                            "on": "E9 27 01 00",
+                            "off": "0F 8B 26 01",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "ff 15 ? ? ? ? 8b 8f ? ? ? ? 8b 01 ff 90 ? ? ? ? 8b c8 ff 15 ? ? ? ? 83 ec",
+                            "address": "003838B1",
+                            "on": "90 90 90 90 90 90",
+                            "off": "FF 15 1C 47 74 00",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "Trail Cutting",
+                    "opcodes": [
+                        {
+                            "pattern": "F3 0F 59 C2 E8",
+                            "address": "000B0DBF",
+                            "on": "90 90 90 90",
+                            "off": "F3 0F 59 C2",
+                            "lib": "libcocos2d.dll"
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "All Modes Platformer",
+                    "opcodes": [
+                        {
+                            "pattern": "0f 85 ? ? ? ? 56 53 8b cf e8 ? ? ? ? 84 c0 0f 84 ? ? ? ? 56 53 8b cf e8 ? ? ? ? 6a ? 51 56 53 8b cf e8 ? ? ? ? e9 ? ? ? ? 56 53 8b cf e8 ? ? ? ? 84 c0 0f 84 ? ? ? ? 56 53 8b cf e8 ? ? ? ? 51 56 53 8b cf e8 ? ? ? ? e9 ? ? ? ? 80 bf",
+                            "address": "0019C817",
+                            "on": "90 90 90 90 90 90",
+                            "off": "0F 85 1F 06 00 00",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "0f 85 ? ? ? ? 56 53 8b cf e8 ? ? ? ? 84 c0 0f 84 ? ? ? ? 56 53 8b cf e8 ? ? ? ? 6a ? 51 56 53 8b cf e8 ? ? ? ? e9 ? ? ? ? 56 53 8b cf e8 ? ? ? ? 84 c0 0f 84 ? ? ? ? 56 53 8b cf e8 ? ? ? ? 51 56 53 8b cf e8 ? ? ? ? e9 ? ? ? ? 56",
+                            "address": "0019C878",
+                            "on": "90 90 90 90 90 90",
+                            "off": "0F 85 BE 05 00 00",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "Force Platformer",
+                    "opcodes": [
+                        {
+                            "pattern": "8a 90 ? ? ? ? 8b 87",
+                            "address": "001BD7B9",
+                            "on": "B2 01 90 90 90 90",
+                            "off": "8A 90 19 01 00 00",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "74 ? 8b 87 ? ? ? ? c7 80 ? ? ? ? ? ? ? ? 8b 87 ? ? ? ? 80 b8",
+                            "address": "001BD7EA",
+                            "on": "EB",
+                            "off": "74",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "No Short Numbers",
+                    "opcodes": [
+                        {
+                            "pattern": "7d ? 56 8d 8d",
+                            "address": "000454FE",
+                            "on": "90 90",
+                            "off": "7D 12",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "No Wave Trail",
+                    "opcodes": [
+                        {
+                            "pattern": "80 be ? ? ? ? ? 74 ? 8b 06 8b ce ff 50 ? 50",
+                            "address": "002D8A30",
+                            "on": "90 90 90 90 90 90 90 EB 63",
+                            "off": "80 BE AC 07 00 00 00 74 63",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "Safe Mode",
+                    "opcodes": [
+                        {
+                            "pattern": "80 bb ? ? ? ? ? 0f 85 ? ? ? ? 80 bb ? ? ? ? ? 0f 85 ? ? ? ? 8a 8b",
+                            "address": "002E697F",
+                            "on": "90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 E9 86 01 00 00 90",
+                            "off": "80 BB AC 2A 00 00 00 0F 85 92 01 00 00 80 BB C6 29 00 00 00 0F 85 85 01 00 00",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "80 bb ? ? ? ? ? 0f 85 ? ? ? ? 80 bb ? ? ? ? ? 0f 85 ? ? ? ? 8b 8b",
+                            "address": "002DDD63",
+                            "on": "90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 E9 DE 01 00 00 90",
+                            "off": "80 BB AC 2A 00 00 00 0F 85 EA 01 00 00 80 BB 7C 2A 00 00 00 0F 85 DD 01 00 00",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "80 bb ? ? ? ? ? 0f 85 ? ? ? ? 8d 44 24",
+                            "address": "002DDF67",
+                            "on": "90 90 90 90 90 90 90 E9 C3 02 00 00 90",
+                            "off": "80 BB AC 2A 00 00 00 0F 85 C2 02 00 00",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "Music Unlocker",
+                    "opcodes": [
+                        {
+                            "pattern": "75 ? 8b ce e8 ? ? ? ? 5e c2 ? ? 83 be ? ? ? ? ? 7e ? e8 ? ? ? ? 8b b6 ? ? ? ? 39 b0 ? ? ? ? 75 ? e8 ? ? ? ? c7 80 ? ? ? ? ? ? ? ? e8",
+                            "address": "0038BD33",
+                            "on": "EB",
+                            "off": "75",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "75 ? 8b ce e8 ? ? ? ? 5e c2 ? ? 83 be ? ? ? ? ? 7e ? e8 ? ? ? ? 8b b6 ? ? ? ? 39 b0 ? ? ? ? 75 ? e8 ? ? ? ? c7 80 ? ? ? ? ? ? ? ? 5e",
+                            "address": "0038BDB3",
+                            "on": "EB",
+                            "off": "75",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "0f 85 ? ? ? ? 8b ce 8b 35",
+                            "address": "0038B834",
+                            "on": "E9 BA 00 00 00 90",
+                            "off": "0F 85 B9 00 00 00",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "Force Visibility",
+                    "opcodes": [
+                        {
+                            "pattern": "8a 45 ? 88 81 ? ? ? ? 5d c2 ? ? 55 8b ec 56 ff 75",
+                            "address": "000615F3",
+                            "on": "B0 01 90",
+                            "off": "8A 45 08",
+                            "lib": "libcocos2d.dll"
+                        },
+                        {
+                            "pattern": "0f 84 ? ? ? ? e8 ? ? ? ? 8b 8b",
+                            "address": "00061B9A",
+                            "on": "90 90 90 90 90 90",
+                            "off": "0F 84 C1 00 00 00",
+                            "lib": "libcocos2d.dll"
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "Free Window Resize",
+                    "opcodes": [
+                        {
+                            "pattern": "e8 ? ? ? ? 83 c4 ? e9 ? ? ? ? c6 87",
+                            "address": "00118A2B",
+                            "on": "90 90 90 90 90",
+                            "off": "E8 B0 F3 FF FF",
+                            "lib": "libcocos2d.dll"
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "Allow Low Volume",
+                    "opcodes": [
+                        {
+                            "pattern": "76 ? 0F 57 C0 F3 ? ? ? ? E8",
+                            "address": "002B0E00",
+                            "on": "EB 08",
+                            "off": "76 08",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "76 ? 0F 57 C0 F3 ? ? ? ? E8 ? ? ? ? F3 ? ? ? ? 51",
+                            "address": "002B0EF1",
+                            "on": "EB 08",
+                            "off": "76 08",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "No Glow",
+                    "opcodes": [
+                        {
+                            "pattern": "74 ? c6 44 24 ? ? e8",
+                            "address": "002DC64B",
+                            "on": "90 90",
+                            "off": "74 05",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "0f 84 ? ? ? ? 80 7d ? ? 74 ? c6 80 ? ? ? ? ? 83 ec ? 8b cc 68 ? ? ? ? e8 ? ? ? ? 8d 44 24 ? 50 e8 ? ? ? ? c7 44 24 ? ? ? ? ? 83 78 ? ? 72 ? 8b 00 50 ff 15 ? ? ? ? 83 c4 ? c7 44 24 ? ? ? ? ? 83 7c 24 ? ? 8b f0 72 ? ff 74 24 ? ff 15 ? ? ? ? 83 c4 ? c7 44 24 ? ? ? ? ? c7 44 24 ? ? ? ? ? c6 44 24 ? ? 8b 06 51 8b ce c7 04 24 ? ? ? ? ff 90 ? ? ? ? 8b 8f ? ? ? ? 56 8b 01 ff 90 ? ? ? ? 8b 8f ? ? ? ? 8d 44 24 ? 68 ? ? ? ? 50 ff 15 ? ? ? ? 8b 06 8d 4c 24 ? 51 8b ce ff 50 ? 8b 4c 24 ? 64 89 0d ? ? ? ? 59 5f 5e 8b 4c 24 ? 33 cc e8 ? ? ? ? 8b e5 5d c2 ? ? cc cc cc cc cc 55",
+                            "address": "00143AF0",
+                            "on": "E9 B7 00 00 00 90",
+                            "off": "0F 84 B6 00 00 00",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "0f 84 ? ? ? ? 80 7d ? ? 74 ? c6 80 ? ? ? ? ? 83 ec ? 8b cc 68 ? ? ? ? e8 ? ? ? ? 8d 44 24 ? 50 e8 ? ? ? ? c7 44 24 ? ? ? ? ? 83 78 ? ? 72 ? 8b 00 50 ff 15 ? ? ? ? 83 c4 ? c7 44 24 ? ? ? ? ? 83 7c 24 ? ? 8b f0 72 ? ff 74 24 ? ff 15 ? ? ? ? 83 c4 ? c7 44 24 ? ? ? ? ? c7 44 24 ? ? ? ? ? c6 44 24 ? ? 8b 06 51 8b ce c7 04 24 ? ? ? ? ff 90 ? ? ? ? 8b 8f ? ? ? ? 56 8b 01 ff 90 ? ? ? ? 8b 8f ? ? ? ? 8d 44 24 ? 68 ? ? ? ? 50 ff 15 ? ? ? ? 8b 06 8d 4c 24 ? 51 8b ce ff 50 ? 8b 4c 24 ? 64 89 0d ? ? ? ? 59 5f 5e 8b 4c 24 ? 33 cc e8 ? ? ? ? 8b e5 5d c2 ? ? cc cc cc cc cc 83 b9",
+                            "address": "00143C80",
+                            "on": "E9 B7 00 00 00 90",
+                            "off": "0F 84 B6 00 00 00",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "Mode Console",
+                    "opcodes": [
+                        {
+                            "pattern": "00 75 ? 33 c0 eb ? b8 ? ? ? ? 88 86",
+                            "address": "000C4C74",
+                            "on": "01",
+                            "off": "00",
+                            "lib": "libcocos2d.dll"
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "No Orb Ring",
+                    "opcodes": [
+                        {
+                            "pattern": "83 b8 ? ? ? ? ? 0f 84 ? ? ? ? 80 bf ? ? ? ? ? 0f 85 ? ? ? ? 81 bf",
+                            "address": "00399FB8",
+                            "on": "90 90 90 90 90 90 90 E9 BA 00 00 00 90",
+                            "off": "83 B8 98 01 00 00 00 0F 84 B9 00 00 00",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                }
+            ],
+            "windowPosition": {
+                "x": 237.0,
+                "y": 15.0
+            },
+            "windowSize": {
+                "width": 206.0,
+                "height": 480.0
+            }
+        },
+        "Creator": {
+            "components": [
+                {
+                    "enabled": false,
+                    "name": "Custom object Bypass",
+                    "opcodes": [
+                        {
+                            "pattern": "0f 86 ? ? ? ? 68 ? ? ? ? 68",
+                            "address": "000A8214",
+                            "on": "E9 83 00",
+                            "off": "0F 86 82",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "77 ? 83 ec ? 8d 44 24",
+                            "address": "000A83C4",
+                            "on": "90 90",
+                            "off": "77 3A",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "Copy Hack",
+                    "opcodes": [
+                        {
+                            "pattern": "0f 84 ? ? ? ? e8 ? ? ? ? 8b 88 ? ? ? ? 2b 88 ? ? ? ? 74",
+                            "address": "0025292E",
+                            "on": "0F 85",
+                            "off": "0F 84",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "Slider Limit",
+                    "opcodes": [
+                        {
+                            "pattern": "76 ? 0F 57 C0 84",
+                            "address": "0004D04A",
+                            "on": "EB",
+                            "off": "76",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "76 ? 0F 57 C9",
+                            "address": "0004D078",
+                            "on": "EB",
+                            "off": "76",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "75 ? 0F 2F CA",
+                            "address": "000DF1E8",
+                            "on": "EB",
+                            "off": "75",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "Verify Hack",
+                    "opcodes": [
+                        {
+                            "pattern": "74 ? 80 b9 ? ? ? ? ? 75 ? 83 ec",
+                            "address": "00388F85",
+                            "on": "75",
+                            "off": "74",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
+                    "enabled": false,
+                    "name": "Level Edit",
+                    "opcodes": [
+                        {
+                            "pattern": "0f 85 ? ? ? ? 68 ? ? ? ? ff d7",
+                            "address": "002B8CEA",
+                            "on": "90 90 90 90 90 90",
+                            "off": "0F 85 85 00 00 00",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "83 B8 ? ? ? ? ? 0F 44 CA 51 56",
+                            "address": "002B8D4A",
+                            "on": "90 90 90 90 90 90 90 8B CA 90",
+                            "off": "83 B8 C0 03 00 00 02 0F 44 CA",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "0f 85 ? ? ? ? ff 15 ? ? ? ? 8b c8 8b 10 ff 52 ? c7 40",
+                            "address": "002BA03B",
+                            "on": "90 90 90 90 90 90",
+                            "off": "0F 85 A2 00 00 00",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "8a c3 5b 5d c3 8d 49",
+                            "address": "00275304",
+                            "on": "B0 01",
+                            "off": "8A C3",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                }
+            ],
+            "windowPosition": {
+                "x": 452.0,
+                "y": 16.0
+            },
+            "windowSize": {
+                "width": 227.0,
+                "height": 168.0
+            }
+        },
+        "FPS Multiplier": {
+            "components": [
+                {
+                    "type": "fps_multiplier"
+                }
+            ],
+            "windowPosition": {
+                "x": 450.0,
+                "y": 191.0
+            },
+            "windowSize": {
+                "width": 229.0,
+                "height": 88.0
+            }
+        },
+        "Speedhack": {
+            "components": [
+                {
+                    "type": "speedhack"
+                }
+            ],
+            "windowPosition": {
+                "x": 450.0,
+                "y": 285.0
+            },
+            "windowSize": {
+                "width": 230.0,
+                "height": 68.0
+            }
+        },
+        "Transition Customizer": {
+            "components": [
+                {
+                    "type": "transitionCustomizerCBX",
+                    "index": 0
+                }
+            ],
+            "windowPosition": {
+                "x": 10.0,
+                "y": 279.0
+            },
+            "windowSize": {
+                "width": 219.0,
+                "height": 68.0
+            }
+        },
+        "Replay Engine": {
+            "components": [
+                {
+                    "type": "replay_engine"
+                }
+            ],
+            "windowPosition": {
+                "x": 685.0,
+                "y": 16.0
+            },
+            "windowSize": {
+                "height": 185.0,
+                "width": 273.0
+            }
+        }
+    }
+}

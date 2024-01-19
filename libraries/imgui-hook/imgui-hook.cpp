@@ -1,28 +1,26 @@
-#include <functional>
-#include <fstream>
-#include <sstream>
 #include "imgui-hook.hpp"
-#include "imgui_theme.hpp"
-#include "ubuntu_font.hpp"
+#include "imgui-theme.hpp"
+#include "ubuntu-font.hpp"
 
-SwapBuffersType originalSwapBuffers = nullptr;
-WNDPROC originalWndProc = nullptr;
-HGLRC originalContext = 0, newContext = 0;
+bool inited = false;
 
-bool isInitialized = false;
 std::function<void()> drawFunc = []() {};
-std::function<void()> uninitFunc = []() {};
+std::function<void()> unloadFunc = []() {};
 std::function<void(int)> keyPressHandler = [](int _) {};
-HWND hWnd;
 
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-LRESULT CALLBACK HookedWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+HGLRC newContext = 0;
+HWND window;
 
-BOOL WINAPI HookedSwapBuffers(HDC hdc)
+WNDPROC wndProc = nullptr;
+LRESULT CALLBACK wndProc_H(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+swapBuffersType swapBuffers = nullptr;
+BOOL WINAPI swapBuffers_H(HDC hdc)
 {
-    if (!isInitialized)
+    if (!inited)
     {
-        originalContext = wglGetCurrentContext();
+        inited = true;
+
         newContext = wglCreateContext(hdc);
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -30,78 +28,105 @@ BOOL WINAPI HookedSwapBuffers(HDC hdc)
         io.IniFilename = nullptr;
         ApplyColor();
         ApplyStyle();
-        std::ifstream f("GDH/font.ttf");
-        if (f.good()) {
-            io.Fonts->AddFontFromFileTTF("GDH/font.ttf", 14.f, NULL, io.Fonts->GetGlyphRangesCyrillic());
-            io.Fonts->AddFontFromFileTTF("GDH/font.ttf", 18.f, NULL, io.Fonts->GetGlyphRangesCyrillic());
-            io.Fonts->AddFontFromFileTTF("GDH/font.ttf", 24.f, NULL, io.Fonts->GetGlyphRangesCyrillic());            
-        }
-        else {
-            io.Fonts->AddFontFromMemoryTTF(fontData, sizeof(fontData), 14.f, NULL, io.Fonts->GetGlyphRangesCyrillic());
-            io.Fonts->AddFontFromMemoryTTF(fontData, sizeof(fontData), 18.f, NULL, io.Fonts->GetGlyphRangesCyrillic());
-            io.Fonts->AddFontFromMemoryTTF(fontData, sizeof(fontData), 24.f, NULL, io.Fonts->GetGlyphRangesCyrillic());            
-        }            
-        f.close();
-        hWnd = WindowFromDC(hdc);
-        originalWndProc = (WNDPROC)GetWindowLongPtr(hWnd, GWLP_WNDPROC);
-        SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR)HookedWndProc);
-        ImGui_ImplWin32_Init(hWnd);
-        ImGui_ImplOpenGL2_Init();
-
-        isInitialized = true;
+        ImFont* font = io.Fonts->AddFontFromMemoryCompressedTTF(ubuntu_font_data, ubuntu_font_size, 14.f, NULL, io.Fonts->GetGlyphRangesCyrillic());
+        window = WindowFromDC(hdc);
+        wndProc = (WNDPROC)GetWindowLongPtr(window, GWLP_WNDPROC);
+        SetWindowLongPtr(window, GWLP_WNDPROC, (LONG_PTR)wndProc_H);
+        ImGui_ImplWin32_Init(window);
+        ImGui_ImplOpenGL3_Init();
     }
+
+    HGLRC originalContext = wglGetCurrentContext();
 
     wglMakeCurrent(hdc, newContext);
 
-    ImGui_ImplOpenGL2_NewFrame();
+    ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
     drawFunc();
 
     ImGui::Render();
-    ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     glFlush();
 
     wglMakeCurrent(hdc, originalContext);
 
-    return originalSwapBuffers(hdc);
+    return swapBuffers(hdc);
 }
 
-void ImGuiHook::Unload()
+extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK wndProc_H(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-    uninitFunc();
-    ImGui_ImplOpenGL2_Shutdown();
-    ImGui_ImplWin32_Shutdown();
-    ImGui::DestroyContext();
-    SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR)originalWndProc);
-    isInitialized = false;
-}
-
-LRESULT CALLBACK HookedWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-    ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam);
+    ImGui_ImplWin32_WndProcHandler(hwnd, msg, wParam, lParam);
 
     if (msg == WM_KEYDOWN && !ImGui::GetIO().WantCaptureKeyboard)
     {
         keyPressHandler(wParam);
     }
 
+    bool blockInput = false;
     if (ImGui::GetIO().WantCaptureMouse)
     {
-        if (msg == WM_MOUSEMOVE || msg == WM_LBUTTONDOWN || msg == WM_LBUTTONUP || msg == WM_MOUSEWHEEL)
-            return 0;
+        switch (msg)
+        {
+            case WM_LBUTTONDBLCLK:
+            case WM_LBUTTONDOWN:
+            case WM_LBUTTONUP:
+            case WM_MBUTTONDBLCLK:
+            case WM_MBUTTONDOWN:
+            case WM_MBUTTONUP:
+            case WM_MOUSEACTIVATE:
+            case WM_MOUSEHOVER:
+            case WM_MOUSEHWHEEL:
+            case WM_MOUSELEAVE:
+            case WM_MOUSEMOVE:
+            case WM_MOUSEWHEEL:
+            case WM_NCLBUTTONDBLCLK:
+            case WM_NCLBUTTONDOWN:
+            case WM_NCLBUTTONUP:
+            case WM_NCMBUTTONDBLCLK:
+            case WM_NCMBUTTONDOWN:
+            case WM_NCMBUTTONUP:
+            case WM_NCMOUSEHOVER:
+            case WM_NCMOUSELEAVE:
+            case WM_NCMOUSEMOVE:
+            case WM_NCRBUTTONDBLCLK:
+            case WM_NCRBUTTONDOWN:
+            case WM_NCRBUTTONUP:
+            case WM_NCXBUTTONDBLCLK:
+            case WM_NCXBUTTONDOWN:
+            case WM_NCXBUTTONUP:
+            case WM_RBUTTONDBLCLK:
+            case WM_RBUTTONDOWN:
+            case WM_RBUTTONUP:
+            case WM_XBUTTONDBLCLK:
+            case WM_XBUTTONDOWN:
+            case WM_XBUTTONUP:
+            blockInput = true;
+        }
     }
 
     if (ImGui::GetIO().WantCaptureKeyboard)
     {
-        if (msg == WM_KEYDOWN || msg == WM_KEYUP || msg == WM_SYSKEYDOWN || msg == WM_SYSKEYUP ||
-            msg == WM_HOTKEY || msg == WM_KILLFOCUS || msg == WM_SETFOCUS)
-            return 0;
+        switch (msg)
+        {
+            case WM_HOTKEY:
+            case WM_KEYDOWN:
+            case WM_KEYUP:
+            case WM_KILLFOCUS:
+            case WM_SETFOCUS:
+            case WM_SYSKEYDOWN:
+            case WM_SYSKEYUP:
+                blockInput = true;
+        }
     }
 
-    return CallWindowProc(originalWndProc, hWnd, msg, wParam, lParam);
+    if (blockInput)
+        return true;
+
+    return CallWindowProc(wndProc, hwnd, msg, wParam, lParam);
 }
 
 void (__thiscall* CCEGLView_toggleFullScreen)(void*, bool);
@@ -111,13 +136,12 @@ void __fastcall CCEGLView_toggleFullScreen_H(void* self, void*, bool toggle)
     CCEGLView_toggleFullScreen(self, toggle);
 }
 
-
 void ImGuiHook::Load(std::function<void(void*, void*, void**)> hookFunc)
 {
     hookFunc(
-        GetProcAddress(LoadLibraryA("opengl32.dll"), "wglSwapBuffers"),
-        HookedSwapBuffers,
-        reinterpret_cast<void**>(&originalSwapBuffers)
+        GetProcAddress(GetModuleHandleA("opengl32.dll"), "wglSwapBuffers"),
+        swapBuffers_H,
+        (void **)&swapBuffers
     );
 
     hookFunc(
@@ -127,6 +151,16 @@ void ImGuiHook::Load(std::function<void(void*, void*, void**)> hookFunc)
     );
 }
 
+void ImGuiHook::Unload()
+{
+    unloadFunc();
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+    ImGui::DestroyContext();
+    SetWindowLongPtr(window, GWLP_WNDPROC, (LONG_PTR)wndProc);
+    inited = false;
+}
+
 void ImGuiHook::setRenderFunction(std::function<void()> func)
 {
     drawFunc = func;
@@ -134,7 +168,7 @@ void ImGuiHook::setRenderFunction(std::function<void()> func)
 
 void ImGuiHook::setUnloadFunction(std::function<void()> func)
 {
-    uninitFunc = func;
+    unloadFunc = func;
 }
 
 void ImGuiHook::setKeyPressHandler(std::function<void(int)> func)

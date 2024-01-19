@@ -1,59 +1,62 @@
-#include "include.hpp"
-#include <imgui-hook.hpp>
-#include <imgui.h>
+#include "includes.hpp"
 #include "gui.hpp"
+#include "content.hpp"
+#include "memory.hpp"
+#include "version.hpp"
+#include "console.hpp"
 #include "hooks.hpp"
-#include "hacks.hpp"
-#include "startposSwitcher.hpp"
-#include "smartStartpos.hpp"
-#include "keybinds.hpp"
 
-DWORD WINAPI ThreadMain(LPVOID lpParam)
+extern "C" __declspec(dllexport) int __stdcall stub() { return 0; }
+
+void Main()
 {
     Console::Init();
-    ImGuiHook::setRenderFunction(gui::Render);
-    ImGuiHook::setUnloadFunction(gui::UnLoad);
-    ImGuiHook::setKeyPressHandler([](int keyCode) 
-        {
-            switch (keyCode)
-            {
-            case VK_TAB:
-                gui::Toggle();
-                break;
-            }
+    Console::WriteF("GDH Build %s\n", GDH_VERSION);
+    Console::WriteF("Build date: %s %s\n", GDH_BUILD_DATE, GDH_BUILD_TIME);
 
-            startposSwitcher::handleKeyPress(keyCode);
-            keybinds::keypress(keyCode);
-            if (gui::recording == true)
-                gui::currentkeycode = keyCode;
-        });
-    if (MH_Initialize() == MH_OK)
-    {
-        ImGuiHook::Load([](void *target, void *hook, void **trampoline)
-                            { MH_CreateHook(target, hook, trampoline); });
-        hooks::init();
-        hooks::cps_counter.init();
-        gui::hacks_missing = hacks::load();
-        startposSwitcher::init();
-        smartStartpos::init();
-        MH_EnableHook(MH_ALL_HOOKS);
-        hacks::inject_extensions();
+    if (!Content::load()) {
+        Console::WriteLn("GDH initialization canceled due to an invalid content file");
+        return;
     }
-    return true;
+    
+    if (MH_Initialize() != MH_OK)
+    {
+        Console::WriteLn("Failed to initialize MinHook");
+        return;
+    }
+    else
+        Console::WriteLn("MinHook successfully initialized");
+
+    ImGuiHook::Load([](void *target, void *hook, void **trampoline)
+                            { MH_CreateHook(target, hook, trampoline); });
+
+    hooks::init();
+
+    ImGuiHook::setRenderFunction(gui::RenderMain);
+    ImGuiHook::setKeyPressHandler([](int keyCode) 
+    {
+        switch (keyCode)
+        {
+        case VK_TAB:
+            gui::Toggle();
+            break;
+        }
+    });
+
+    if (MH_EnableHook(MH_ALL_HOOKS) != MH_OK)
+        Console::WriteLn("Failed to enable hooks");
+    else
+        Console::WriteLn("Successfully enabled all hooks");
 }
 
-BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
+BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
-    if (ul_reason_for_call == DLL_PROCESS_ATTACH)
+    if (fdwReason == DLL_PROCESS_ATTACH)
     {
-        CloseHandle(CreateThread(0, 0, &ThreadMain, 0, 0, 0));
+        Main();
     }
-    else if (ul_reason_for_call == DLL_PROCESS_DETACH) {
-        if (!hacks::content.is_null()) {
-            ofstream outputFile("GDH/hacks.json");
-            outputFile << hacks::content.dump(4);
-            outputFile.close();
-        }
+    else if (fdwReason == DLL_PROCESS_DETACH) {
+        Content::save();
     }
     return true;
 }

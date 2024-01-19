@@ -1,14 +1,11 @@
-#include <windows.h>
+#pragma once
+#include <Windows.h>
 #include <iostream>
-#include <string>
 
-using namespace std;
-
-namespace Console
-{
-	void Write(string text);
-	void WriteLine(string text);
-	string Input();
-	void Clear();
-	void Init();
+namespace Console {
+    void Init();
+    void Write(const std::string text);
+    void WriteLn(const std::string text);
+    void WriteF(const char* format, ...);
+    void Clear();
 }
