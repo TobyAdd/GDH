@@ -129,11 +129,11 @@ LRESULT CALLBACK wndProc_H(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     return CallWindowProc(wndProc, hwnd, msg, wParam, lParam);
 }
 
-void (__thiscall* CCEGLView_toggleFullScreen)(void*, bool);
-void __fastcall CCEGLView_toggleFullScreen_H(void* self, void*, bool toggle)
+void (__thiscall* CCEGLView_toggleFullScreen)(void*, bool, bool);
+void __fastcall CCEGLView_toggleFullScreen_H(void* self, void*, bool fullscreen, bool borderless)
 {
     ImGuiHook::Unload();
-    CCEGLView_toggleFullScreen(self, toggle);
+    CCEGLView_toggleFullScreen(self, fullscreen, borderless);
 }
 
 void ImGuiHook::Load(std::function<void(void*, void*, void**)> hookFunc)
@@ -145,7 +145,7 @@ void ImGuiHook::Load(std::function<void(void*, void*, void**)> hookFunc)
     );
 
     hookFunc(
-        GetProcAddress(GetModuleHandleA("libcocos2d.dll"), "?toggleFullScreen@CCEGLView@cocos2d@@QAEX_N@Z"),
+        GetProcAddress(GetModuleHandleA("libcocos2d.dll"), "?toggleFullScreen@CCEGLView@cocos2d@@QAEX_N0@Z"),
         CCEGLView_toggleFullScreen_H,
         reinterpret_cast<void**>(&CCEGLView_toggleFullScreen)
     );

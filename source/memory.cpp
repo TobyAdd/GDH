@@ -20,7 +20,7 @@ uintptr_t memory::PatternScan(uintptr_t base, uintptr_t scanSize, const std::str
         else {
             std::string byteStr = signature.substr(i, 2);
             patternData.push_back({ false, static_cast<uint8_t>(std::stoul(byteStr, nullptr, 16)) });
-            i += 2;
+            i++;
         }
     }
 
