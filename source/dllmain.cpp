@@ -33,6 +33,8 @@ void Main()
     hooks::init();
 
     ImGuiHook::setRenderFunction(gui::RenderMain);
+    ImGuiHook::setUnloadFunction(gui::Unload);
+
     ImGuiHook::setKeyPressHandler([](int keyCode) 
     {
         switch (keyCode)
