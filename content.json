@@ -978,6 +978,74 @@
                 "height": 185.0,
                 "width": 273.0
             }
+        },
+        "Settings": {
+            "components": [
+                {
+                    "type": "color_picker",
+                    "rainbow": {
+                        "enabled": [ false, false ],
+                        "accent": [ 0.4, 1 ],
+                        "text": [ 1, 0.4 ]
+                    },
+                    "color": [
+                        0.138,
+                        0.269,
+                        0.536
+                    ],
+                    "text_color": [ 1, 1, 1 ],
+                    "style": 0
+                },
+                {
+                    "type": "fade_speed",
+                    "speed": 100
+                }
+            ],
+            "windowPosition": {
+                "x": 686.0,
+                "y": 209.0
+            },
+            "windowSize": {
+                "height": 185.0,
+                "width": 273.0
+            }
+        },
+        "GDH": {
+            "components": [
+                {
+                    "type": "text",
+                    "text": "GDH is a FOSS menu made by TobyAdd.\nThanks to many contributors on GitHub."
+                },
+                { "type": "debug_info" },
+                { "type": "separator" },
+                {
+                    "type": "url",
+                    "text": "Discord",
+                    "url": "https://discord.gg/ahYEz4MAwP"
+                },
+                { "type": "sameline" },
+                {
+                    "type": "url",
+                    "text": "GitHub",
+                    "url": "https://github.com/tobyadd/gdh"
+                },
+                { "type": "sameline" },
+                { "type": "license" },
+                { "type": "sameline" },
+                {
+                    "type": "url",
+                    "text": "Donate",
+                    "url": "https://www.donationalerts.com/r/tobyadd"
+                }
+            ],
+            "windowPosition": {
+                "x": 686.0,
+                "y": 398.0
+            },
+            "windowSize": {
+                "height": 117.0,
+                "width": 273.0
+            }
         }
     }
 }

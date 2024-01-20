@@ -4,4 +4,6 @@
 #include <imgui-hook.hpp>
 #include <json.hpp>
 
+#define DEBUG true
+
 using json = nlohmann::ordered_json;

@@ -10,7 +10,7 @@ extern "C" __declspec(dllexport) int __stdcall stub() { return 0; }
 
 void Main()
 {
-    Console::Init();
+    if (DEBUG) Console::Init();
     Console::WriteF("GDH Build %s\n", GDH_VERSION);
     Console::WriteF("Build date: %s %s\n", GDH_BUILD_DATE, GDH_BUILD_TIME);
 
@@ -35,7 +35,7 @@ void Main()
     ImGuiHook::setRenderFunction(gui::RenderMain);
     ImGuiHook::setUnloadFunction(gui::Unload);
 
-    ImGuiHook::setKeyPressHandler([](int keyCode) 
+    ImGuiHook::setKeyPressHandler([](int keyCode)
     {
         switch (keyCode)
         {

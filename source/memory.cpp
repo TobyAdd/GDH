@@ -33,7 +33,7 @@ uintptr_t memory::PatternScan(uintptr_t base, uintptr_t scanSize, const std::str
                 continue;
             }
 
-            if (patternData[j].value != *reinterpret_cast<uint8_t *>(i + j)) {
+            if (patternData[j].value != *reinterpret_cast<uint8_t*>(i + j)) {
                 found = false;
                 break;
             }
@@ -51,7 +51,7 @@ bool memory::WriteBytes(uintptr_t address, std::string bytes)
 {
     std::vector<unsigned char> byteVec;
     std::stringstream byteStream(bytes);
-    std::string byteStr; 
+    std::string byteStr;
 
     while (getline(byteStream, byteStr, ' '))
     {
@@ -60,10 +60,10 @@ bool memory::WriteBytes(uintptr_t address, std::string bytes)
     }
 
     DWORD oldProtect;
-    if (VirtualProtect(reinterpret_cast<void *>(address), byteVec.size(), PAGE_EXECUTE_READWRITE, &oldProtect))
+    if (VirtualProtect(reinterpret_cast<void*>(address), byteVec.size(), PAGE_EXECUTE_READWRITE, &oldProtect))
     {
-        memcpy(reinterpret_cast<void *>(address), byteVec.data(), byteVec.size());
-        VirtualProtect(reinterpret_cast<void *>(address), byteVec.size(), oldProtect, &oldProtect);
+        memcpy(reinterpret_cast<void*>(address), byteVec.data(), byteVec.size());
+        VirtualProtect(reinterpret_cast<void*>(address), byteVec.size(), oldProtect, &oldProtect);
         return true;
     }
     else
@@ -74,19 +74,19 @@ bool memory::WriteBytes(uintptr_t address, std::string bytes)
 
 size_t memory::CountBytesInHexStr(const std::string hexStr) {
     const std::string validChars = "0123456789ABCDEFabcdef";
-    
+
     size_t count = 0;
-    
+
     for (char ch : hexStr) {
         if (std::isspace(static_cast<unsigned char>(ch))) {
             continue;
         }
-        
+
         if (validChars.find(ch) != std::string::npos) {
             count++;
         }
     }
-    
+
     return (count != 0) ? count / 2 : 0;
 }
 

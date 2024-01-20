@@ -21,8 +21,8 @@ namespace Console {
     }
 
     void Write(const std::string text) {
-        if (!inited) Init();
-        std::cout << text.c_str();
+        if (inited) // Init();
+            std::cout << text.c_str();
     }
 
     void WriteLn(const std::string text) {
@@ -30,7 +30,7 @@ namespace Console {
     }
 
     void WriteF(const char* format, ...) {
-        if (!inited) Init();
+        if (!inited) return;
 
         va_list args;
         va_start(args, format);
