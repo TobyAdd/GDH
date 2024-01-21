@@ -10,7 +10,7 @@ extern "C" __declspec(dllexport) int __stdcall stub() { return 0; }
 
 void Main()
 {
-    if (DEBUG) Console::Init();
+    Console::Init();
     Console::WriteF("GDH Build %s\n", GDH_VERSION);
     Console::WriteF("Build date: %s %s\n", GDH_BUILD_DATE, GDH_BUILD_TIME);
 

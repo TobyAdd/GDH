@@ -124,6 +124,17 @@ bool Content::load() {
                 else if (type == "transitionCustomizerCBX") {
                     auto index = component["index"];
                     hooks::transitionSelect = index;
+                }                
+                else if (type == "checkbox_startposSwitcher") {
+                    bool enabled = component["enabled"];
+                    bool use_a_d = component["use_a_d"];
+
+                    startPosSwitcher::enabled = enabled;
+                    startPosSwitcher::use_a_d = use_a_d;
+                }
+                else if (type == "checkbox_layout_mode") {
+                    bool enabled = component["enabled"];
+                    layout_mode::set_enabled(enabled);
                 }
             }
         }

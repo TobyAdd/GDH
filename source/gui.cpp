@@ -289,6 +289,26 @@ void gui::RenderMain() {
                     }
                 }
             }
+            else if (type == "checkbox_startposSwitcher") {
+                bool enabled = component["enabled"];
+                bool use_a_d = component["use_a_d"];
+                if (ImGui::Checkbox("Startpos switcher", &enabled)) {
+                    component["enabled"] = enabled;
+                    startPosSwitcher::enabled = enabled;
+                }
+
+                if (ImGui::Checkbox("Use A/D", &use_a_d)) {
+                    component["use_a_d"] = use_a_d;
+                    startPosSwitcher::use_a_d = use_a_d;
+                }
+            }            
+            else if (type == "checkbox_layout_mode") {
+                bool enabled = component["enabled"];
+                if (ImGui::Checkbox("Layout Mode", &enabled)) {
+                    component["enabled"] = enabled;
+                    layout_mode::set_enabled(enabled);
+                }
+            }
             else if (type == "text") {
                 ImGui::Text(component["text"].get<std::string>().c_str());
             }
@@ -301,7 +321,13 @@ void gui::RenderMain() {
                     ImGui::SetTooltip(component["url"].get<std::string>().c_str());
             }
             else if (type == "debug_info") {
-                ImGui::Text("GDH %s; ImGui %s; DEBUG: %s", GDH_VERSION, IMGUI_VERSION, DEBUG ? "ON" : "OFF");
+                bool debug;
+                #ifndef DISABLE_CONSOLE
+                    debug = true;
+                #else
+                    debug = false;
+                #endif
+                ImGui::Text("GDH %s; ImGui %s; DEBUG: %s", GDH_VERSION, IMGUI_VERSION, debug ? "ON" : "OFF");
             }
             else if (type == "separator") {
                 ImGui::Separator();

@@ -1,5 +1,6 @@
 #pragma once
 #include "includes.hpp"
+#include "gd.hpp"
 
 namespace hooks {
     extern int transitionSelect;
@@ -25,4 +26,21 @@ namespace hooks {
     inline int __fastcall GJBaseGameLayer_HandleButton_H(void *self, uintptr_t, int push, int player_button, BOOL is_player1);
 
     void init();
+}
+
+namespace startPosSwitcher
+{
+    extern bool enabled;
+    extern int use_a_d;
+
+    extern int startposIndex;
+
+    void switchStartPos(gd::PlayLayer *pl, bool direction);
+    void handleKeyPress(int keyCode);
+}
+
+namespace layout_mode
+{
+    void init();
+    void set_enabled(bool enable);
 }
