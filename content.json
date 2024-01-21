@@ -526,7 +526,7 @@
                             "pattern": "ff 15 ? ? ? ? 8b 8f ? ? ? ? 8b 01 ff 90 ? ? ? ? 8b c8 ff 15 ? ? ? ? 83 ec",
                             "address": "003838B1",
                             "on": "90 90 90 90 90 90",
-                            "off": "FF 15 1C 47 74 00",
+                            "off": "FF 15 1C 47 61 01",
                             "lib": null
                         }
                     ],
@@ -615,6 +615,24 @@
                         }
                     ],
                     "type": "checkbox_hack"
+                },
+                {
+                    "type": "separator"
+                },
+                {
+                    "enabled": false,
+                    "use_a_d": false,
+                    "type": "checkbox_startposSwitcher"
+                },
+                {
+                    "type": "separator"
+                },
+                {
+                    "enabled": false,
+                    "type": "checkbox_layout_mode"
+                },
+                {
+                    "type": "separator"
                 },
                 {
                     "enabled": false,
@@ -786,11 +804,11 @@
                 }
             ],
             "windowPosition": {
-                "x": 237.0,
+                "x": 238.0,
                 "y": 15.0
             },
             "windowSize": {
-                "width": 206.0,
+                "width": 208.0,
                 "height": 480.0
             }
         },
@@ -984,16 +1002,29 @@
                 {
                     "type": "color_picker",
                     "rainbow": {
-                        "enabled": [ false, false ],
-                        "accent": [ 0.4, 1 ],
-                        "text": [ 1, 0.4 ]
+                        "enabled": [
+                            false,
+                            false
+                        ],
+                        "accent": [
+                            0.6600000262260437,
+                            1.0
+                        ],
+                        "text": [
+                            1.0,
+                            1.0
+                        ]
                     },
                     "color": [
-                        0.138,
-                        0.269,
-                        0.536
+                        0.0,
+                        0.24399860203266144,
+                        0.5443037748336792
                     ],
-                    "text_color": [ 1, 1, 1 ],
+                    "text_color": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
                     "style": 0
                 },
                 {
@@ -1003,7 +1034,7 @@
             ],
             "windowPosition": {
                 "x": 686.0,
-                "y": 209.0
+                "y": 205.0
             },
             "windowSize": {
                 "height": 185.0,
@@ -1016,22 +1047,34 @@
                     "type": "text",
                     "text": "GDH is a FOSS menu made by TobyAdd.\nThanks to many contributors on GitHub."
                 },
-                { "type": "debug_info" },
-                { "type": "separator" },
+                {
+                    "type": "debug_info"
+                },
+                {
+                    "type": "separator"
+                },
                 {
                     "type": "url",
                     "text": "Discord",
                     "url": "https://discord.gg/ahYEz4MAwP"
                 },
-                { "type": "sameline" },
+                {
+                    "type": "sameline"
+                },
                 {
                     "type": "url",
                     "text": "GitHub",
                     "url": "https://github.com/tobyadd/gdh"
                 },
-                { "type": "sameline" },
-                { "type": "license" },
-                { "type": "sameline" },
+                {
+                    "type": "sameline"
+                },
+                {
+                    "type": "license"
+                },
+                {
+                    "type": "sameline"
+                },
                 {
                     "type": "url",
                     "text": "Donate",
@@ -1039,13 +1082,14 @@
                 }
             ],
             "windowPosition": {
-                "x": 686.0,
-                "y": 398.0
+                "x": 685.0,
+                "y": 397.0
             },
             "windowSize": {
-                "height": 117.0,
+                "height": 116.0,
                 "width": 273.0
             }
         }
-    }
+    },
+    "license_accepted": true
 }
