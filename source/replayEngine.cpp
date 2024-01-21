@@ -8,7 +8,7 @@ std::string ReplayEngine::save(char *name) {
     auto isEmpty = [](char *str) {return (str != nullptr && str[0] == '\0');};
     if (replay.empty())
     {
-        return "Replay doens't have actions";
+        return "Replay doesn't have actions";
     }
     else
     {
