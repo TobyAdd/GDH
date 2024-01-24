@@ -1007,12 +1007,12 @@
                             false
                         ],
                         "accent": [
-                            0.6600000262260437,
+                            0.4,
                             1.0
                         ],
                         "text": [
                             1.0,
-                            1.0
+                            0.4
                         ]
                     },
                     "color": [
@@ -1086,10 +1086,9 @@
                 "y": 397.0
             },
             "windowSize": {
-                "height": 116.0,
+                "height": 130.0,
                 "width": 273.0
             }
         }
-    },
-    "license_accepted": true
+    }
 }
