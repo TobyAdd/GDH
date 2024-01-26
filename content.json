@@ -214,7 +214,7 @@
                 }
             ],
             "windowPosition": {
-                "x": 11.0,
+                "x": 10.0,
                 "y": 14.0
             },
             "windowSize": {
@@ -526,7 +526,7 @@
                             "pattern": "ff 15 ? ? ? ? 8b 8f ? ? ? ? 8b 01 ff 90 ? ? ? ? 8b c8 ff 15 ? ? ? ? 83 ec",
                             "address": "003838B1",
                             "on": "90 90 90 90 90 90",
-                            "off": "FF 15 1C 47 61 01",
+                            "off": "FF 15 1C 47 75 00",
                             "lib": null
                         }
                     ],
@@ -804,11 +804,11 @@
                 }
             ],
             "windowPosition": {
-                "x": 238.0,
-                "y": 15.0
+                "x": 237.0,
+                "y": 17.0
             },
             "windowSize": {
-                "width": 208.0,
+                "width": 212.0,
                 "height": 480.0
             }
         },
@@ -944,7 +944,7 @@
             ],
             "windowPosition": {
                 "x": 450.0,
-                "y": 191.0
+                "y": 192.0
             },
             "windowSize": {
                 "width": 229.0,
@@ -958,12 +958,12 @@
                 }
             ],
             "windowPosition": {
-                "x": 450.0,
-                "y": 285.0
+                "x": 451.0,
+                "y": 289.0
             },
             "windowSize": {
                 "width": 230.0,
-                "height": 68.0
+                "height": 58.0
             }
         },
         "Transition Customizer": {
@@ -1007,34 +1007,34 @@
                             false
                         ],
                         "accent": [
-                            0.4,
+                            0.6600000262260437,
                             1.0
                         ],
                         "text": [
                             1.0,
-                            0.4
+                            1.0
                         ]
                     },
                     "color": [
-                        0.0,
-                        0.24399860203266144,
-                        0.5443037748336792
-                    ],
-                    "text_color": [
                         1.0,
                         1.0,
                         1.0
                     ],
-                    "style": 0
+                    "text_color": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "style": 2
                 },
                 {
                     "type": "fade_speed",
-                    "speed": 100
+                    "speed": 30
                 }
             ],
             "windowPosition": {
-                "x": 686.0,
-                "y": 205.0
+                "x": 685.0,
+                "y": 206.0
             },
             "windowSize": {
                 "height": 185.0,
@@ -1082,13 +1082,33 @@
                 }
             ],
             "windowPosition": {
-                "x": 685.0,
-                "y": 397.0
+                "x": 682.0,
+                "y": 395.0
             },
             "windowSize": {
-                "height": 130.0,
-                "width": 273.0
+                "height": 118.0,
+                "width": 288.0
+            }
+        },
+        "Labels": {
+            "components": [
+                {
+                    "type": "labels",
+                    "best_run": false,
+                    "message": false,
+                    "ndeaths": false,
+                    "messageContent": "Message"
+                }
+            ],
+            "windowPosition": {
+                "x": 451.0,
+                "y": 352.0
+            },
+            "windowSize": {
+                "height": 160.0,
+                "width": 230.0
             }
         }
-    }
+    },
+    "license_accepted": true
 }

@@ -20,6 +20,8 @@ target_include_directories(${PROJECT} PRIVATE
     libraries/cocos-headers/cocos2dx/kazmath/include
     libraries/cocos-headers/cocos2dx/include
     libraries/cocos-headers/cocos2dx
+    libraries/gd.h/include
+    libraries/gd.h/
     libraries
 )
 
@@ -37,12 +39,12 @@ add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 #     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin
 # )
 
-# # Set the desired folder to copy the DLL after build
-# set(DESTINATION_FOLDER "D:/Games/GD2204")
+# Set the desired folder to copy the DLL after build
+set(DESTINATION_FOLDER "D:/Games/GD2204/adaf-dll")
 
-# # Copy the DLL to the desired folder after build
-# add_custom_command(TARGET ${PROJECT} POST_BUILD
-#     COMMAND ${CMAKE_COMMAND} -E copy
-#     $<TARGET_FILE:${PROJECT}>
-#     ${DESTINATION_FOLDER}
-# )
+# Copy the DLL to the desired folder after build
+add_custom_command(TARGET ${PROJECT} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    $<TARGET_FILE:${PROJECT}>
+    ${DESTINATION_FOLDER}
+)

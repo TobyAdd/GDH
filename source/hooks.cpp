@@ -3,9 +3,15 @@
 #include "console.hpp"
 #include "memory.hpp"
 #include <chrono>
+#include <gd.h>
+#include "gui.hpp"
+#include "lables.hpp"
 
 int hooks::transitionSelect = 0;
 unsigned hooks::frame = 0;
+bool isdead = false;
+bool lastFrameDead = false;
+float delta = 0;
 
 namespace objectsReferences
 {
@@ -48,10 +54,21 @@ void __fastcall CCScheduler_update_H(void *self, int, float dt)
     left_over += dt - newdt * times;
 }
 
-bool __fastcall hooks::PlayLayer_init_H(void *self, int edx, void *GJGameLevel, bool a3, bool a4)
+bool __fastcall hooks::PlayLayer_init_H(CCLayer *self, int edx, void *GJGameLevel, bool a3, bool a4)
 {
     objectsReferences::startPositions.clear();
 
+    delta = 0;
+    if (gui::best_run == true)
+        Labels::SetupLabel(self, "bestrun", "Best Run: 0%");
+
+    if (gui::message == true)
+        Labels::SetupLabel(self, "message", gui::custom_message);
+
+    if (gui::ndeaths == true)
+        Labels::SetupLabel(self, "ndeaths", "Noclip Deaths: 0");
+    
+    Labels::setPositions();
     const auto res = PlayLayer_init(self, GJGameLevel, a3, a4);
     if (res)
     {
@@ -61,11 +78,26 @@ bool __fastcall hooks::PlayLayer_init_H(void *self, int edx, void *GJGameLevel, 
     return res;
 }
 
-void __fastcall hooks::playLayer_update_H(void *self, int edx, float deltaTime)
+void __fastcall hooks::playLayer_update_H(void *self, int edx, float dt)
 {
-    playLayer_update(self, deltaTime);
+    delta += dt;
+    playLayer_update(self, dt);
 
     frame = engine.getFrame(self);
+
+    if (isdead == true && lastFrameDead == false)
+    {
+        lastFrameDead = true;
+        Console::WriteLn("ded");
+        Labels::updateNoclipDeaths();
+    }
+
+    if (isdead == false)
+    {
+        lastFrameDead = false;
+    }
+
+    isdead = false;
 
     if (engine.mode == state::play)
     {
@@ -82,6 +114,7 @@ void __fastcall hooks::playLayer_update_H(void *self, int edx, float deltaTime)
 void __fastcall hooks::PlayLayer_resetLevel_H(void *self)
 {
     PlayLayer_resetLevel(self);
+    Labels::updateNoclipDeaths(true);
     if (engine.mode == state::play)
     {
         engine.index = 0;
@@ -107,16 +140,32 @@ void __fastcall hooks::PlayLayer_resetLevel_H(void *self)
 void __fastcall hooks::playLayer_levelComplate_H(int *self)
 {
     playLayer_levelComplate(self);
+    Labels::updateBestRun(100);
     if (engine.mode == state::record)
         engine.mode = state::disable;
 }
 
 void __fastcall hooks::PlayLayer_destructor_H(void *self)
 {
+    Labels::ClearLabels();
+    Labels::updateBestRun(69, true);
     PlayLayer_destructor(self);
     if (engine.mode == state::record)
         engine.mode = state::disable;
 }
+
+
+void __fastcall hooks::playLayer_death_H(int self, int edx, void* player, void* obj)
+{
+    if (delta > 0.1f)
+    {
+        isdead = true;
+    }
+    Labels::updateBestRun(*((DWORD *)self + 0xBAD));
+;
+	playLayer_death(self, player, obj);
+}
+
 
 int __fastcall hooks::GJBaseGameLayer_HandleButton_H(void *self, uintptr_t, int push, int player_button, BOOL is_player1)
 {
@@ -469,6 +518,7 @@ namespace layout_mode
     }
 }
 
+
 void hooks::init()
 {
     HMODULE gd = GetModuleHandleA(0);
@@ -481,8 +531,9 @@ void hooks::init()
     MH_CreateHook((void *)((DWORD)gd + 0x2ea130), PlayLayer_resetLevel_H, (void **)&PlayLayer_resetLevel);
     MH_CreateHook((void *)((DWORD)gd + 0x2dc080), PlayLayer_destructor_H, (void **)&PlayLayer_destructor);
     MH_CreateHook((void *)((DWORD)gd + 0x2ddb60), playLayer_levelComplate_H, (void **)&playLayer_levelComplate);
+    MH_CreateHook((void *)((DWORD)gd + 0x2E6730), playLayer_death_H, (void **)(&playLayer_death));
     MH_CreateHook((void *)((DWORD)gd + 0x1b69f0), GJBaseGameLayer_HandleButton_H, (void **)&GJBaseGameLayer_HandleButton);
-
+    
     MH_CreateHook((void *)(gd::base + 0x2e19b0), PlayLayer_addObjectHook, (void **)&PlayLayer_addObject);
     MH_CreateHook(GetProcAddress((HMODULE)gd::cocos_base, "?dispatchKeyboardMSG@CCKeyboardDispatcher@cocos2d@@QAE_NW4enumKeyCodes@2@_N1@Z"), dispatchKeyboardMSGHook, (void **)&dispatchKeyboardMSG);
 

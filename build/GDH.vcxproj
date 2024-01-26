@@ -1,0 +1,397 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x86</PreferredToolArchitecture>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|win32">
+      <Configuration>Debug</Configuration>
+      <Platform>win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|win32">
+      <Configuration>Release</Configuration>
+      <Platform>win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|win32">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|win32">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{0F6DA915-3BEF-3FDF-8693-EFD500C746AF}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.22621.0</WindowsTargetPlatformVersion>
+    <Platform>win32</Platform>
+    <ProjectName>GDH</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|win32'">D:\idk\gd\GDH25\build\Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|win32'">GDH.dir\Debug\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|win32'">GDH</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|win32'">.dll</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|win32'">true</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|win32'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|win32'">D:\idk\gd\GDH25\build\Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|win32'">GDH.dir\Release\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|win32'">GDH</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|win32'">.dll</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|win32'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|win32'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|win32'">D:\idk\gd\GDH25\build\MinSizeRel\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|win32'">GDH.dir\MinSizeRel\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|win32'">GDH</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|win32'">.dll</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|win32'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|win32'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|win32'">D:\idk\gd\GDH25\build\RelWithDebInfo\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|win32'">GDH.dir\RelWithDebInfo\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|win32'">GDH</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|win32'">.dll</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|win32'">true</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|win32'">true</GenerateManifest>
+  </PropertyGroup>
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>D:\idk\gd\GDH25\libraries\minhook\include;D:\idk\gd\GDH25\libraries\imgui-hook;D:\idk\gd\GDH25\libraries\imgui-hook\imgui;D:\idk\gd\GDH25\libraries\cocos-headers\extensions;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\third_party\win32;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\third_party\win32\OGLES;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\win32;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\kazmath\include;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\include;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx;D:\idk\gd\GDH25\libraries\gd.h\include;D:\idk\gd\GDH25\libraries\gd.h;D:\idk\gd\GDH25\libraries;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;UNICODE;_UNICODE;_CRT_SECURE_NO_WARNINGS;CMAKE_INTDIR="Debug";GDH_EXPORTS</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;UNICODE;_UNICODE;_CRT_SECURE_NO_WARNINGS;CMAKE_INTDIR=\"Debug\";GDH_EXPORTS</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\idk\gd\GDH25\libraries\minhook\include;D:\idk\gd\GDH25\libraries\imgui-hook;D:\idk\gd\GDH25\libraries\imgui-hook\imgui;D:\idk\gd\GDH25\libraries\cocos-headers\extensions;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\third_party\win32;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\third_party\win32\OGLES;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\win32;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\kazmath\include;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\include;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx;D:\idk\gd\GDH25\libraries\gd.h\include;D:\idk\gd\GDH25\libraries\gd.h;D:\idk\gd\GDH25\libraries;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>D:\idk\gd\GDH25\libraries\minhook\include;D:\idk\gd\GDH25\libraries\imgui-hook;D:\idk\gd\GDH25\libraries\imgui-hook\imgui;D:\idk\gd\GDH25\libraries\cocos-headers\extensions;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\third_party\win32;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\third_party\win32\OGLES;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\win32;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\kazmath\include;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\include;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx;D:\idk\gd\GDH25\libraries\gd.h\include;D:\idk\gd\GDH25\libraries\gd.h;D:\idk\gd\GDH25\libraries;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <PostBuildEvent>
+      <Message></Message>
+      <Command>setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E copy D:/idk/gd/GDH25/build/Debug/GDH.dll D:/Games/GD2204/adaf-dll
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+    </PostBuildEvent>
+    <Link>
+      <AdditionalDependencies>libraries\minhook\Debug\minhook.x32d.lib;libraries\imgui-hook\Debug\imgui-hook.lib;opengl32.lib;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\libcocos2d.lib;D:\idk\gd\GDH25\libraries\cocos-headers\extensions\libExtensions.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:X86</AdditionalOptions>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>D:/idk/gd/GDH25/build/Debug/GDH.lib</ImportLibrary>
+      <ProgramDataBaseFile>D:/idk/gd/GDH25/build/Debug/GDH.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>D:\idk\gd\GDH25\libraries\minhook\include;D:\idk\gd\GDH25\libraries\imgui-hook;D:\idk\gd\GDH25\libraries\imgui-hook\imgui;D:\idk\gd\GDH25\libraries\cocos-headers\extensions;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\third_party\win32;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\third_party\win32\OGLES;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\win32;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\kazmath\include;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\include;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx;D:\idk\gd\GDH25\libraries\gd.h\include;D:\idk\gd\GDH25\libraries\gd.h;D:\idk\gd\GDH25\libraries;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;UNICODE;_UNICODE;_CRT_SECURE_NO_WARNINGS;CMAKE_INTDIR="Release";GDH_EXPORTS</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;UNICODE;_UNICODE;_CRT_SECURE_NO_WARNINGS;CMAKE_INTDIR=\"Release\";GDH_EXPORTS</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\idk\gd\GDH25\libraries\minhook\include;D:\idk\gd\GDH25\libraries\imgui-hook;D:\idk\gd\GDH25\libraries\imgui-hook\imgui;D:\idk\gd\GDH25\libraries\cocos-headers\extensions;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\third_party\win32;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\third_party\win32\OGLES;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\win32;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\kazmath\include;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\include;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx;D:\idk\gd\GDH25\libraries\gd.h\include;D:\idk\gd\GDH25\libraries\gd.h;D:\idk\gd\GDH25\libraries;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>D:\idk\gd\GDH25\libraries\minhook\include;D:\idk\gd\GDH25\libraries\imgui-hook;D:\idk\gd\GDH25\libraries\imgui-hook\imgui;D:\idk\gd\GDH25\libraries\cocos-headers\extensions;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\third_party\win32;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\third_party\win32\OGLES;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\win32;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\kazmath\include;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\include;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx;D:\idk\gd\GDH25\libraries\gd.h\include;D:\idk\gd\GDH25\libraries\gd.h;D:\idk\gd\GDH25\libraries;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <PostBuildEvent>
+      <Message></Message>
+      <Command>setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E copy D:/idk/gd/GDH25/build/Release/GDH.dll D:/Games/GD2204/adaf-dll
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+    </PostBuildEvent>
+    <Link>
+      <AdditionalDependencies>libraries\minhook\Release\minhook.x32.lib;libraries\imgui-hook\Release\imgui-hook.lib;opengl32.lib;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\libcocos2d.lib;D:\idk\gd\GDH25\libraries\cocos-headers\extensions\libExtensions.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:X86</AdditionalOptions>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>D:/idk/gd/GDH25/build/Release/GDH.lib</ImportLibrary>
+      <ProgramDataBaseFile>D:/idk/gd/GDH25/build/Release/GDH.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>D:\idk\gd\GDH25\libraries\minhook\include;D:\idk\gd\GDH25\libraries\imgui-hook;D:\idk\gd\GDH25\libraries\imgui-hook\imgui;D:\idk\gd\GDH25\libraries\cocos-headers\extensions;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\third_party\win32;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\third_party\win32\OGLES;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\win32;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\kazmath\include;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\include;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx;D:\idk\gd\GDH25\libraries\gd.h\include;D:\idk\gd\GDH25\libraries\gd.h;D:\idk\gd\GDH25\libraries;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <Optimization>MinSpace</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;UNICODE;_UNICODE;_CRT_SECURE_NO_WARNINGS;CMAKE_INTDIR="MinSizeRel";GDH_EXPORTS</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;UNICODE;_UNICODE;_CRT_SECURE_NO_WARNINGS;CMAKE_INTDIR=\"MinSizeRel\";GDH_EXPORTS</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\idk\gd\GDH25\libraries\minhook\include;D:\idk\gd\GDH25\libraries\imgui-hook;D:\idk\gd\GDH25\libraries\imgui-hook\imgui;D:\idk\gd\GDH25\libraries\cocos-headers\extensions;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\third_party\win32;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\third_party\win32\OGLES;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\win32;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\kazmath\include;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\include;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx;D:\idk\gd\GDH25\libraries\gd.h\include;D:\idk\gd\GDH25\libraries\gd.h;D:\idk\gd\GDH25\libraries;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>D:\idk\gd\GDH25\libraries\minhook\include;D:\idk\gd\GDH25\libraries\imgui-hook;D:\idk\gd\GDH25\libraries\imgui-hook\imgui;D:\idk\gd\GDH25\libraries\cocos-headers\extensions;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\third_party\win32;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\third_party\win32\OGLES;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\win32;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\kazmath\include;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\include;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx;D:\idk\gd\GDH25\libraries\gd.h\include;D:\idk\gd\GDH25\libraries\gd.h;D:\idk\gd\GDH25\libraries;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <PostBuildEvent>
+      <Message></Message>
+      <Command>setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E copy D:/idk/gd/GDH25/build/MinSizeRel/GDH.dll D:/Games/GD2204/adaf-dll
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+    </PostBuildEvent>
+    <Link>
+      <AdditionalDependencies>libraries\minhook\MinSizeRel\minhook.x32.lib;libraries\imgui-hook\MinSizeRel\imgui-hook.lib;opengl32.lib;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\libcocos2d.lib;D:\idk\gd\GDH25\libraries\cocos-headers\extensions\libExtensions.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:X86</AdditionalOptions>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>D:/idk/gd/GDH25/build/MinSizeRel/GDH.lib</ImportLibrary>
+      <ProgramDataBaseFile>D:/idk/gd/GDH25/build/MinSizeRel/GDH.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>D:\idk\gd\GDH25\libraries\minhook\include;D:\idk\gd\GDH25\libraries\imgui-hook;D:\idk\gd\GDH25\libraries\imgui-hook\imgui;D:\idk\gd\GDH25\libraries\cocos-headers\extensions;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\third_party\win32;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\third_party\win32\OGLES;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\win32;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\kazmath\include;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\include;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx;D:\idk\gd\GDH25\libraries\gd.h\include;D:\idk\gd\GDH25\libraries\gd.h;D:\idk\gd\GDH25\libraries;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;UNICODE;_UNICODE;_CRT_SECURE_NO_WARNINGS;CMAKE_INTDIR="RelWithDebInfo";GDH_EXPORTS</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;UNICODE;_UNICODE;_CRT_SECURE_NO_WARNINGS;CMAKE_INTDIR=\"RelWithDebInfo\";GDH_EXPORTS</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\idk\gd\GDH25\libraries\minhook\include;D:\idk\gd\GDH25\libraries\imgui-hook;D:\idk\gd\GDH25\libraries\imgui-hook\imgui;D:\idk\gd\GDH25\libraries\cocos-headers\extensions;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\third_party\win32;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\third_party\win32\OGLES;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\win32;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\kazmath\include;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\include;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx;D:\idk\gd\GDH25\libraries\gd.h\include;D:\idk\gd\GDH25\libraries\gd.h;D:\idk\gd\GDH25\libraries;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>D:\idk\gd\GDH25\libraries\minhook\include;D:\idk\gd\GDH25\libraries\imgui-hook;D:\idk\gd\GDH25\libraries\imgui-hook\imgui;D:\idk\gd\GDH25\libraries\cocos-headers\extensions;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\third_party\win32;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\third_party\win32\OGLES;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\platform\win32;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\kazmath\include;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\include;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx;D:\idk\gd\GDH25\libraries\gd.h\include;D:\idk\gd\GDH25\libraries\gd.h;D:\idk\gd\GDH25\libraries;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <PostBuildEvent>
+      <Message></Message>
+      <Command>setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E copy D:/idk/gd/GDH25/build/RelWithDebInfo/GDH.dll D:/Games/GD2204/adaf-dll
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+    </PostBuildEvent>
+    <Link>
+      <AdditionalDependencies>libraries\minhook\RelWithDebInfo\minhook.x32.lib;libraries\imgui-hook\RelWithDebInfo\imgui-hook.lib;opengl32.lib;D:\idk\gd\GDH25\libraries\cocos-headers\cocos2dx\libcocos2d.lib;D:\idk\gd\GDH25\libraries\cocos-headers\extensions\libExtensions.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:X86</AdditionalOptions>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>D:/idk/gd/GDH25/build/RelWithDebInfo/GDH.lib</ImportLibrary>
+      <ProgramDataBaseFile>D:/idk/gd/GDH25/build/RelWithDebInfo/GDH.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="D:\idk\gd\GDH25\CMakeLists.txt">
+      <UseUtf8Encoding>Always</UseUtf8Encoding>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|win32'">Building Custom Rule D:/idk/gd/GDH25/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|win32'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/idk/gd/GDH25 -BD:/idk/gd/GDH25/build --check-stamp-file D:/idk/gd/GDH25/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|win32'">C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeCInformation.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Compiler\MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Platform\WindowsPaths.cmake;D:\idk\gd\GDH25\build\CMakeFiles\3.28.1\CMakeCCompiler.cmake;D:\idk\gd\GDH25\build\CMakeFiles\3.28.1\CMakeCXXCompiler.cmake;D:\idk\gd\GDH25\build\CMakeFiles\3.28.1\CMakeRCCompiler.cmake;D:\idk\gd\GDH25\build\CMakeFiles\3.28.1\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|win32'">D:\idk\gd\GDH25\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|win32'">Building Custom Rule D:/idk/gd/GDH25/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|win32'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/idk/gd/GDH25 -BD:/idk/gd/GDH25/build --check-stamp-file D:/idk/gd/GDH25/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|win32'">C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeCInformation.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Compiler\MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Platform\WindowsPaths.cmake;D:\idk\gd\GDH25\build\CMakeFiles\3.28.1\CMakeCCompiler.cmake;D:\idk\gd\GDH25\build\CMakeFiles\3.28.1\CMakeCXXCompiler.cmake;D:\idk\gd\GDH25\build\CMakeFiles\3.28.1\CMakeRCCompiler.cmake;D:\idk\gd\GDH25\build\CMakeFiles\3.28.1\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|win32'">D:\idk\gd\GDH25\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|win32'">Building Custom Rule D:/idk/gd/GDH25/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|win32'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/idk/gd/GDH25 -BD:/idk/gd/GDH25/build --check-stamp-file D:/idk/gd/GDH25/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|win32'">C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeCInformation.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Compiler\MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Platform\WindowsPaths.cmake;D:\idk\gd\GDH25\build\CMakeFiles\3.28.1\CMakeCCompiler.cmake;D:\idk\gd\GDH25\build\CMakeFiles\3.28.1\CMakeCXXCompiler.cmake;D:\idk\gd\GDH25\build\CMakeFiles\3.28.1\CMakeRCCompiler.cmake;D:\idk\gd\GDH25\build\CMakeFiles\3.28.1\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|win32'">D:\idk\gd\GDH25\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|win32'">Building Custom Rule D:/idk/gd/GDH25/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|win32'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/idk/gd/GDH25 -BD:/idk/gd/GDH25/build --check-stamp-file D:/idk/gd/GDH25/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|win32'">C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeCInformation.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Compiler\MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-3.28\Modules\Platform\WindowsPaths.cmake;D:\idk\gd\GDH25\build\CMakeFiles\3.28.1\CMakeCCompiler.cmake;D:\idk\gd\GDH25\build\CMakeFiles\3.28.1\CMakeCXXCompiler.cmake;D:\idk\gd\GDH25\build\CMakeFiles\3.28.1\CMakeRCCompiler.cmake;D:\idk\gd\GDH25\build\CMakeFiles\3.28.1\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|win32'">D:\idk\gd\GDH25\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|win32'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="D:\idk\gd\GDH25\source\console.cpp" />
+    <ClCompile Include="D:\idk\gd\GDH25\source\content.cpp" />
+    <ClCompile Include="D:\idk\gd\GDH25\source\dllmain.cpp" />
+    <ClCompile Include="D:\idk\gd\GDH25\source\gui.cpp" />
+    <ClCompile Include="D:\idk\gd\GDH25\source\hooks.cpp" />
+    <ClCompile Include="D:\idk\gd\GDH25\source\lables.cpp" />
+    <ClCompile Include="D:\idk\gd\GDH25\source\memory.cpp" />
+    <ClCompile Include="D:\idk\gd\GDH25\source\replayEngine.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="D:\idk\gd\GDH25\build\ZERO_CHECK.vcxproj">
+      <Project>{DECEBE33-5F71-368A-97C6-FAD3C2C66A03}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="D:\idk\gd\GDH25\build\libraries\imgui-hook\imgui-hook.vcxproj">
+      <Project>{5E28BFFB-F4DD-3DE4-A638-4A1A78FA8FCB}</Project>
+      <Name>imgui-hook</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\idk\gd\GDH25\build\libraries\minhook\minhook.vcxproj">
+      <Project>{4C633A9F-CBFB-3542-A3B6-7E231F9BF581}</Project>
+      <Name>minhook</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

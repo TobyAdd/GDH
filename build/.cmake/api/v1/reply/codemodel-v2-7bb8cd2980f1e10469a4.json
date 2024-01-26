@@ -1,0 +1,720 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2,
+						3
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-Debug-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0.0"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						3,
+						4
+					]
+				},
+				{
+					"build" : "libraries/minhook",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-libraries.minhook-Debug-e3c8a3881fe1607fe2cd.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 1,
+					"source" : "libraries/minhook",
+					"targetIndexes" : 
+					[
+						1,
+						6
+					]
+				},
+				{
+					"build" : "libraries/imgui-hook",
+					"jsonFile" : "directory-libraries.imgui-hook-Debug-52c11f6a91eac53c838c.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "libraries/imgui-hook",
+					"targetIndexes" : 
+					[
+						5
+					]
+				},
+				{
+					"build" : "libraries/cocos-headers",
+					"jsonFile" : "directory-libraries.cocos-headers-Debug-478791ff6354370498a7.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 2,
+					"source" : "libraries/cocos-headers",
+					"targetIndexes" : 
+					[
+						2
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1,
+						2
+					],
+					"directoryIndexes" : 
+					[
+						0,
+						2
+					],
+					"name" : "GDH",
+					"targetIndexes" : 
+					[
+						0,
+						3,
+						4,
+						5
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						1
+					],
+					"name" : "minhook",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						1,
+						6
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						3
+					],
+					"name" : "cocos-headers",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						2
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "ALL_BUILD::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ALL_BUILD-Debug-7ce825ba0dd9332c360a.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "ALL_BUILD::@7605efca7753b9cb6432",
+					"jsonFile" : "target-ALL_BUILD-Debug-87ebffe5f73012cceeae.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "ALL_BUILD::@aaf74036f3bba581c610",
+					"jsonFile" : "target-ALL_BUILD-Debug-6fb7718d01cfb648724c.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "GDH::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-GDH-Debug-11cbf9cb33444e4a18d3.json",
+					"name" : "GDH",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ZERO_CHECK-Debug-da6712decfa816817f46.json",
+					"name" : "ZERO_CHECK",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "imgui-hook::@855b64ca8e5c39f28ff5",
+					"jsonFile" : "target-imgui-hook-Debug-fc2a3afe739767c1f272.json",
+					"name" : "imgui-hook",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "minhook::@7605efca7753b9cb6432",
+					"jsonFile" : "target-minhook-Debug-450c3caf3a7307d1af47.json",
+					"name" : "minhook",
+					"projectIndex" : 1
+				}
+			]
+		},
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2,
+						3
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-Release-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0.0"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						3,
+						4
+					]
+				},
+				{
+					"build" : "libraries/minhook",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-libraries.minhook-Release-a06b9194eab02d310dfa.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 1,
+					"source" : "libraries/minhook",
+					"targetIndexes" : 
+					[
+						1,
+						6
+					]
+				},
+				{
+					"build" : "libraries/imgui-hook",
+					"jsonFile" : "directory-libraries.imgui-hook-Release-52c11f6a91eac53c838c.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "libraries/imgui-hook",
+					"targetIndexes" : 
+					[
+						5
+					]
+				},
+				{
+					"build" : "libraries/cocos-headers",
+					"jsonFile" : "directory-libraries.cocos-headers-Release-478791ff6354370498a7.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 2,
+					"source" : "libraries/cocos-headers",
+					"targetIndexes" : 
+					[
+						2
+					]
+				}
+			],
+			"name" : "Release",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1,
+						2
+					],
+					"directoryIndexes" : 
+					[
+						0,
+						2
+					],
+					"name" : "GDH",
+					"targetIndexes" : 
+					[
+						0,
+						3,
+						4,
+						5
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						1
+					],
+					"name" : "minhook",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						1,
+						6
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						3
+					],
+					"name" : "cocos-headers",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						2
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "ALL_BUILD::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ALL_BUILD-Release-7ce825ba0dd9332c360a.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "ALL_BUILD::@7605efca7753b9cb6432",
+					"jsonFile" : "target-ALL_BUILD-Release-87ebffe5f73012cceeae.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "ALL_BUILD::@aaf74036f3bba581c610",
+					"jsonFile" : "target-ALL_BUILD-Release-6fb7718d01cfb648724c.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "GDH::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-GDH-Release-c5edb6ee4ee84304d698.json",
+					"name" : "GDH",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ZERO_CHECK-Release-da6712decfa816817f46.json",
+					"name" : "ZERO_CHECK",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "imgui-hook::@855b64ca8e5c39f28ff5",
+					"jsonFile" : "target-imgui-hook-Release-5ba923ca8eadd705a775.json",
+					"name" : "imgui-hook",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "minhook::@7605efca7753b9cb6432",
+					"jsonFile" : "target-minhook-Release-5e19ac23ecec0e254a45.json",
+					"name" : "minhook",
+					"projectIndex" : 1
+				}
+			]
+		},
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2,
+						3
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-MinSizeRel-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0.0"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						3,
+						4
+					]
+				},
+				{
+					"build" : "libraries/minhook",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-libraries.minhook-MinSizeRel-dbe434695d76c1476968.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 1,
+					"source" : "libraries/minhook",
+					"targetIndexes" : 
+					[
+						1,
+						6
+					]
+				},
+				{
+					"build" : "libraries/imgui-hook",
+					"jsonFile" : "directory-libraries.imgui-hook-MinSizeRel-52c11f6a91eac53c838c.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "libraries/imgui-hook",
+					"targetIndexes" : 
+					[
+						5
+					]
+				},
+				{
+					"build" : "libraries/cocos-headers",
+					"jsonFile" : "directory-libraries.cocos-headers-MinSizeRel-478791ff6354370498a7.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 2,
+					"source" : "libraries/cocos-headers",
+					"targetIndexes" : 
+					[
+						2
+					]
+				}
+			],
+			"name" : "MinSizeRel",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1,
+						2
+					],
+					"directoryIndexes" : 
+					[
+						0,
+						2
+					],
+					"name" : "GDH",
+					"targetIndexes" : 
+					[
+						0,
+						3,
+						4,
+						5
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						1
+					],
+					"name" : "minhook",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						1,
+						6
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						3
+					],
+					"name" : "cocos-headers",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						2
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "ALL_BUILD::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ALL_BUILD-MinSizeRel-7ce825ba0dd9332c360a.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "ALL_BUILD::@7605efca7753b9cb6432",
+					"jsonFile" : "target-ALL_BUILD-MinSizeRel-87ebffe5f73012cceeae.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "ALL_BUILD::@aaf74036f3bba581c610",
+					"jsonFile" : "target-ALL_BUILD-MinSizeRel-6fb7718d01cfb648724c.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "GDH::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-GDH-MinSizeRel-7fe164b936ebf97cf2c0.json",
+					"name" : "GDH",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ZERO_CHECK-MinSizeRel-da6712decfa816817f46.json",
+					"name" : "ZERO_CHECK",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "imgui-hook::@855b64ca8e5c39f28ff5",
+					"jsonFile" : "target-imgui-hook-MinSizeRel-cfb68c1602cd320ddaf4.json",
+					"name" : "imgui-hook",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "minhook::@7605efca7753b9cb6432",
+					"jsonFile" : "target-minhook-MinSizeRel-f4ff2798093e3f79c264.json",
+					"name" : "minhook",
+					"projectIndex" : 1
+				}
+			]
+		},
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2,
+						3
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-RelWithDebInfo-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0.0"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						3,
+						4
+					]
+				},
+				{
+					"build" : "libraries/minhook",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-libraries.minhook-RelWithDebInfo-bd41adb945209b858015.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 1,
+					"source" : "libraries/minhook",
+					"targetIndexes" : 
+					[
+						1,
+						6
+					]
+				},
+				{
+					"build" : "libraries/imgui-hook",
+					"jsonFile" : "directory-libraries.imgui-hook-RelWithDebInfo-52c11f6a91eac53c838c.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "libraries/imgui-hook",
+					"targetIndexes" : 
+					[
+						5
+					]
+				},
+				{
+					"build" : "libraries/cocos-headers",
+					"jsonFile" : "directory-libraries.cocos-headers-RelWithDebInfo-478791ff6354370498a7.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 2,
+					"source" : "libraries/cocos-headers",
+					"targetIndexes" : 
+					[
+						2
+					]
+				}
+			],
+			"name" : "RelWithDebInfo",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1,
+						2
+					],
+					"directoryIndexes" : 
+					[
+						0,
+						2
+					],
+					"name" : "GDH",
+					"targetIndexes" : 
+					[
+						0,
+						3,
+						4,
+						5
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						1
+					],
+					"name" : "minhook",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						1,
+						6
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						3
+					],
+					"name" : "cocos-headers",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						2
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "ALL_BUILD::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ALL_BUILD-RelWithDebInfo-7ce825ba0dd9332c360a.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "ALL_BUILD::@7605efca7753b9cb6432",
+					"jsonFile" : "target-ALL_BUILD-RelWithDebInfo-87ebffe5f73012cceeae.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "ALL_BUILD::@aaf74036f3bba581c610",
+					"jsonFile" : "target-ALL_BUILD-RelWithDebInfo-6fb7718d01cfb648724c.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "GDH::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-GDH-RelWithDebInfo-3c3b54abe0b1eec7cf0b.json",
+					"name" : "GDH",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ZERO_CHECK-RelWithDebInfo-da6712decfa816817f46.json",
+					"name" : "ZERO_CHECK",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "imgui-hook::@855b64ca8e5c39f28ff5",
+					"jsonFile" : "target-imgui-hook-RelWithDebInfo-4bd0217f3c8d2fa391f5.json",
+					"name" : "imgui-hook",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "minhook::@7605efca7753b9cb6432",
+					"jsonFile" : "target-minhook-RelWithDebInfo-d04ff24b51839868c3c7.json",
+					"name" : "minhook",
+					"projectIndex" : 1
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "D:/idk/gd/GDH25/build",
+		"source" : "D:/idk/gd/GDH25"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 6
+	}
+}
