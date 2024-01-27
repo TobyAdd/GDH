@@ -7,6 +7,7 @@
 #include "replayEngine.hpp"
 #include "data.hpp"
 #include "version.hpp"
+#include "vkcodes.cpp"
 
 bool gui::show = false;
 bool gui::inited = false;
@@ -36,6 +37,15 @@ float rt_saturation = 1.0f;
 
 int anim_durr = -1;
 auto anim_starttime = std::chrono::steady_clock::now();
+
+
+bool style_editor = false;
+bool default_styling = false;
+
+int menukey = VK_TAB;
+bool keyinited = false;
+bool changekey = false;
+int curkey = -1;
 
 ImVec4 colorMultiply(float color[3], float multiplier) {
     return ImVec4(std::clamp(color[0] * multiplier, 0.0f, 1.0f),
@@ -370,10 +380,21 @@ void gui::RenderMain() {
 
                 ImGui::Checkbox("##fps_enabled", &engine.fps_enabled);
                 ImGui::Checkbox("Real Time", &engine.real_time);
-            }            
+            }
             else if (type == "speedhack") {
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                 ImGui::DragFloat("##speed", &engine.speed, 0.01f, 0, FLT_MAX, "%.2fx");
+            }
+            else if (type == "menukey_changer") {
+                if (!keyinited) {
+                    keyinited = true;
+                    menukey = component["key"];
+                }
+                component["key"] = menukey;
+                std::string key = key_name(menukey);
+                char buf[256];
+                snprintf(buf, 256, "Menu Toggle Key: [%s]", key.c_str());
+                if (ImGui::Button(changekey ? "Menu Toggle Key: ..." : buf)) changekey = true;
             }
             else if (type == "transitionCustomizerCBX")
             {
@@ -614,6 +635,15 @@ void gui::Toggle() {
         gui::show = !gui::show;
         anim_starttime = std::chrono::steady_clock::now();
     }
+}
+
+void gui::KeyPress(int key) {
+    if (changekey) {
+        menukey = key;
+        changekey = false;
+        return;
+    }
+    if (key == menukey) gui::Toggle();
 }
 
 void gui::Unload() {

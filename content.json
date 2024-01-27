@@ -1029,8 +1029,9 @@
                 },
                 {
                     "type": "fade_speed",
-                    "speed": 30
-                }
+                    "speed": 100
+                },
+                { "type": "menukey_changer", "key": 9 }
             ],
             "windowPosition": {
                 "x": 685.0,
