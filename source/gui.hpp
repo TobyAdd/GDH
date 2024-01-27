@@ -8,5 +8,6 @@ namespace gui {
 
     void RenderMain();
     void Toggle();
+    void KeyPress(int key);
     void Unload();
 }
