@@ -1,6 +1,0 @@
-# CMake generation dependency list for this directory.
-C:/Program Files/CMake/share/cmake-3.28/Modules/BasicConfigVersion-AnyNewerVersion.cmake.in
-C:/Program Files/CMake/share/cmake-3.28/Modules/CMakePackageConfigHelpers.cmake
-C:/Program Files/CMake/share/cmake-3.28/Modules/WriteBasicConfigVersionFile.cmake
-D:/idk/gd/GDH25/libraries/minhook/CMakeLists.txt
-D:/idk/gd/GDH25/libraries/minhook/cmake/minhook-config.cmake.in
