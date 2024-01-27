@@ -34,16 +34,7 @@ void Main()
 
     ImGuiHook::setRenderFunction(gui::RenderMain);
     ImGuiHook::setUnloadFunction(gui::Unload);
-
-    ImGuiHook::setKeyPressHandler([](int keyCode)
-    {
-        switch (keyCode)
-        {
-        case VK_TAB:
-            gui::Toggle();
-            break;
-        }
-    });
+    ImGuiHook::setKeyPressHandler(gui::KeyPress);
 
     if (MH_EnableHook(MH_ALL_HOOKS) != MH_OK)
         Console::WriteLn("Failed to enable hooks");
