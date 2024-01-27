@@ -54,6 +54,8 @@ void __fastcall CCScheduler_update_H(void *self, int, float dt)
     left_over += dt - newdt * times;
 }
 
+const ccColor3B tintColor = {255, 0, 0};
+CCSprite* tintptr = nullptr;
 bool __fastcall hooks::PlayLayer_init_H(CCLayer *self, int edx, void *GJGameLevel, bool a3, bool a4)
 {
     objectsReferences::startPositions.clear();
@@ -69,6 +71,20 @@ bool __fastcall hooks::PlayLayer_init_H(CCLayer *self, int edx, void *GJGameLeve
         Labels::SetupLabel(self, "ndeaths", "Noclip Deaths: 0");
     
     Labels::setPositions();
+
+    auto size = cocos2d::CCDirector::sharedDirector()->getWinSize();
+
+    auto tint = CCSprite::createWithSpriteFrameName("block005b_05_001.png");
+    tint->setPosition({size.width / 2, size.height / 2});
+    tint->setScale(1000.0f);
+    tint->setColor(tintColor);
+    tint->setOpacity(0);
+    tint->setZOrder(1000);
+
+    tintptr = tint;
+
+    self->addChild(tint);
+
     const auto res = PlayLayer_init(self, GJGameLevel, a3, a4);
     if (res)
     {
@@ -87,8 +103,16 @@ void __fastcall hooks::playLayer_update_H(void *self, int edx, float dt)
 
     if (isdead == true && lastFrameDead == false)
     {
+        if (tintptr != nullptr && gui::tint == true)
+            tintptr->setOpacity(50);
         lastFrameDead = true;
         Labels::updateNoclipDeaths();
+    }
+
+    if (isdead == false && lastFrameDead == true)
+    {
+        if (tintptr != nullptr && gui::tint == true)
+            tintptr->setOpacity(0);
     }
 
     if (isdead == false)

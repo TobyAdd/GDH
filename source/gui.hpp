@@ -10,6 +10,8 @@ namespace gui {
     extern bool best_run;
     extern bool ndeaths;
     extern bool naccuracy;
+    extern bool tint;
+    extern bool noclip;
     extern char custom_message[256];
 
     void RenderMain();

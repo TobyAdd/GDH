@@ -14,6 +14,8 @@ bool gui::inited = false;
 bool gui::message = false;
 bool gui::best_run = false;
 bool gui::ndeaths = false;
+bool gui::tint = false;
+bool gui::noclip = false;
 
 char gui::custom_message[256];
 
@@ -275,6 +277,13 @@ void gui::RenderMain() {
                 {
                     component["enabled"] = enabled;
                     json opcodes = component["opcodes"];
+                    if (component["name"] == "NoClip" && enabled == true)
+                    {
+                        noclip = true;
+                    } else if (component["name"] == "NoClip" && enabled == false)
+                    {
+                        noclip = false;
+                    }
                     for (auto& opcode : opcodes)
                     {
                         std::string addrStr = opcode["address"];
@@ -293,6 +302,10 @@ void gui::RenderMain() {
                             memory::WriteBytes(base + address, bytesStr);
                         }
                     }
+                }
+                if (component["name"] == "NoClip" && noclip == true)
+                {
+                    ImGui::Checkbox("Tint On Death", &tint);
                 }
             }
             else if (type == "checkbox_startposSwitcher") {
