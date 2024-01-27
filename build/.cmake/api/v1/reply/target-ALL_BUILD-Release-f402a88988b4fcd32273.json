@@ -17,10 +17,10 @@
 	"dependencies" : 
 	[
 		{
-			"id" : "GDH::@6890427a1f51a3e7e1df"
+			"id" : "minhook::@7605efca7753b9cb6432"
 		},
 		{
-			"id" : "minhook::@7605efca7753b9cb6432"
+			"id" : "GDH::@6890427a1f51a3e7e1df"
 		},
 		{
 			"id" : "imgui-hook::@855b64ca8e5c39f28ff5"

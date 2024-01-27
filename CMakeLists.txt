@@ -43,8 +43,8 @@ add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 set(DESTINATION_FOLDER "D:/Games/GD2204/adaf-dll")
 
 # Copy the DLL to the desired folder after build
-add_custom_command(TARGET ${PROJECT} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
-    $<TARGET_FILE:${PROJECT}>
-    ${DESTINATION_FOLDER}
-)
+# add_custom_command(TARGET ${PROJECT} POST_BUILD
+#     COMMAND ${CMAKE_COMMAND} -E copy
+#     $<TARGET_FILE:${PROJECT}>
+#     ${DESTINATION_FOLDER}
+# )
