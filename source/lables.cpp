@@ -85,7 +85,7 @@ void Labels::updateBestRun(DWORD newbest, bool isreset)
 //     accuracyptr->setString(CCString::createWithFormat("Noclip Accuracy: %i%%", accuracy.c_str())->getCString());
 // }
 
-DWORD ndeaths = 0;
+DWORD ndeaths = -1;
 
 void Labels::updateNoclipDeaths(bool clear)
 {
@@ -103,7 +103,7 @@ void Labels::updateNoclipDeaths(bool clear)
 
     if (clear == true)
     {
-        ndeaths = 0;
+        ndeaths = -1;
     } else
     {
         ndeaths += 1;

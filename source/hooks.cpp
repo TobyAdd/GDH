@@ -88,7 +88,6 @@ void __fastcall hooks::playLayer_update_H(void *self, int edx, float dt)
     if (isdead == true && lastFrameDead == false)
     {
         lastFrameDead = true;
-        Console::WriteLn("ded");
         Labels::updateNoclipDeaths();
     }
 
