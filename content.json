@@ -214,7 +214,7 @@
                 }
             ],
             "windowPosition": {
-                "x": 10.0,
+                "x": 11.0,
                 "y": 14.0
             },
             "windowSize": {
@@ -526,7 +526,7 @@
                             "pattern": "ff 15 ? ? ? ? 8b 8f ? ? ? ? 8b 01 ff 90 ? ? ? ? 8b c8 ff 15 ? ? ? ? 83 ec",
                             "address": "003838B1",
                             "on": "90 90 90 90 90 90",
-                            "off": "FF 15 1C 47 75 00",
+                            "off": "FF 15 1C 47 4F 00",
                             "lib": null
                         }
                     ],
@@ -804,11 +804,11 @@
                 }
             ],
             "windowPosition": {
-                "x": 237.0,
-                "y": 17.0
+                "x": 238.0,
+                "y": 15.0
             },
             "windowSize": {
-                "width": 212.0,
+                "width": 208.0,
                 "height": 480.0
             }
         },
@@ -944,7 +944,7 @@
             ],
             "windowPosition": {
                 "x": 450.0,
-                "y": 192.0
+                "y": 191.0
             },
             "windowSize": {
                 "width": 229.0,
@@ -958,12 +958,12 @@
                 }
             ],
             "windowPosition": {
-                "x": 451.0,
-                "y": 289.0
+                "x": 450.0,
+                "y": 285.0
             },
             "windowSize": {
                 "width": 230.0,
-                "height": 58.0
+                "height": 68.0
             }
         },
         "Transition Customizer": {
@@ -1007,35 +1007,38 @@
                             false
                         ],
                         "accent": [
-                            0.6600000262260437,
+                            0.4000000059604645,
                             1.0
                         ],
                         "text": [
                             1.0,
-                            1.0
+                            0.4000000059604645
                         ]
                     },
                     "color": [
+                        0.0,
+                        0.24399860203266144,
+                        0.5443037748336792
+                    ],
+                    "text_color": [
                         1.0,
                         1.0,
                         1.0
                     ],
-                    "text_color": [
-                        0.0,
-                        0.0,
-                        0.0
-                    ],
-                    "style": 2
+                    "style": 0
                 },
                 {
                     "type": "fade_speed",
                     "speed": 100
                 },
-                { "type": "menukey_changer", "key": 9 }
+                {
+                    "type": "menukey_changer",
+                    "key": 9
+                }
             ],
             "windowPosition": {
-                "x": 685.0,
-                "y": 206.0
+                "x": 686.0,
+                "y": 205.0
             },
             "windowSize": {
                 "height": 185.0,
@@ -1083,12 +1086,12 @@
                 }
             ],
             "windowPosition": {
-                "x": 682.0,
-                "y": 395.0
+                "x": 685.0,
+                "y": 397.0
             },
             "windowSize": {
-                "height": 118.0,
-                "width": 288.0
+                "height": 130.0,
+                "width": 273.0
             }
         },
         "Labels": {
@@ -1098,15 +1101,16 @@
                     "best_run": false,
                     "message": false,
                     "ndeaths": false,
+                    "attempts": false,
                     "messageContent": "Message"
                 }
             ],
             "windowPosition": {
                 "x": 451.0,
-                "y": 352.0
+                "y": 360.0
             },
             "windowSize": {
-                "height": 160.0,
+                "height": 158.0,
                 "width": 230.0
             }
         }
