@@ -1,3 +1,4 @@
+#include "vkcodes.hpp"
 #include <map>
 #include <algorithm>
 #include <string>
@@ -132,7 +133,7 @@ std::map<uint32_t, std::string> key_names = {
     {VK_OEM_CLEAR, "Clear"},
 };
 
-std::string key_name(uint32_t keycode)
+std::string VkCodes::key_name(uint32_t keycode)
 {
     // find key in map
     for (auto& key : key_names)
@@ -158,7 +159,7 @@ std::string key_name(uint32_t keycode)
     return "Unknown";
 }
 
-uint32_t decode_key(std::string key)
+uint32_t VkCodes::decode_key(std::string key)
 {
     // find key in map
     for (auto& key_ : key_names)

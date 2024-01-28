@@ -7,7 +7,7 @@
 #include "replayEngine.hpp"
 #include "data.hpp"
 #include "version.hpp"
-#include "vkcodes.cpp"
+#include "vkcodes.hpp"
 
 bool gui::show = false;
 bool gui::inited = false;
@@ -391,7 +391,7 @@ void gui::RenderMain() {
                     menukey = component["key"];
                 }
                 component["key"] = menukey;
-                std::string key = key_name(menukey);
+                std::string key = VkCodes::key_name(menukey);
                 char buf[256];
                 snprintf(buf, 256, "Menu Toggle Key: [%s]", key.c_str());
                 if (ImGui::Button(changekey ? "Menu Toggle Key: ..." : buf)) changekey = true;
