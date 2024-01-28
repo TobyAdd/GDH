@@ -14,5 +14,6 @@ namespace Labels {
     void ClearLabels();
     void updateBestRun(DWORD newbest, bool isreset = false);
     void updateNoclipDeaths(bool clear = false);
+    void endNoclipDeath();
     // void updateAccuracy(std::string accuracy);
 }

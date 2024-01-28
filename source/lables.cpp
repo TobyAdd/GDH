@@ -87,6 +87,9 @@ void Labels::updateBestRun(DWORD newbest, bool isreset)
 
 DWORD ndeaths = -1;
 
+const ccColor3B deathColor = {255, 0, 0};
+const ccColor3B notdeathColor = {255, 255, 255};
+
 void Labels::updateNoclipDeaths(bool clear)
 {
     CCLabelBMFont* ndeathsptr = nullptr;
@@ -108,5 +111,23 @@ void Labels::updateNoclipDeaths(bool clear)
     {
         ndeaths += 1;
     }
+    ndeathsptr->setColor(deathColor);
     ndeathsptr->setString(CCString::createWithFormat("Noclip Deaths: %i", ndeaths)->getCString());
+}
+
+void Labels::endNoclipDeath()
+{
+    CCLabelBMFont* ndeathsptr = nullptr;
+
+    for (Label &lbl : labels)
+    {
+        if (lbl.name == "ndeaths")
+        {
+            ndeathsptr = lbl.pointer;
+        }
+    }
+
+    if (ndeathsptr == nullptr) return;
+
+    ndeathsptr->setColor(notdeathColor);
 }

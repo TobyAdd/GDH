@@ -113,6 +113,7 @@ void __fastcall hooks::playLayer_update_H(void *self, int edx, float dt)
     {
         if (tintptr != nullptr && gui::tint == true)
             tintptr->setOpacity(0);
+        Labels::endNoclipDeath();
     }
 
     if (isdead == false)
