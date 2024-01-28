@@ -17,6 +17,7 @@ bool gui::best_run = false;
 bool gui::ndeaths = false;
 bool gui::tint = false;
 bool gui::noclip = false;
+bool gui::attempts = false;
 
 char gui::custom_message[256];
 
@@ -564,61 +565,21 @@ void gui::RenderMain() {
                 ImGui::Text(log.c_str());
             }
             else if (type == "labels") {
-                // const char *e[] = {"Small", "Normal", "Large"};
-                // int size = component["size"];
-                // if (ImGui::Combo("Font Size", &size, e, IM_ARRAYSIZE(e), 3)) {
-                //     component["size"] = size;
-                    // current_font_size = (font_size)size;
-                // }
-                // const char *fontselecters[] = {"bigFont", "chatFont", "goldFont", "gjFont1", "gjFont2", "gjFont3", "gjFont4", "gjFont5", "gjFont6", "gjFont7", "gjFont8", "gjFont9", "gjFont10", "gjFont11", "gjFont12", "gjFont13", "gjFont14", "gjFont15", "gjFont16", "gjFont17", "gjFont18", "gjFont19", "gjFont20", "gjFont21", "gjFont22", "gjFont23", "gjFont24", "gjFont25", "gjFont26", "gjFont27", "gjFont28", "gjFont29", "gjFont30", "gjFont31", "gjFont32", "gjFont33", "gjFont34", "gjFont35", "gjFont36", "gjFont37", "gjFont38", "gjFont39", "gjFont40", "gjFont41", "gjFont42", "gjFont43", "gjFont44", "gjFont45", "gjFont46", "gjFont47", "gjFont48", "gjFont49", "gjFont50", "gjFont51", "gjFont52", "gjFont53", "gjFont54", "gjFont55", "gjFont56", "gjFont57", "gjFont58", "gjFont59"};
-                // int font = component["font"];
-                // if (ImGui::Combo("Font", &font, fontselecters, IM_ARRAYSIZE(fontselecters), 3)) {
-                    // Console::WriteLine(to_string(font));
-                    // component["font"] = font;
-                    // string bim(fontselecters[font]);
-                    // gui::fonttype = new char[((string) fontselecters[font] + ".fnt").length()];
-                    // strcpy(gui::fonttype, ((string) fontselecters[font] + ".fnt").c_str());
-                    // switch (font)
-                    // {
-                    // case 0:
-                    //     gui::fonttype = "bigFont.fnt";
-                    //     break;
-
-                    // case 1:
-                    //     gui::fonttype = "chatFont.fnt";
-                    //     break;
-
-                    // case 2:
-                    //     gui::fonttype = "goldFont.fnt";
-                    //     break;
-                    
-                    // default:
-                    //     if (font > 2 && font < 62)
-                    //     {
-                    //         // strcpy_s(gui::fonttype, ("gjFont" + to_string(font - 2)).length() + 1, ("gjFont" + to_string(font - 2)).c_str());
-                    //         gui::fonttype = new char[("gjFont" + to_string(font - 2) + ".fnt").length()];
-                    //         strcpy(gui::fonttype, ("gjFont" + to_string(font - 2) + ".fnt")).c_str();
-                    //         Console::WriteLine((string) (gui::fonttype));
-                    //     }
-                    //     else
-                    //     {
-                    //         Console::WriteLine("BRUH CODE ERROR");
-                    //         gui::fonttype = "bigFont.fnt";
-                    //     }
-                    //     break;
-                    // }
                     best_run = component["best_run"];
                     message = component["message"];
                     ndeaths = component["ndeaths"];
+                    attempts = component["attempts"];
                     strcpy_s(custom_message, component["messageContent"].get<std::string>().c_str());;
                     ImGui::Checkbox("Best Run", &best_run);
                     ImGui::Checkbox("Message", &message);
                     if (message)
                         ImGui::InputText("##customMessage", (char*) &custom_message, 256);
                     ImGui::Checkbox("Noclip Deaths", &ndeaths);
+                    ImGui::Checkbox("Total Attempts", &attempts);
                     component["message"] = message;
                     component["best_run"] = best_run;
                     component["ndeaths"] = ndeaths;
+                    component["attempts"] = attempts;
                     component["messageContent"] = custom_message;
                 }
             }

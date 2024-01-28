@@ -6,6 +6,7 @@
 #include <gd.h>
 #include "gui.hpp"
 #include "lables.hpp"
+#include "bindings/GJGameLevel.h"
 
 int hooks::transitionSelect = 0;
 unsigned hooks::frame = 0;
@@ -55,21 +56,29 @@ void __fastcall CCScheduler_update_H(void *self, int, float dt)
 }
 
 const ccColor3B tintColor = {255, 0, 0};
+robtop::GJGameLevel* currentlevel = nullptr;
 CCSprite* tintptr = nullptr;
-bool __fastcall hooks::PlayLayer_init_H(CCLayer *self, int edx, void *GJGameLevel, bool a3, bool a4)
+bool __fastcall hooks::PlayLayer_init_H(int *self, int edx, robtop::GJGameLevel *level, bool a3, bool a4)
 {
     objectsReferences::startPositions.clear();
+    robtop::GJGameLevel_201 levelL = level->v201;
 
+    auto layer = (CCLayer*)self;
     delta = 0;
     if (gui::best_run == true)
-        Labels::SetupLabel(self, "bestrun", "Best Run: 0%");
+        Labels::SetupLabel(layer, "bestrun", "Best Run: 0%");
 
     if (gui::message == true)
-        Labels::SetupLabel(self, "message", gui::custom_message);
+        Labels::SetupLabel(layer, "message", gui::custom_message);
 
     if (gui::ndeaths == true)
-        Labels::SetupLabel(self, "ndeaths", "Noclip Deaths: 0");
-    
+        Labels::SetupLabel(layer, "ndeaths", "Noclip Deaths: 0");
+
+    if (gui::attempts == true)
+        Labels::SetupLabel(layer, "attempts", "");
+
+    currentlevel = level;
+
     Labels::setPositions();
 
     auto size = cocos2d::CCDirector::sharedDirector()->getWinSize();
@@ -83,9 +92,9 @@ bool __fastcall hooks::PlayLayer_init_H(CCLayer *self, int edx, void *GJGameLeve
 
     tintptr = tint;
 
-    self->addChild(tint);
+    layer->addChild(tint);
 
-    const auto res = PlayLayer_init(self, GJGameLevel, a3, a4);
+    const auto res = PlayLayer_init(self, level, a3, a4);
     if (res)
     {
         // idk
@@ -138,6 +147,7 @@ void __fastcall hooks::playLayer_update_H(void *self, int edx, float dt)
 void __fastcall hooks::PlayLayer_resetLevel_H(void *self)
 {
     PlayLayer_resetLevel(self);
+    Labels::updateAttempts(currentlevel->v201);
     Labels::updateNoclipDeaths(true);
     if (engine.mode == state::play)
     {

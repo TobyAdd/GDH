@@ -131,3 +131,20 @@ void Labels::endNoclipDeath()
 
     ndeathsptr->setColor(notdeathColor);
 }
+
+void Labels::updateAttempts(robtop::GJGameLevel_201 level)
+{
+    CCLabelBMFont* attptr = nullptr;
+
+    for (Label &lbl : labels)
+    {
+        if (lbl.name == "attempts")
+        {
+            attptr = lbl.pointer;
+        }
+    }
+
+    if (attptr == nullptr) return;
+
+    attptr->setString(CCString::createWithFormat("Attempts: %i", level.tail.m_attempts.value())->getCString());
+}

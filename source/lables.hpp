@@ -1,4 +1,5 @@
 #include "includes.hpp"
+#include "bindings/GJGameLevel.h"
 
 class Label
 {
@@ -15,5 +16,6 @@ namespace Labels {
     void updateBestRun(DWORD newbest, bool isreset = false);
     void updateNoclipDeaths(bool clear = false);
     void endNoclipDeath();
+    void updateAttempts(robtop::GJGameLevel_201 level);
     // void updateAccuracy(std::string accuracy);
 }

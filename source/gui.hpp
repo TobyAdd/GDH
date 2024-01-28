@@ -12,6 +12,7 @@ namespace gui {
     extern bool naccuracy;
     extern bool tint;
     extern bool noclip;
+    extern bool attempts;
     extern char custom_message[256];
 
     void RenderMain();

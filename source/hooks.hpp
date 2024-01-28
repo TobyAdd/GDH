@@ -1,6 +1,7 @@
 #pragma once
 #include "includes.hpp"
 #include "gd.hpp"
+#include "bindings/GJGameLevel.h"
 
 namespace hooks {
     extern int transitionSelect;
@@ -8,7 +9,7 @@ namespace hooks {
     extern unsigned frame;
 
     inline bool(__thiscall* PlayLayer_init)(void*, void*, bool, bool);
-    inline bool __fastcall PlayLayer_init_H(CCLayer* self, int edx, void* GJGameLevel, bool a3, bool a4);
+    inline bool __fastcall PlayLayer_init_H(int* self, int edx, robtop::GJGameLevel* GJGameLevel, bool a3, bool a4);
 
     inline void(__thiscall *playLayer_update)(void *self, float deltatime);
     inline void __fastcall playLayer_update_H(void *self, int edx, float deltatime);
