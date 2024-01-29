@@ -40,6 +40,32 @@ bool keyinited = false;
 bool changekey = false;
 int curkey = -1;
 
+std::wstring ShowSaveFileDialog() {
+    OPENFILENAME ofn;
+    wchar_t szFileName[MAX_PATH] = L"";
+
+    ZeroMemory(&ofn, sizeof(ofn));
+    ofn.lStructSize = sizeof(ofn);
+    ofn.lpstrFilter = L"All Files\0*.json\0\0";
+    ofn.lpstrFile = szFileName;
+    ofn.nMaxFile = MAX_PATH;
+    ofn.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT;
+
+    if (GetSaveFileName(&ofn) == TRUE) {
+        std::wstring filePath = szFileName;
+        std::wstring extension = L".json";
+
+        if (filePath.length() < extension.length() ||
+            filePath.substr(filePath.length() - extension.length()) != extension) {
+            filePath += extension;
+        }
+
+        return filePath;
+    } else {
+        return L"";
+    }
+}
+
 ImVec4 colorMultiply(float color[3], float multiplier) {
     return ImVec4(std::clamp(color[0] * multiplier, 0.0f, 1.0f),
         std::clamp(color[1] * multiplier, 0.0f, 1.0f),
@@ -420,8 +446,8 @@ void gui::RenderMain() {
     static float color[3] = { 1.0f, 1.0f, 1.0f };
     static float text_color[3] = { 0.0f, 0.0f, 0.0f };
 
-    static float default_color[3] = { 1.0f, 1.0f, 1.0f };
-    static float default_text_color[3] = { 0.0f, 0.0f, 0.0f };
+    static float default_color[3] = { 0, 0.24f, 0.55f };
+    static float default_text_color[3] = { 1.0f, 1.0f, 1.0f };
 
     for (auto &item : Content::content["Hacks"].items()) {
         std::string windowName = item.key();
@@ -500,6 +526,13 @@ void gui::RenderMain() {
                     layout_mode::set_enabled(enabled);
                 }
             }
+            else if (type == "checkbox_rainbow_icons") {
+                bool enabled = component["enabled"];
+                if (ImGui::Checkbox("RGB Icons", &enabled)) {
+                    component["enabled"] = enabled;
+                    hooks::rgb_icons = enabled;
+                }
+            }
             else if (type == "text") {
                 ImGui::Text(component["text"].get<std::string>().c_str());
             }
@@ -529,6 +562,16 @@ void gui::RenderMain() {
             else if (type == "sameline") {
                 ImGui::SameLine();
             }
+            else if (type == "save_load_buttons") {
+                if (ImGui::Button("Save Hacks", {ImGui::GetContentRegionAvail().x, NULL})) {
+                    std::wstring path = ShowSaveFileDialog();
+                    if (path != L"") {
+                        std::ofstream file(path);
+                        file << std::setw(4) << Content::content;
+                        file.close();
+                    }
+                }
+            }
             else if (type == "license") {
                 if (ImGui::Button("License")) {
                     license_show = true;
@@ -536,12 +579,19 @@ void gui::RenderMain() {
             }
             else if (type == "fps_multiplier") {
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 25);
-                ImGui::DragFloat("##fps", &engine.fps, 1.00f, 1, 240.f, "%.2f FPS");
+                if (ImGui::DragFloat("##fps", &engine.fps, 1.00f, 1, 240.f, "%.2f FPS")) {
+                    component["value"] = engine.fps;
+                }
 
                 ImGui::SameLine();
 
-                ImGui::Checkbox("##fps_enabled", &engine.fps_enabled);
-                ImGui::Checkbox("Real Time", &engine.real_time);
+                if (ImGui::Checkbox("##fps_enabled", &engine.fps_enabled)) {
+                    component["enabled"] = engine.fps_enabled;
+                }
+
+                if (ImGui::Checkbox("Real Time", &engine.real_time)) {
+                    component["real_time"] = engine.real_time;
+                } 
             }
             else if (type == "speedhack") {
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -634,7 +684,7 @@ void gui::RenderMain() {
                         ImGui::ColorEdit3("Text", (float*)&text_color);
                     }
 
-                    if (ImGui::Button("Reset Theme"))
+                    if (ImGui::Button("Reset Theme", {ImGui::GetContentRegionAvail().x, NULL}))
                     {
                         rainbow_text = false;
                         rainbow_accent = false;

@@ -56,6 +56,42 @@ namespace gd {
 	public:
 	};
 
+	class GameObject : public CCSprite
+	{
+	public:
+		auto m_glow() {
+			return from<CCSprite*>(this, 0x2B00);
+		}
+
+		auto m_objectType() {
+			return from<int>(this, 0x31c);
+		}
+	};
+
+	class PlayerObject : public GameObject
+	{
+	public:
+		auto m_position() {
+			return from<CCPoint>(this, 0x64);
+		}
+
+		auto m_yAccel() {
+			return from<double>(this, 0x790);
+		}
+
+		auto m_xAccel() {
+			return from<double>(this, 0x630); 
+		}
+
+		cocos2d::CCSprite* m_pSecondarySprite() {
+            return from<cocos2d::CCSprite*>(this, 0x5f0);
+        }
+
+		auto m_waveTrail() {
+			return from<cocos2d::CCSprite*>(this, 0x628);
+		}
+	};
+
 	class PlayLayer;
 
 	class GameManager : public CCNode {
@@ -98,6 +134,14 @@ namespace gd {
 			reinterpret_cast<void(__thiscall*)(PlayLayer*, bool)>(base + 0x2e8d70)(this, firstCheckpoint);
 		}
 
+		PlayerObject* m_pPlayer1() {
+			return from<PlayerObject*>(this, 0x878);
+		}
+
+		PlayerObject* m_pPlayer2() {
+			return from<PlayerObject*>(this, 0x87C);
+		}
+		
 	};
 
 	class GameStatsManager : public CCNode {
@@ -115,6 +159,32 @@ namespace gd {
 		}
 	};
 
+	class GJGroundLayer : public cocos2d::CCLayer {
+	public:
+
+		void updateGround01Color(_ccColor3B param_1) {
+			reinterpret_cast<void(__fastcall*)(GJGroundLayer*, _ccColor3B)>(base + 0x1f7ab0)(this, param_1);
+		}
+
+		void updateGround02Color(_ccColor3B param_1) {
+			reinterpret_cast<void(__fastcall*)(GJGroundLayer*, _ccColor3B)>(base + 0x1f7b10)(this, param_1);
+		}
+
+	};
+
+	class GJMGLayer : public cocos2d::CCLayer {
+	public:
+
+		void updateGroundColor(_ccColor3B param_1, bool param_2) {
+			reinterpret_cast<void(__thiscall*)(GJMGLayer*, _ccColor3B, bool)>(base + 0x1f8640)(this, param_1, param_2);
+			
+		}
+
+		void updateGroundOpacity(unsigned char param_1, bool param_2) {
+			reinterpret_cast<void(__thiscall*)(GJMGLayer*, unsigned char, bool)>(base + 0x1f86b0)(this, param_1, param_2);
+		}
+
+	};
 	
 }
 

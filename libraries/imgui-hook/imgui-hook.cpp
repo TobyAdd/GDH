@@ -33,21 +33,21 @@ BOOL WINAPI swapBuffers_H(HDC hdc)
         wndProc = (WNDPROC)GetWindowLongPtr(window, GWLP_WNDPROC);
         SetWindowLongPtr(window, GWLP_WNDPROC, (LONG_PTR)wndProc_H);
         ImGui_ImplWin32_Init(window);
-        ImGui_ImplOpenGL3_Init();
+        ImGui_ImplOpenGL2_Init();
     }
 
     HGLRC originalContext = wglGetCurrentContext();
 
     wglMakeCurrent(hdc, newContext);
 
-    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplOpenGL2_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
     drawFunc();
 
     ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
 
     glFlush();
 
@@ -154,7 +154,7 @@ void ImGuiHook::Load(std::function<void(void*, void*, void**)> hookFunc)
 void ImGuiHook::Unload()
 {
     unloadFunc();
-    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplOpenGL2_Shutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
     SetWindowLongPtr(window, GWLP_WNDPROC, (LONG_PTR)wndProc);

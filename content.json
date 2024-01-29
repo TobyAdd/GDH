@@ -526,7 +526,7 @@
                             "pattern": "ff 15 ? ? ? ? 8b 8f ? ? ? ? 8b 01 ff 90 ? ? ? ? 8b c8 ff 15 ? ? ? ? 83 ec",
                             "address": "003838B1",
                             "on": "90 90 90 90 90 90",
-                            "off": "FF 15 1C 47 61 01",
+                            "off": "FF 15 1C 47 7A 01",
                             "lib": null
                         }
                     ],
@@ -633,6 +633,10 @@
                 },
                 {
                     "type": "separator"
+                },
+                {
+                    "enabled": false,
+                    "type": "checkbox_rainbow_icons"
                 },
                 {
                     "enabled": false,
@@ -939,7 +943,10 @@
         "FPS Multiplier": {
             "components": [
                 {
-                    "type": "fps_multiplier"
+                    "type": "fps_multiplier",
+                    "enabled": false,
+                    "real_time": true,
+                    "value": 60.0
                 }
             ],
             "windowPosition": {
@@ -1007,18 +1014,18 @@
                             false
                         ],
                         "accent": [
-                            0.4,
+                            0.4000000059604645,
                             1.0
                         ],
                         "text": [
                             1.0,
-                            0.4
+                            0.4000000059604645
                         ]
                     },
                     "color": [
                         0.0,
-                        0.24399860203266144,
-                        0.5443037748336792
+                        0.23999999463558197,
+                        0.550000011920929
                     ],
                     "text_color": [
                         1.0,
@@ -1031,14 +1038,19 @@
                     "type": "fade_speed",
                     "speed": 100
                 },
-                { "type": "menukey_changer", "key": 9 }
+                {
+                    "type": "separator"
+                },
+                {
+                    "type": "save_load_buttons"
+                }
             ],
             "windowPosition": {
-                "x": 686.0,
-                "y": 205.0
+                "x": 684.0,
+                "y": 207.0
             },
             "windowSize": {
-                "height": 185.0,
+                "height": 199.0,
                 "width": 273.0
             }
         },
@@ -1083,11 +1095,11 @@
                 }
             ],
             "windowPosition": {
-                "x": 685.0,
-                "y": 397.0
+                "x": 686.0,
+                "y": 409.0
             },
             "windowSize": {
-                "height": 130.0,
+                "height": 129.0,
                 "width": 273.0
             }
         }
