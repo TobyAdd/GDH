@@ -1053,7 +1053,7 @@
                 "y": 207.0
             },
             "windowSize": {
-                "height": 199.0,
+                "height": 190.0,
                 "width": 273.0
             }
         },
@@ -1098,12 +1098,32 @@
                 }
             ],
             "windowPosition": {
-                "x": 686.0,
-                "y": 409.0
+                "x": 687.0,
+                "y": 400.0
             },
             "windowSize": {
                 "height": 129.0,
                 "width": 273.0
+            }
+        },
+        "Labels": {
+            "components": [
+                {
+                    "type": "label_editor",
+                    "enabled": false,
+                    "meta_lu": [],
+                    "meta_ld": [],
+                    "meta_ru": [],
+                    "meta_rd": []
+                }
+            ],
+            "windowPosition": {
+                "x": 451.0,
+                "y": 356.0
+            },
+            "windowSize": {
+                "height": 129.0,
+                "width": 228.0
             }
         }
     }

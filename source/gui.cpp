@@ -9,6 +9,8 @@
 #include "version.hpp"
 #include "vkcodes.hpp"
 
+#define transparentWindow ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoInputs
+
 bool gui::show = false;
 bool gui::inited = false;
 
@@ -39,6 +41,16 @@ int menukey = VK_TAB;
 bool keyinited = false;
 bool changekey = false;
 int curkey = -1;
+
+bool labels = false;
+int cur_label = 0;
+int label_selected = 0;
+char message_buf[512];
+
+json labels_ul;
+json labels_ur;
+json labels_dl;
+json labels_dr;
 
 std::wstring ShowSaveFileDialog() {
     OPENFILENAME ofn;
@@ -355,8 +367,66 @@ float get_opacity() {
 bool license_inited = false;
 bool license_popup_inited = false;
 
+void RenderTransparentWindow(const char* name, int posx, int posy) {
+    auto size = ImGui::GetIO().DisplaySize;
+    ImGui::SetNextWindowPos(ImVec2(size.x * posx, size.y * posy), 0, ImVec2(posx, posy));
+    ImGui::Begin(name, 0, transparentWindow);
+}
+
+const char* label_list[] = {"Message"};
+#define LABEL_MESSAGE 0
+int labels_count = 1;
+
+const char* LabelName(json label) {
+    switch ((int) label[0]) {
+    case LABEL_MESSAGE: return "Message";
+    }
+
+    return "Unknown";
+}
+
+void InterpretLabels(json labels) {
+    for (auto item : labels.items()) {
+        int val = item.value()[0];
+        std::string message = "";
+        if (val == LABEL_MESSAGE) message = item.value()[1];
+
+        switch (val) {
+            case LABEL_MESSAGE: ImGui::Text("%s", message.c_str()); break;
+        }
+    }
+}
+
+void RenderLabels() {
+    // is in level?
+    auto pl = gd::GameManager::sharedState()->getPlayLayer();
+    if (pl == nullptr) return;
+
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.0f);
+    
+    RenderTransparentWindow("LablesTL", 0, 0);
+    InterpretLabels(labels_ul);
+    ImGui::End();
+    
+    RenderTransparentWindow("LablesTR", 1, 0);
+    InterpretLabels(labels_ur);
+    ImGui::End();
+    
+    RenderTransparentWindow("LablesDL", 0, 1);
+    InterpretLabels(labels_dl);
+    ImGui::End();
+    
+    RenderTransparentWindow("LablesDR", 1, 1);
+    InterpretLabels(labels_dr);
+    ImGui::End();
+
+    ImGui::PopStyleVar();
+}
+
 std::vector<std::string> stretchedWindows;
 void gui::RenderMain() {
+    if (labels) RenderLabels();
+    
     if (!inited) {
         ImGui::GetStyle().Alpha = 0.0f;
 
@@ -405,7 +475,7 @@ void gui::RenderMain() {
     ImGuiIO &io = ImGui::GetIO();
     ImGui::SetNextWindowPos(ImVec2(0, io.DisplaySize.y), ImGuiCond_Always, ImVec2(0.0f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-    ImGui::Begin("BottomRightText", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoFocusOnAppearing);
+    ImGui::Begin("BottomRightText", nullptr, transparentWindow);
     ImGui::Text("GDH is a free and open-source cheat for Geometry Dash. If you paid for this software then you should ask for a refund.");
     ImGui::Text("GDH - это бесплатное мод меню с открытым исходным кодом для Geometry Dash. Если вы заплатили за это программное обеспечение, вам следует попросить вернуть деньги.");
     ImGui::End();
@@ -716,6 +786,74 @@ void gui::RenderMain() {
                     component["speed"] = anim_durr;
                 }
             }
+            else if (type == "label_editor") {
+                labels = component["enabled"];
+                labels_ul = component["meta_lu"];
+                labels_dl = component["meta_ld"];
+                labels_ur = component["meta_ru"];
+                labels_dr = component["meta_rd"];
+
+                ImGui::Checkbox("Labels", &labels);
+
+                ImGui::RadioButton("Left-Top", &cur_label, 0);
+                ImGui::SameLine();
+                ImGui::RadioButton("Left-Bottom", &cur_label, 1);
+
+                ImGui::RadioButton("Right-Top", &cur_label, 2);
+                ImGui::SameLine();
+                ImGui::RadioButton("Right-Bottom", &cur_label, 3);
+
+                json cur_labels;
+                json* cur_labels_p;
+
+                switch (cur_label) {
+                    case 0: cur_labels = labels_ul; break;
+                    case 1: cur_labels = labels_ur; break;
+                    case 2: cur_labels = labels_dl; break;
+                    case 3: cur_labels = labels_dr; break;
+                }
+
+                switch (cur_label) {
+                    case 0: cur_labels_p = &labels_ul; break;
+                    case 1: cur_labels_p = &labels_ur; break;
+                    case 2: cur_labels_p = &labels_dl; break;
+                    case 3: cur_labels_p = &labels_dr; break;
+                }
+
+                ImGui::Combo("Label Type", &label_selected, label_list, labels_count, 5);
+                if (label_selected == LABEL_MESSAGE)
+                    ImGui::InputText("Text", (char*) &message_buf, 512);
+                
+                if (ImGui::Button("Add")) {
+                    if (label_selected == LABEL_MESSAGE)
+                        (*cur_labels_p).push_back({label_selected, (std::string) message_buf});
+                    else
+                        (*cur_labels_p).push_back({label_selected});
+                }
+
+                ImGui::Separator();
+
+                for (size_t i = 0; i < cur_labels.size(); ++i) {
+                    if (ImGui::Button(LabelName(cur_labels[i]))) {
+                        (*cur_labels_p).erase(i);
+                    }
+                    
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip("Click to delete");
+                    }
+
+                    if (cur_labels[i][0] == LABEL_MESSAGE) {
+                        ImGui::SameLine();
+                        ImGui::Text(cur_labels[i][1].get<std::string>().c_str());
+                    }
+                }
+
+                component["meta_lu"] = labels_ul;
+                component["meta_ld"] = labels_dl;
+                component["meta_ru"] = labels_ur;
+                component["meta_rd"] = labels_dr;
+                component["enabled"] = labels;
+            }
             else if (type == "replay_engine")
             {
                 static std::string log = "Record/Replay or Save/Load Macros!";
@@ -737,6 +875,7 @@ void gui::RenderMain() {
                         engine.mode = state::disable;
                     }
                 }
+                
                 ImGui::SameLine();
 
                 if (ImGui::RadioButton("Play", &mode, 2))
