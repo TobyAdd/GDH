@@ -6,7 +6,11 @@
 
 int hooks::transitionSelect = 0;
 unsigned hooks::frame = 0;
-bool hooks::rgb_icons = false;
+
+bool hooks::modify_icon_color = false;
+
+float hooks::iconcolor1[] = {1.0f, 1.0f, 1.0f};
+float hooks::iconcolor2[] = {1.0f, 1.0f, 1.0f};
 
 namespace objectsReferences
 {
@@ -64,19 +68,16 @@ void __fastcall hooks::playLayer_update_H(gd::PlayLayer *self, int edx, float de
 {
     playLayer_update(self, deltaTime);
 
-    if (rgb_icons) {
-        float r, g, b;
-        ImGui::ColorConvertHSVtoRGB((float)ImGui::GetTime() * 0.25f, 1, 1, r, g, b);
-        cocos2d::ccColor3B color = {(GLubyte)(r * 255.0f), (GLubyte)(g * 255.0f), (GLubyte)(b * 255.0f)};
+    if (hooks::modify_icon_color) {
+        cocos2d::ccColor3B color1 = {(GLubyte)(iconcolor1[0] * 255.0f), (GLubyte)(iconcolor1[1] * 255.0f), (GLubyte)(iconcolor1[2] * 255.0f)};
+        cocos2d::ccColor3B color2 = {(GLubyte)(iconcolor2[0] * 255.0f), (GLubyte)(iconcolor2[1] * 255.0f), (GLubyte)(iconcolor2[2] * 255.0f)};
+        self->m_pPlayer1()->setColor(color1);
+        self->m_pPlayer2()->setColor(color1);
+        self->m_pPlayer1()->m_pSecondarySprite()->setColor(color2);
+        self->m_pPlayer2()->m_pSecondarySprite()->setColor(color2);
 
-        self->m_pPlayer1()->setColor(color);
-        self->m_pPlayer2()->setColor(color);
-    
-        self->m_pPlayer1()->m_pSecondarySprite()->setColor(color);
-        self->m_pPlayer2()->m_pSecondarySprite()->setColor(color);
-
-        reinterpret_cast<cocos2d::CCNodeRGBA*>(self->m_pPlayer1()->m_waveTrail())->setColor(color);
-        reinterpret_cast<cocos2d::CCNodeRGBA*>(self->m_pPlayer2()->m_waveTrail())->setColor(color);
+        reinterpret_cast<cocos2d::CCNodeRGBA*>(self->m_pPlayer1()->m_waveTrail())->setColor(color1);
+        reinterpret_cast<cocos2d::CCNodeRGBA*>(self->m_pPlayer2()->m_waveTrail())->setColor(color2);
     }
 
     frame = engine.getFrame(self);

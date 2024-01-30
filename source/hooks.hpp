@@ -5,7 +5,10 @@
 namespace hooks {
     extern int transitionSelect;
     extern unsigned frame;
-    extern bool rgb_icons;
+
+    extern bool modify_icon_color;
+    extern float iconcolor1[];
+    extern float iconcolor2[];
 
     inline bool(__thiscall* PlayLayer_init)(gd::PlayLayer*, void*, bool, bool);
     inline bool __fastcall PlayLayer_init_H(gd::PlayLayer *self, int edx, void* GJGameLevel, bool a3, bool a4);

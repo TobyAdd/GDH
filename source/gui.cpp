@@ -52,6 +52,11 @@ json labels_ur;
 json labels_dl;
 json labels_dr;
 
+bool ricon_enabled = false;
+float ricon_coef = 0.25f;
+float ricon_shift = 5.0f;
+float ricon_saturation = 1.0f, ricon_brightness = 1.0f;
+
 std::wstring ShowSaveFileDialog() {
     OPENFILENAME ofn;
     wchar_t szFileName[MAX_PATH] = L"";
@@ -373,14 +378,15 @@ void RenderTransparentWindow(const char* name, int posx, int posy) {
     ImGui::Begin(name, 0, transparentWindow);
 }
 
-const char* label_list[] = {"Message"};
+const char* label_list[] = {"Message", "Time", "Frame"};
 #define LABEL_MESSAGE 0
-int labels_count = 1;
+#define LABEL_TIME 1
+#define LABEL_FRAME 2
+int labels_count = 3;
 
-const char* LabelName(json label) {
-    switch ((int) label[0]) {
-    case LABEL_MESSAGE: return "Message";
-    }
+const char* LabelName(int id) {
+    if (0 <= id < labels_count)
+        return label_list[id];
 
     return "Unknown";
 }
@@ -391,8 +397,13 @@ void InterpretLabels(json labels) {
         std::string message = "";
         if (val == LABEL_MESSAGE) message = item.value()[1];
 
+        SYSTEMTIME time;
+        GetLocalTime(&time);
+
         switch (val) {
             case LABEL_MESSAGE: ImGui::Text("%s", message.c_str()); break;
+            case LABEL_TIME: ImGui::Text("%02i:%02i:%02i", time.wHour, time.wMinute, time.wSecond); break;
+            case LABEL_FRAME: ImGui::Text("%09i", hooks::frame); break;
         }
     }
 }
@@ -423,9 +434,26 @@ void RenderLabels() {
     ImGui::PopStyleVar();
 }
 
+void TickRainbowIcon() {
+    hooks::modify_icon_color = ricon_enabled;
+    float r1, g1, b1, r2, g2, b2;
+
+    ImGui::ColorConvertHSVtoRGB((float) ImGui::GetTime() * ricon_coef, ricon_saturation, ricon_brightness, r1, g1, b1);
+    ImGui::ColorConvertHSVtoRGB((float) ImGui::GetTime() * ricon_coef + ricon_shift, ricon_saturation, ricon_brightness, r2, g2, b2);
+
+    hooks::iconcolor1[0] = r1;
+    hooks::iconcolor1[1] = g1;
+    hooks::iconcolor1[2] = b1;
+
+    hooks::iconcolor2[0] = r2;
+    hooks::iconcolor2[1] = g2;
+    hooks::iconcolor2[2] = b2;
+}
+
 std::vector<std::string> stretchedWindows;
 void gui::RenderMain() {
     if (labels) RenderLabels();
+    if (ricon_enabled) TickRainbowIcon();
     
     if (!inited) {
         ImGui::GetStyle().Alpha = 0.0f;
@@ -594,13 +622,6 @@ void gui::RenderMain() {
                 if (ImGui::Checkbox("Layout Mode", &enabled)) {
                     component["enabled"] = enabled;
                     layout_mode::set_enabled(enabled);
-                }
-            }
-            else if (type == "checkbox_rainbow_icons") {
-                bool enabled = component["enabled"];
-                if (ImGui::Checkbox("RGB Icons", &enabled)) {
-                    component["enabled"] = enabled;
-                    hooks::rgb_icons = enabled;
                 }
             }
             else if (type == "text") {
@@ -831,10 +852,10 @@ void gui::RenderMain() {
                         (*cur_labels_p).push_back({label_selected});
                 }
 
-                ImGui::Separator();
+                if (cur_labels.size() != 0) ImGui::Separator();
 
                 for (size_t i = 0; i < cur_labels.size(); ++i) {
-                    if (ImGui::Button(LabelName(cur_labels[i]))) {
+                    if (ImGui::Button(LabelName(cur_labels[i][0]))) {
                         (*cur_labels_p).erase(i);
                     }
                     
@@ -853,6 +874,56 @@ void gui::RenderMain() {
                 component["meta_ru"] = labels_ur;
                 component["meta_rd"] = labels_dr;
                 component["enabled"] = labels;
+            }
+            else if (type == "rainbow_colors") {
+                ricon_enabled = component["enabled"];
+                ricon_coef = component["coefficent"];
+                ricon_shift = component["shift"];
+                ricon_brightness = component["brightness"];
+                ricon_saturation = component["saturation"];
+
+                ImGui::Checkbox("Rainbow Icon", &ricon_enabled);
+
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x / 2);
+                ImGui::DragFloat("##riconBrightness", &ricon_brightness, 0.01f, 0.0f, 1.0f, "Brightness: %.2f");
+                ImGui::SameLine();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                ImGui::DragFloat("##riconSaturation", &ricon_saturation, 0.01f, 0.0f, 1.0f, "Saturation: %.2f");
+
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                ImGui::DragFloat("##riconCoef", &ricon_coef, 0.01f, 0.0f, 10.0f, "Speed Coefficent: %.2f");
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                ImGui::DragFloat("##riconShift", &ricon_shift, 0.01f, 0.0f, 1.0f, "Secondary Color Shift: %.2f");
+
+                if (ricon_enabled) {
+                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(hooks::iconcolor1[0], hooks::iconcolor1[1], hooks::iconcolor1[2], 1.0f));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(hooks::iconcolor1[0], hooks::iconcolor1[1], hooks::iconcolor1[2], 1.0f));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(hooks::iconcolor1[0], hooks::iconcolor1[1], hooks::iconcolor1[2], 1.0f));
+                }
+                ImGui::Button("##exampleColor", {ImGui::GetContentRegionAvail().x / 2, NULL});
+                if (ricon_enabled) {
+                    ImGui::PopStyleColor();
+                    ImGui::PopStyleColor();
+                    ImGui::PopStyleColor();
+                }
+                ImGui::SameLine();
+                if (ricon_enabled) {
+                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(hooks::iconcolor2[0], hooks::iconcolor2[1], hooks::iconcolor2[2], 1.0f));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(hooks::iconcolor2[0], hooks::iconcolor2[1], hooks::iconcolor2[2], 1.0f));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(hooks::iconcolor2[0], hooks::iconcolor2[1], hooks::iconcolor2[2], 1.0f));
+                }
+                ImGui::Button("##exampleColor2", {ImGui::GetContentRegionAvail().x, NULL});
+                if (ricon_enabled) {
+                    ImGui::PopStyleColor();
+                    ImGui::PopStyleColor();
+                    ImGui::PopStyleColor();
+                }
+
+                component["enabled"] = ricon_enabled;
+                component["coefficent"] = ricon_coef;
+                component["shift"] = ricon_shift;
+                component["brightness"] = ricon_brightness;
+                component["saturation"] = ricon_saturation;
             }
             else if (type == "replay_engine")
             {

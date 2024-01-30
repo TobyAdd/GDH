@@ -137,10 +137,6 @@ bool Content::load(std::string path) {
                     bool enabled = component["enabled"];
                     layout_mode::set_enabled(enabled);
                 }
-                else if (type == "checkbox_rainbow_icons") {
-                    bool enabled = component["enabled"];
-                    hooks::rgb_icons = enabled;
-                }
                 else if (type == "fps_multiplier") {
                     bool enabled = component["enabled"];
                     bool real_time = component["real_time"];

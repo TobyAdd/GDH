@@ -657,10 +657,6 @@
                 },
                 {
                     "enabled": false,
-                    "type": "checkbox_rainbow_icons"
-                },
-                {
-                    "enabled": false,
                     "name": "Safe Mode",
                     "opcodes": [
                         {
@@ -1143,8 +1139,28 @@
                 "y": 356.0
             },
             "windowSize": {
-                "height": 129.0,
+                "height": 260.0,
                 "width": 228.0
+            }
+        },
+        "Rainbow Icon": {
+            "components": [
+                {
+                    "type": "rainbow_colors",
+                    "enabled": false,
+                    "coefficent": 0.25,
+                    "shift": 1,
+                    "brightness": 1,
+                    "saturation": 1
+                }
+            ],
+            "windowPosition": {
+                "x": 10.0,
+                "y": 352.0
+            },
+            "windowSize": {
+                "height": 167.0,
+                "width": 218.0
             }
         }
     }
