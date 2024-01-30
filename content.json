@@ -456,6 +456,27 @@
                     "type": "checkbox_hack"
                 },
                 {
+                    "enabled": true,
+                    "name": "Show Triggers",
+                    "opcodes": [
+                        {
+                            "pattern": "88 87 ? ? ? ? e9 ? ? ? ? c7 87",
+                            "address": "001372DB",
+                            "on": "90 90 90 90 90 90",
+                            "off": "88 87 67 03 00 00",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "75 ? 83 bb ? ? ? ? ? 75 ? 80 bb ? ? ? ? ? 75",
+                            "address": "002E1A44",
+                            "on": "EB",
+                            "off": "75",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
                     "enabled": false,
                     "name": "User-Coins In Practice",
                     "opcodes": [
