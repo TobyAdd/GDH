@@ -477,6 +477,9 @@ void ImGui::BulletTextV(const char* fmt, va_list args)
 //   Frame N + RepeatDelay + RepeatRate*N   true                     true              -                   true
 //-------------------------------------------------------------------------------------------------------------------------------------------------
 
+// FIXME: For refactor we could output flags, incl mouse hovered vs nav keyboard vs nav triggered etc.
+// And better standardize how widgets use 'GetColor32((held && hovered) ? ... : hovered ? ...)' vs 'GetColor32(held ? ... : hovered ? ...);'
+// For mouse feedback we typically prefer the 'held && hovered' test, but for nav feedback not always. Outputting hovered=true on Activation may be misleading.
 bool ImGui::ButtonBehavior(const ImRect& bb, ImGuiID id, bool* out_hovered, bool* out_held, ImGuiButtonFlags flags)
 {
     ImGuiContext& g = *GImGui;
@@ -597,9 +600,9 @@ bool ImGui::ButtonBehavior(const ImRect& bb, ImGuiID id, bool* out_hovered, bool
             g.NavDisableHighlight = true;
     }
 
-    // Gamepad/Keyboard navigation
-    // We report navigated item as hovered but we don't set g.HoveredId to not interfere with mouse.
-    if (g.NavId == id && !g.NavDisableHighlight && g.NavDisableMouseHover && (g.ActiveId == 0 || g.ActiveId == id || g.ActiveId == window->MoveId))
+    // Gamepad/Keyboard handling
+    // We report navigated and navigation-activated items as hovered but we don't set g.HoveredId to not interfere with mouse.
+    if (g.NavId == id && !g.NavDisableHighlight && g.NavDisableMouseHover)
         if (!(flags & ImGuiButtonFlags_NoHoveredOnFocus))
             hovered = true;
     if (g.NavActivateDownId == id)
@@ -621,8 +624,10 @@ bool ImGui::ButtonBehavior(const ImRect& bb, ImGuiID id, bool* out_hovered, bool
             pressed = true;
             SetActiveID(id, window);
             g.ActiveIdSource = g.NavInputSource;
-            if (!(flags & ImGuiButtonFlags_NoNavFocus))
+            if (!(flags & ImGuiButtonFlags_NoNavFocus) && !(g.NavActivateFlags & ImGuiActivateFlags_FromShortcut))
                 SetFocusID(id, window);
+            if (g.NavActivateFlags & ImGuiActivateFlags_FromShortcut)
+                g.ActiveIdFromShortcut = true;
         }
     }
 
@@ -666,12 +671,18 @@ bool ImGui::ButtonBehavior(const ImRect& bb, ImGuiID id, bool* out_hovered, bool
         else if (g.ActiveIdSource == ImGuiInputSource_Keyboard || g.ActiveIdSource == ImGuiInputSource_Gamepad)
         {
             // When activated using Nav, we hold on the ActiveID until activation button is released
-            if (g.NavActivateDownId != id)
+            if (g.NavActivateDownId == id)
+                held = true; // hovered == true not true as we are already likely hovered on direct activation.
+            else
                 ClearActiveID();
         }
         if (pressed)
             g.ActiveIdHasBeenPressedBefore = true;
     }
+
+    // Activation highlight (this may be a remote activation)
+    if (g.NavHighlightActivatedId == id)
+        hovered = true;
 
     if (out_hovered) *out_hovered = hovered;
     if (out_held) *out_held = held;
@@ -966,7 +977,6 @@ bool ImGui::ScrollbarEx(const ImRect& bb_frame, ImGuiID id, ImGuiAxis axis, ImS6
 
         // Click position in scrollbar normalized space (0.0f->1.0f)
         const float clicked_v_norm = ImSaturate((mouse_pos_v - scrollbar_pos_v) / scrollbar_size_v);
-        SetHoveredID(id);
 
         bool seek_absolute = false;
         if (g.ActiveIdIsJustActivated)
@@ -4250,6 +4260,8 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
         g.ActiveIdUsingNavDirMask |= (1 << ImGuiDir_Left) | (1 << ImGuiDir_Right);
         if (is_multiline || (flags & ImGuiInputTextFlags_CallbackHistory))
             g.ActiveIdUsingNavDirMask |= (1 << ImGuiDir_Up) | (1 << ImGuiDir_Down);
+        SetKeyOwner(ImGuiKey_Enter, id);
+        SetKeyOwner(ImGuiKey_KeypadEnter, id);
         SetKeyOwner(ImGuiKey_Home, id);
         SetKeyOwner(ImGuiKey_End, id);
         if (is_multiline)
@@ -4259,8 +4271,6 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
         }
         if (is_osx)
             SetKeyOwner(ImGuiMod_Alt, id);
-        if (flags & (ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_AllowTabInput)) // Disable keyboard tabbing out as we will use the \t character.
-            SetShortcutRouting(ImGuiKey_Tab, id);
     }
 
     // We have an edge case if ActiveId was set through another widget (e.g. widget being swapped), clear id immediately (don't wait until the end of the function)
@@ -4389,11 +4399,20 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
 
         // We expect backends to emit a Tab key but some also emit a Tab character which we ignore (#2467, #1336)
         // (For Tab and Enter: Win32/SFML/Allegro are sending both keys and chars, GLFW and SDL are only sending keys. For Space they all send all threes)
-        if ((flags & ImGuiInputTextFlags_AllowTabInput) && Shortcut(ImGuiKey_Tab, id, ImGuiInputFlags_Repeat) && !is_readonly)
+        if ((flags & ImGuiInputTextFlags_AllowTabInput) && !is_readonly)
         {
-            unsigned int c = '\t'; // Insert TAB
-            if (InputTextFilterCharacter(&g, &c, flags, callback, callback_user_data, ImGuiInputSource_Keyboard))
-                state->OnKeyPressed((int)c);
+            if (Shortcut(ImGuiKey_Tab, id, ImGuiInputFlags_Repeat))
+            {
+                unsigned int c = '\t'; // Insert TAB
+                if (InputTextFilterCharacter(&g, &c, flags, callback, callback_user_data, ImGuiInputSource_Keyboard))
+                    state->OnKeyPressed((int)c);
+            }
+            // FIXME: Implement Shift+Tab
+            /*
+            if (Shortcut(ImGuiKey_Tab | ImGuiMod_Shift, id, ImGuiInputFlags_Repeat))
+            {
+            }
+            */
         }
 
         // Process regular text input (before we check for Return because using some IME will effectively send a Return?)

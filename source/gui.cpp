@@ -9,6 +9,8 @@
 #include "version.hpp"
 #include "vkcodes.hpp"
 
+#define transparentWindow ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoInputs
+
 bool gui::show = false;
 bool gui::inited = false;
 
@@ -47,6 +49,47 @@ int menukey = VK_TAB;
 bool keyinited = false;
 bool changekey = false;
 int curkey = -1;
+
+bool labels = false;
+int cur_label = 0;
+int label_selected = 0;
+char message_buf[512];
+
+json labels_ul;
+json labels_ur;
+json labels_dl;
+json labels_dr;
+
+bool ricon_enabled = false;
+float ricon_coef = 0.25f;
+float ricon_shift = 5.0f;
+float ricon_saturation = 1.0f, ricon_brightness = 1.0f;
+
+std::wstring ShowSaveFileDialog() {
+    OPENFILENAME ofn;
+    wchar_t szFileName[MAX_PATH] = L"";
+
+    ZeroMemory(&ofn, sizeof(ofn));
+    ofn.lStructSize = sizeof(ofn);
+    ofn.lpstrFilter = L"All Files\0*.json\0\0";
+    ofn.lpstrFile = szFileName;
+    ofn.nMaxFile = MAX_PATH;
+    ofn.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT;
+
+    if (GetSaveFileName(&ofn) == TRUE) {
+        std::wstring filePath = szFileName;
+        std::wstring extension = L".json";
+
+        if (filePath.length() < extension.length() ||
+            filePath.substr(filePath.length() - extension.length()) != extension) {
+            filePath += extension;
+        }
+
+        return filePath;
+    } else {
+        return L"";
+    }
+}
 
 ImVec4 colorMultiply(float color[3], float multiplier) {
     return ImVec4(std::clamp(color[0] * multiplier, 0.0f, 1.0f),
@@ -164,8 +207,89 @@ float get_opacity() {
 bool license_inited = false;
 bool license_popup_inited = false;
 
+void RenderTransparentWindow(const char* name, int posx, int posy) {
+    auto size = ImGui::GetIO().DisplaySize;
+    ImGui::SetNextWindowPos(ImVec2(size.x * posx, size.y * posy), 0, ImVec2(posx, posy));
+    ImGui::Begin(name, 0, transparentWindow);
+}
+
+const char* label_list[] = {"Message", "Time", "Frame"};
+#define LABEL_MESSAGE 0
+#define LABEL_TIME 1
+#define LABEL_FRAME 2
+int labels_count = 3;
+
+const char* LabelName(int id) {
+    if (0 <= id < labels_count)
+        return label_list[id];
+
+    return "Unknown";
+}
+
+void InterpretLabels(json labels) {
+    for (auto item : labels.items()) {
+        int val = item.value()[0];
+        std::string message = "";
+        if (val == LABEL_MESSAGE) message = item.value()[1];
+
+        SYSTEMTIME time;
+        GetLocalTime(&time);
+
+        switch (val) {
+            case LABEL_MESSAGE: ImGui::Text("%s", message.c_str()); break;
+            case LABEL_TIME: ImGui::Text("%02i:%02i:%02i", time.wHour, time.wMinute, time.wSecond); break;
+            case LABEL_FRAME: ImGui::Text("%09i", hooks::frame); break;
+        }
+    }
+}
+
+void RenderLabels() {
+    // is in level?
+    auto pl = gd::GameManager::sharedState()->getPlayLayer();
+    if (pl == nullptr) return;
+
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.0f);
+    
+    RenderTransparentWindow("LablesTL", 0, 0);
+    InterpretLabels(labels_ul);
+    ImGui::End();
+    
+    RenderTransparentWindow("LablesTR", 1, 0);
+    InterpretLabels(labels_ur);
+    ImGui::End();
+    
+    RenderTransparentWindow("LablesDL", 0, 1);
+    InterpretLabels(labels_dl);
+    ImGui::End();
+    
+    RenderTransparentWindow("LablesDR", 1, 1);
+    InterpretLabels(labels_dr);
+    ImGui::End();
+
+    ImGui::PopStyleVar();
+}
+
+void TickRainbowIcon() {
+    hooks::modify_icon_color = ricon_enabled;
+    float r1, g1, b1, r2, g2, b2;
+
+    ImGui::ColorConvertHSVtoRGB((float) ImGui::GetTime() * ricon_coef, ricon_saturation, ricon_brightness, r1, g1, b1);
+    ImGui::ColorConvertHSVtoRGB((float) ImGui::GetTime() * ricon_coef + ricon_shift, ricon_saturation, ricon_brightness, r2, g2, b2);
+
+    hooks::iconcolor1[0] = r1;
+    hooks::iconcolor1[1] = g1;
+    hooks::iconcolor1[2] = b1;
+
+    hooks::iconcolor2[0] = r2;
+    hooks::iconcolor2[1] = g2;
+    hooks::iconcolor2[2] = b2;
+}
+
 std::vector<std::string> stretchedWindows;
 void gui::RenderMain() {
+    if (labels) RenderLabels();
+    if (ricon_enabled) TickRainbowIcon();
+    
     if (!inited) {
         if (!license_accepted) {
         }
@@ -217,7 +341,7 @@ void gui::RenderMain() {
     ImGuiIO &io = ImGui::GetIO();
     ImGui::SetNextWindowPos(ImVec2(0, io.DisplaySize.y), ImGuiCond_Always, ImVec2(0.0f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-    ImGui::Begin("BottomRightText", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoFocusOnAppearing);
+    ImGui::Begin("BottomRightText", nullptr, transparentWindow);
     ImGui::Text("GDH is a free and open-source cheat for Geometry Dash. If you paid for this software then you should ask for a refund.");
     ImGui::Text("GDH - это бесплатное мод меню с открытым исходным кодом для Geometry Dash. Если вы заплатили за это программное обеспечение, вам следует попросить вернуть деньги.");
     ImGui::End();
@@ -248,8 +372,8 @@ void gui::RenderMain() {
     static float color[3] = { 1.0f, 1.0f, 1.0f };
     static float text_color[3] = { 0.0f, 0.0f, 0.0f };
 
-    static float default_color[3] = { 1.0f, 1.0f, 1.0f };
-    static float default_text_color[3] = { 0.0f, 0.0f, 0.0f };
+    static float default_color[3] = { 0, 0.24f, 0.55f };
+    static float default_text_color[3] = { 1.0f, 1.0f, 1.0f };
 
     for (auto &item : Content::content["Hacks"].items()) {
         std::string windowName = item.key();
@@ -368,6 +492,16 @@ void gui::RenderMain() {
             else if (type == "sameline") {
                 ImGui::SameLine();
             }
+            else if (type == "save_load_buttons") {
+                if (ImGui::Button("Save Hacks", {ImGui::GetContentRegionAvail().x, NULL})) {
+                    std::wstring path = ShowSaveFileDialog();
+                    if (path != L"") {
+                        std::ofstream file(path);
+                        file << std::setw(4) << Content::content;
+                        file.close();
+                    }
+                }
+            }
             else if (type == "license") {
                 if (ImGui::Button("License")) {
                     license_show = true;
@@ -375,12 +509,19 @@ void gui::RenderMain() {
             }
             else if (type == "fps_multiplier") {
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 25);
-                ImGui::DragFloat("##fps", &engine.fps, 1.00f, 1, 240.f, "%.2f FPS");
+                if (ImGui::DragFloat("##fps", &engine.fps, 1.00f, 1, 240.f, "%.2f FPS")) {
+                    component["value"] = engine.fps;
+                }
 
                 ImGui::SameLine();
 
-                ImGui::Checkbox("##fps_enabled", &engine.fps_enabled);
-                ImGui::Checkbox("Real Time", &engine.real_time);
+                if (ImGui::Checkbox("##fps_enabled", &engine.fps_enabled)) {
+                    component["enabled"] = engine.fps_enabled;
+                }
+
+                if (ImGui::Checkbox("Real Time", &engine.real_time)) {
+                    component["real_time"] = engine.real_time;
+                } 
             }
             else if (type == "speedhack") {
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -421,6 +562,10 @@ void gui::RenderMain() {
                 text_color[2] = component["text_color"][2];
                 style = component["style"];
 
+                bool set_style = false;
+
+                if (show_style_editor) ImGui::Checkbox("Style Editor", &style_editor);
+                ImGui::Combo("Style", &style, styles, styles_length);
                 ImGui::Checkbox("##rainbowAccent", &rainbow_accent);
                 if (ImGui::IsItemHovered())
                     ImGui::SetTooltip("Rainbow Color");
@@ -429,6 +574,7 @@ void gui::RenderMain() {
 
                 r_hue = (r_hue + 1) % 360;
                 if (rainbow_accent) {
+                    set_style = true;
                     ImGui::SetNextItemWidth(95.0f);
                     ImGui::DragFloat("##raBrightness", &ra_brightness, 0.01f, 0.0f, 1.0f, "Brightness: %.2f");
                     ImGui::SameLine();
@@ -443,7 +589,8 @@ void gui::RenderMain() {
                     color[2] = b;
                 }
                 else {
-                    ImGui::ColorEdit3("Accent", (float*)&color);
+                    if (ImGui::ColorEdit3("Accent", (float*)&color))
+                        set_style = true;
                 }
 
                 ImGui::Checkbox("##rainbowText", &rainbow_text);
@@ -453,6 +600,7 @@ void gui::RenderMain() {
                 ImGui::SameLine();
 
                 if (rainbow_text) {
+                    set_style = true;
                     ImGui::SetNextItemWidth(95.0f);
                     ImGui::DragFloat("##rtBrightness", &rt_brightness, 0.01f, 0.0f, 1.0f, "Brightness: %.2f");
                     ImGui::SameLine();
@@ -467,11 +615,13 @@ void gui::RenderMain() {
                     text_color[2] = b;
                 }
                 else {
-                    ImGui::ColorEdit3("Text", (float*)&text_color);
+                    if (ImGui::ColorEdit3("Text", (float*)&text_color))
+                        set_style = true;
                 }
 
-                if (ImGui::Button("Reset Theme"))
+                if (ImGui::Button("Reset Theme", {ImGui::GetContentRegionAvail().x, NULL}))
                 {
+                    set_style = true;
                     rainbow_text = false;
                     rainbow_accent = false;
                     color[0] = default_color[0];
@@ -482,7 +632,7 @@ void gui::RenderMain() {
                     text_color[2] = default_text_color[2];
                 }
 
-                ImGui::Combo("Style", &style, styles, styles_length);
+                if (set_style) setStyle(ImGui::GetStyle(), color, text_color, style);
 
                 json color_json = { color[0], color[1], color[2] };
                 json text_color_json = { text_color[0], text_color[1], text_color[2] };
@@ -503,6 +653,124 @@ void gui::RenderMain() {
                 {
                     component["speed"] = anim_durr;
                 }
+            }
+            else if (type == "label_editor") {
+                labels = component["enabled"];
+                labels_ul = component["meta_lu"];
+                labels_dl = component["meta_ld"];
+                labels_ur = component["meta_ru"];
+                labels_dr = component["meta_rd"];
+
+                ImGui::Checkbox("Labels", &labels);
+
+                ImGui::RadioButton("Left-Top", &cur_label, 0);
+                ImGui::SameLine();
+                ImGui::RadioButton("Left-Bottom", &cur_label, 1);
+
+                ImGui::RadioButton("Right-Top", &cur_label, 2);
+                ImGui::SameLine();
+                ImGui::RadioButton("Right-Bottom", &cur_label, 3);
+
+                json cur_labels;
+                json* cur_labels_p;
+
+                switch (cur_label) {
+                    case 0: cur_labels = labels_ul; break;
+                    case 1: cur_labels = labels_ur; break;
+                    case 2: cur_labels = labels_dl; break;
+                    case 3: cur_labels = labels_dr; break;
+                }
+
+                switch (cur_label) {
+                    case 0: cur_labels_p = &labels_ul; break;
+                    case 1: cur_labels_p = &labels_ur; break;
+                    case 2: cur_labels_p = &labels_dl; break;
+                    case 3: cur_labels_p = &labels_dr; break;
+                }
+
+                ImGui::Combo("Label Type", &label_selected, label_list, labels_count, 5);
+                if (label_selected == LABEL_MESSAGE)
+                    ImGui::InputText("Text", (char*) &message_buf, 512);
+                
+                if (ImGui::Button("Add")) {
+                    if (label_selected == LABEL_MESSAGE)
+                        (*cur_labels_p).push_back({label_selected, (std::string) message_buf});
+                    else
+                        (*cur_labels_p).push_back({label_selected});
+                }
+
+                if (cur_labels.size() != 0) ImGui::Separator();
+
+                for (size_t i = 0; i < cur_labels.size(); ++i) {
+                    if (ImGui::Button(LabelName(cur_labels[i][0]))) {
+                        (*cur_labels_p).erase(i);
+                    }
+                    
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip("Click to delete");
+                    }
+
+                    if (cur_labels[i][0] == LABEL_MESSAGE) {
+                        ImGui::SameLine();
+                        ImGui::Text(cur_labels[i][1].get<std::string>().c_str());
+                    }
+                }
+
+                component["meta_lu"] = labels_ul;
+                component["meta_ld"] = labels_dl;
+                component["meta_ru"] = labels_ur;
+                component["meta_rd"] = labels_dr;
+                component["enabled"] = labels;
+            }
+            else if (type == "rainbow_colors") {
+                ricon_enabled = component["enabled"];
+                ricon_coef = component["coefficent"];
+                ricon_shift = component["shift"];
+                ricon_brightness = component["brightness"];
+                ricon_saturation = component["saturation"];
+
+                ImGui::Checkbox("Rainbow Icon", &ricon_enabled);
+
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x / 2);
+                ImGui::DragFloat("##riconBrightness", &ricon_brightness, 0.01f, 0.0f, 1.0f, "Brightness: %.2f");
+                ImGui::SameLine();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                ImGui::DragFloat("##riconSaturation", &ricon_saturation, 0.01f, 0.0f, 1.0f, "Saturation: %.2f");
+
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                ImGui::DragFloat("##riconCoef", &ricon_coef, 0.01f, 0.0f, 10.0f, "Speed Coefficent: %.2f");
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                ImGui::DragFloat("##riconShift", &ricon_shift, 0.01f, 0.0f, 1.0f, "Secondary Color Shift: %.2f");
+
+                if (ricon_enabled) {
+                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(hooks::iconcolor1[0], hooks::iconcolor1[1], hooks::iconcolor1[2], 1.0f));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(hooks::iconcolor1[0], hooks::iconcolor1[1], hooks::iconcolor1[2], 1.0f));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(hooks::iconcolor1[0], hooks::iconcolor1[1], hooks::iconcolor1[2], 1.0f));
+                }
+                ImGui::Button("##exampleColor", {ImGui::GetContentRegionAvail().x / 2, NULL});
+                if (ricon_enabled) {
+                    ImGui::PopStyleColor();
+                    ImGui::PopStyleColor();
+                    ImGui::PopStyleColor();
+                }
+                ImGui::SameLine();
+                if (ricon_enabled) {
+                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(hooks::iconcolor2[0], hooks::iconcolor2[1], hooks::iconcolor2[2], 1.0f));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(hooks::iconcolor2[0], hooks::iconcolor2[1], hooks::iconcolor2[2], 1.0f));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(hooks::iconcolor2[0], hooks::iconcolor2[1], hooks::iconcolor2[2], 1.0f));
+                }
+                ImGui::Button("##exampleColor2", {ImGui::GetContentRegionAvail().x, NULL});
+                if (ricon_enabled) {
+                    ImGui::PopStyleColor();
+                    ImGui::PopStyleColor();
+                    ImGui::PopStyleColor();
+                }
+
+                component["enabled"] = ricon_enabled;
+                component["coefficent"] = ricon_coef;
+                component["shift"] = ricon_shift;
+                component["brightness"] = ricon_brightness;
+                component["saturation"] = ricon_saturation;
             }
             else if (type == "replay_engine")
             {
@@ -525,6 +793,7 @@ void gui::RenderMain() {
                         engine.mode = state::disable;
                     }
                 }
+                
                 ImGui::SameLine();
 
                 if (ImGui::RadioButton("Play", &mode, 2))

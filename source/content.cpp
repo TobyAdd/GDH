@@ -3,6 +3,7 @@
 #include "memory.hpp"
 #include "hooks.hpp"
 #include "gui.hpp"
+#include "replayEngine.hpp"
 
 json Content::content;
 
@@ -14,11 +15,11 @@ void CheckDir(std::string dir)
     }
 }
 
-bool Content::load() {
+bool Content::load(std::string path) {
     try {
         CheckDir("GDH");
         CheckDir("GDH/macros");
-        std::ifstream file("GDH/content.json");
+        std::ifstream file(path);
 
         if (!file.is_open()) {
             Console::WriteLn("Failed to open the file 'content.json'");
@@ -136,6 +137,14 @@ bool Content::load() {
                     bool enabled = component["enabled"];
                     layout_mode::set_enabled(enabled);
                 }
+                else if (type == "fps_multiplier") {
+                    bool enabled = component["enabled"];
+                    bool real_time = component["real_time"];
+                    float value = component["value"];
+                    engine.fps_enabled = enabled;
+                    engine.real_time = real_time;
+                    engine.fps = value;
+                }
             }
         }
 
@@ -154,6 +163,7 @@ bool Content::load() {
 
 void Content::save() {
     if (Content::content.is_null()) {
+        MessageBoxA(0, "Failed to save hacks. Make sure that the 'content.json' file is okay", "Error", 0);
         return;
     }
 

@@ -456,6 +456,27 @@
                     "type": "checkbox_hack"
                 },
                 {
+                    "enabled": true,
+                    "name": "Show Triggers",
+                    "opcodes": [
+                        {
+                            "pattern": "88 87 ? ? ? ? e9 ? ? ? ? c7 87",
+                            "address": "001372DB",
+                            "on": "90 90 90 90 90 90",
+                            "off": "88 87 67 03 00 00",
+                            "lib": null
+                        },
+                        {
+                            "pattern": "75 ? 83 bb ? ? ? ? ? 75 ? 80 bb ? ? ? ? ? 75",
+                            "address": "002E1A44",
+                            "on": "EB",
+                            "off": "75",
+                            "lib": null
+                        }
+                    ],
+                    "type": "checkbox_hack"
+                },
+                {
                     "enabled": false,
                     "name": "User-Coins In Practice",
                     "opcodes": [
@@ -526,7 +547,7 @@
                             "pattern": "ff 15 ? ? ? ? 8b 8f ? ? ? ? 8b 01 ff 90 ? ? ? ? 8b c8 ff 15 ? ? ? ? 83 ec",
                             "address": "003838B1",
                             "on": "90 90 90 90 90 90",
-                            "off": "FF 15 1C 47 4F 00",
+                            "off": "FF 15 1C 47 7A 01",
                             "lib": null
                         }
                     ],
@@ -939,7 +960,10 @@
         "FPS Multiplier": {
             "components": [
                 {
-                    "type": "fps_multiplier"
+                    "type": "fps_multiplier",
+                    "enabled": false,
+                    "real_time": true,
+                    "value": 60.0
                 }
             ],
             "windowPosition": {
@@ -1017,8 +1041,8 @@
                     },
                     "color": [
                         0.0,
-                        0.24399860203266144,
-                        0.5443037748336792
+                        0.23999999463558197,
+                        0.550000011920929
                     ],
                     "text_color": [
                         1.0,
@@ -1032,16 +1056,21 @@
                     "speed": 100
                 },
                 {
-                    "type": "menukey_changer",
-                    "key": 9
+                    "type": "menukey_changer", "key": 9
+                },
+                {
+                    "type": "separator"
+                },
+                {
+                    "type": "save_load_buttons"
                 }
             ],
             "windowPosition": {
-                "x": 686.0,
-                "y": 205.0
+                "x": 684.0,
+                "y": 207.0
             },
             "windowSize": {
-                "height": 185.0,
+                "height": 190.0,
                 "width": 273.0
             }
         },
@@ -1086,11 +1115,11 @@
                 }
             ],
             "windowPosition": {
-                "x": 685.0,
-                "y": 397.0
+                "x": 687.0,
+                "y": 400.0
             },
             "windowSize": {
-                "height": 130.0,
+                "height": 129.0,
                 "width": 273.0
             }
         },
@@ -1107,13 +1136,33 @@
             ],
             "windowPosition": {
                 "x": 451.0,
-                "y": 360.0
+
+                "y": 356.0
             },
             "windowSize": {
-                "height": 158.0,
-                "width": 230.0
+                "height": 260.0,
+                "width": 228.0
+            }
+        },
+        "Rainbow Icon": {
+            "components": [
+                {
+                    "type": "rainbow_colors",
+                    "enabled": false,
+                    "coefficent": 0.25,
+                    "shift": 1,
+                    "brightness": 1,
+                    "saturation": 1
+                }
+            ],
+            "windowPosition": {
+                "x": 10.0,
+                "y": 352.0
+            },
+            "windowSize": {
+                "height": 167.0,
+                "width": 218.0
             }
         }
-    },
-    "license_accepted": true
+    }
 }

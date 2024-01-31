@@ -14,15 +14,18 @@ bool isdead = false;
 bool lastFrameDead = false;
 float delta = 0;
 
+bool hooks::modify_icon_color = false;
+
+float hooks::iconcolor1[] = {1.0f, 1.0f, 1.0f};
+float hooks::iconcolor2[] = {1.0f, 1.0f, 1.0f};
+
 namespace objectsReferences
 {
-
     std::vector<uint32_t *> gamemodePortals;
     std::vector<uint32_t *> sizePortals;
     std::vector<uint32_t *> speedPortals;
     std::vector<uint32_t *> startPositions;
     std::vector<uint32_t *> coinsObject;
-
 }
 
 float left_over = 0.f;
@@ -96,8 +99,8 @@ bool __fastcall hooks::PlayLayer_init_H(int *self, int edx, robtop::GJGameLevel 
 
     const auto res = PlayLayer_init(self, level, a3, a4);
     if (res)
-    {
-        // idk
+    {        
+        //idk
     }
 
     return res;
@@ -107,6 +110,18 @@ void __fastcall hooks::playLayer_update_H(void *self, int edx, float dt)
 {
     delta += dt;
     playLayer_update(self, dt);
+
+    if (hooks::modify_icon_color) {
+        cocos2d::ccColor3B color1 = {(GLubyte)(iconcolor1[0] * 255.0f), (GLubyte)(iconcolor1[1] * 255.0f), (GLubyte)(iconcolor1[2] * 255.0f)};
+        cocos2d::ccColor3B color2 = {(GLubyte)(iconcolor2[0] * 255.0f), (GLubyte)(iconcolor2[1] * 255.0f), (GLubyte)(iconcolor2[2] * 255.0f)};
+        self->m_pPlayer1()->setColor(color1);
+        self->m_pPlayer2()->setColor(color1);
+        self->m_pPlayer1()->m_pSecondarySprite()->setColor(color2);
+        self->m_pPlayer2()->m_pSecondarySprite()->setColor(color2);
+
+        reinterpret_cast<cocos2d::CCNodeRGBA*>(self->m_pPlayer1()->m_waveTrail())->setColor(color1);
+        reinterpret_cast<cocos2d::CCNodeRGBA*>(self->m_pPlayer2()->m_waveTrail())->setColor(color2);
+    }
 
     frame = engine.getFrame(self);
 
@@ -144,7 +159,7 @@ void __fastcall hooks::playLayer_update_H(void *self, int edx, float dt)
     }
 }
 
-void __fastcall hooks::PlayLayer_resetLevel_H(void *self)
+void __fastcall hooks::PlayLayer_resetLevel_H(gd::PlayLayer *self)
 {
     PlayLayer_resetLevel(self);
     Labels::updateAttempts(currentlevel->v201);
@@ -284,13 +299,11 @@ bool __fastcall GameStatsManager_isItemUnlockedH(void *self, int, int a, int b)
     return ret;
 }
 
-
-
 namespace startPosSwitcher
-{        
+{
     bool enabled = false;
     int use_a_d = false;
-    
+
     int startposIndex = -1;
 
     void switchStartPos(gd::PlayLayer *pl, bool direction)
@@ -452,102 +465,285 @@ namespace layout_mode
 {
     bool enabled = false;
 
-    void(__thiscall* GameObject_setVisible)(void*, bool);
-    void __fastcall GameObject_setVisible_H(void *self, int, bool visible) {
-        if (enabled) {
-            int m_objectType = *(int*)((size_t)self + 0x31c);
+    void(__thiscall *GameObject_setVisible)(uint32_t *, bool);
+    void __fastcall GameObject_setVisibleH(uint32_t *self, int, bool visible)
+    {
 
-            if (m_objectType == 7) {
-                GameObject_setVisible(self, false);
-                return;
-            }
-            if (m_objectType == 0) {
-                return;
-            }
-        }
-        GameObject_setVisible(self, visible);
-    }
-
-    void(__thiscall* GameObject_setOpacity)(void*, unsigned char);
-    void __fastcall GameObject_setOpacity_H(void *self, int, unsigned char opacity) {
-        if (enabled) {
-            int m_objectType = *(int*)((size_t)self + 0x31c);
-
-            if (m_objectType == 7) {
-                GameObject_setOpacity(self, 0);
-                return;
-            }
-            if (m_objectType == 0) {
-                return;
-            }
-        }
-
-        GameObject_setOpacity(self, opacity);
-    }
-
-    void(__thiscall* GameObject_setGlowColor)(void*, cocos2d::_ccColor3B const&);
-    void __fastcall GameObject_setGlowColor_H(void *self, int, cocos2d::_ccColor3B const& color) {
-        if (enabled) {
-            GameObject_setGlowColor(self, cocos2d::ccc3(255, 255, 255));
+        if (!enabled)
+        {
+            GameObject_setVisible(self, visible);
             return;
         }
 
-        GameObject_setGlowColor(self, color);
+        uint32_t objectID = self[0xE1];
+
+        int objectType = from<int>(self, 0x31c);
+
+        // std::stringstream stfdgh;
+        // stfdgh << objectType << "\t" << objectID;
+        // Console::WriteLn(stfdgh.str());
+
+        if (objectType == 7 && objectID == 0)
+        {
+            GameObject_setVisible(self, visible);
+            return;
+        }
+
+        if (objectType == 7 && objectID != 2 && objectID != 35 && objectID != 7 && objectID != 44 && objectID != 749 && objectID != 12 &&
+            objectID != 38 && objectID != 47 && objectID != 111 && objectID != 8 &&
+            objectID != 13 && objectID != 660 && objectID != 745 && objectID != 101 &&
+            objectID != 99 && objectID != 1331)
+        {
+            GameObject_setVisible(self, false);
+            return;
+        }
+
+        GameObject_setVisible(self, visible);
     }
 
-    void(__thiscall* PlayLayer_updateVisibility)(void*, void*, void*, void*);
-    void __fastcall PlayLayer_updateVisibility_H(void *self, int, void *dt, void *unk, void *unk_2) {
-        if (enabled) {
-            int typeTrigger = *(int*)((size_t)self + 0x384);
+    void(__thiscall *GameObject_setOpacity)(uint32_t *, int);
+    void __fastcall GameObject_setOpacityH(uint32_t *self, int, int opp)
+    {
 
-            if (typeTrigger == 899 || typeTrigger == 1006 || typeTrigger == 1007 || typeTrigger == 2903) {
+        if (!enabled)
+        {
+            GameObject_setOpacity(self, opp);
+            return;
+        }
+
+        uint32_t objectID = self[0xE1];
+        int objectType = from<int>(self, 0x31c);
+
+        if (objectType == 7 && objectID != 2 && objectID != 35 && objectID != 7 && objectID != 44 && objectID != 749 && objectID != 12 &&
+            objectID != 38 && objectID != 47 && objectID != 111 && objectID != 8 &&
+            objectID != 13 && objectID != 660 && objectID != 745 && objectID != 101 &&
+            objectID != 99 && objectID != 1331)
+        {
+            GameObject_setOpacity(self, 0);
+            return;
+        }
+
+        GameObject_setOpacity(self, opp);
+    }
+
+    void(__thiscall *EffectGameObject_triggerObject)(uint32_t *, void *, void *, void *);
+    void __fastcall EffectGameObject_triggerObjectHook(uint32_t *self, int, void *dt, void *a, void *v)
+    {
+
+        if (!enabled)
+        {
+            EffectGameObject_triggerObject(self, dt, a, v);
+            return;
+        }
+
+        std::stringstream suytfr;
+        if (self)
+        {
+            auto typeTrigger = from<int>(self, 0x384);
+            // suytfr << typeTrigger << "\t" << a << "\t" << v;
+            // Console::WriteLn(suytfr.str());
+
+            if (typeTrigger == 899 || typeTrigger == 1006 || typeTrigger == 1007 || typeTrigger == 2903)
+            {
                 return;
             }
         }
-        PlayLayer_updateVisibility(self, dt, unk, unk_2);
+
+        EffectGameObject_triggerObject(self, dt, a, v);
     }
 
-    void(__thiscall* GameObject_setObjectColor)(void*, cocos2d::_ccColor3B const&);
-    void __fastcall GameObject_setObjectColor_H(void *self, int, cocos2d::_ccColor3B const& color) {
-        if (enabled) {
-            int m_objectType = *(int*)((size_t)self + 0x31c);
-
-            if (m_objectType != 7) {
-                GameObject_setObjectColor(self, cocos2d::ccc3(255, 255, 255));
-                return;
-            }
+    void(__thiscall *GameObject_setObjectColor)(uint32_t *, char *);
+    void __fastcall GameObject_setObjectColorH(uint32_t *self, int, char *visible)
+    {
+        if (!enabled)
+        {
+            GameObject_setObjectColor(self, visible);
+            return;
         }
-        GameObject_setObjectColor(self, color);
+        // GameObject_setObjectColor(self, visible);
     }
 
-    void(__thiscall* GJBaseGameLayer_updateLevelColors)(void*);
-    void __fastcall GJBaseGameLayer_updateLevelColors_H(void* self, void* unk) {
-        if (!enabled) {
+    void(__thiscall *GameObject_setGlowColor)(uint32_t *, char *);
+    void __fastcall GameObject_setGlowColorH(uint32_t *self, int, char *visible)
+    {
+        if (!enabled)
+        {
+            GameObject_setGlowColor(self, visible);
+            return;
+        }
+        // GameObject_setGlowColor(self, visible);
+    }
+
+    void(__thiscall *GameObject_setChildColor)(uint32_t *, cocos2d::_ccColor3B *);
+    void __fastcall GameObject_setChildColorH(uint32_t *self, int, cocos2d::_ccColor3B *visible)
+    {
+        if (!enabled)
+        {
+            GameObject_setChildColor(self, visible);
+            return;
+        }
+        // GameObject_setChildColor(self, visible);
+
+        auto typeTrigger = from<int>(self, 0x31c);
+        if (typeTrigger == 47)
+        {
+            cocos2d::_ccColor3B color = {255, 255, 255};
+            GameObject_setChildColor(self, &color);
+        }
+
+        // GameObject_setChildColor(self, visible);
+    }
+
+    void(__thiscall *AnimatedGameObject_updateChildSpriteColor)(uint32_t *, char *);
+    void __fastcall AnimatedGameObject_updateChildSpriteColorH(uint32_t *self, int, char *visible)
+    {
+        if (!enabled)
+        {
+            AnimatedGameObject_updateChildSpriteColor(self, visible);
+            return;
+        }
+        // AnimatedGameObject_updateChildSpriteColor(self, visible);
+    }
+
+    void(__thiscall *AnimatedGameObject_setObjectColor)(uint32_t *, cocos2d::_ccColor3B *);
+    void __fastcall AnimatedGameObject_setObjectColorH(uint32_t *self, int, cocos2d::_ccColor3B *visible)
+    {
+        if (!enabled)
+        {
+            AnimatedGameObject_setObjectColor(self, visible);
+            return;
+        }
+        cocos2d::_ccColor3B color = {0, 0, 0};
+        AnimatedGameObject_setObjectColor(self, &color);
+    }
+
+    const char *getNameObjA(cocos2d::CCNode *obj)
+    {
+        return (typeid(*obj).name() + 6);
+    }
+
+    void(__thiscall *updateGround01Color)(cocos2d::CCNode *, cocos2d::_ccColor3B);
+    void __fastcall updateGround01ColorH(cocos2d::CCNode *self, void *unk, cocos2d::_ccColor3B p1)
+    {
+
+        updateGround01Color(self, p1);
+    }
+
+    void(__thiscall *GJBaseGameLayer_updateLevelColors)(void *);
+    void __fastcall GJBaseGameLayer_updateLevelColors_H(void *self, void *unk)
+    {
+        if (!enabled)
+        {
             GJBaseGameLayer_updateLevelColors(self);
-        }        
+            return;
+        }
+
+        auto GJEffectManagerOBJ = from<void *>(self, 0x650);
+        if (GJEffectManagerOBJ)
+        {
+            auto coloractions = from<cocos2d::CCDictionary *>(GJEffectManagerOBJ, 0x110);
+            if (coloractions)
+            {
+                coloractions->removeAllObjects();
+            }
+        }
+
+        cocos2d::_ccColor3B color1 = {40, 125, 255};
+        cocos2d::_ccColor3B color2 = {0, 102, 255};
+        cocos2d::_ccColor3B color3 = {255, 255, 255};
+
+        // bg 40 125 255
+        // g1 0 102 255
+        // g2 0 102 255
+        // line 255 255 255
+        // mg 40 125 255
+        // mg2 40 125 255
+
+        from<cocos2d::CCSprite *>(self, 0x9c4)->setColor(color1); // bg
+        auto ground1 = from<gd::GJGroundLayer *>(self, 0x9cc);
+        auto ground2 = from<gd::GJGroundLayer *>(self, 0x9d0);
+        auto mg = from<gd::GJMGLayer *>(self, 0x9d4);
+
+        if (ground1)
+        {
+            // updateGround01Color(ground1, color1);
+            ground1->updateGround01Color(color1);
+            ground2->updateGround01Color(color1);
+
+            if (from<bool>(ground1, 0x140))
+            {
+                ground1->updateGround02Color(color1);
+                ground2->updateGround02Color(color1);
+            }
+            if (ground1->getChildByTag(2))
+            {
+                reinterpret_cast<cocos2d::CCSprite *>(ground1->getChildByTag(2))->setColor(color3);
+            }
+            if (ground2->getChildByTag(2))
+            {
+                reinterpret_cast<cocos2d::CCSprite *>(ground2->getChildByTag(2))->setColor(color3);
+            }
+        }
+
+        if (mg)
+        {
+            mg->updateGroundColor(color1, true);
+            mg->updateGroundOpacity(255, true);
+        }
     }
 
-    void init() {
+    void(__thiscall *PlayLayer_loadDefaultColors)(gd::PlayLayer *);
+    void __fastcall PlayLayer_loadDefaultColorsH(gd::PlayLayer *self)
+    {
+
+        if (from<cocos2d::CCArray *>(self, 0x884))
+        {
+            std::stringstream skjgfd;
+            skjgfd << from<cocos2d::CCArray *>(self, 0x884)->count();
+            Console::WriteLn(skjgfd.str());
+        }
+
+        if (!enabled)
+        {
+            PlayLayer_loadDefaultColors(self);
+            return;
+        }
+    }
+
+    void init()
+    {
         HMODULE gd = GetModuleHandleA(0);
-        
-        MH_CreateHook((void*)((DWORD)gd + 0x13B890), GameObject_setVisible_H, (void**)&GameObject_setVisible);
-        MH_CreateHook((void*)((DWORD)gd + 0x13B490), GameObject_setOpacity_H, (void**)&GameObject_setOpacity);
-        MH_CreateHook((void*)((DWORD)gd + 0x2E2BF0), PlayLayer_updateVisibility_H, (void**)&PlayLayer_updateVisibility);
-        MH_CreateHook((void*)((DWORD)gd  + 0x1415F0), GameObject_setGlowColor_H, (void**)&GameObject_setGlowColor);
-        MH_CreateHook((void*)((DWORD)gd + 0x141300), GameObject_setObjectColor_H, (void**)&GameObject_setObjectColor);
-        MH_CreateHook((void*)((DWORD)gd + 0x194490), GJBaseGameLayer_updateLevelColors_H, (void**)&GJBaseGameLayer_updateLevelColors);
+
+        MH_CreateHook((void *)((DWORD)gd + 0x13b890), GameObject_setVisibleH, (void **)&GameObject_setVisible);
+        MH_CreateHook((void *)((DWORD)gd + 0x13b490), GameObject_setOpacityH, (void **)&GameObject_setOpacity);
+        MH_CreateHook((void *)((DWORD)gd + 0x141300), GameObject_setObjectColorH, (void **)&GameObject_setObjectColor);
+        MH_CreateHook((void *)((DWORD)gd + 0x1415f0), GameObject_setGlowColorH, (void **)&GameObject_setGlowColor);
+        MH_CreateHook((void *)((DWORD)gd + 0x141630), GameObject_setChildColorH, (void **)&GameObject_setChildColor);
+        MH_CreateHook((void *)((DWORD)gd + 0x39bc20), AnimatedGameObject_setObjectColorH, (void **)&AnimatedGameObject_setObjectColor);
+        MH_CreateHook((void *)((DWORD)gd + 0x39b590), AnimatedGameObject_updateChildSpriteColorH, (void **)&AnimatedGameObject_updateChildSpriteColor);
+        MH_CreateHook((void *)((DWORD)gd + 0x39ccf0), EffectGameObject_triggerObjectHook, (void **)&EffectGameObject_triggerObject);
+        // MH_CreateHook((void*)((DWORD)gd + 0x2e4e80), PlayLayer_loadDefaultColorsH, (void**)&PlayLayer_loadDefaultColors);
+        MH_CreateHook((void *)((DWORD)gd + 0x194490), GJBaseGameLayer_updateLevelColors_H, (void **)&GJBaseGameLayer_updateLevelColors);
+        // MH_CreateHook((void*)((DWORD)gd + 0x1f7ab0), updateGround01ColorH, (void**)&updateGround01Color);
     }
 
-    void set_enabled(bool enable) {
+    void set_enabled(bool enable)
+    {
         HMODULE gd = GetModuleHandleA(0);
 
         enabled = enable;
-        
-        if (enable) {
+
+        if (enable)
+        {
             memory::WriteBytes((DWORD)gd + 0x13EFA1, "90 90 90 90 90 90");
+            memory::WriteBytes((DWORD)gd + 0x2E4ED8, "90 90 EB 3A");
+            memory::WriteBytes((DWORD)gd + 0x2E4F41, "90 90 EB 5C");
         }
-        else {
+        else
+        {
             memory::WriteBytes((DWORD)gd + 0x13EFA1, "88 87 62 04 00 00");
+            memory::WriteBytes((DWORD)gd + 0x2E4ED8, "85 C0 74 3A");
+            memory::WriteBytes((DWORD)gd + 0x2E4F41, "85 C0 74 5C");
         }
     }
 }
