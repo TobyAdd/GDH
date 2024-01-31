@@ -722,71 +722,78 @@ void gui::RenderMain() {
                 text_color[1] = component["text_color"][1];
                 text_color[2] = component["text_color"][2];
                 style = component["style"];
+
+                bool set_style = false;
+
                 if (show_style_editor) ImGui::Checkbox("Style Editor", &style_editor);
                 ImGui::Combo("Style", &style, styles, styles_length);
-                bool colors = setStyle(ImGui::GetStyle(), color, text_color, style);
-                if (colors) {
-                    ImGui::Checkbox("##rainbowAccent", &rainbow_accent);
-                    if (ImGui::IsItemHovered())
-                        ImGui::SetTooltip("Rainbow Color");
+                ImGui::Checkbox("##rainbowAccent", &rainbow_accent);
+                if (ImGui::IsItemHovered())
+                    ImGui::SetTooltip("Rainbow Color");
 
+                ImGui::SameLine();
+
+                r_hue = (r_hue + 1) % 360;
+                if (rainbow_accent) {
+                    set_style = true;
+                    ImGui::SetNextItemWidth(95.0f);
+                    ImGui::DragFloat("##raBrightness", &ra_brightness, 0.01f, 0.0f, 1.0f, "Brightness: %.2f");
                     ImGui::SameLine();
-
-                    r_hue = (r_hue + 1) % 360;
-                    if (rainbow_accent) {
-                        ImGui::SetNextItemWidth(95.0f);
-                        ImGui::DragFloat("##raBrightness", &ra_brightness, 0.01f, 0.0f, 1.0f, "Brightness: %.2f");
-                        ImGui::SameLine();
-                        ImGui::SetNextItemWidth(95.0f);
-                        ImGui::DragFloat("##raSaturation", &ra_saturation, 0.01f, 0.0f, 1.0f, "Saturation: %.2f");
-                        ImGui::SameLine();
-                        ImGui::Text("Accent");
-                        float r, g, b;
-                        ImGui::ColorConvertHSVtoRGB(r_hue / 360.0f, ra_saturation, ra_brightness, r, g, b);
-                        color[0] = r;
-                        color[1] = g;
-                        color[2] = b;
-                    }
-                    else {
-                        ImGui::ColorEdit3("Accent", (float*)&color);
-                    }
-
-                    ImGui::Checkbox("##rainbowText", &rainbow_text);
-                    if (ImGui::IsItemHovered())
-                        ImGui::SetTooltip("Rainbow Color");
-
+                    ImGui::SetNextItemWidth(95.0f);
+                    ImGui::DragFloat("##raSaturation", &ra_saturation, 0.01f, 0.0f, 1.0f, "Saturation: %.2f");
                     ImGui::SameLine();
-
-                    if (rainbow_text) {
-                        ImGui::SetNextItemWidth(95.0f);
-                        ImGui::DragFloat("##rtBrightness", &rt_brightness, 0.01f, 0.0f, 1.0f, "Brightness: %.2f");
-                        ImGui::SameLine();
-                        ImGui::SetNextItemWidth(95.0f);
-                        ImGui::DragFloat("##rtSaturation", &rt_saturation, 0.01f, 0.0f, 1.0f, "Saturation: %.2f");
-                        ImGui::SameLine();
-                        ImGui::Text("Text");
-                        float r, g, b;
-                        ImGui::ColorConvertHSVtoRGB(r_hue / 360.0f, rt_saturation, rt_brightness, r, g, b);
-                        text_color[0] = r;
-                        text_color[1] = g;
-                        text_color[2] = b;
-                    }
-                    else {
-                        ImGui::ColorEdit3("Text", (float*)&text_color);
-                    }
-
-                    if (ImGui::Button("Reset Theme", {ImGui::GetContentRegionAvail().x, NULL}))
-                    {
-                        rainbow_text = false;
-                        rainbow_accent = false;
-                        color[0] = default_color[0];
-                        color[1] = default_color[1];
-                        color[2] = default_color[2];
-                        text_color[0] = default_text_color[0];
-                        text_color[1] = default_text_color[1];
-                        text_color[2] = default_text_color[2];
-                    }
+                    ImGui::Text("Accent");
+                    float r, g, b;
+                    ImGui::ColorConvertHSVtoRGB(r_hue / 360.0f, ra_saturation, ra_brightness, r, g, b);
+                    color[0] = r;
+                    color[1] = g;
+                    color[2] = b;
                 }
+                else {
+                    if (ImGui::ColorEdit3("Accent", (float*)&color))
+                        set_style = true;
+                }
+
+                ImGui::Checkbox("##rainbowText", &rainbow_text);
+                if (ImGui::IsItemHovered())
+                    ImGui::SetTooltip("Rainbow Color");
+
+                ImGui::SameLine();
+
+                if (rainbow_text) {
+                    set_style = true;
+                    ImGui::SetNextItemWidth(95.0f);
+                    ImGui::DragFloat("##rtBrightness", &rt_brightness, 0.01f, 0.0f, 1.0f, "Brightness: %.2f");
+                    ImGui::SameLine();
+                    ImGui::SetNextItemWidth(95.0f);
+                    ImGui::DragFloat("##rtSaturation", &rt_saturation, 0.01f, 0.0f, 1.0f, "Saturation: %.2f");
+                    ImGui::SameLine();
+                    ImGui::Text("Text");
+                    float r, g, b;
+                    ImGui::ColorConvertHSVtoRGB(r_hue / 360.0f, rt_saturation, rt_brightness, r, g, b);
+                    text_color[0] = r;
+                    text_color[1] = g;
+                    text_color[2] = b;
+                }
+                else {
+                    if (ImGui::ColorEdit3("Text", (float*)&text_color))
+                        set_style = true;
+                }
+
+                if (ImGui::Button("Reset Theme", {ImGui::GetContentRegionAvail().x, NULL}))
+                {
+                    set_style = true;
+                    rainbow_text = false;
+                    rainbow_accent = false;
+                    color[0] = default_color[0];
+                    color[1] = default_color[1];
+                    color[2] = default_color[2];
+                    text_color[0] = default_text_color[0];
+                    text_color[1] = default_text_color[1];
+                    text_color[2] = default_text_color[2];
+                }
+
+                if (set_style) setStyle(ImGui::GetStyle(), color, text_color, style);
 
                 json color_json = { color[0], color[1], color[2] };
                 json text_color_json = { text_color[0], text_color[1], text_color[2] };
