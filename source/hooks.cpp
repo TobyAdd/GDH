@@ -12,8 +12,6 @@ bool hooks::modify_icon_color = false;
 float hooks::iconcolor1[] = {1.0f, 1.0f, 1.0f};
 float hooks::iconcolor2[] = {1.0f, 1.0f, 1.0f};
 
-bool hooks::allow_clicks_re = false;
-
 namespace objectsReferences
 {
     std::vector<uint32_t *> gamemodePortals;
@@ -138,7 +136,7 @@ void __fastcall hooks::PlayLayer_destructor_H(void *self)
 
 int __fastcall hooks::GJBaseGameLayer_HandleButton_H(void *self, uintptr_t, int push, int player_button, BOOL is_player1)
 {
-    if (engine.mode == state::play && !hooks::allow_clicks_re)
+    if (engine.mode == state::play)
     {
         return 0;
     }

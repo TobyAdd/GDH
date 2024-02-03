@@ -92,9 +92,9 @@ ImVec4 colorMultiply(float color[3], float multiplier) {
 const char* styles[] = {"GDH Style", "Default Style" , "Default Style (overwrite colors)", "Dracula", "Gruvbox"};
 int styles_length = 5;
 
-void setStyle(ImGuiStyle& style, float accent[3], float text[3], int styleId)
+bool setStyle(ImGuiStyle& style, float accent[3], float text[3], int styleId)
 {
-    if (show_style_editor) return;
+    if (show_style_editor) return false;
 
     style.ImGuiStyle::ImGuiStyle();
     auto colors = style.Colors;
@@ -355,6 +355,8 @@ void setStyle(ImGuiStyle& style, float accent[3], float text[3], int styleId)
         colors[ImGuiCol_TabUnfocused] = colorMultiply(accent, 0.6f);
         colors[ImGuiCol_TabUnfocusedActive] = colorMultiply(accent, 0.6f);
     }
+
+    return do_colors;
 }
 
 float get_opacity() {
@@ -453,7 +455,11 @@ void gui::RenderMain() {
     if (labels) RenderLabels();
     if (ricon_enabled) TickRainbowIcon();
     
-    if (!inited) ImGui::GetStyle().Alpha = 0.0f;
+    if (!inited) {
+        ImGui::GetStyle().Alpha = 0.0f;
+
+        inited = true;
+    }
     
     ImGui::GetStyle().Alpha = get_opacity();
     if (!show && ImGui::GetStyle().Alpha <= 0.0f) {
@@ -720,10 +726,8 @@ void gui::RenderMain() {
                 bool set_style = false;
 
                 if (show_style_editor) ImGui::Checkbox("Style Editor", &style_editor);
-                if (ImGui::Combo("Style", &style, styles, styles_length))
-                        set_style = true;
-                if (ImGui::Checkbox("##rainbowAccent", &rainbow_accent))
-                        set_style = true;
+                ImGui::Combo("Style", &style, styles, styles_length);
+                ImGui::Checkbox("##rainbowAccent", &rainbow_accent);
                 if (ImGui::IsItemHovered())
                     ImGui::SetTooltip("Rainbow Color");
 
@@ -750,9 +754,7 @@ void gui::RenderMain() {
                         set_style = true;
                 }
 
-                if (ImGui::Checkbox("##rainbowText", &rainbow_text))
-                        set_style = true;
-                        
+                ImGui::Checkbox("##rainbowText", &rainbow_text);
                 if (ImGui::IsItemHovered())
                     ImGui::SetTooltip("Rainbow Color");
 
@@ -791,7 +793,7 @@ void gui::RenderMain() {
                     text_color[2] = default_text_color[2];
                 }
 
-                if (set_style || !inited) setStyle(ImGui::GetStyle(), color, text_color, style);
+                if (set_style) setStyle(ImGui::GetStyle(), color, text_color, style);
 
                 json color_json = { color[0], color[1], color[2] };
                 json text_color_json = { text_color[0], text_color[1], text_color[2] };
@@ -989,18 +991,12 @@ void gui::RenderMain() {
 
                 ImGui::Separator();
 
-                ImGui::Checkbox("Allow clicks", &hooks::allow_clicks_re);
-
-                ImGui::Separator();
-
                 ImGui::Text(log.c_str());
             }
         }
 
         ImGui::End();
     }
-
-    if (!inited) inited = true;
     
 }
 
