@@ -1017,7 +1017,7 @@
                 "y": 16.0
             },
             "windowSize": {
-                "height": 185.0,
+                "height": 209.0,
                 "width": 273.0
             }
         },
@@ -1067,7 +1067,7 @@
             ],
             "windowPosition": {
                 "x": 684.0,
-                "y": 207.0
+                "y": 229.0
             },
             "windowSize": {
                 "height": 190.0,
@@ -1115,8 +1115,8 @@
                 }
             ],
             "windowPosition": {
-                "x": 687.0,
-                "y": 400.0
+                "x": 685.0,
+                "y": 423.0
             },
             "windowSize": {
                 "height": 129.0,
