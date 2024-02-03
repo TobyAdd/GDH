@@ -3,9 +3,16 @@
 #include "console.hpp"
 #include "memory.hpp"
 #include <chrono>
+#include <gd.h>
+#include "gui.hpp"
+#include "lables.hpp"
+#include "bindings/GJGameLevel.h"
 
 int hooks::transitionSelect = 0;
 unsigned hooks::frame = 0;
+bool isdead = false;
+bool lastFrameDead = false;
+float delta = 0;
 
 bool hooks::modify_icon_color = false;
 
@@ -51,11 +58,46 @@ void __fastcall CCScheduler_update_H(void *self, int, float dt)
     left_over += dt - newdt * times;
 }
 
-bool __fastcall hooks::PlayLayer_init_H(gd::PlayLayer *self, int edx, void *GJGameLevel, bool a3, bool a4)
+const ccColor3B tintColor = {255, 0, 0};
+robtop::GJGameLevel* currentlevel = nullptr;
+CCSprite* tintptr = nullptr;
+bool __fastcall hooks::PlayLayer_init_H(int *self, int edx, robtop::GJGameLevel *level, bool a3, bool a4)
 {
     objectsReferences::startPositions.clear();
+    robtop::GJGameLevel_201 levelL = level->v201;
 
-    const auto res = PlayLayer_init(self, GJGameLevel, a3, a4);
+    auto layer = (CCLayer*)self;
+    delta = 0;
+    if (gui::best_run == true)
+        Labels::SetupLabel(layer, "bestrun", "Best Run: 0%");
+
+    if (gui::message == true)
+        Labels::SetupLabel(layer, "message", gui::custom_message);
+
+    if (gui::ndeaths == true)
+        Labels::SetupLabel(layer, "ndeaths", "Noclip Deaths: 0");
+
+    if (gui::attempts == true)
+        Labels::SetupLabel(layer, "attempts", "");
+
+    currentlevel = level;
+
+    Labels::setPositions();
+
+    auto size = cocos2d::CCDirector::sharedDirector()->getWinSize();
+
+    auto tint = CCSprite::createWithSpriteFrameName("block005b_05_001.png");
+    tint->setPosition({size.width / 2, size.height / 2});
+    tint->setScale(1000.0f);
+    tint->setColor(tintColor);
+    tint->setOpacity(0);
+    tint->setZOrder(1000);
+
+    tintptr = tint;
+
+    layer->addChild(tint);
+
+    const auto res = PlayLayer_init(self, level, a3, a4);
     if (res)
     {        
         //idk
@@ -64,9 +106,10 @@ bool __fastcall hooks::PlayLayer_init_H(gd::PlayLayer *self, int edx, void *GJGa
     return res;
 }
 
-void __fastcall hooks::playLayer_update_H(gd::PlayLayer *self, int edx, float deltaTime)
+void __fastcall hooks::playLayer_update_H(void *self, int edx, float dt)
 {
-    playLayer_update(self, deltaTime);
+    delta += dt;
+    playLayer_update(self, dt);
 
     if (hooks::modify_icon_color) {
         cocos2d::ccColor3B color1 = {(GLubyte)(iconcolor1[0] * 255.0f), (GLubyte)(iconcolor1[1] * 255.0f), (GLubyte)(iconcolor1[2] * 255.0f)};
@@ -81,6 +124,28 @@ void __fastcall hooks::playLayer_update_H(gd::PlayLayer *self, int edx, float de
     }
 
     frame = engine.getFrame(self);
+
+    if (isdead == true && lastFrameDead == false)
+    {
+        if (tintptr != nullptr && gui::tint == true)
+            tintptr->setOpacity(50);
+        lastFrameDead = true;
+        Labels::updateNoclipDeaths();
+    }
+
+    if (isdead == false && lastFrameDead == true)
+    {
+        if (tintptr != nullptr && gui::tint == true)
+            tintptr->setOpacity(0);
+        Labels::endNoclipDeath();
+    }
+
+    if (isdead == false)
+    {
+        lastFrameDead = false;
+    }
+
+    isdead = false;
 
     if (engine.mode == state::play)
     {
@@ -97,7 +162,8 @@ void __fastcall hooks::playLayer_update_H(gd::PlayLayer *self, int edx, float de
 void __fastcall hooks::PlayLayer_resetLevel_H(gd::PlayLayer *self)
 {
     PlayLayer_resetLevel(self);
-
+    Labels::updateAttempts(currentlevel->v201);
+    Labels::updateNoclipDeaths(true);
     if (engine.mode == state::play)
     {
         engine.index = 0;
@@ -123,16 +189,32 @@ void __fastcall hooks::PlayLayer_resetLevel_H(gd::PlayLayer *self)
 void __fastcall hooks::playLayer_levelComplate_H(int *self)
 {
     playLayer_levelComplate(self);
+    Labels::updateBestRun(100);
     if (engine.mode == state::record)
         engine.mode = state::disable;
 }
 
 void __fastcall hooks::PlayLayer_destructor_H(void *self)
 {
+    Labels::ClearLabels();
+    Labels::updateBestRun(69, true);
     PlayLayer_destructor(self);
     if (engine.mode == state::record)
         engine.mode = state::disable;
 }
+
+
+void __fastcall hooks::playLayer_death_H(int self, int edx, void* player, void* obj)
+{
+    if (delta > 0.1f)
+    {
+        isdead = true;
+    }
+    Labels::updateBestRun(*((DWORD *)self + 0xBAD));
+;
+	playLayer_death(self, player, obj);
+}
+
 
 int __fastcall hooks::GJBaseGameLayer_HandleButton_H(void *self, uintptr_t, int push, int player_button, BOOL is_player1)
 {
@@ -666,6 +748,7 @@ namespace layout_mode
     }
 }
 
+
 void hooks::init()
 {
     HMODULE gd = GetModuleHandleA(0);
@@ -678,8 +761,9 @@ void hooks::init()
     MH_CreateHook((void *)((DWORD)gd + 0x2ea130), PlayLayer_resetLevel_H, (void **)&PlayLayer_resetLevel);
     MH_CreateHook((void *)((DWORD)gd + 0x2dc080), PlayLayer_destructor_H, (void **)&PlayLayer_destructor);
     MH_CreateHook((void *)((DWORD)gd + 0x2ddb60), playLayer_levelComplate_H, (void **)&playLayer_levelComplate);
+    MH_CreateHook((void *)((DWORD)gd + 0x2E6730), playLayer_death_H, (void **)(&playLayer_death));
     MH_CreateHook((void *)((DWORD)gd + 0x1b69f0), GJBaseGameLayer_HandleButton_H, (void **)&GJBaseGameLayer_HandleButton);
-
+    
     MH_CreateHook((void *)(gd::base + 0x2e19b0), PlayLayer_addObjectHook, (void **)&PlayLayer_addObject);
     MH_CreateHook(GetProcAddress((HMODULE)gd::cocos_base, "?dispatchKeyboardMSG@CCKeyboardDispatcher@cocos2d@@QAE_NW4enumKeyCodes@2@_N1@Z"), dispatchKeyboardMSGHook, (void **)&dispatchKeyboardMSG);
 

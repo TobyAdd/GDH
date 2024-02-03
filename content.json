@@ -1126,16 +1126,17 @@
         "Labels": {
             "components": [
                 {
-                    "type": "label_editor",
-                    "enabled": false,
-                    "meta_lu": [],
-                    "meta_ld": [],
-                    "meta_ru": [],
-                    "meta_rd": []
+                    "type": "labels",
+                    "best_run": false,
+                    "message": false,
+                    "ndeaths": false,
+                    "attempts": false,
+                    "messageContent": "Message"
                 }
             ],
             "windowPosition": {
                 "x": 451.0,
+
                 "y": 356.0
             },
             "windowSize": {
