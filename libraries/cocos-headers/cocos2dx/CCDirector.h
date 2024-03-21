@@ -29,13 +29,13 @@ THE SOFTWARE.
 
 #include "platform/CCPlatformMacros.h"
 #include "cocoa/CCObject.h"
-#include "include/ccTypes.h"
+#include "ccTypes.h"
 #include "cocoa/CCGeometry.h"
 #include "cocoa/CCArray.h"
-//#include "platform/CCGL.h"
-#include "kazmath/include/kazmath/mat4.h"
+#include "CCGL.h"
+#include "kazmath/mat4.h"
 #include "label_nodes/CCLabelAtlas.h"
-#include "include/ccTypeInfo.h"
+#include "ccTypeInfo.h"
 
 
 NS_CC_BEGIN
@@ -45,34 +45,34 @@ NS_CC_BEGIN
  * @{
  */
 
- /** @typedef ccDirectorProjection
-  Possible OpenGL projections used by director
-  */
-    typedef enum {
+/** @typedef ccDirectorProjection
+ Possible OpenGL projections used by director
+ */
+typedef enum {
     /// sets a 2D projection (orthogonal projection)
     kCCDirectorProjection2D,
-
+    
     /// sets a 3D projection with a fovy=60, znear=0.5f and zfar=1500.
     kCCDirectorProjection3D,
-
+    
     /// it calls "updateProjection" on the projection delegate.
     kCCDirectorProjectionCustom,
-
+    
     /// Default projection is 3D projection
     kCCDirectorProjectionDefault = kCCDirectorProjection3D,
 } ccDirectorProjection;
 
 RT_ADD(
     typedef enum {
-    kTextureQualityLow = 1,
-    kTextureQualityMedium,
-    kTextureQualityHigh
-} TextureQuality;
+        kTextureQualityLow = 1,
+        kTextureQualityMedium,
+        kTextureQualityHigh
+    } TextureQuality;
 
-typedef enum {
-    kPopTransitionFade,
-    kPopTransitionMoveInT
-} PopTransition;
+    typedef enum {
+        kPopTransitionFade,
+        kPopTransitionMoveInT
+    } PopTransition;
 )
 
 
@@ -89,24 +89,24 @@ class CCKeypadDispatcher;
 class CCAccelerometer;
 RT_ADD(
     class CCKeyboardDispatcher;
-class CCMouseDispatcher;
-class CCSceneDelegate;
+    class CCMouseDispatcher;
+    class CCSceneDelegate;
 )
 
 /**
 @brief Class that creates and handle the main Window and manages how
 and when to execute the Scenes.
-
+ 
  The CCDirector is also responsible for:
   - initializing the OpenGL context
   - setting the OpenGL pixel format (default on is RGB565)
   - setting the OpenGL buffer depth (default one is 0-bit)
   - setting the projection (default one is 3D)
   - setting the orientation (default one is Portrait)
-
+ 
  Since the CCDirector is a singleton, the standard way to use it is by calling:
   _ CCDirector::sharedDirector()->methodName();
-
+ 
  The CCDirector also sets the default OpenGL context:
   - GL_TEXTURE_2D is enabled
   - GL_VERTEX_ARRAY is enabled
@@ -131,8 +131,8 @@ public:
      * @lua NA
      */
     virtual long getClassTypeInfo() {
-        static const long id = cocos2d::getHashCodeByString(typeid(cocos2d::CCDirector).name());
-        return id;
+		static const long id = cocos2d::getHashCodeByString(typeid(cocos2d::CCDirector).name());
+		return id;
     }
 
     // attribute
@@ -143,13 +143,13 @@ public:
     /** Get the FPS value */
     inline double getAnimationInterval(void) { return m_dAnimationInterval; }
     /** Set the FPS value. */
-    virtual void setAnimationInterval(double dValue) {}
+    virtual void setAnimationInterval(double dValue) = 0;
 
     /** Whether or not to display the FPS on the bottom-left corner */
     inline bool isDisplayStats(void) { return m_bDisplayStats; }
     /** Display the FPS on the bottom-left corner */
     inline void setDisplayStats(bool bDisplayStats) { m_bDisplayStats = bDisplayStats; }
-
+    
     /** seconds per frame */
     inline float getSecondsPerFrame() { return m_fSecondsPerFrame; }
 
@@ -157,7 +157,7 @@ public:
      * @js NA
      */
     inline CCEGLView* getOpenGLView(void) { return m_pobOpenGLView; }
-    void setOpenGLView(CCEGLView* pobOpenGLView);
+    void setOpenGLView(CCEGLView *pobOpenGLView);
 
     inline bool isNextDeltaTimeZero(void) { return m_bNextDeltaTimeZero; }
     void setNextDeltaTimeZero(bool bNextDeltaTimeZero);
@@ -165,27 +165,24 @@ public:
     /** Whether or not the Director is paused */
     inline bool isPaused(void) { return m_bPaused; }
 
-    // geode addition
-    inline void setPaused(bool p) { m_bPaused = p; }
-
     /** How many frames were called since the director started */
     inline unsigned int getTotalFrames(void) { return m_uTotalFrames; }
-
+    
     /** Sets an OpenGL projection
      @since v0.8.2
      @js NA
      */
     inline ccDirectorProjection getProjection(void) { return m_eProjection; }
     void setProjection(ccDirectorProjection kProjection);
-    /** reshape projection matrix when canvas has been change"*/
+     /** reshape projection matrix when canvas has been change"*/
     void reshapeProjection(const CCSize& newWindowSize);
-
+    
     /** Sets the glViewport*/
     void setViewport();
 
     /** How many frames were called since the director started */
-
-
+    
+    
     /** Whether or not the replaced scene will receive the cleanup message.
      If the new scene is pushed, then the old scene won't receive the "cleanup" message.
      If the new scene replaces the old one, the it will receive the "cleanup" message.
@@ -199,8 +196,8 @@ public:
      @since v0.99.5
      */
     CCNode* getNotificationNode();
-    void setNotificationNode(CCNode* node);
-
+    void setNotificationNode(CCNode *node);
+    
     /** CCDirector delegate. It shall implemente the CCDirectorDelegate protocol
      @since v0.99.5
      */
@@ -216,13 +213,13 @@ public:
     /** returns the size of the OpenGL view in pixels.
     */
     CCSize getWinSizeInPixels(void);
-
+    
     /** returns visible size of the OpenGL view in points.
      *  the value is equal to getWinSize if don't invoke
      *  CCEGLView::setDesignResolutionSize()
      */
     CCSize getVisibleSize();
-
+    
     /** returns visible origin of the OpenGL view in points.
      */
     CCPoint getVisibleOrigin();
@@ -248,22 +245,22 @@ public:
      *
      * It will call pushScene: and then it will call startAnimation
      */
-    void runWithScene(CCScene* pScene);
+    void runWithScene(CCScene *pScene);
 
     /** Suspends the execution of the running scene, pushing it on the stack of suspended scenes.
      * The new scene will be executed.
-     * Try to avoid big stacks of pushed scenes to reduce memory allocation.
+     * Try to avoid big stacks of pushed scenes to reduce memory allocation. 
      * ONLY call it if there is a running scene.
      */
-    RT_REMOVE(void pushScene(CCScene* pScene); )
-        RT_ADD(bool pushScene(CCScene* pScene); )
+    RT_REMOVE(  void pushScene(CCScene *pScene);    )
+    RT_ADD(     bool pushScene(CCScene *pScene);    )
 
-        /** Pops out a scene from the queue.
-         * This scene will replace the running one.
-         * The running scene will be deleted. If there are no more scenes in the stack the execution is terminated.
-         * ONLY call it if there is a running scene.
-         */
-        void popScene(void);
+    /** Pops out a scene from the queue.
+     * This scene will replace the running one.
+     * The running scene will be deleted. If there are no more scenes in the stack the execution is terminated.
+     * ONLY call it if there is a running scene.
+     */
+    void popScene(void);
 
     /** Pops out all scenes from the queue until the root scene in the queue.
      * This scene will replace the running one.
@@ -276,18 +273,18 @@ public:
      If level is 1, it will pop all scenes until it reaches to root scene.
      If level is <= than the current stack level, it won't do anything.
      */
-    void popToSceneStackLevel(int level);
+ 	void popToSceneStackLevel(int level);
 
     /** Replaces the running scene with a new one. The running scene is terminated.
      * ONLY call it if there is a running scene.
      */
-    RT_REMOVE(void replaceScene(CCScene* pScene); )
-        RT_ADD(bool replaceScene(CCScene* pScene); )
+    RT_REMOVE(  void replaceScene(CCScene *pScene); )
+    RT_ADD(     bool replaceScene(CCScene *pScene); )
 
-        /** Ends the execution, releases the running scene.
-         It doesn't remove the OpenGL view from its parent. You have to do it manually.
-         */
-        void end(void);
+    /** Ends the execution, releases the running scene.
+     It doesn't remove the OpenGL view from its parent. You have to do it manually.
+     */
+    void end(void);
 
     /** Pauses the running scene.
      The running scene will be _drawed_ but all scheduled timers will be paused
@@ -301,19 +298,17 @@ public:
      */
     void resume(void);
 
-protected:
     /** Stops the animation. Nothing will be drawn. The main loop won't be triggered anymore.
      If you don't want to pause your animation call [pause] instead.
      */
-    virtual void stopAnimation(void) {}
+    virtual void stopAnimation(void) = 0;
 
     /** The main loop is triggered again.
      Call this function only if [stopAnimation] was called earlier
      @warning Don't call this function to start the main loop. To run the main loop call runWithScene
      */
-    virtual void startAnimation(void) {}
+    virtual void startAnimation(void) = 0;
 
-public:
     /** Draw the scene.
     This method is called every frame. Don't call it manually.
     */
@@ -327,7 +322,7 @@ public:
      */
     void purgeCachedData(void);
 
-    /** sets the default values based on the CCConfiguration info */
+	/** sets the default values based on the CCConfiguration info */
     void setDefaultValues(void);
 
     // OpenGL Helper
@@ -341,54 +336,51 @@ public:
     /** enables/disables OpenGL depth test */
     void setDepthTest(bool bOn);
 
-protected:
-    virtual void mainLoop(void) {}
+    virtual void mainLoop(void) = 0;
 
-public:
     /** The size in pixels of the surface. It could be different than the screen size.
     High-res devices might have a higher surface size than the screen size.
     Only available when compiled using SDK >= 4.0.
     @since v0.99.4
     */
     void setContentScaleFactor(float scaleFactor);
-    inline float getContentScaleFactor(void) { return m_fContentScaleFactor; }
+    float getContentScaleFactor(void);
 
     RT_ADD(
-public:
+    public:
+        CCDirector(const CCDirector&);
 
-    void checkSceneReference(void);
+        CCDirector& operator=(const CCDirector&);
 
-    CCScene* getNextScene(void);
-    int levelForSceneInStack(CCScene*);
-    bool popSceneWithTransition(float, PopTransition);
-    void popToSceneInStack(CCScene*);
-    int sceneCount(void);
-    void willSwitchToScene(CCScene*);
+        void checkSceneReference(void);
 
-    void removeStatsLabel(void);
+        CCScene* getNextScene(void);
+        int levelForSceneInStack(CCScene*);
+        bool popSceneWithTransition(float, PopTransition);
+        void popToSceneInStack(CCScene*);
+        int sceneCount(void);
+        void willSwitchToScene(CCScene*);
+        
+        void removeStatsLabel(void);
 
-    void resetSmoothFixCounter(void);
-    void setDeltaTime(float);
+        void resetSmoothFixCounter(void);
+        void setDeltaTime(float);
 
-    void setupScreenScale(CCSize, CCSize, TextureQuality);
-    void updateContentScale(TextureQuality);
-    void updateScreenScale(CCSize);
+        void setupScreenScale(CCSize, CCSize, TextureQuality);
+        void updateContentScale(TextureQuality);
+        void updateScreenScale(CCSize);
+        TextureQuality getLoadedTextureQuality(void) const;
 
-    void applySmoothFix();
-    void createStatsLabel();
-    void showFPSLabel();
-    void toggleShowFPS(bool, std::string, cocos2d::CCPoint);
-
-protected:
-    CC_SYNTHESIZE_READONLY_NV(float, m_fScreenScaleFactor, ScreenScaleFactor);
-    CC_SYNTHESIZE_READONLY_NV(float, m_fScreenScaleFactorMax, ScreenScaleFactorMax);
-    CC_SYNTHESIZE_READONLY_NV(float, m_fScreenScaleFactorW, ScreenScaleFactorW);
-    CC_SYNTHESIZE_READONLY_NV(float, m_fScreenScaleFactorH, ScreenScaleFactorH);
-    CC_SYNTHESIZE_READONLY_NV(float, m_fScreenTop, ScreenTop);
-    CC_SYNTHESIZE_READONLY_NV(float, m_fScreenBottom, ScreenBottom);
-    CC_SYNTHESIZE_READONLY_NV(float, m_fScreenLeft, ScreenLeft);
-    CC_SYNTHESIZE_READONLY_NV(float, m_fScreenRight, ScreenRight);
-    CC_SYNTHESIZE_NV(CCScene*, m_pSceneReference, SceneReference);
+    protected:
+        CC_SYNTHESIZE_READONLY_NV(float, m_fScreenScaleFactor, ScreenScaleFactor);
+        CC_SYNTHESIZE_READONLY_NV(float, m_fScreenScaleFactorMax, ScreenScaleFactorMax);
+        CC_SYNTHESIZE_READONLY_NV(float, m_fScreenScaleFactorW, ScreenScaleFactorW);
+        CC_SYNTHESIZE_READONLY_NV(float, m_fScreenScaleFactorH, ScreenScaleFactorH);
+        CC_SYNTHESIZE_READONLY_NV(float, m_fScreenTop, ScreenTop);
+        CC_SYNTHESIZE_READONLY_NV(float, m_fScreenBottom, ScreenBottom);
+        CC_SYNTHESIZE_READONLY_NV(float, m_fScreenLeft, ScreenLeft);
+        CC_SYNTHESIZE_READONLY_NV(float, m_fScreenRight, ScreenRight);
+        CC_SYNTHESIZE_NV(CCScene*, m_pSceneReference, SceneReference);
     )
 
 public:
@@ -415,27 +407,27 @@ public:
     RT_ADD(
         CC_PROPERTY(CCKeyboardDispatcher*, m_pKeyboardDispatcher, KeyboardDispatcher);
 
-    CC_PROPERTY(CCMouseDispatcher*, m_pMouseDispatcher, MouseDispatcher);
+        CC_PROPERTY(CCMouseDispatcher*, m_pMouseDispatcher, MouseDispatcher);
     )
 
-        /** CCAccelerometer associated with this director
-         @since v2.0
-         @js NA
-         @lua NA
-         */
-        CC_PROPERTY(CCAccelerometer*, m_pAccelerometer, Accelerometer);
+    /** CCAccelerometer associated with this director
+     @since v2.0
+     @js NA
+     @lua NA
+     */
+    CC_PROPERTY(CCAccelerometer*, m_pAccelerometer, Accelerometer);
 
     /* delta time since last tick to main loop */
-    CC_PROPERTY_READONLY(float, m_fDeltaTime, DeltaTime);
+	CC_PROPERTY_READONLY(float, m_fDeltaTime, DeltaTime);
 
     /* *actual* delta time, according to rob. not sure what that means but i'm not arguing */
     RT_ADD(
-        CC_SYNTHESIZE_NV(float, m_fActualDeltaTime, ActualDeltaTime);
+        CC_SYNTHESIZE_NV(float, m_fActualDeltaTime, ActualDeltaTime); 
     )
-
-
+    
+	
 public:
-    /** returns a shared instance of the director
+    /** returns a shared instance of the director 
      *  @js getInstance
      */
     static CCDirector* sharedDirector(void);
@@ -446,42 +438,47 @@ protected:
     RT_ADD(
         CC_SYNTHESIZE_READONLY_NV(bool, m_bIsTransitioning, IsTransitioning);   // if in a CCTransitionScene
 
-    CC_SYNTHESIZE_NV(bool, m_bSmoothFix, SmoothFix);                        // if smooth fix is on
-    CC_SYNTHESIZE_NV(bool, m_bSmoothFixCheck, SmoothFixCheck);              // not exactly sure what this is, but the name says something ig
-    CC_SYNTHESIZE_NV(bool, m_bForceSmoothFix, ForceSmoothFix);              // if "force smooth fix" is on or not
-    CC_SYNTHESIZE_READONLY_NV(int, m_nSmoothFixCounter, SmoothFixCounter);  // not sure about this one either
+        CC_SYNTHESIZE_NV(bool, m_bSmoothFix, SmoothFix);                        // if smooth fix is on
+        CC_SYNTHESIZE_NV(bool, m_bSmoothFixCheck, SmoothFixCheck);              // not exactly sure what this is, but the name says something ig
+        CC_SYNTHESIZE_NV(bool, m_bForceSmoothFix, ForceSmoothFix);              // if "force smooth fix" is on or not
+        CC_SYNTHESIZE_READONLY_NV(int, m_nSmoothFixCounter, SmoothFixCounter);  // not sure about this one either
     )
 
-        bool m_bPurgeDirecotorInNextLoop; // this flag will be set to true in end()
-
 protected:
+    bool m_bPurgeDirecotorInNextLoop; // this flag will be set to true in end()
+    
     void setNextScene(void);
-
+    
     void showStats();
-    RT_REMOVE(void createStatsLabel();)
-        void calculateMPF();
+    void createStatsLabel();
+    void calculateMPF();
     void getFPSImageData(unsigned char** datapointer, unsigned int* length);
-
-    /** calculates delta time since last time it was called */
+    
+    /** calculates delta time since last time it was called */    
     void calculateDeltaTime();
 protected:
     /* The CCEGLView, where everything is rendered */
-    CCEGLView* m_pobOpenGLView;
+    CCEGLView    *m_pobOpenGLView;
+
+    RT_ADD(
+        // this is never referenced; probably optimized out
+        PAD(0x4);
+    )
 
     double m_dAnimationInterval;
     double m_dOldAnimationInterval;
 
     /* landscape mode ? */
     bool m_bLandscape;
-
+    
     bool m_bDisplayStats;
     float m_fAccumDt;
     float m_fFrameRate;
-
-    CCLabelAtlas* m_pFPSLabel;
-    CCLabelAtlas* m_pSPFLabel;
-    CCLabelAtlas* m_pDrawsLabel;
-
+    
+    CCLabelAtlas *m_pFPSLabel;
+    CCLabelAtlas *m_pSPFLabel;
+    CCLabelAtlas *m_pDrawsLabel;
+    
     /** Whether or not the Director is paused */
     bool m_bPaused;
 
@@ -489,66 +486,63 @@ protected:
     unsigned int m_uTotalFrames;
     unsigned int m_uFrames;
     float m_fSecondsPerFrame;
-
+     
     /* The running scene */
-    CCScene* m_pRunningScene;
-
+    CCScene *m_pRunningScene;
+    
     /* will be the next 'runningScene' in the next frame
      nextScene is a weak reference. */
-    CCScene* m_pNextScene;
-
+    CCScene *m_pNextScene;
+    
     /* If YES, then "old" scene will receive the cleanup message */
     bool    m_bSendCleanupToScene;
 
     /* scheduled scenes */
     CCArray* m_pobScenesStack;
-
+    
     /* last time the main loop was updated */
-    struct cc_timeval* m_pLastUpdate;
+    struct cc_timeval *m_pLastUpdate;
 
     /* whether or not the next delta time will be zero */
     bool m_bNextDeltaTimeZero;
-
+    
     /* projection used */
     ccDirectorProjection m_eProjection;
 
     /* window size in points */
     CCSize m_obWinSizeInPoints;
-
-    /* something like pad idk */
-    float asdasdasddd;
-
+    
     /* content scale factor */
     float    m_fContentScaleFactor;
 
     /* store the fps string */
-    char* m_pszFPS;
+    char *m_pszFPS;
 
     /* This object will be visited after the scene. Useful to hook a notification node */
-    CCNode* m_pNotificationNode;
+    CCNode *m_pNotificationNode;
 
     /* Projection protocol delegate */
-    CCDirectorDelegate* m_pProjectionDelegate;
+    CCDirectorDelegate *m_pProjectionDelegate;
 
     RT_ADD(
-        CC_SYNTHESIZE(CCSceneDelegate*, m_pAppDelegate, SceneDelegate);
-    CCSize m_obScaleFactor;
-    CCSize m_obResolutionInPixels;
-    CC_SYNTHESIZE_READONLY_NV(TextureQuality, m_eTextureQuality, LoadedTextureQuality);
-    CC_SYNTHESIZE_NV(bool, m_bDontCallWillSwitch, DontCallWillSwitch);
+        CC_PROPERTY(CCSceneDelegate*, m_pAppDelegate, SceneDelegate);
+        CCSize m_obScaleFactor;
+        CCSize m_obResolutionInPixels;
+        TextureQuality m_eTextureQuality;
+        CC_SYNTHESIZE_NV(bool, m_bDontCallWillSwitch, DontCallWillSwitch);
     )
-
-        // CCEGLViewProtocol will recreate stats labels to fit visible rect
-        friend class CCEGLViewProtocol;
+    
+    // CCEGLViewProtocol will recreate stats labels to fit visible rect
+    friend class CCEGLViewProtocol;
 };
 
-/**
+/** 
  @brief DisplayLinkDirector is a Director that synchronizes timers with the refresh rate of the display.
-
+ 
  Features and Limitations:
   - Scheduled timers & drawing are synchronizes with the refresh rate of the display
   - Only supports animation intervals of 1/60 1/30 & 1/15
-
+ 
  @since v0.8.2
  @js NA
  @lua NA
@@ -556,7 +550,7 @@ protected:
 class CCDisplayLinkDirector : public CCDirector
 {
 public:
-    CCDisplayLinkDirector(void)
+    CCDisplayLinkDirector(void) 
         : m_bInvalid(false)
     {}
 

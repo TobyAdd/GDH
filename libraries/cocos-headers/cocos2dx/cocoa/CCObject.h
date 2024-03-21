@@ -27,6 +27,7 @@ THE SOFTWARE.
 
 #include "CCDataVisitor.h"
 #include "ccMacros.h"
+#include <unordered_map>
 
 #ifdef EMSCRIPTEN
 #include <GLES2/gl2.h>
@@ -67,9 +68,21 @@ public:
 };
 
 /**
+ * This class is used to fix the problem of destructor recursion.
+ */
+class CCDestructor : public CCCopying {
+private:
+    static std::unordered_map<void*, bool>& destructorLock();
+public:
+    static bool& globalLock();
+    static bool& lock(void* self);
+    ~CCDestructor();
+};
+
+/**
  * @js NA
  */
-class CC_DLL CCObject : public CCCopying
+class CC_DLL CCObject : public CCDestructor
 {
 public:
     // object id, CCScriptSupport need public m_uID
@@ -78,63 +91,61 @@ public:
     int                 m_nLuaID;
 protected:
     // the object's tag
-    RT_ADD( int m_nTag; )
+    int m_nTag;
     // count of references
     unsigned int        m_uReference;
     // count of autorelease
     unsigned int        m_uAutoReleaseCount;
 
-    RT_ADD(
-        int m_eObjType;
-        int m_uIndexInArray;
-    )
+    CCObjectType m_eObjType;
+
+    int m_uIndexInArray;
 
     // 2.2 additions
-    int m_uUnknown; // -1 by default
-    int m_unknown2;
-    int m_nZOrder; // moved from CCNode, why rob
-    int m_uOrderOfArrival; // moved from CCNode, why rob
-    int m_unknown5;
 
+    int m_uUnknown;
+    int m_unknown2;
+    int m_nZOrder;
+    int m_uOrderOfArrival;
+    int m_unknown5;
 public:
     CCObject(void);
-    RT_ADD( CCObject(const CCObject&);  )
     /**
      *  @lua NA
      */
     virtual ~CCObject(void);
 
-    RT_ADD( CCObject& operator=(const CCObject&);   )
-    
     void release(void);
     void retain(void);
     CCObject* autorelease(void);
     CCObject* copy(void);
     bool isSingleReference(void) const;
-    unsigned int retainCount(void) const;
+    inline unsigned int retainCount(void) const {
+        return m_uReference;
+    }
     virtual bool isEqual(const CCObject* pObject);
 
     virtual void acceptVisitor(CCDataVisitor &visitor);
 
     virtual void update(float dt) {CC_UNUSED_PARAM(dt);};
-    
-    RT_ADD(
-        virtual void encodeWithCoder(DS_Dictionary*);
 
-        static CCObject* createWithCoder(DS_Dictionary*);
-        
-        virtual bool canEncode();
+    virtual void encodeWithCoder(DS_Dictionary*);
 
-        CCObjectType getObjType() const;
-        
-        virtual int getTag() const;
+    static CCObject* createWithCoder(DS_Dictionary*);
 
-        virtual void setTag(int nTag);
-       
-        void setObjType(CCObjectType);
-    
-        //i have no idea if vtable function order matters so 
-    )
+    virtual bool canEncode();
+
+    inline CCObjectType getObjType() const {
+        return m_eObjType;
+    }
+
+    virtual int getTag() const;
+
+    virtual void setTag(int nTag);
+
+    inline void setObjType(CCObjectType type) {
+        m_eObjType = type;
+    }
 
     friend class CCAutoreleasePool;
 };

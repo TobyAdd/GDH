@@ -1,4 +1,3 @@
-#include "version.hpp"
 #include "console.hpp"
 
 #ifndef DISABLE_CONSOLE

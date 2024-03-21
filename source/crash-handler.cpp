@@ -1,8 +1,9 @@
 #include "crash-handler.hpp"
-#include "console.hpp"
-#include "version.hpp"
+#include "replayEngine.hpp"
 #include <MinHook.h>
 #pragma comment(lib, "DbgHelp")
+
+bool symbolsInitialized = false;
 
 std::wstring getModuleName(HMODULE module, bool fullPath = true)
 {
@@ -49,23 +50,53 @@ std::wstring getExceptionCodeString(DWORD code)
     }
 }
 
-void printAddr(std::wstring &result, const void *addr, bool fullPath = true)
-{
-    HMODULE module = NULL;
+HMODULE handleFromAddress(void *address) {
+    HMODULE hModule = nullptr;
+    GetModuleHandleEx(
+            GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+            (LPCTSTR) address, &hModule);
+    return hModule;
+}
 
-    if (GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCWSTR)addr, &module))
-    {
-        const auto diff = reinterpret_cast<uintptr_t>(addr) - reinterpret_cast<uintptr_t>(module);
-        wchar_t buffer[512];
-        swprintf_s(buffer, L"%s + %IX", getModuleName(module, fullPath).c_str(), diff);
-        result += buffer;
+void printAddr(std::wstring &result, const void *address, bool fullPath = true)
+{
+    std::wstringstream ss;
+    HMODULE hModule = nullptr;
+
+    if (GetModuleHandleEx(
+            GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+            (LPCTSTR) address, &hModule)) {
+        auto const diff = (uintptr_t) address - (uintptr_t) hModule;
+        ss << getModuleName(hModule, fullPath) << L" + 0x" << std::hex << diff << std::dec;
+
+        if (symbolsInitialized) {
+            DWORD64 displacement64 = 0;
+            wchar_t buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
+            auto pSymbol = (PSYMBOL_INFO) buffer;
+            pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+            pSymbol->MaxNameLen = MAX_SYM_NAME;
+
+            auto process = GetCurrentProcess();
+
+            if (SymFromAddr(process, (DWORD64) address, &displacement64, pSymbol)) {
+                ss << L" (" << pSymbol->Name << L" + 0x" << std::hex << displacement64 << std::dec;
+
+                IMAGEHLP_LINE64 line;
+                line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
+                DWORD displacement;
+
+                if (SymGetLineFromAddr64(process, (DWORD64) address, &displacement, &line)) {
+                    ss << L" in " << line.FileName << L" at line " << line.LineNumber;
+                }
+
+                ss << L")";
+            }
+        }
+    } else {
+        ss << address;
     }
-    else
-    {
-        wchar_t buffer[512];
-        swprintf_s(buffer, L"%p", addr);
-        result += buffer;
-    }
+
+    result += ss.str();
 }
 
 void printRegisterStates(std::wstring &content, PCONTEXT context)
@@ -106,7 +137,7 @@ void walkStack(std::wstring &result, PCONTEXT context)
 
     while (true)
     {
-        if (!StackWalk64(IMAGE_FILE_MACHINE_I386, process, thread, &stack, context, NULL, SymFunctionTableAccess64, SymGetModuleBase64, NULL))
+        if (!StackWalk64(IMAGE_FILE_MACHINE_I386, process, thread, &stack, context, nullptr, SymFunctionTableAccess64, SymGetModuleBase64, nullptr))
             break;
 
         wchar_t buffer[512];
@@ -120,21 +151,14 @@ void walkStack(std::wstring &result, PCONTEXT context)
 
 LONG WINAPI handler(EXCEPTION_POINTERS *info)
 {
+    SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
+    symbolsInitialized = SymInitialize(GetCurrentProcess(), nullptr, TRUE);
+
     std::wstring message;
     message += L"An exception has occurred.\n";
     message += L"Tip: You can use 'CTRL + C' to copy this message.\n\n";
 
     wchar_t buffer[512];
-
-    message += L"GDH Information:\n";
-
-    std::wstringstream version;
-    version << L"- Version: " << GDH_VERSION << L"\n";
-    message += version.str().c_str();
-
-    std::wstringstream date_time_stream;
-    date_time_stream << L"- Build date: " << GDH_BUILD_DATE << " " << GDH_BUILD_TIME << "\n";
-    message += date_time_stream.str().c_str();
 
     message += L"\nException Information:\n";
     
@@ -160,19 +184,23 @@ LONG WINAPI handler(EXCEPTION_POINTERS *info)
 
     MessageBoxW(nullptr, message.c_str(), L"Geometry Dash Crashed (Crash Handler)", MB_OK | MB_ICONERROR);
 
+    if (!engine.replay2.empty()) {
+        int result = MessageBoxA(nullptr, "It looks like you have a macro in the buffer and it may not be saved. Save to crash.re?"
+        "\n\nNote: It may overwrite a past replay with the name \"crash\"\nRecommend renaming to a different replay name in GDH/macros directory",
+        "Replay Engine", MB_YESNO | MB_ICONWARNING);
+
+        if (result == IDYES) {
+            MessageBoxA(nullptr, engine.save("crash").c_str(), "Result", MB_OK | MB_ICONINFORMATION);
+        }
+    }
+
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
-typedef LPTOP_LEVEL_EXCEPTION_FILTER(WINAPI* SetUnhandledExceptionFilterPtr)(LPTOP_LEVEL_EXCEPTION_FILTER lpTopLevelExceptionFilter);
-SetUnhandledExceptionFilterPtr SetUnhandledExceptionFilter_Orig = nullptr;
-
-LPTOP_LEVEL_EXCEPTION_FILTER WINAPI CustomExceptionFilter(LPTOP_LEVEL_EXCEPTION_FILTER lpTopLevelExceptionFilter) {
-    Console::WriteLn("Steam API attempted to break the crash handler LOL");
-    return SetUnhandledExceptionFilter_Orig(handler);
-}
-
 void crashHandler::init() {
-    Console::WriteLn("Crash handler enabled");
+    AddVectoredExceptionHandler(0, [](PEXCEPTION_POINTERS ExceptionInfo) -> LONG {
+        SetUnhandledExceptionFilter(handler);
+        return EXCEPTION_CONTINUE_SEARCH;
+    });
     SetUnhandledExceptionFilter(handler);
-    MH_CreateHook(SetUnhandledExceptionFilter, &CustomExceptionFilter, (void **)&SetUnhandledExceptionFilter_Orig);
 }

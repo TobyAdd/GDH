@@ -9,5 +9,4 @@ namespace Content {
     bool load(std::string path);
     void save();
     void processCheckboxHack(const json &component);
-    void processOpcode(json &opcode, bool enabled);
 }

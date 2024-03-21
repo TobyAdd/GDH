@@ -12,4 +12,5 @@ namespace memory {
     bool WriteBytes(uintptr_t address, std::string bytes);
     size_t CountBytesInHexStr(const std::string hexStr);
     std::string ReadMemoryHexStr(uintptr_t address, size_t size);
+    bool WriteFloat(uintptr_t address, float value);
 }

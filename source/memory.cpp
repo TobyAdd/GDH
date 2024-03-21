@@ -8,7 +8,6 @@ struct PatternByte {
 uintptr_t memory::PatternScan(uintptr_t base, uintptr_t scanSize, const std::string signature) {
     std::vector<PatternByte> patternData;
 
-    // Parse the signature
     for (size_t i = 0; i < signature.size(); ++i) {
         if (signature[i] == ' ') {
             continue;
@@ -24,7 +23,6 @@ uintptr_t memory::PatternScan(uintptr_t base, uintptr_t scanSize, const std::str
         }
     }
 
-    // Search for the signature in the target region
     for (uintptr_t i = base; i < base + scanSize; ++i) {
         bool found = true;
 
@@ -104,4 +102,16 @@ std::string memory::ReadMemoryHexStr(uintptr_t address, size_t size) {
         return hexString.str().substr(0, hexString.str().size() - 1);
     }
     return "";
+}
+
+bool memory::WriteFloat(uintptr_t address, float value) {
+    DWORD oldProtect;
+    if (VirtualProtect(reinterpret_cast<void*>(address), sizeof(float), PAGE_EXECUTE_READWRITE, &oldProtect)) {
+        WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &value, sizeof(float), nullptr);
+        return VirtualProtect(reinterpret_cast<void*>(address), sizeof(float), oldProtect, &oldProtect);
+    }
+    else
+    {
+        return false;
+    }
 }

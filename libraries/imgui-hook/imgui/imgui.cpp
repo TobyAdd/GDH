@@ -1,4 +1,4 @@
-// dear imgui, v1.90.2 WIP
+// dear imgui, v1.90.4 WIP
 // (main code and documentation)
 
 // Help:
@@ -1114,6 +1114,7 @@ static void             UpdateDebugToolFlashStyleColor();
 static void             UpdateKeyboardInputs();
 static void             UpdateMouseInputs();
 static void             UpdateMouseWheel();
+static void             UpdateSmoothScroll(ImGuiWindow* window);
 static void             UpdateKeyRoutingTable(ImGuiKeyRoutingTable* rt);
 
 // Misc
@@ -1126,6 +1127,7 @@ static void             RenderDimmedBackgroundBehindWindow(ImGuiWindow* window, 
 static void             RenderDimmedBackgrounds();
 
 // Viewports
+const ImGuiID           IMGUI_VIEWPORT_DEFAULT_ID = 0x11111111; // Using an arbitrary constant instead of e.g. ImHashStr("ViewportDefault", 0); so it's easier to spot in the debugger. The exact value doesn't matter.
 static void             UpdateViewportsNewFrame();
 
 }
@@ -1296,6 +1298,12 @@ ImGuiIO::ImGuiIO()
     MouseDragThreshold = 6.0f;
     KeyRepeatDelay = 0.275f;
     KeyRepeatRate = 0.050f;
+
+    MouseWheelFriction = 3.2f;
+    ScrollScale = 0.02f;
+    ScrollSpeedMin = 0.0001f;
+    ScrollSpeedMax = 15.0f;
+    ScrollKeepForce = true;
 
     // Miscellaneous options
     MouseDrawCursor = false;
@@ -2062,12 +2070,18 @@ ImFileHandle ImFileOpen(const char* filename, const char* mode)
     // Previously we used ImTextCountCharsFromUtf8/ImTextStrFromUtf8 here but we now need to support ImWchar16 and ImWchar32!
     const int filename_wsize = ::MultiByteToWideChar(CP_UTF8, 0, filename, -1, NULL, 0);
     const int mode_wsize = ::MultiByteToWideChar(CP_UTF8, 0, mode, -1, NULL, 0);
-    ImGuiContext& g = *GImGui;
-    g.TempBuffer.reserve((filename_wsize + mode_wsize) * sizeof(wchar_t));
-    wchar_t* buf = (wchar_t*)(void*)g.TempBuffer.Data;
-    ::MultiByteToWideChar(CP_UTF8, 0, filename, -1, (wchar_t*)&buf[0], filename_wsize);
-    ::MultiByteToWideChar(CP_UTF8, 0, mode, -1, (wchar_t*)&buf[filename_wsize], mode_wsize);
-    return ::_wfopen((const wchar_t*)&buf[0], (const wchar_t*)&buf[filename_wsize]);
+
+    // Use stack buffer if possible, otherwise heap buffer. Sizes include zero terminator.
+    // We don't rely on current ImGuiContext as this is implied to be a helper function which doesn't depend on it (see #7314).
+    wchar_t local_temp_stack[FILENAME_MAX];
+    ImVector<wchar_t> local_temp_heap;
+    if (filename_wsize + mode_wsize > IM_ARRAYSIZE(local_temp_stack))
+        local_temp_heap.resize(filename_wsize + mode_wsize);
+    wchar_t* filename_wbuf = local_temp_heap.Data ? local_temp_heap.Data : local_temp_stack;
+    wchar_t* mode_wbuf = filename_wbuf + filename_wsize;
+    ::MultiByteToWideChar(CP_UTF8, 0, filename, -1, filename_wbuf, filename_wsize);
+    ::MultiByteToWideChar(CP_UTF8, 0, mode, -1, mode_wbuf, mode_wsize);
+    return ::_wfopen(filename_wbuf, mode_wbuf);
 #else
     return fopen(filename, mode);
 #endif
@@ -3452,21 +3466,21 @@ void ImGui::RenderNavHighlight(const ImRect& bb, ImGuiID id, ImGuiNavHighlightFl
     float rounding = (flags & ImGuiNavHighlightFlags_NoRounding) ? 0.0f : g.Style.FrameRounding;
     ImRect display_rect = bb;
     display_rect.ClipWith(window->ClipRect);
-    if (flags & ImGuiNavHighlightFlags_TypeDefault)
+    const float thickness = 2.0f;
+    if (flags & ImGuiNavHighlightFlags_Compact)
     {
-        const float THICKNESS = 2.0f;
-        const float DISTANCE = 3.0f + THICKNESS * 0.5f;
-        display_rect.Expand(ImVec2(DISTANCE, DISTANCE));
+        window->DrawList->AddRect(display_rect.Min, display_rect.Max, GetColorU32(ImGuiCol_NavHighlight), rounding, 0, thickness);
+    }
+    else
+    {
+        const float distance = 3.0f + thickness * 0.5f;
+        display_rect.Expand(ImVec2(distance, distance));
         bool fully_visible = window->ClipRect.Contains(display_rect);
         if (!fully_visible)
             window->DrawList->PushClipRect(display_rect.Min, display_rect.Max);
-        window->DrawList->AddRect(display_rect.Min + ImVec2(THICKNESS * 0.5f, THICKNESS * 0.5f), display_rect.Max - ImVec2(THICKNESS * 0.5f, THICKNESS * 0.5f), GetColorU32(ImGuiCol_NavHighlight), rounding, 0, THICKNESS);
+        window->DrawList->AddRect(display_rect.Min, display_rect.Max, GetColorU32(ImGuiCol_NavHighlight), rounding, 0, thickness);
         if (!fully_visible)
             window->DrawList->PopClipRect();
-    }
-    if (flags & ImGuiNavHighlightFlags_TypeThin)
-    {
-        window->DrawList->AddRect(display_rect.Min, display_rect.Max, GetColorU32(ImGuiCol_NavHighlight), rounding, 0, 1.0f);
     }
 }
 
@@ -3596,6 +3610,7 @@ void ImGui::Initialize()
 
     // Create default viewport
     ImGuiViewportP* viewport = IM_NEW(ImGuiViewportP)();
+    viewport->ID = IMGUI_VIEWPORT_DEFAULT_ID;
     g.Viewports.push_back(viewport);
     g.TempBuffer.resize(1024 * 3 + 1, 0);
 
@@ -4763,6 +4778,8 @@ void ImGui::NewFrame()
         // Garbage collect transient buffers of recently unused windows
         if (!window->WasActive && !window->MemoryCompacted && window->LastTimeActive < memory_compact_start_time)
             GcCompactTransientWindowBuffers(window);
+
+        UpdateSmoothScroll(window);
     }
 
     // Garbage collect transient buffers of recently unused tables
@@ -5401,7 +5418,7 @@ ImVec2 ImGui::GetItemRectSize()
 }
 
 // Prior to v1.90 2023/10/16, the BeginChild() function took a 'bool border = false' parameter instead of 'ImGuiChildFlags child_flags = 0'.
-// ImGuiChildFlags_Border is defined as always == 1 in order to allow old code passing 'true'.
+// ImGuiChildFlags_Border is defined as always == 1 in order to allow old code passing 'true'. Read comments in imgui.h for details!
 bool ImGui::BeginChild(const char* str_id, const ImVec2& size_arg, ImGuiChildFlags child_flags, ImGuiWindowFlags window_flags)
 {
     ImGuiID id = GetCurrentWindow()->GetID(str_id);
@@ -5543,7 +5560,7 @@ void ImGui::EndChild()
 
             // When browsing a window that has no activable items (scroll only) we keep a highlight on the child (pass g.NavId to trick into always displaying)
             if (child_window->DC.NavLayersActiveMask == 0 && child_window == g.NavWindow)
-                RenderNavHighlight(ImRect(bb.Min - ImVec2(2, 2), bb.Max + ImVec2(2, 2)), g.NavId, ImGuiNavHighlightFlags_TypeThin);
+                RenderNavHighlight(ImRect(bb.Min - ImVec2(2, 2), bb.Max + ImVec2(2, 2)), g.NavId, ImGuiNavHighlightFlags_Compact);
         }
         else
         {
@@ -5753,7 +5770,7 @@ static ImVec2 CalcWindowAutoFitSize(ImGuiWindow* window, const ImVec2& size_cont
     {
         // Maximum window size is determined by the viewport size or monitor size
         ImVec2 size_min = CalcWindowMinSize(window);
-        ImVec2 size_max = (window->Flags & ImGuiWindowFlags_ChildWindow) ? ImVec2(FLT_MAX, FLT_MAX) : ImGui::GetMainViewport()->WorkSize - style.DisplaySafeAreaPadding * 2.0f;
+        ImVec2 size_max = ((window->Flags & ImGuiWindowFlags_ChildWindow) && !(window->Flags & ImGuiWindowFlags_Popup)) ? ImVec2(FLT_MAX, FLT_MAX) : ImGui::GetMainViewport()->WorkSize - style.DisplaySafeAreaPadding * 2.0f;
         ImVec2 size_auto_fit = ImClamp(size_desired, size_min, size_max);
 
         // When the window cannot fit all contents (either because of constraints, either because screen is too small),
@@ -6434,7 +6451,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
     window_stack_data.StackSizesOnBegin.SetToContextState(&g);
     g.CurrentWindowStack.push_back(window_stack_data);
     if (flags & ImGuiWindowFlags_ChildMenu)
-        g.BeginMenuCount++;
+        g.BeginMenuDepth++;
 
     // Update ->RootWindow and others pointers (before any possible call to FocusWindow)
     if (first_begin_of_the_frame)
@@ -7106,7 +7123,7 @@ void ImGui::End()
     // Pop from window stack
     g.LastItemData = g.CurrentWindowStack.back().ParentLastItemDataBackup;
     if (window->Flags & ImGuiWindowFlags_ChildMenu)
-        g.BeginMenuCount--;
+        g.BeginMenuDepth--;
     if (window->Flags & ImGuiWindowFlags_Popup)
         g.BeginPopupStack.pop_back();
     g.CurrentWindowStack.back().StackSizesOnBegin.CompareWithContextState(&g);
@@ -9152,7 +9169,12 @@ void ImGui::UpdateMouseWheel()
                 LockWheelingWindow(window, wheel.x);
                 float max_step = window->InnerRect.GetWidth() * 0.67f;
                 float scroll_step = ImTrunc(ImMin(2 * window->CalcFontSize(), max_step));
-                SetScrollX(window, window->Scroll.x - wheel.x * scroll_step);
+                // Use g.ScrollSpeed instead of setting scroll directly
+                float scroll_amount = wheel.x * scroll_step * g.IO.ScrollScale;
+                if (g.IO.ScrollKeepForce)
+                    window->ScrollSpeed.x += scroll_amount;
+                else
+                    window->ScrollSpeed.x = scroll_amount;
                 g.WheelingWindowScrolledFrame = g.FrameCount;
             }
             if (do_scroll[ImGuiAxis_Y])
@@ -9160,10 +9182,58 @@ void ImGui::UpdateMouseWheel()
                 LockWheelingWindow(window, wheel.y);
                 float max_step = window->InnerRect.GetHeight() * 0.67f;
                 float scroll_step = ImTrunc(ImMin(5 * window->CalcFontSize(), max_step));
-                SetScrollY(window, window->Scroll.y - wheel.y * scroll_step);
+                // Use g.ScrollSpeed instead of setting scroll directly
+                float scroll_amount = wheel.y * scroll_step * g.IO.ScrollScale;
+                if (g.IO.ScrollKeepForce)
+                    window->ScrollSpeed.y += scroll_amount;
+                else
+                    window->ScrollSpeed.y = scroll_amount;
                 g.WheelingWindowScrolledFrame = g.FrameCount;
             }
         }
+}
+
+void ImGui::UpdateSmoothScroll(ImGuiWindow* window) 
+{
+    ImGuiContext& g = *GImGui;
+    if (g.ActiveId != 0 || g.HoveredId != 0)
+        return;
+
+    // Limit to max speed
+    if (fabs(window->ScrollSpeed.x) > g.IO.ScrollSpeedMax)
+        window->ScrollSpeed.x = ImSign(window->ScrollSpeed.x) * g.IO.ScrollSpeedMax;
+
+    if (fabs(window->ScrollSpeed.y) > g.IO.ScrollSpeedMax)
+        window->ScrollSpeed.y = ImSign(window->ScrollSpeed.y) * g.IO.ScrollSpeedMax;
+
+    // Update scroll every frame
+    if (!(window->Flags & ImGuiWindowFlags_NoScrollWithMouse) && !(window->Flags & ImGuiWindowFlags_NoMouseInputs))
+    {
+        bool do_scroll[2] = { 
+            window->ScrollSpeed.x != 0.0f && window->ScrollMax.x != 0.0f, 
+            window->ScrollSpeed.y != 0.0f && window->ScrollMax.y != 0.0f 
+        };
+
+        if (do_scroll[0]) {
+            // LockWheelingWindow(window, window->ScrollSpeed.x);
+            SetScrollX(window, window->Scroll.x - window->ScrollSpeed.x);
+        }
+        if (do_scroll[1]) {
+            // LockWheelingWindow(window, window->ScrollSpeed.y);
+            SetScrollY(window, window->Scroll.y - window->ScrollSpeed.y);
+        }
+    }
+
+    // Apply friction to scroll speed (with delta time)
+    float dumpingFactor = g.IO.MouseWheelFriction * g.IO.DeltaTime;
+    window->ScrollSpeed *= 1.0f - dumpingFactor;
+
+    // Reset to zero when really close to zero
+    if (fabs(window->ScrollSpeed.x) < g.IO.ScrollSpeedMin)
+        window->ScrollSpeed.x = 0.0f;
+
+    if (fabs(window->ScrollSpeed.y) < g.IO.ScrollSpeedMin)
+        window->ScrollSpeed.y = 0.0f;
 }
 
 void ImGui::SetNextFrameWantCaptureKeyboard(bool want_capture_keyboard)
@@ -10773,16 +10843,22 @@ void ImGui::OpenPopupEx(ImGuiID id, ImGuiPopupFlags popup_flags)
     }
     else
     {
-        // Gently handle the user mistakenly calling OpenPopup() every frame. It is a programming mistake! However, if we were to run the regular code path, the ui
-        // would become completely unusable because the popup will always be in hidden-while-calculating-size state _while_ claiming focus. Which would be a very confusing
-        // situation for the programmer. Instead, we silently allow the popup to proceed, it will keep reappearing and the programming error will be more obvious to understand.
-        if (g.OpenPopupStack[current_stack_size].PopupId == id && g.OpenPopupStack[current_stack_size].OpenFrameCount == g.FrameCount - 1)
+        // Gently handle the user mistakenly calling OpenPopup() every frames: it is likely a programming mistake!
+        // However, if we were to run the regular code path, the ui would become completely unusable because the popup will always be
+        // in hidden-while-calculating-size state _while_ claiming focus. Which is extremely confusing situation for the programmer.
+        // Instead, for successive frames calls to OpenPopup(), we silently avoid reopening even if ImGuiPopupFlags_NoReopen is not specified.
+        bool keep_existing = false;
+        if (g.OpenPopupStack[current_stack_size].PopupId == id)
+            if ((g.OpenPopupStack[current_stack_size].OpenFrameCount == g.FrameCount - 1) || (popup_flags & ImGuiPopupFlags_NoReopen))
+                keep_existing = true;
+        if (keep_existing)
         {
+            // No reopen
             g.OpenPopupStack[current_stack_size].OpenFrameCount = popup_ref.OpenFrameCount;
         }
         else
         {
-            // Close child popups if any, then flag popup for open/reopen
+            // Reopen: close child popups if any, then flag popup for open/reopen (set position, focus, init navigation)
             ClosePopupToLevel(current_stack_size, false);
             g.OpenPopupStack.push_back(popup_ref);
         }
@@ -10813,14 +10889,15 @@ void ImGui::ClosePopupsOverWindow(ImGuiWindow* ref_window, bool restore_focus_to
             if (!popup.Window)
                 continue;
             IM_ASSERT((popup.Window->Flags & ImGuiWindowFlags_Popup) != 0);
-            if (popup.Window->Flags & ImGuiWindowFlags_ChildWindow)
-                continue;
 
             // Trim the stack unless the popup is a direct parent of the reference window (the reference window is often the NavWindow)
-            // - With this stack of window, clicking/focusing Popup1 will close Popup2 and Popup3:
-            //     Window -> Popup1 -> Popup2 -> Popup3
+            // - Clicking/Focusing Window2 won't close Popup1:
+            //     Window -> Popup1 -> Window2(Ref)
+            // - Clicking/focusing Popup1 will close Popup2 and Popup3:
+            //     Window -> Popup1(Ref) -> Popup2 -> Popup3
             // - Each popups may contain child windows, which is why we compare ->RootWindow!
             //     Window -> Popup1 -> Popup1_Child -> Popup2 -> Popup2_Child
+            // We step through every popup from bottom to top to validate their position relative to reference window.
             bool ref_window_is_descendent_of_popup = false;
             for (int n = popup_count_to_keep; n < g.OpenPopupStack.Size; n++)
                 if (ImGuiWindow* popup_window = g.OpenPopupStack[n].Window)
@@ -10919,7 +10996,7 @@ bool ImGui::BeginPopupEx(ImGuiID id, ImGuiWindowFlags flags)
 
     char name[20];
     if (flags & ImGuiWindowFlags_ChildMenu)
-        ImFormatString(name, IM_ARRAYSIZE(name), "##Menu_%02d", g.BeginMenuCount); // Recycle windows based on depth
+        ImFormatString(name, IM_ARRAYSIZE(name), "##Menu_%02d", g.BeginMenuDepth); // Recycle windows based on depth
     else
         ImFormatString(name, IM_ARRAYSIZE(name), "##Popup_%08x", id); // Not recycling, so we can close/open during the same frame
 
@@ -11503,7 +11580,7 @@ static void ImGui::NavProcessItem()
 
     // Process Move Request (scoring for navigation)
     // FIXME-NAV: Consider policy for double scoring (scoring from NavScoringRect + scoring from a rect wrapped according to current wrapping policy)
-    if (g.NavMoveScoringItems && (item_flags & ImGuiItemFlags_Disabled) == 0)
+    if (g.NavMoveScoringItems && (item_flags & ImGuiItemFlags_Disabled) == 0 && (window->Flags & ImGuiWindowFlags_NoNavInputs) == 0)
     {
         const bool is_tabbing = (g.NavMoveFlags & ImGuiNavMoveFlags_IsTabbing) != 0;
         if (is_tabbing)
@@ -12257,6 +12334,8 @@ void ImGui::NavMoveRequestApplyResult()
         g.NavWindow = result->Window;
         g.NavLastValidSelectionUserData = ImGuiSelectionUserData_Invalid;
     }
+
+    // FIXME: Could become optional e.g. ImGuiNavMoveFlags_NoClearActiveId if we later want to apply navigation requests without altering active input.
     if (g.ActiveId != result->ID)
         ClearActiveID();
 
@@ -13966,7 +14045,7 @@ static void SetPlatformImeDataFn_DefaultImpl(ImGuiViewport*, ImGuiPlatformImeDat
 //-----------------------------------------------------------------------------
 // [SECTION] METRICS/DEBUGGER WINDOW
 //-----------------------------------------------------------------------------
-// - RenderViewportThumbnail() [Internal]
+// - DebugRenderViewportThumbnail() [Internal]
 // - RenderViewportsThumbnails() [Internal]
 // - DebugTextEncoding()
 // - MetricsHelpMarker() [Internal]
@@ -14005,7 +14084,7 @@ void ImGui::DebugRenderViewportThumbnail(ImDrawList* draw_list, ImGuiViewportP* 
         ImRect thumb_r = thumb_window->Rect();
         ImRect title_r = thumb_window->TitleBarRect();
         thumb_r = ImRect(ImTrunc(off + thumb_r.Min * scale), ImTrunc(off +  thumb_r.Max * scale));
-        title_r = ImRect(ImTrunc(off + title_r.Min * scale), ImTrunc(off +  ImVec2(title_r.Max.x, title_r.Min.y) * scale) + ImVec2(0,5)); // Exaggerate title bar height
+        title_r = ImRect(ImTrunc(off + title_r.Min * scale), ImTrunc(off +  ImVec2(title_r.Max.x, title_r.Min.y + title_r.GetHeight() * 3.0f) * scale)); // Exaggerate title bar height
         thumb_r.ClipWithFull(bb);
         title_r.ClipWithFull(bb);
         const bool window_is_focused = (g.NavWindow && thumb_window->RootWindowForTitleBarHighlight == g.NavWindow->RootWindowForTitleBarHighlight);
@@ -14015,6 +14094,8 @@ void ImGui::DebugRenderViewportThumbnail(ImDrawList* draw_list, ImGuiViewportP* 
         window->DrawList->AddText(g.Font, g.FontSize * 1.0f, title_r.Min, GetColorU32(ImGuiCol_Text, alpha_mul), thumb_window->Name, FindRenderedTextEnd(thumb_window->Name));
     }
     draw_list->AddRect(bb.Min, bb.Max, GetColorU32(ImGuiCol_Border, alpha_mul));
+    if (viewport->ID == g.DebugMetricsConfig.HighlightViewportID)
+        window->DrawList->AddRect(bb.Min, bb.Max, IM_COL32(255, 255, 0, 255));
 }
 
 static void RenderViewportsThumbnails()
@@ -14022,13 +14103,12 @@ static void RenderViewportsThumbnails()
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = g.CurrentWindow;
 
-    // We don't display full monitor bounds (we could, but it often looks awkward), instead we display just enough to cover all of our viewports.
     float SCALE = 1.0f / 8.0f;
-    ImRect bb_full(FLT_MAX, FLT_MAX, -FLT_MAX, -FLT_MAX);
-    for (ImGuiViewportP* viewport : g.Viewports)
-        bb_full.Add(viewport->GetMainRect());
+    ImRect bb_full(g.Viewports[0]->Pos, g.Viewports[0]->Pos + g.Viewports[0]->Size);
     ImVec2 p = window->DC.CursorPos;
     ImVec2 off = p - bb_full.Min * SCALE;
+
+    // Draw viewports
     for (ImGuiViewportP* viewport : g.Viewports)
     {
         ImRect viewport_draw_bb(off + (viewport->Pos) * SCALE, off + (viewport->Pos + viewport->Size) * SCALE);
@@ -14271,7 +14351,7 @@ void ImGui::ShowMetricsWindow(bool* p_open)
         MetricsHelpMarker("Will call the IM_DEBUG_BREAK() macro to break in debugger.\nWarning: If you don't have a debugger attached, this will probably crash.");
         if (Checkbox("Show Item Picker", &g.DebugItemPickerActive) && g.DebugItemPickerActive)
             DebugStartItemPicker();
-        Checkbox("Show \"Debug Break\" buttons in other sections", &g.IO.ConfigDebugIsDebuggerPresent);
+        Checkbox("Show \"Debug Break\" buttons in other sections (io.ConfigDebugIsDebuggerPresent)", &g.IO.ConfigDebugIsDebuggerPresent);
 
         SeparatorText("Visualize");
 
@@ -14407,9 +14487,14 @@ void ImGui::ShowMetricsWindow(bool* p_open)
     // Viewports
     if (TreeNode("Viewports", "Viewports (%d)", g.Viewports.Size))
     {
-        Indent(GetTreeNodeToLabelSpacing());
-        RenderViewportsThumbnails();
-        Unindent(GetTreeNodeToLabelSpacing());
+        SetNextItemOpen(true, ImGuiCond_Once);
+        if (TreeNode("Windows Minimap"))
+        {
+            RenderViewportsThumbnails();
+            TreePop();
+        }
+        cfg->HighlightViewportID = 0;
+
         for (ImGuiViewportP* viewport : g.Viewports)
             DebugNodeViewport(viewport);
         TreePop();
@@ -15111,8 +15196,12 @@ void ImGui::DebugNodeTabBar(ImGuiTabBar* tab_bar, const char* label)
 
 void ImGui::DebugNodeViewport(ImGuiViewportP* viewport)
 {
+    ImGuiContext& g = *GImGui;
     SetNextItemOpen(true, ImGuiCond_Once);
-    if (TreeNode("viewport0", "Viewport #%d", 0))
+    bool open = TreeNode("viewport0", "Viewport #%d", 0);
+    if (IsItemHovered())
+        g.DebugMetricsConfig.HighlightViewportID = viewport->ID;
+    if (open)
     {
         ImGuiWindowFlags flags = viewport->Flags;
         BulletText("Main Pos: (%.0f,%.0f), Size: (%.0f,%.0f)\nWorkArea Offset Left: %.0f Top: %.0f, Right: %.0f, Bottom: %.0f",

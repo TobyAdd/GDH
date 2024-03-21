@@ -1,24 +1,16 @@
+#include <Windows.h>
 #include "content.hpp"
+#include "hooks.hpp"
 #include "console.hpp"
 #include "memory.hpp"
-#include "hooks.hpp"
 #include "gui.hpp"
-#include "replayEngine.hpp"
+#include "speedhackAudio.hpp"
+#include "labels.hpp"
 
 json Content::content;
 
-void CheckDir(std::string dir)
-{
-    if (!std::filesystem::is_directory(dir) || !std::filesystem::exists(dir))
-    {
-        std::filesystem::create_directory(dir);
-    }
-}
-
 bool Content::load(std::string path) {
     try {
-        CheckDir("GDH");
-        CheckDir("GDH/macros");
         std::ifstream file(path);
 
         if (!file.is_open()) {
@@ -121,29 +113,140 @@ bool Content::load(std::string path) {
                             }
                         }
                     }
-                }                
-                else if (type == "transitionCustomizerCBX") {
-                    auto index = component["index"];
-                    hooks::transitionSelect = index;
-                }                
-                else if (type == "checkbox_startposSwitcher") {
-                    bool enabled = component["enabled"];
-                    bool use_a_d = component["use_a_d"];
-
-                    startPosSwitcher::enabled = enabled;
-                    startPosSwitcher::use_a_d = use_a_d;
                 }
+                else if (type == "scale_gui") {
+                    int index = component["index"];
+                    const char* items[] = {"25%", "50%", "75%", "100%", "125%", "150%", "175%", "200%", "250%", "300%", "400%"};
+                    gui::scalePercentage = float(atof(items[index])) / 100.0f;
+                    ImGuiHook::scale = gui::scalePercentage;   
+                }
+                else if (type == "checkbox_discord_rpc") {
+                    bool enabled = component["enabled"];
+                    hacks::discord_rpc = enabled;
+                }                
+                else if (type == "checkbox_smart_startpos") {
+                    bool enabled = component["enabled"];
+                    hacks::smart_startpos = enabled;
+                }
+                else if (type == "checkbox_show_hitboxes") {
+                    bool enabled = component["enabled"];
+                    bool show_on_death = component["show_on_death"];
+
+                    bool draw_trail_enabled = component["draw_trail"];
+                    bool default_circle_hitboxes_size_enabled = component["default_circle_hitboxes_size"];
+
+                    int border_alpha = component["border_alpha"];
+                    int fill_alpha = component["fill_alpha"];
+                    int circle_border_alpha = component["circle_border_alpha"];
+                    int circle_fill_alpha = component["circle_fill_alpha"];
+
+                    float hitbox_size = component["hitboxes_size"];
+                    float circle_hitboxes_size = component["circle_hitboxes_size"];
+
+                    hacks::show_hitboxes = enabled;
+                    hacks::draw_trail = draw_trail_enabled;
+                    hacks::border_alpha = border_alpha;
+                    hacks::fill_alpha = fill_alpha;
+                    hacks::circle_border_alpha = circle_border_alpha;
+                    hacks::circle_fill_alpha = circle_fill_alpha;
+                    hacks::hitbox_size = hitbox_size;
+                    hacks::circle_hitbox_size = circle_hitboxes_size;
+                    hacks::default_hitbox_size = default_circle_hitboxes_size_enabled;
+
+                    hitboxes_mode::enabled_hitbox(enabled);
+                    hitboxes_mode::enabled_draw_trail(draw_trail_enabled);
+                }
+                else if (type == "checkbox_instant_complete") {
+                    bool enabled = component["enabled"];
+                    hacks::instant_complate = enabled;
+                }      
                 else if (type == "checkbox_layout_mode") {
                     bool enabled = component["enabled"];
                     layout_mode::set_enabled(enabled);
+                }                
+                else if (type == "checkbox_startpos_switcher") {
+                    bool enabled = component["enabled"];
+                    bool use_a_d_enabled = component["use_a_d"];
+                    startPosSwitcher::enabled = enabled;
+                    startPosSwitcher::use_a_d = use_a_d_enabled;
+                }               
+                else if (type == "checkbox_auto_pickup_coins") {
+                    bool enabled = component["enabled"];
+                    hacks::auto_pickup_coins = enabled;
+                }
+                else if (type == "checkbox_auto_ldm") {
+                    bool enabled = component["enabled"];
+                    hacks::auto_ldm = enabled;
+                }                         
+                else if (type == "checkbox_auto_song_downloader") {
+                    bool enabled = component["enabled"];
+                    hacks::auto_song_downloader = enabled;
+                }                                        
+                else if (type == "checkbox_auto_practice_mode") {
+                    bool enabled = component["enabled"];
+                    hacks::auto_practice_mode = enabled;
                 }
                 else if (type == "fps_multiplier") {
-                    bool enabled = component["enabled"];
-                    bool real_time = component["real_time"];
+                    bool enabled = component["tps_enabled"];
+                    hacks::tps_enabled = enabled;
+
+                    float tps_value = component["tps_value"];
+                    hacks::tps = tps_value;
+                }
+                else if (type == "speed") {
                     float value = component["value"];
-                    engine.fps_enabled = enabled;
-                    engine.real_time = real_time;
-                    engine.fps = value;
+                    hacks::speed = value;
+
+                    bool audio = component["audio"];
+                }
+                else if (type == "transition_customizer") {
+                    bool enabled = component["enabled"];
+                    hacks::transition_enabled = enabled;
+
+                    int index = component["index"];
+                    hacks::transition_index = index;
+
+                    float duration = component["duration"];
+                    hacks::transition_duration = duration;
+                }
+                else if (type == "checkbox_hide_player") {
+                    bool enabled = component["enabled"];
+                    hacks::hide_player_enabled = enabled;
+
+                    bool first_player = component["first_player"];
+                    hacks::hide_player_p1 = first_player;
+
+                    bool second_player = component["second_player"];
+                    hacks::hide_player_p2 = second_player;
+                }
+                else if (type == "checkbox_respawn_time") {
+                    float duration = component["duration"];
+                    hacks::respawnTime = duration;
+                }
+                else if (type == "labels") {
+                    bool custom_text_enabled = component["custom_text_enabled"];
+                    labels::custom_text_enabled = custom_text_enabled;
+
+                    std::string custom_text = component["custom_text"];
+                    labels::custom_text = custom_text;
+                    
+                    bool time_24hr = component["time_24hr"];
+                    labels::time24_enabled = time_24hr;
+
+                    bool time_12hr = component["time_12hr"];
+                    labels::time12_enabled = time_12hr;
+                    
+                    bool noclip_accuracy = component["noclip_accuracy"];
+                    labels::noclip_accuracy_enabled = noclip_accuracy;
+
+                    bool cps_counter = component["cps_counter"];
+                    labels::cps_counter_enabled = cps_counter;
+
+                    bool death_counter = component["death_counter"];
+                    labels::death_enabled = death_counter;
+
+                    int pos = component["pos"];
+                    labels::pos = pos;            
                 }
             }
         }
@@ -160,10 +263,8 @@ bool Content::load(std::string path) {
     }
 }
 
-
 void Content::save() {
     if (Content::content.is_null()) {
-        MessageBoxA(0, "Failed to save hacks. Make sure that the 'content.json' file is okay", "Error", 0);
         return;
     }
 

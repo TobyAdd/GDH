@@ -1,4 +1,4 @@
-// dear imgui, v1.90.2 WIP
+// dear imgui, v1.90.4 WIP
 // (widgets code)
 
 /*
@@ -721,7 +721,10 @@ bool ImGui::ButtonEx(const char* label, const ImVec2& size_arg, ImGuiButtonFlags
 
     if (g.LogEnabled)
         LogSetNextTextDecoration("[", "]");
+    
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_WindowBg]);
     RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, NULL, &label_size, style.ButtonTextAlign, &bb);
+    ImGui::PopStyleColor();
 
     // Automatically close popups
     //if (pressed && !(flags & ImGuiButtonFlags_DontClosePopups) && (window->Flags & ImGuiWindowFlags_Popup))
@@ -792,7 +795,7 @@ bool ImGui::ArrowButtonEx(const char* str_id, ImGuiDir dir, ImVec2 size, ImGuiBu
 
     // Render
     const ImU32 bg_col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
-    const ImU32 text_col = GetColorU32(ImGuiCol_Text);
+    const ImU32 text_col = GetColorU32(ImGuiCol_WindowBg);
     RenderNavHighlight(bb, id);
     RenderFrame(bb.Min, bb.Max, bg_col, true, g.Style.FrameRounding);
     RenderArrow(window->DrawList, bb.Min + ImVec2(ImMax(0.0f, (size.x - g.FontSize) * 0.5f), ImMax(0.0f, (size.y - g.FontSize) * 0.5f)), text_col, dir);
@@ -1104,61 +1107,100 @@ bool ImGui::ImageButton(ImTextureID user_texture_id, const ImVec2& size, const I
 }
 #endif // #ifndef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 
-bool ImGui::Checkbox(const char* label, bool* v)
+// bool ImGui::Checkbox(const char* label, bool* v, float scale)
+// {
+//     ImGuiWindow* window = GetCurrentWindow();
+//     if (window->SkipItems)
+//         return false;
+
+//     ImGuiContext& g = *GImGui;
+//     const ImGuiStyle& style = g.Style;
+//     const ImGuiID id = window->GetID(label);
+//     const ImVec2 label_size = CalcTextSize(label, NULL, true);
+
+//     const float square_sz = GetFrameHeight();
+//     const ImVec2 pos = window->DC.CursorPos;
+//     const ImRect total_bb(pos, pos + ImVec2(square_sz + (label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f), label_size.y + style.FramePadding.y * 2.0f));
+//     ItemSize(total_bb, style.FramePadding.y);
+//     if (!ItemAdd(total_bb, id))
+//     {
+//         IMGUI_TEST_ENGINE_ITEM_INFO(id, label, g.LastItemData.StatusFlags | ImGuiItemStatusFlags_Checkable | (*v ? ImGuiItemStatusFlags_Checked : 0));
+//         return false;
+//     }
+
+//     bool hovered, held;
+//     bool pressed = ButtonBehavior(total_bb, id, &hovered, &held);
+//     if (pressed)
+//     {
+//         *v = !(*v);
+//         MarkItemEdited(id);
+//     }
+
+//     const ImRect check_bb(pos, pos + ImVec2(square_sz, square_sz));
+//     RenderNavHighlight(total_bb, id);
+//     RenderFrame(check_bb.Min, check_bb.Max, GetColorU32((held && hovered) ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg), true, style.FrameRounding);
+//     ImU32 check_col = GetColorU32(ImGuiCol_CheckMark);
+//     bool mixed_value = (g.LastItemData.InFlags & ImGuiItemFlags_MixedValue) != 0;
+//     if (mixed_value)
+//     {
+//         // Undocumented tristate/mixed/indeterminate checkbox (#2644)
+//         // This may seem awkwardly designed because the aim is to make ImGuiItemFlags_MixedValue supported by all widgets (not just checkbox)
+//         ImVec2 pad(ImMax(1.0f, IM_TRUNC(square_sz / 3.6f)), ImMax(1.0f, IM_TRUNC(square_sz / 3.6f)));
+//         window->DrawList->AddRectFilled(check_bb.Min + pad, check_bb.Max - pad, check_col, style.FrameRounding);
+//     }
+//     else if (*v)
+//     {
+//         const float pad = ImMax(1.0f, IM_TRUNC(square_sz / 6.0f));
+//         RenderCheckMark(window->DrawList, check_bb.Min + ImVec2(pad, pad), check_col, square_sz - pad * 2.0f);
+//     }
+
+//     ImVec2 label_pos = ImVec2(check_bb.Max.x + style.ItemInnerSpacing.x, check_bb.Min.y + style.FramePadding.y);
+//     if (g.LogEnabled)
+//         LogRenderedText(&label_pos, mixed_value ? "[~]" : *v ? "[x]" : "[ ]");
+//     if (label_size.x > 0.0f)
+//         RenderText(label_pos, label);
+
+//     IMGUI_TEST_ENGINE_ITEM_INFO(id, label, g.LastItemData.StatusFlags | ImGuiItemStatusFlags_Checkable | (*v ? ImGuiItemStatusFlags_Checked : 0));
+//     return pressed;
+// }
+
+// Custom checkbox
+bool ImGui::Checkbox(const char* label, bool* v, float scale)
 {
-    ImGuiWindow* window = GetCurrentWindow();
-    if (window->SkipItems)
-        return false;
+    ImVec2 buttonPosition = ImGui::GetCursorScreenPos();
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
 
-    ImGuiContext& g = *GImGui;
-    const ImGuiStyle& style = g.Style;
-    const ImGuiID id = window->GetID(label);
-    const ImVec2 label_size = CalcTextSize(label, NULL, true);
+    float buttonWidth = 35.0f * scale;
+    float buttonHeight = 22.0f * scale;
+    float buttonRadius = buttonHeight * 0.50f; 
 
-    const float square_sz = GetFrameHeight();
-    const ImVec2 pos = window->DC.CursorPos;
-    const ImRect total_bb(pos, pos + ImVec2(square_sz + (label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f), label_size.y + style.FramePadding.y * 2.0f));
-    ItemSize(total_bb, style.FramePadding.y);
-    if (!ItemAdd(total_bb, id))
-    {
-        IMGUI_TEST_ENGINE_ITEM_INFO(id, label, g.LastItemData.StatusFlags | ImGuiItemStatusFlags_Checkable | (*v ? ImGuiItemStatusFlags_Checked : 0));
-        return false;
+    ImGui::InvisibleButton(label, ImVec2(buttonWidth + ImGui::CalcTextSize(label).x + 4.f * scale, buttonHeight));    
+
+    bool buttonClicked = false;
+    if (ImGui::IsItemClicked()) {
+        *v = !*v;
+        buttonClicked = true;
     }
 
-    bool hovered, held;
-    bool pressed = ButtonBehavior(total_bb, id, &hovered, &held);
-    if (pressed)
-    {
-        *v = !(*v);
-        MarkItemEdited(id);
+    float interpolationFactor = *v ? 1.0f : 0.0f;
+    ImGuiContext& imguiContext = *GImGui;
+    float animationSpeed = 0.08f;
+    if (imguiContext.LastActiveId == imguiContext.CurrentWindow->GetID(label)) {
+        float animationProgress = ImSaturate(imguiContext.LastActiveIdTimer / animationSpeed);
+        interpolationFactor = *v ? animationProgress : 1.0f - animationProgress;
     }
 
-    const ImRect check_bb(pos, pos + ImVec2(square_sz, square_sz));
-    RenderNavHighlight(total_bb, id);
-    RenderFrame(check_bb.Min, check_bb.Max, GetColorU32((held && hovered) ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg), true, style.FrameRounding);
-    ImU32 check_col = GetColorU32(ImGuiCol_CheckMark);
-    bool mixed_value = (g.LastItemData.InFlags & ImGuiItemFlags_MixedValue) != 0;
-    if (mixed_value)
-    {
-        // Undocumented tristate/mixed/indeterminate checkbox (#2644)
-        // This may seem awkwardly designed because the aim is to make ImGuiItemFlags_MixedValue supported by all widgets (not just checkbox)
-        ImVec2 pad(ImMax(1.0f, IM_TRUNC(square_sz / 3.6f)), ImMax(1.0f, IM_TRUNC(square_sz / 3.6f)));
-        window->DrawList->AddRectFilled(check_bb.Min + pad, check_bb.Max - pad, check_col, style.FrameRounding);
-    }
-    else if (*v)
-    {
-        const float pad = ImMax(1.0f, IM_TRUNC(square_sz / 6.0f));
-        RenderCheckMark(window->DrawList, check_bb.Min + ImVec2(pad, pad), check_col, square_sz - pad * 2.0f);
-    }
+    const ImU32 backgroundColor = ImGui::GetColorU32(ImLerp(ImColor(67, 72, 78).Value, ImColor(164, 201, 254).Value, interpolationFactor));
+    const ImVec2 buttonEndPosition(buttonPosition.x + buttonWidth, buttonPosition.y + buttonHeight);
+    drawList->AddRectFilled(buttonPosition, buttonEndPosition, backgroundColor, buttonHeight * 0.5f);
+    const ImU32 circleColor = *v ? IM_COL32(0, 50, 87, int(ImGui::GetStyle().Alpha * 255)) : IM_COL32(140, 144, 153, int(ImGui::GetStyle().Alpha * 255));
+    const float circlePositionX = buttonPosition.x + buttonRadius + interpolationFactor * (buttonWidth - buttonRadius * 2.0f);
+    drawList->AddCircleFilled(ImVec2(circlePositionX, buttonPosition.y + buttonRadius), buttonRadius - 1.5f, circleColor);
 
-    ImVec2 label_pos = ImVec2(check_bb.Max.x + style.ItemInnerSpacing.x, check_bb.Min.y + style.FramePadding.y);
-    if (g.LogEnabled)
-        LogRenderedText(&label_pos, mixed_value ? "[~]" : *v ? "[x]" : "[ ]");
-    if (label_size.x > 0.0f)
-        RenderText(label_pos, label);
+    const ImVec2 textPosition(buttonPosition.x + buttonWidth + 5.0f, buttonPosition.y + buttonHeight / 2.0f - ImGui::GetTextLineHeight() / 2.0f);
+    drawList->AddText(textPosition, ImGui::GetColorU32(ImGuiCol_Text), label);
 
-    IMGUI_TEST_ENGINE_ITEM_INFO(id, label, g.LastItemData.StatusFlags | ImGuiItemStatusFlags_Checkable | (*v ? ImGuiItemStatusFlags_Checked : 0));
-    return pressed;
+    return buttonClicked;
 }
 
 template<typename T>
@@ -1208,64 +1250,45 @@ bool ImGui::CheckboxFlags(const char* label, ImU64* flags, ImU64 flags_value)
     return CheckboxFlagsT(label, flags, flags_value);
 }
 
-bool ImGui::RadioButton(const char* label, bool active)
+bool ImGui::RadioButton(const char* label, bool active, float scale)
 {
-    ImGuiWindow* window = GetCurrentWindow();
-    if (window->SkipItems)
-        return false;
+    ImVec2 buttonPosition = ImGui::GetCursorScreenPos();
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
 
-    ImGuiContext& g = *GImGui;
-    const ImGuiStyle& style = g.Style;
-    const ImGuiID id = window->GetID(label);
-    const ImVec2 label_size = CalcTextSize(label, NULL, true);
+    float buttonWidth = 22.0f * scale;
+    float buttonHeight = 22.0f * scale;
 
-    const float square_sz = GetFrameHeight();
-    const ImVec2 pos = window->DC.CursorPos;
-    const ImRect check_bb(pos, pos + ImVec2(square_sz, square_sz));
-    const ImRect total_bb(pos, pos + ImVec2(square_sz + (label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f), label_size.y + style.FramePadding.y * 2.0f));
-    ItemSize(total_bb, style.FramePadding.y);
-    if (!ItemAdd(total_bb, id))
-        return false;
+    ImGui::InvisibleButton(label, ImVec2(buttonWidth + ImGui::CalcTextSize(label).x + 4.f, buttonHeight));    
 
-    ImVec2 center = check_bb.GetCenter();
-    center.x = IM_ROUND(center.x);
-    center.y = IM_ROUND(center.y);
-    const float radius = (square_sz - 1.0f) * 0.5f;
-
-    bool hovered, held;
-    bool pressed = ButtonBehavior(total_bb, id, &hovered, &held);
-    if (pressed)
-        MarkItemEdited(id);
-
-    RenderNavHighlight(total_bb, id);
-    const int num_segment = window->DrawList->_CalcCircleAutoSegmentCount(radius);
-    window->DrawList->AddCircleFilled(center, radius, GetColorU32((held && hovered) ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg), num_segment);
-    if (active)
-    {
-        const float pad = ImMax(1.0f, IM_TRUNC(square_sz / 6.0f));
-        window->DrawList->AddCircleFilled(center, radius - pad, GetColorU32(ImGuiCol_CheckMark));
+    bool buttonClicked = false;
+    if (ImGui::IsItemClicked()) {
+        active = true;
+        buttonClicked = true;
     }
 
-    if (style.FrameBorderSize > 0.0f)
-    {
-        window->DrawList->AddCircle(center + ImVec2(1, 1), radius, GetColorU32(ImGuiCol_BorderShadow), num_segment, style.FrameBorderSize);
-        window->DrawList->AddCircle(center, radius, GetColorU32(ImGuiCol_Border), num_segment, style.FrameBorderSize);
+    float interpolationFactor = active ? 1.0f : 0.0f;
+    ImGuiContext& imguiContext = *GImGui;
+    float animationSpeed = 0.15f;
+    if (imguiContext.LastActiveId == imguiContext.CurrentWindow->GetID(label)) {
+        float animationProgress = ImSaturate(imguiContext.LastActiveIdTimer / animationSpeed);
+        interpolationFactor = active ? animationProgress : 1.0f - animationProgress;
     }
 
-    ImVec2 label_pos = ImVec2(check_bb.Max.x + style.ItemInnerSpacing.x, check_bb.Min.y + style.FramePadding.y);
-    if (g.LogEnabled)
-        LogRenderedText(&label_pos, active ? "(x)" : "( )");
-    if (label_size.x > 0.0f)
-        RenderText(label_pos, label);
+    const ImU32 backgroundColor = ImGui::GetColorU32(ImLerp(ImColor(67, 72, 78).Value, ImColor(164, 201, 254).Value, interpolationFactor));
+    const ImVec2 buttonEndPosition(buttonPosition.x + buttonWidth, buttonPosition.y + buttonHeight);
+    drawList->AddRectFilled(buttonPosition, buttonEndPosition, backgroundColor, buttonHeight * 0.5f);
 
-    IMGUI_TEST_ENGINE_ITEM_INFO(id, label, g.LastItemData.StatusFlags);
-    return pressed;
+    const ImVec2 textPosition(buttonPosition.x + buttonWidth + 5.0f, buttonPosition.y + buttonHeight / 2.0f - ImGui::GetTextLineHeight() / 2.0f);
+    drawList->AddText(textPosition, ImGui::GetColorU32(ImGuiCol_Text), label);
+
+    return buttonClicked;
 }
 
+
 // FIXME: This would work nicely if it was a public template, e.g. 'template<T> RadioButton(const char* label, T* v, T v_button)', but I'm not sure how we would expose it..
-bool ImGui::RadioButton(const char* label, int* v, int v_button)
+bool ImGui::RadioButton(const char* label, int* v, int v_button, float scale)
 {
-    const bool pressed = RadioButton(label, *v == v_button);
+    const bool pressed = RadioButton(label, *v == v_button, scale);
     if (pressed)
         *v = v_button;
     return pressed;
@@ -1718,7 +1741,7 @@ bool ImGui::BeginCombo(const char* label, const char* preview_value, ImGuiComboF
     if (!(flags & ImGuiComboFlags_NoArrowButton))
     {
         ImU32 bg_col = GetColorU32((popup_open || hovered) ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
-        ImU32 text_col = GetColorU32(ImGuiCol_Text);
+        ImU32 text_col = GetColorU32(ImGuiCol_WindowBg);
         window->DrawList->AddRectFilled(ImVec2(value_x2, bb.Min.y), bb.Max, bg_col, style.FrameRounding, (w <= arrow_size) ? ImDrawFlags_RoundCornersAll : ImDrawFlags_RoundCornersRight);
         if (value_x2 + arrow_size - style.FramePadding.x <= bb.Max.x)
             RenderArrow(window->DrawList, ImVec2(value_x2 + style.FramePadding.y, bb.Min.y + style.FramePadding.y), text_col, ImGuiDir_Down, 1.0f);
@@ -1784,7 +1807,7 @@ bool ImGui::BeginComboPopup(ImGuiID popup_id, const ImRect& bb, ImGuiComboFlags 
 
     // This is essentially a specialized version of BeginPopupEx()
     char name[16];
-    ImFormatString(name, IM_ARRAYSIZE(name), "##Combo_%02d", g.BeginPopupStack.Size); // Recycle windows based on depth
+    ImFormatString(name, IM_ARRAYSIZE(name), "##Combo_%02d", g.BeginComboDepth); // Recycle windows based on depth
 
     // Set position given a custom constraint (peak into expected window size so we can position it)
     // FIXME: This might be easier to express with an hypothetical SetNextWindowPosConstraints() function?
@@ -1811,12 +1834,15 @@ bool ImGui::BeginComboPopup(ImGuiID popup_id, const ImRect& bb, ImGuiComboFlags 
         IM_ASSERT(0);   // This should never happen as we tested for IsPopupOpen() above
         return false;
     }
+    g.BeginComboDepth++;
     return true;
 }
 
 void ImGui::EndCombo()
 {
+    ImGuiContext& g = *GImGui;
     EndPopup();
+    g.BeginComboDepth--;
 }
 
 // Call directly after the BeginCombo/EndCombo block. The preview is designed to only host non-interactive elements
@@ -1992,7 +2018,7 @@ bool ImGui::Combo(const char* label, int* current_item, bool (*old_getter)(void*
 // - DataTypeGetInfo()
 // - DataTypeFormatString()
 // - DataTypeApplyOp()
-// - DataTypeApplyOpFromText()
+// - DataTypeApplyFromText()
 // - DataTypeCompare()
 // - DataTypeClamp()
 // - GetMinimumStepAtDecimalPrecision
@@ -4185,27 +4211,32 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
 
     float scroll_y = is_multiline ? draw_window->Scroll.y : FLT_MAX;
 
+    const bool init_reload_from_user_buf = (state != NULL && state->ReloadUserBuf);
     const bool init_changed_specs = (state != NULL && state->Stb.single_line != !is_multiline); // state != NULL means its our state.
     const bool init_make_active = (user_clicked || user_scroll_finish || input_requested_by_nav);
     const bool init_state = (init_make_active || user_scroll_active);
-    if ((init_state && g.ActiveId != id) || init_changed_specs)
+    if ((init_state && g.ActiveId != id) || init_changed_specs || init_reload_from_user_buf)
     {
         // Access state even if we don't own it yet.
         state = &g.InputTextState;
         state->CursorAnimReset();
+        state->ReloadUserBuf = false;
 
         // Backup state of deactivating item so they'll have a chance to do a write to output buffer on the same frame they report IsItemDeactivatedAfterEdit (#4714)
         InputTextDeactivateHook(state->ID);
 
-        // Take a copy of the initial buffer value (both in original UTF-8 format and converted to wchar)
-        // From the moment we focused we are ignoring the content of 'buf' (unless we are in read-only mode)
+        // From the moment we focused we are normally ignoring the content of 'buf' (unless we are in read-only mode)
         const int buf_len = (int)strlen(buf);
-        state->InitialTextA.resize(buf_len + 1);    // UTF-8. we use +1 to make sure that .Data is always pointing to at least an empty string.
-        memcpy(state->InitialTextA.Data, buf, buf_len + 1);
+        if (!init_reload_from_user_buf)
+        {
+            // Take a copy of the initial buffer value.
+            state->InitialTextA.resize(buf_len + 1);    // UTF-8. we use +1 to make sure that .Data is always pointing to at least an empty string.
+            memcpy(state->InitialTextA.Data, buf, buf_len + 1);
+        }
 
         // Preserve cursor position and undo/redo stack if we come back to same widget
-        // FIXME: Since we reworked this on 2022/06, may want to differenciate recycle_cursor vs recycle_undostate?
-        bool recycle_state = (state->ID == id && !init_changed_specs);
+        // FIXME: Since we reworked this on 2022/06, may want to differentiate recycle_cursor vs recycle_undostate?
+        bool recycle_state = (state->ID == id && !init_changed_specs && !init_reload_from_user_buf);
         if (recycle_state && (state->CurLenA != buf_len || (state->TextAIsValid && strncmp(state->TextA.Data, buf, buf_len) != 0)))
             recycle_state = false;
 
@@ -4230,7 +4261,13 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
             stb_textedit_initialize_state(&state->Stb, !is_multiline);
         }
 
-        if (!is_multiline)
+        if (init_reload_from_user_buf)
+        {
+            state->Stb.select_start = state->ReloadSelectionStart;
+            state->Stb.cursor = state->Stb.select_end = state->ReloadSelectionEnd;
+            state->CursorClamp();
+        }
+        else if (!is_multiline)
         {
             if (flags & ImGuiInputTextFlags_AutoSelectAll)
                 select_all = true;
@@ -5025,7 +5062,7 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
         LogRenderedText(&draw_pos, buf_display, buf_display_end);
     }
 
-    if (label_size.x > 0)
+    if (label_size.x > 0) 
         RenderText(ImVec2(frame_bb.Max.x + style.ItemInnerSpacing.x, frame_bb.Min.y + style.FramePadding.y), label);
 
     if (value_changed && !(flags & ImGuiInputTextFlags_NoMarkEdited))
@@ -6327,7 +6364,7 @@ bool ImGui::TreeNodeBehavior(ImGuiID id, ImGuiTreeNodeFlags flags, const char* l
 
     // Render
     const ImU32 text_col = GetColorU32(ImGuiCol_Text);
-    ImGuiNavHighlightFlags nav_highlight_flags = ImGuiNavHighlightFlags_TypeThin;
+    ImGuiNavHighlightFlags nav_highlight_flags = ImGuiNavHighlightFlags_Compact;
     if (display_frame)
     {
         // Framed type
@@ -6630,7 +6667,7 @@ bool ImGui::Selectable(const char* label, bool selected, ImGuiSelectableFlags fl
         RenderFrame(bb.Min, bb.Max, col, false, 0.0f);
     }
     if (g.NavId == id)
-        RenderNavHighlight(bb, id, ImGuiNavHighlightFlags_TypeThin | ImGuiNavHighlightFlags_NoRounding);
+        RenderNavHighlight(bb, id, ImGuiNavHighlightFlags_Compact | ImGuiNavHighlightFlags_NoRounding);
 
     if (span_all_columns)
     {
@@ -7510,6 +7547,7 @@ bool ImGui::BeginMenuEx(const char* label, const char* icon, bool enabled)
         PopItemFlag();
 
     bool want_open = false;
+    bool want_open_nav_init = false;
     bool want_close = false;
     if (window->DC.LayoutType == ImGuiLayoutType_Vertical) // (window->Flags & (ImGuiWindowFlags_Popup|ImGuiWindowFlags_ChildMenu))
     {
@@ -7552,8 +7590,9 @@ bool ImGui::BeginMenuEx(const char* label, const char* icon, bool enabled)
             want_open = true;
         if (g.NavId == id && g.NavMoveDir == ImGuiDir_Right) // Nav-Right to open
         {
-            want_open = true;
+            want_open = want_open_nav_init = true;
             NavMoveRequestCancel();
+            NavRestoreHighlightAfterMove();
         }
     }
     else
@@ -7585,13 +7624,13 @@ bool ImGui::BeginMenuEx(const char* label, const char* icon, bool enabled)
 
     if (want_open && !menu_is_open && g.OpenPopupStack.Size > g.BeginPopupStack.Size)
     {
-        // Don't reopen/recycle same menu level in the same frame, first close the other menu and yield for a frame.
+        // Don't reopen/recycle same menu level in the same frame if it is a different menu ID, first close the other menu and yield for a frame.
         OpenPopup(label);
     }
     else if (want_open)
     {
         menu_is_open = true;
-        OpenPopup(label);
+        OpenPopup(label, ImGuiPopupFlags_NoReopen);// | (want_open_nav_init ? ImGuiPopupFlags_NoReopenAlwaysNavInit : 0));
     }
 
     if (menu_is_open)
@@ -7603,6 +7642,14 @@ bool ImGui::BeginMenuEx(const char* label, const char* icon, bool enabled)
         PopStyleVar();
         if (menu_is_open)
         {
+            // Implement what ImGuiPopupFlags_NoReopenAlwaysNavInit would do:
+            // Perform an init request in the case the popup was already open (via a previous mouse hover)
+            if (want_open && want_open_nav_init && !g.NavInitRequest)
+            {
+                FocusWindow(g.CurrentWindow, ImGuiFocusRequestFlags_UnlessBelowModal);
+                NavInitWindow(g.CurrentWindow, false);
+            }
+
             // Restore LastItemData so IsItemXXXX functions can work after BeginMenu()/EndMenu()
             // (This fixes using IsItemClicked() and IsItemHovered(), but IsItemHovered() also relies on its support for ImGuiItemFlags_NoWindowHoverableCheck)
             g.LastItemData = last_item_in_parent;
