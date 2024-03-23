@@ -1,6 +1,7 @@
 #include "includes.hpp"
 #include "speedhackAudio.hpp"
 #include "gd.hpp"
+#include "hacks.hpp"
 
 float SpeedhackAudio::speed = 1.0f;
 
@@ -15,7 +16,10 @@ namespace SpeedhackAudio {
                 channel->getCurrentSound(&sound);
                 float freq;
                 sound->getDefaults(&freq, nullptr);
-                channel->setFrequency(freq * speed);
+                if (hacks::speedhack_audio)
+                    channel->setFrequency(freq * speed);
+                else
+                    channel->setFrequency(freq * CCDirector::sharedDirector()->getScheduler()->getTimeScale());
             }
         }
     }
