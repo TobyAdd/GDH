@@ -44,6 +44,8 @@ namespace hacks {
     extern bool hide_player_p1;
     extern bool hide_player_p2;
 
+    extern bool speedhack_audio;
+
     extern bool hide_menu;
 
     extern float respawnTime;

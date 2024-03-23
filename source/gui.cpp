@@ -320,20 +320,20 @@ void gui::RenderMain() {
                 }
                 else if (type == "speed") {
                     float value = component["value"];
-                    bool speedhack_audio_enabled = component["audio"];
+                    hacks::speedhack_audio = component["audio"];
 
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                     if (ImGui::DragFloat("##Speed_Value", &value, 0.01f, 0, FLT_MAX, "%.2fx")) {
                         component["value"] = value;
                         hacks::speed = value;
-                        if (speedhack_audio_enabled) {
+                        if (hacks::speedhack_audio) {
                             SpeedhackAudio::speed = hacks::speed;
                         }
                     }
                     
-                    if (ImGui::Checkbox("Speedhack Audio", &speedhack_audio_enabled, scalePercentage)) {
-                        component["audio"] = speedhack_audio_enabled;
-                        if (speedhack_audio_enabled) {
+                    if (ImGui::Checkbox("Speedhack Audio", &hacks::speedhack_audio, scalePercentage)) {
+                        component["audio"] = hacks::speedhack_audio;
+                        if (hacks::speedhack_audio) {
                         }
                         else {
                         }

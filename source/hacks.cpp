@@ -44,6 +44,8 @@ bool hacks::hide_player_enabled = false;
 bool hacks::hide_player_p1 = false;
 bool hacks::hide_player_p2 = false;
 
+bool hacks::speedhack_audio = false;
+
 bool hacks::hide_menu = false;
 
 uintptr_t framerate_address = 0;
