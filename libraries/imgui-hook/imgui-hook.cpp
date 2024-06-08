@@ -12,9 +12,6 @@ std::function<void(int)> keyPressHandler = [](int _) {};
 HGLRC newContext = 0;
 HWND window;
 
-WNDPROC wndProc = nullptr;
-LRESULT CALLBACK wndProc_H(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
 swapBuffersType swapBuffers = nullptr;
 BOOL WINAPI swapBuffers_H(HDC hdc)
 {
@@ -35,8 +32,6 @@ BOOL WINAPI swapBuffers_H(HDC hdc)
         io.Fonts->AddFontFromMemoryCompressedTTF(roboto_font_data, roboto_font_size, 20.f * ImGuiHook::scale, nullptr, io.Fonts->GetGlyphRangesCyrillic());
         io.Fonts->Build();
         window = WindowFromDC(hdc);
-        wndProc = (WNDPROC)GetWindowLongPtr(window, GWLP_WNDPROC);
-        SetWindowLongPtr(window, GWLP_WNDPROC, (LONG_PTR)wndProc_H);
         ImGui_ImplWin32_Init(window);
         ImGui_ImplOpenGL2_Init();
     }
@@ -62,76 +57,76 @@ BOOL WINAPI swapBuffers_H(HDC hdc)
 }
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-LRESULT CALLBACK wndProc_H(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-    ImGui_ImplWin32_WndProcHandler(hwnd, msg, wParam, lParam);
-
-    if (msg == WM_KEYDOWN && !ImGui::GetIO().WantCaptureKeyboard)
-    {
-        keyPressHandler(wParam);
-    }
+void (__thiscall* CCEGLView_pollEvents)(void*);
+void __fastcall CCEGLView_pollEvents_H(void* self) {
+    auto& io = ImGui::GetIO();
 
     bool blockInput = false;
-    if (ImGui::GetIO().WantCaptureMouse)
-    {
-        switch (msg)
-        {
-            case WM_LBUTTONDBLCLK:
-            case WM_LBUTTONDOWN:
-            case WM_LBUTTONUP:
-            case WM_MBUTTONDBLCLK:
-            case WM_MBUTTONDOWN:
-            case WM_MBUTTONUP:
-            case WM_MOUSEACTIVATE:
-            case WM_MOUSEHOVER:
-            case WM_MOUSEHWHEEL:
-            case WM_MOUSELEAVE:
-            case WM_MOUSEMOVE:
-            case WM_MOUSEWHEEL:
-            case WM_NCLBUTTONDBLCLK:
-            case WM_NCLBUTTONDOWN:
-            case WM_NCLBUTTONUP:
-            case WM_NCMBUTTONDBLCLK:
-            case WM_NCMBUTTONDOWN:
-            case WM_NCMBUTTONUP:
-            case WM_NCMOUSEHOVER:
-            case WM_NCMOUSELEAVE:
-            case WM_NCMOUSEMOVE:
-            case WM_NCRBUTTONDBLCLK:
-            case WM_NCRBUTTONDOWN:
-            case WM_NCRBUTTONUP:
-            case WM_NCXBUTTONDBLCLK:
-            case WM_NCXBUTTONDOWN:
-            case WM_NCXBUTTONUP:
-            case WM_RBUTTONDBLCLK:
-            case WM_RBUTTONDOWN:
-            case WM_RBUTTONUP:
-            case WM_XBUTTONDBLCLK:
-            case WM_XBUTTONDOWN:
-            case WM_XBUTTONUP:
-            blockInput = true;
+    MSG msg;
+    while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+        TranslateMessage(&msg);
+
+        if (io.WantCaptureMouse) {
+            switch (msg.message) {
+                case WM_LBUTTONDBLCLK:
+                case WM_LBUTTONDOWN:
+                case WM_LBUTTONUP:
+                case WM_MBUTTONDBLCLK:
+                case WM_MBUTTONDOWN:
+                case WM_MBUTTONUP:
+                case WM_MOUSEACTIVATE:
+                case WM_MOUSEHOVER:
+                case WM_MOUSEHWHEEL:
+                case WM_MOUSELEAVE:
+                case WM_MOUSEMOVE:
+                case WM_MOUSEWHEEL:
+                case WM_NCLBUTTONDBLCLK:
+                case WM_NCLBUTTONDOWN:
+                case WM_NCLBUTTONUP:
+                case WM_NCMBUTTONDBLCLK:
+                case WM_NCMBUTTONDOWN:
+                case WM_NCMBUTTONUP:
+                case WM_NCMOUSEHOVER:
+                case WM_NCMOUSELEAVE:
+                case WM_NCMOUSEMOVE:
+                case WM_NCRBUTTONDBLCLK:
+                case WM_NCRBUTTONDOWN:
+                case WM_NCRBUTTONUP:
+                case WM_NCXBUTTONDBLCLK:
+                case WM_NCXBUTTONDOWN:
+                case WM_NCXBUTTONUP:
+                case WM_RBUTTONDBLCLK:
+                case WM_RBUTTONDOWN:
+                case WM_RBUTTONUP:
+                case WM_XBUTTONDBLCLK:
+                case WM_XBUTTONDOWN:
+                case WM_XBUTTONUP:
+                    blockInput = true;
+            }
         }
+
+        if (io.WantCaptureKeyboard) {
+            switch (msg.message) {
+                case WM_HOTKEY:
+                case WM_KEYDOWN:
+                case WM_KEYUP:
+                case WM_KILLFOCUS:
+                case WM_SETFOCUS:
+                case WM_SYSKEYDOWN:
+                case WM_SYSKEYUP:
+                    blockInput = true;
+            }
+        } else if (msg.message == WM_KEYDOWN && !ImGui::GetIO().WantCaptureKeyboard) {
+            keyPressHandler(msg.wParam);
+        }
+
+        if (!blockInput)
+            DispatchMessage(&msg);
+
+        ImGui_ImplWin32_WndProcHandler(msg.hwnd, msg.message, msg.wParam, msg.lParam);
     }
 
-    if (ImGui::GetIO().WantCaptureKeyboard)
-    {
-        switch (msg)
-        {
-            case WM_HOTKEY:
-            case WM_KEYDOWN:
-            case WM_KEYUP:
-            case WM_KILLFOCUS:
-            case WM_SETFOCUS:
-            case WM_SYSKEYDOWN:
-            case WM_SYSKEYUP:
-                blockInput = true;
-        }
-    }
-
-    if (blockInput)
-        return true;
-
-    return CallWindowProc(wndProc, hwnd, msg, wParam, lParam);
+    CCEGLView_pollEvents(self);
 }
 
 void (__thiscall* cocos2d_CCEGLView_toggleFullScreen)(void*, bool, bool);
@@ -154,12 +149,17 @@ void ImGuiHook::Load(std::function<void(void*, void*, void**)> hookFunc)
         cocos2d_CCEGLView_toggleFullScreenH,
         reinterpret_cast<void**>(&cocos2d_CCEGLView_toggleFullScreen)
     );
+
+    hookFunc(
+        GetProcAddress(GetModuleHandleA("libcocos2d.dll"), "?pollEvents@CCEGLView@cocos2d@@QEAAXXZ"),
+        CCEGLView_pollEvents_H,
+        reinterpret_cast<void**>(&CCEGLView_pollEvents)
+    );
 }
 
 void ImGuiHook::Unload()
 {
     unloadFunc();
-    SetWindowLongPtr(window, GWLP_WNDPROC, (LONG_PTR)wndProc);
     ImGui_ImplOpenGL2_Shutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();    
