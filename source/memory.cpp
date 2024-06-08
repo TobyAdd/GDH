@@ -8,6 +8,7 @@ struct PatternByte {
 uintptr_t memory::PatternScan(uintptr_t base, uintptr_t scanSize, const std::string signature) {
     std::vector<PatternByte> patternData;
 
+    // Parse the signature
     for (size_t i = 0; i < signature.size(); ++i) {
         if (signature[i] == ' ') {
             continue;
@@ -23,6 +24,7 @@ uintptr_t memory::PatternScan(uintptr_t base, uintptr_t scanSize, const std::str
         }
     }
 
+    // Search for the signature in the target region
     for (uintptr_t i = base; i < base + scanSize; ++i) {
         bool found = true;
 

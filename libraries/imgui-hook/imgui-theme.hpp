@@ -6,9 +6,9 @@
 void ApplyColor() {
     auto* colors = ImGui::GetStyle().Colors;
     colors[ImGuiCol_WindowBg] = ImColor(27, 27, 29, 250);
-    colors[ImGuiCol_Button] = ImColor(164, 201, 254);
-    colors[ImGuiCol_ButtonHovered] = ImColor(147, 180, 228);
-    colors[ImGuiCol_ButtonActive] = ImColor(131, 160, 203);
+    colors[ImGuiCol_Button] = ImColor(165, 255, 190);
+    colors[ImGuiCol_ButtonHovered] = ImColor(105, 210, 160);
+    colors[ImGuiCol_ButtonActive] = ImColor(85, 170, 130);
     colors[ImGuiCol_Border] = ImColor(64, 64, 64);
     colors[ImGuiCol_TitleBg] = ImColor(58,58,58);
     colors[ImGuiCol_TitleBgActive] = colors[ImGuiCol_TitleBg];
@@ -33,15 +33,15 @@ void ApplyColor() {
 
 void ApplyStyle() {
     ImGuiStyle& style = ImGui::GetStyle();    
-    style.WindowRounding = 12.0f * ImGuiHook::scale;
-    style.ChildRounding = 6.0f * ImGuiHook::scale;
-    style.FrameRounding = 20.0f * ImGuiHook::scale;
-    style.PopupRounding = 12.f * ImGuiHook::scale;
-    style.GrabRounding = 12.f * ImGuiHook::scale;
-    style.TabRounding = 6.f * ImGuiHook::scale;
-    style.ScrollbarSize = 14.f * ImGuiHook::scale;
+    style.WindowRounding = 12.0f;
+    style.ChildRounding = 6.0f;
+    style.FrameRounding = 20.0f;
+    style.PopupRounding = 12.f;
+    style.GrabRounding = 12.f;
+    style.TabRounding = 6.f;
+    style.ScrollbarSize = 14.f;
 
-    style.WindowPadding = ImVec2(10 * ImGuiHook::scale, 10 * ImGuiHook::scale);
+    style.WindowPadding = ImVec2(10, 10);
     style.WindowBorderSize = 0;
     style.WindowTitleAlign = ImVec2(0.50, 0.50);
     style.WindowMenuButtonPosition = ImGuiDir_Right;
