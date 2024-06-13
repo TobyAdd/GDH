@@ -1,47 +1,109 @@
 #pragma once
 #include "includes.hpp"
+#include <cocos2d.h>
+#include "console.hpp"
 
 template <class R, class T>
 inline R& from(T base, intptr_t offset) {
     return *reinterpret_cast<R*>(reinterpret_cast<uintptr_t>(base) + offset);
 }
 
-class CCPoint {
-public:
-    float x;
-    float y;
-};
+namespace cocos2d {
+    static auto base = GetModuleHandleA("libcocos2d.dll");
+}
 
 namespace gd {
-    namespace gjbaselayer {
-        inline auto &get_player1(void* gjbl) {
-            return from<void*>(gjbl, 3480);
+    using namespace cocos2d;
+
+    static auto base = reinterpret_cast<uintptr_t>(GetModuleHandleA(0));
+    static auto cocos_base = reinterpret_cast<uintptr_t>(GetModuleHandleA("libcocos2d.dll"));
+
+    
+	class GameObject : public CCSprite {
+    public:
+		int m_nObjectID() {
+            return from<int>(this, 1036);
+        }
+    };
+
+    class StartPosObject : public GameObject {
+    public:
+
+    };
+
+    class PlayerObject : public GameObject
+	{
+	public:
+		auto& m_position() {
+			return from<cocos2d::CCPoint>(this, 2704);
+		}
+
+		auto& m_yAccel() {
+			return from<double>(this, 2464);
+		}
+
+		auto m_waveTrail() {
+			return from<cocos2d::CCSprite*>(this, 0x7b0); 
+		}
+
+        cocos2d::CCSprite* m_pSecondarySprite() {
+            return from<cocos2d::CCSprite*>(this, 1856);
+        }
+	};
+
+    
+	class PlayLayer : public CCLayer {
+	public:
+		PlayerObject*& m_pPlayer1() {
+			return from<PlayerObject*>(this, 3480);
+		}
+
+		PlayerObject*& m_pPlayer2() {
+			return from<PlayerObject*>(this, 3488);
+		}
+
+		double m_time() {
+            return from<double>(this, 968);
+		}
+
+        bool m_bTwoPlayerMode() {
+			return from<bool>(this, 1050);
+		}
+
+        void resetLevel() {
+            reinterpret_cast<void(__thiscall*)(void*)>(base + 0x395710)(this);
         }
 
-        inline auto &get_player2(void* gjbl) {
-            return from<void*>(gjbl, 3488);
+        void resetCamera() {
+            reinterpret_cast<void(__thiscall*)(void*)>(base + 0x22ec30)(this);
         }
 
-        inline auto &get_position(void* player) {
-            return from<CCPoint>(player, 2704);
+        void startMusic() {
+            reinterpret_cast<void(__thiscall*)(void*)>(base + 0x3973f0)(this);
         }
 
-        inline auto &get_yaccel(void* player) {
-            return from<double>(player, 2464);
+        auto &m_startPosObject() {
+            return from<StartPosObject*>(this, 12672);
         }
 
-        inline auto &get_time(void* gjbl) {
-            return from<double>(gjbl, 968);
+        void setStartPosObject(StartPosObject* startPos) {
+            if (startPos != m_startPosObject()) {
+                if (startPos) {
+                    startPos->retain();
+                }
+                if (m_startPosObject()) {
+                    m_startPosObject()->release();
+                }
+                m_startPosObject() = startPos;
+            }
         }
 
-        inline auto &get_isDualMode(void* gjbl) {
-            return from<void*>(gjbl, 1050);
+        auto &m_currentCheckpoint() {
+            return from<CCNode*>(this, 14232);
         }
-    }
 
-    namespace gameobject {
-        inline auto &get_objid(void* obj) {
-            return from<int>(obj, 1036);
+        auto &m_unknow() {
+            return from<int>(this, 3798);
         }
-    }
+	};
 }

@@ -3,16 +3,17 @@
 #include "hooks.hpp"
 #include <fstream>
 #include "gui.hpp"
+#include "labels.hpp"
 #include <random>
 
 ReplayEngine engine;
 
-unsigned ReplayEngine::get_frame(void* self) {
-    return static_cast<unsigned>(gd::gjbaselayer::get_time(self) * hacks::fps_value);
+unsigned ReplayEngine::get_frame(gd::PlayLayer* self) {
+    return static_cast<unsigned>(self->m_time() * hacks::fps_value);
 } 
 
-void ReplayEngine::handle_recording(void* self, bool player) {
-    if (!player && !gd::gjbaselayer::get_isDualMode(self))
+void ReplayEngine::handle_recording(gd::PlayLayer* self, bool player) {
+    if (!player && !self->m_bTwoPlayerMode())
         return;
 
     unsigned frame = get_frame(self);
@@ -25,47 +26,40 @@ void ReplayEngine::handle_recording(void* self, bool player) {
         return;
     }
 
-    auto& player1 = gd::gjbaselayer::get_player1(self);
-    auto& player2 = gd::gjbaselayer::get_player2(self);
-
     replay.push_back({frame,
-                      player ? gd::gjbaselayer::get_position(player1).x : gd::gjbaselayer::get_position(player2).x,
-                      player ? gd::gjbaselayer::get_position(player1).y : gd::gjbaselayer::get_position(player2).y,
-                      //player ? self->m_pPlayer1()->getRotation() : self->m_pPlayer2()->getRotation(),
-                      0,
-                      player ? gd::gjbaselayer::get_yaccel(player1) : gd::gjbaselayer::get_yaccel(player2),
+                      player ? self->m_pPlayer1()->m_position().x : self->m_pPlayer2()->m_position().x,
+                      player ? self->m_pPlayer1()->m_position().y : self->m_pPlayer2()->m_position().y,
+                      player ? self->m_pPlayer1()->getRotation() : self->m_pPlayer2()->getRotation(),
+                      player ? self->m_pPlayer1()->m_yAccel() : self->m_pPlayer2()->m_yAccel(),
                       player});
 }
 
-void ReplayEngine::handle_recording2(bool hold, int button, bool player, void* self) {
+void ReplayEngine::handle_recording2(bool hold, int button, bool player, gd::PlayLayer* self) {
     replay2.push_back({get_frame(self), hold, button, player});
 }
 
-void ReplayEngine::handle_playing(void* self)
+void ReplayEngine::handle_playing(gd::PlayLayer* self)
 {
     unsigned frame = get_frame(self);
-
-    auto& player1 = gd::gjbaselayer::get_player1(self);
-    auto& player2 = gd::gjbaselayer::get_player2(self);
 
     if (accuracy_fix) {
         while (index < (int)replay.size() && frame >= replay[index].frame)
         {
             if (replay[index].player)
             {
-                gd::gjbaselayer::get_position(player1).x = replay[index].x;
-                gd::gjbaselayer::get_position(player1).y = replay[index].y;
-                // if (rotation_fix)
-                //     self->m_pPlayer1()->setRotation(replay[index].rotation);
-                gd::gjbaselayer::get_yaccel(player1) = replay[index].y_accel;
+                self->m_pPlayer1()->m_position().x = replay[index].x;
+                self->m_pPlayer1()->m_position().y = replay[index].y;
+                if (rotation_fix)
+                     self->m_pPlayer1()->setRotation(replay[index].rotation);
+                self->m_pPlayer1()->m_yAccel() = replay[index].y_accel;
             }
             else
             {
-                gd::gjbaselayer::get_position(player2).x = replay[index].x;
-                gd::gjbaselayer::get_position(player2).y = replay[index].y;
-                // if (rotation_fix)
-                //     self->m_pPlayer2()->setRotation(replay[index].rotation);
-                gd::gjbaselayer::get_yaccel(player2) = replay[index].y_accel;
+                self->m_pPlayer2()->m_position().x = replay[index].x;
+                self->m_pPlayer2()->m_position().y = replay[index].y;
+                if (rotation_fix)
+                     self->m_pPlayer2()->setRotation(replay[index].rotation);
+                self->m_pPlayer2()->m_yAccel() = replay[index].y_accel;
             }
             index++;
         }
@@ -75,11 +69,12 @@ void ReplayEngine::handle_playing(void* self)
     while (index2 < (int)replay2.size() && frame >= replay2[index2].frame)
     {
         hooks::GJBaseGameLayer_HandleButton(self, replay2[index2].hold, replay2[index2].button, replay2[index2].player);
+        cps_counter.recordClick(); // pointercreate задвайте вопросы
         index2++;
     }
 }
 
-void ReplayEngine::handle_reseting(void* self) {
+void ReplayEngine::handle_reseting(gd::PlayLayer* self) {
     int lastCheckpointFrame = get_frame(self);
 
     if (mode == state::record) {
@@ -100,7 +95,7 @@ std::string ReplayEngine::save(std::string name)
     if (replay2.empty())
         return "Replay doesn't have actions";
 
-    std::ofstream file("GDH/macros/" + name + ".re", std::ios::binary);
+    std::ofstream file(hacks::folderMacroPath / std::string(name + ".re"), std::ios::binary);
 
     file.write(reinterpret_cast<char *>(&hacks::fps_value), sizeof(hacks::fps_value));
 
@@ -122,7 +117,7 @@ std::string ReplayEngine::load(std::string name)
     if (!replay2.empty())
         return "Please clear replay before loading another";
 
-    std::ifstream file("GDH/macros/" + name + ".re", std::ios::binary);
+    std::ifstream file(hacks::folderMacroPath / std::string(name + ".re"), std::ios::binary);
     if (!file)
         return "Replay doesn't exist";
 
@@ -164,7 +159,7 @@ void ReplayEngine::remove_actions(unsigned frame)
 std::vector<std::string> replay_list;
 void openSelectReplay(const char *str_id) {
     replay_list.clear();
-    for (const auto &entry : std::filesystem::directory_iterator("GDH/macros")) {
+    for (const auto &entry : std::filesystem::directory_iterator(hacks::folderMacroPath)) {
         std::string replay = entry.path().filename().string();
         if (replay.size() >= 3 && replay.substr(replay.size() - 3) == ".re") {
             replay_list.push_back(replay.substr(0, replay.size() - 3));

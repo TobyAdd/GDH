@@ -18,8 +18,9 @@ target_include_directories(${PROJECT} PRIVATE
 
 add_subdirectory(libraries/minhook)
 add_subdirectory(libraries/imgui-hook)
+add_subdirectory(libraries/cocos-headers)
 
-target_link_libraries(${PROJECT} minhook imgui-hook opengl32)
+target_link_libraries(${PROJECT} minhook imgui-hook opengl32 cocos2d)
 
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 

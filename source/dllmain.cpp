@@ -4,32 +4,32 @@
 #include "console.hpp"
 #include "hacks.hpp"
 #include "hooks.hpp"
+#include <fstream>
 
 extern "C" __declspec(dllexport) int __stdcall stub() { return 0; }
 
-void CheckDir(std::string dir)
+void CheckDir(const std::filesystem::path &path)
 {
-    if (!std::filesystem::is_directory(dir) || !std::filesystem::exists(dir))
+    if (!std::filesystem::is_directory(path) || !std::filesystem::exists(path))
     {
-        std::filesystem::create_directory(dir);
+        std::filesystem::create_directory(path);
     }
 }
 
 void Main()
 {
-    CheckDir("GDH");
-    CheckDir("GDH/macros");
+    CheckDir(hacks::folderPath);
+    CheckDir(hacks::folderMacroPath);
     //CheckDir("GDH/recorder");
 
-    //Console::Init();
+    hacks::load(hacks::fileDataPath, hacks::windows);
 
-    hacks::loadWindows("gdh_data.dat", hacks::windows);
+    //Console::Init();
 
     hacks::init();
     hacks::update_framerate();
     
     MH_Initialize();
-
     hooks::init();
 
     ImGuiHook::Load([](void *target, void *hook, void **trampoline)
@@ -58,7 +58,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
         Main();
     }
     else if (fdwReason == DLL_PROCESS_DETACH) {
-        hacks::saveWindows("gdh_data.dat", hacks::windows);
+        hacks::save(hacks::windows, hacks::fileDataPath);
     }
     return true;
 }

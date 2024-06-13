@@ -55,11 +55,11 @@ public:
     int index2 = 0;
     std::vector<replay_data2> replay2;
 
-    unsigned get_frame(void* self);
-    void handle_recording(void* self, bool player);
-    void handle_recording2(bool hold, int button, bool player, void* self = nullptr);
-    void handle_playing(void* self);
-    void handle_reseting(void* self);
+    unsigned get_frame(gd::PlayLayer* self);
+    void handle_recording(gd::PlayLayer* self, bool player);
+    void handle_recording2(bool hold, int button, bool player, gd::PlayLayer* self = nullptr);
+    void handle_playing(gd::PlayLayer* self);
+    void handle_reseting(gd::PlayLayer* self);
 
     std::string save(std::string name);
     std::string load(std::string name);
