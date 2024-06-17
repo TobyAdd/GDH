@@ -5,7 +5,6 @@
 #include "hooks.hpp"
 #include "replayEngine.hpp"
 #include "labels.hpp"
-
 bool gui::show = false;
 bool gui::inited = false;
 
@@ -53,7 +52,7 @@ void gui::RenderMain() {
     ImGuiIO &io = ImGui::GetIO();
     ImGui::SetNextWindowPos(ImVec2(0, io.DisplaySize.y), ImGuiCond_Always, ImVec2(0.0f, 1.0f));
     ImGui::Begin("BottomLeftText", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoFocusOnAppearing);
-    ImGui::Text("GDH v4.2 Alpha | TobyAdd | Prevter | Qwix | https://discord.gg/ahYEz4MAwP | https://t.me/tobyadd_public");
+    ImGui::Text("GDH v4.3 Alpha | TobyAdd | Prevter | Qwix | https://discord.gg/ahYEz4MAwP | https://t.me/tobyadd_public");
     ImGui::End();
 
     for (auto& win : hacks::windows) {

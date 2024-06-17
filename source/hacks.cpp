@@ -124,6 +124,11 @@ std::vector<window> hacks::windows = {
                     {"0f 85 ? ? ? ? 80 bf ? ? ? ? ? 0f 85 ? ? ? ? 80 bf ? ? ? ? ? 0f 85 ? ? ? ? 80 bf ? ? ? ? ? 0f 85 ? ? ? ? 48 8b 8f ? ? ? ? ff 15", "90 90 90 90 90 90"}
                 }
             },          
+            {"User-Coins In Practice", "",
+                {
+                    {"0f 85 ? ? ? ? 8b 97 ? ? ? ? 4c 8b 8e", "90 90 90 90 90 90"}
+                }
+            },       
             {"Fast Chest Open", "Removes the delay for opening chests",
                 {
                     {"f3 0f 10 05 ? ? ? ? ff 15 ? ? ? ? 48 89 44 24", "0F 57 C0 90 90 90 90 90"}
@@ -134,11 +139,17 @@ std::vector<window> hacks::windows = {
             {"Startpos Switcher", "LOOOLLL"},
             {"Reset Camera", "god damn"},
             {"Use A/D", "idk"},
-            {"RGB Icons"},
+            {"RGB Icons", ""},
             {"Solid Wave Trail", "Disables wave blending",
                 {
                     {"75 ? 80 bb ? ? ? ? ? 75 ? 48 8b 83", "90 90"},
                     {"75 ? 48 8b 83 ? ? ? ? c6 80", "90 90"}
+                }
+            },
+            {"Show Triggers", "",
+                {
+                    {"0f 94 c0 88 86 ? ? ? ? c7 86", "30 C0 90"},
+                    {"75 ? 83 be ? ? ? ? ? 75 ? 80 be ? ? ? ? ? 75", "EB"}
                 }
             },
             {"All Modes Platformer", "Removes the limit on all modes in the platformer",
@@ -182,7 +193,7 @@ std::vector<window> hacks::windows = {
             },
             {"No Particles", "Disables resuming the particle system",
                 {
-                    {"74 ? 44 0f b6 c7 48 8b d6 48 8b cb e8 ? ? ? ? 48 8b cb", "EB", "libcocos2d.dll"}
+                    {"40 53 48 83 ec ? 48 83 b9 ? ? ? ? ? 48 8b d9 0f 84 ? ? ? ? 83 b9", "C3", "libcocos2d.dll"},
                 }
             },
             {"No Short Numbers", "All numbers are displayed in full\n(For example, \"1.5M\" becomes \"1500000\")",
@@ -230,6 +241,11 @@ std::vector<window> hacks::windows = {
             {"No Wave Trail", "",
                 {
                     {"0f 85 ? ? ? ? c6 83 ? ? ? ? ? 48 8b 8b ? ? ? ? ff 15", "E9 8D 00 00 00 90"}
+                }
+            },
+            {"No Wave Pulse", "",
+                {
+                    {"f3 41 0f 10 87 ? ? ? ? f3 0f 5c c7", "F3 0F 10 05 A8 4E 28 00 90"}
                 }
             },
             {"Wave Trail Fix", "",
