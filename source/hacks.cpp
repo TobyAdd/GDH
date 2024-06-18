@@ -1,5 +1,6 @@
 #include "hacks.hpp"
 #include "labels.hpp"
+#include "gui.hpp"
 
 bool hacks::unlock_items = false;
 bool hacks::ignore_esc = false;
@@ -84,17 +85,17 @@ std::vector<window> hacks::windows = {
                     {"76 ? 48 8b 8f ? ? ? ? ff 15 ? ? ? ? 85 c0", "EB"}
                 }
             },
-            {"Treasure Room", "",
+            {"Treasure Room", "Unlocks the Treasure Room",
                 {
                     {"74 ? 33 c9 e8", "90 90"}
                 }
             },
-            {"Unlock Shops", "",
+            {"Unlock Shops", "Unlocks all shops",
                 {
                     {"0f 84 ? ? ? ? 41 83 e8 ? 0f 84 ? ? ? ? 41 83 e8 ? 74 ? 41 83 f8", "E9 97 01 00 00 90"}
                 }
             },
-            {"Unlock Vaults", "",
+            {"Unlock Vaults", "Unlocks all Vaults and doors",
                 {
                     {"7c ? e8 ? ? ? ? 48 8b d0", "90 90"},
                     {"0f 84 ? ? ? ? ff 15 ? ? ? ? 48 8b f8 ff 15 ? ? ? ? 48 89 b8", "90 90 90 90 90 90"},
@@ -124,7 +125,7 @@ std::vector<window> hacks::windows = {
                     {"0f 85 ? ? ? ? 80 bf ? ? ? ? ? 0f 85 ? ? ? ? 80 bf ? ? ? ? ? 0f 85 ? ? ? ? 80 bf ? ? ? ? ? 0f 85 ? ? ? ? 48 8b 8f ? ? ? ? ff 15", "90 90 90 90 90 90"}
                 }
             },          
-            {"User-Coins In Practice", "",
+            {"Coins In Practice", "The ability to collect coins in practice",
                 {
                     {"0f 85 ? ? ? ? 8b 97 ? ? ? ? 4c 8b 8e", "90 90 90 90 90 90"}
                 }
@@ -136,17 +137,17 @@ std::vector<window> hacks::windows = {
             },
             {"Ignore ESC", "Prevents exiting the level"},
             {"Instant Complete", "Instant level completion"},
-            {"Startpos Switcher", "LOOOLLL"},
-            {"Reset Camera", "god damn"},
-            {"Use A/D", "idk"},
-            {"RGB Icons", ""},
+            {"Startpos Switcher", "The ability to switch between starting positions using the left/right arrow keys"},
+            {"Reset Camera", "When switching between starting positions, the camera may move, so this feature fixes that unpleasant switch"},
+            {"Use A/D", "Switching between starting positions using the A/D keys"},
+            {"RGB Icons", "LGBT icons, yes :3"},
             {"Solid Wave Trail", "Disables wave blending",
                 {
                     {"75 ? 80 bb ? ? ? ? ? 75 ? 48 8b 83", "90 90"},
                     {"75 ? 48 8b 83 ? ? ? ? c6 80", "90 90"}
                 }
             },
-            {"Show Triggers", "",
+            {"Show Triggers", "Displaying triggers on the PlayLayer",
                 {
                     {"0f 94 c0 88 86 ? ? ? ? c7 86", "30 C0 90"},
                     {"75 ? 83 be ? ? ? ? ? 75 ? 80 be ? ? ? ? ? 75", "EB"}
@@ -179,13 +180,13 @@ std::vector<window> hacks::windows = {
                     {"41 8b 86 ? ? ? ? 89 44 24 ? 41 8b 86 ? ? ? ? 89 44 24 ? f3 41 0f 10 86 ? ? ? ? f3 0f 11 44 24 ? 45 8b 8e ? ? ? ? f3 41 0f 10 96 ? ? ? ? f3 41 0f 10 8e ? ? ? ? 49 8b cf e8 ? ? ? ? e9 ? ? ? ? 49 8b d6", "EB 44 90 90 90 90"}
                 }
             },
-            {"No \"Do Not\" Flip", "",
+            {"No \"Do Not\" Flip", "Accurate display of attempts with the \"Do not\" function enabled, without flips",
                 {
                     {"74 ? b2 ? 48 8b cf", "EB"},
                     {"74 ? 48 8b 8e ? ? ? ? 48 8b 01 f3 0f 10 0d ? ? ? ? ff 90 ? ? ? ? 48 8d 15", "EB"}
                 }
             },
-            {"No Shaders", "",
+            {"No Shaders", "Disabling shaders in levels",
                 {
                     {"ff 15 ? ? ? ? 48 8b 8b ? ? ? ? 48 8b 01 ff 90 ? ? ? ? 48 8b c8 ff 15 ? ? ? ? 48 8d 94 24", "90 90 90 90 90 90"},
                     {"7a ? 0f 84 ? ? ? ? 48 89 9c 24", "E9 14 09 00 00 90 90 90"}
@@ -222,33 +223,33 @@ std::vector<window> hacks::windows = {
                     {"0f 85 ? ? ? ? 48 8d 15 ? ? ? ? 48 8d 4c 24 ? ff 15 ? ? ? ? 48 8b d8 48 8d 54 24 ? 48 8d 4c 24 ? ff 15 ? ? ? ? 48 8b c8 f3 0f 10 54 24", "E9 A2 00 00 00 90"}
                 }
             },
-            {"No Pulse", "",
+            {"No Pulse", "Disables pulsation of falls, orbs, etc",
                 {
                     {"74 ? 48 8b 05 ? ? ? ? 48 85 c0 75 ? b9 ? ? ? ? e8 ? ? ? ? 48 89 45 ? 48 8b c8 e8 ? ? ? ? 90 48 89 05 ? ? ? ? 48 8b 10 48 8b c8 ff 52 ? 48 8b 05 ? ? ? ? f3 44 0f 10 80", "F3 44 0F 10 05 E5 0B 00 00 EB 4C 90"},
                     {"cc cc cc cc cc cc cc cc cc cc 48 8b ca", "CD CC CC 3E"}
                 }
             },
-            {"No Trail", "",
+            {"No Trail", "Removes the trail located near the player",
                 {
                     {"0f 84 ? ? ? ? 85 c0 0f 84 ? ? ? ? 48 8d 97", "E9 BA 02 00 00 90", "libcocos2d.dll"}
                 }
             },
-            {"Always Trail", "",
+            {"Always Trail", "Displays the trail near the player at any location",
                 {
                     {"0f 84 ? ? ? ? 85 c0 0f 84 ? ? ? ? 48 8d 97", "90 90 90 90 90 90", "libcocos2d.dll"}
                 }
             },
-            {"No Wave Trail", "",
+            {"No Wave Trail", "Disables the trail on the wave",
                 {
                     {"0f 85 ? ? ? ? c6 83 ? ? ? ? ? 48 8b 8b ? ? ? ? ff 15", "E9 8D 00 00 00 90"}
                 }
             },
-            {"No Wave Pulse", "",
+            {"No Wave Pulse", "Disables the pulsation of the trail on the wave",
                 {
                     {"f3 41 0f 10 87 ? ? ? ? f3 0f 5c c7", "F3 0F 10 05 A8 4E 28 00 90"}
                 }
             },
-            {"Wave Trail Fix", "",
+            {"Wave Trail Fix", "Corrects distortion in the wave (an attempt by RobTop to make a non-glitchy wave, but again a fail)",
                 {
                     {"0f 85 ? ? ? ? 48 8d 54 24 ? 48 8d 4c 24 ? ff 15 ? ? ? ? 41 0f 54 c2", "E9 B5 00 00 00 90"}
                 }
@@ -268,7 +269,7 @@ std::vector<window> hacks::windows = {
                     {"0f 87 ? ? ? ? 48 8d 45", "90 90 90 90 90 90"}
                 }
             },
-            {"Default Song Bypass", "",
+            {"Default Song Bypass", "Removes restrictions on secret official songs",
                 {
                     {"74 ? ff c8 c6 81", "90 90"},
                     {"c6 81 ? ? ? ? ? ba ? ? ? ? 3b c2 0f 4f c2 33 d2 85 c0 0f 48 c2 89 81 ? ? ? ? e9 ? ? ? ? c3 40 53", "EB 0F"},
@@ -299,7 +300,7 @@ std::vector<window> hacks::windows = {
                     {"0f 87 ? ? ? ? 48 63 c2 4c 8d 05 ? ? ? ? 41 8b 94 80 ? ? ? ? 49 03 d0 ff e2 e8", "E9 A8 01 00 00 90"}
                 }
             },
-            {"No (C) Mark", "",
+            {"No (C) Mark", "Removes copyright on copied levels",
                 {
                     {"41 8b bd", "31 FF EB 0A"}
                 }
@@ -307,6 +308,7 @@ std::vector<window> hacks::windows = {
         }
     },
     {"Framerate", 440, 270, 210, 100},
+    {"GDH Settings", 440, 380, 210, 100},
     {"Replay Engine", 660, 10, 300, 200},
     {"Labels", 660, 220, 300, 230}
 };
@@ -412,11 +414,22 @@ void hacks::save(const std::vector<window>& windows, const std::filesystem::path
     j["custom_text"] = labels::custom_text;
     j["labels_pos"] = labels::pos;
 
+    j["gui_size"] = ImGuiHook::scale;
+    j["gui_scale_index"] = gui::indexScale;
+    j["gui_license_accepted"] = gui::license_accepted;
+
     std::ofstream file(filename);
     file << j.dump(4);
 }
 
 void hacks::load(const std::filesystem::path &filename, std::vector<window>& windows) {
+    for (auto& win : windows) {
+        win.orig_x = win.x;
+        win.orig_y = win.y;
+        win.orig_w = win.w;
+        win.orig_h = win.h;
+    }
+
     std::ifstream file(filename);
     if (!file.is_open()) {
         return;
@@ -464,6 +477,10 @@ void hacks::load(const std::filesystem::path &filename, std::vector<window>& win
     labels::custom_text_enabled = j.value("custom_text_enabled", false);
     labels::custom_text = j.value("custom_text", "test");
     labels::pos = j.value("labels_pos", 0);
+
+    ImGuiHook::scale = j.value("gui_size", 1.f);
+    gui::indexScale = j.value("gui_scale_index", 3);
+    gui::license_accepted = j.value("gui_license_accepted", false);
 
     file.close();
 }

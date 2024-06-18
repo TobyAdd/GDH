@@ -32,16 +32,24 @@ void ApplyColor() {
 }
 
 void ApplyStyle() {
-    ImGuiStyle& style = ImGui::GetStyle();    
-    style.WindowRounding = 12.0f;
-    style.ChildRounding = 6.0f;
-    style.FrameRounding = 20.0f;
-    style.PopupRounding = 12.f;
-    style.GrabRounding = 12.f;
-    style.TabRounding = 6.f;
-    style.ScrollbarSize = 14.f;
+    ImGuiStyle& style = ImGui::GetStyle();  
 
-    style.WindowPadding = ImVec2(10, 10);
+    style.WindowPadding = ImVec2(10.f * ImGuiHook::scale, 10.f * ImGuiHook::scale);
+    style.FramePadding = ImVec2(4.f * ImGuiHook::scale, 3.f * ImGuiHook::scale);
+    style.ItemSpacing = ImVec2(8.f * ImGuiHook::scale, 4.f * ImGuiHook::scale);
+    style.ItemInnerSpacing = ImVec2(4.f * ImGuiHook::scale, 4.f * ImGuiHook::scale);
+    style.IndentSpacing = 21.f * ImGuiHook::scale;
+    style.ScrollbarSize = 14.f * ImGuiHook::scale;
+    style.GrabMinSize = 12.f * ImGuiHook::scale;
+
+    style.WindowRounding = 12.0f * ImGuiHook::scale;
+    style.ChildRounding = 6.0f * ImGuiHook::scale;
+    style.FrameRounding = 20.0f * ImGuiHook::scale;
+    style.PopupRounding = 12.f * ImGuiHook::scale;
+    style.ScrollbarRounding = 12.f * ImGuiHook::scale;
+    style.GrabRounding = 12.f * ImGuiHook::scale;
+    style.TabRounding = 6.f * ImGuiHook::scale;
+    
     style.WindowBorderSize = 0;
     style.WindowTitleAlign = ImVec2(0.50, 0.50);
     style.WindowMenuButtonPosition = ImGuiDir_Right;

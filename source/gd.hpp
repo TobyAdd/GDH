@@ -70,6 +70,10 @@ namespace gd {
 			return from<bool>(this, 1050);
 		}
 
+        bool m_isPracticeMode() {
+			return from<bool>(this, 12776);
+		}
+
         void resetLevel() {
             reinterpret_cast<void(__thiscall*)(void*)>(base + 0x395710)(this);
         }

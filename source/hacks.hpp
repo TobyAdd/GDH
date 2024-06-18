@@ -22,8 +22,10 @@ struct window {
     std::string name;
     float x, y;
     float w, h;
-
     std::vector<hack> hacks;
+
+    float orig_x, orig_y;
+    float orig_w, orig_h;
 };
 
 namespace hacks {

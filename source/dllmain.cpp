@@ -24,8 +24,8 @@ void Main()
 
     hacks::load(hacks::fileDataPath, hacks::windows);
 
-    //Console::Init();
-
+    Console::Init();
+    
     hacks::init();
     hacks::update_framerate();
     

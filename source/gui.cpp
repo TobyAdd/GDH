@@ -5,13 +5,22 @@
 #include "hooks.hpp"
 #include "replayEngine.hpp"
 #include "labels.hpp"
+#include "license.hpp"
+
 bool gui::show = false;
 bool gui::inited = false;
+bool gui::needRescale = false;
+int gui::indexScale = 3;
+bool gui::onlyRE = false;
+bool gui::license_accepted = false;
 
 std::chrono::steady_clock::time_point animationStartTime;
 bool isAnimating = false;
 bool isFadingIn = false;
 int anim_durr = 100;
+
+bool needUnloadFont = false;
+std::string search_text;
 
 void animateAlpha(int ms)
 {
@@ -41,6 +50,51 @@ void animateAlpha(int ms)
     style.Alpha = alpha;
 }
 
+void License() {
+    if (!gui::inited) {
+        ImGui::SetNextWindowSize({590 * ImGuiHook::scale, 390 * ImGuiHook::scale});
+        ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));  
+        gui::inited = true;
+    }    
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {20, 20});
+    ImGui::Begin("Welcome", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+
+    ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]);
+    ImGui::Text("Welcome to GDH.");
+    ImGui::PopFont();
+
+    ImGui::Text("Please read the license agreement.");
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {10, 10});
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImColor(40, 45, 51).Value);
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImColor(40, 45, 51).Value);
+    ImGui::BeginChild("##LicenseChild", {0, ImGui::GetContentRegionAvail().y - 40 * ImGuiHook::scale}, true);
+    ImGui::Text("%s", license.c_str());
+    ImGui::EndChild();
+    ImGui::PopStyleColor(2);
+    ImGui::PopStyleVar();
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    static bool agree = false;
+    ImGui::Checkbox("I agree to the license terms", &agree, ImGuiHook::scale);
+    
+    ImGui::SetCursorPos({ImGui::GetWindowSize().x - 170 * ImGuiHook::scale, ImGui::GetWindowSize().y - 45 * ImGuiHook::scale});
+    if (ImGui::Button(agree ? "Agree" : "Disagree", {150 * ImGuiHook::scale, 30 * ImGuiHook::scale})) {
+        if (agree) {
+            gui::license_accepted = true;
+        } else {
+            gui::Toggle();
+        }
+    }
+    ImGui::End();
+    ImGui::PopStyleVar();
+}
+
 std::vector<std::string> stretchedWindows;
 void gui::RenderMain() {   
     if (isAnimating) {
@@ -52,8 +106,18 @@ void gui::RenderMain() {
     ImGuiIO &io = ImGui::GetIO();
     ImGui::SetNextWindowPos(ImVec2(0, io.DisplaySize.y), ImGuiCond_Always, ImVec2(0.0f, 1.0f));
     ImGui::Begin("BottomLeftText", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoFocusOnAppearing);
-    ImGui::Text("GDH v4.3 Alpha | TobyAdd | Prevter | Qwix | https://discord.gg/ahYEz4MAwP | https://t.me/tobyadd_public");
+    ImGui::Text("%s v4.4 Alpha | TobyAdd | Prevter | Qwix | https://discord.gg/ahYEz4MAwP | https://t.me/tobyadd_public", gui::onlyRE ? "Replay Engine" : "GDH");
     ImGui::End();
+
+    if (!gui::license_accepted) {
+        License();
+        return;
+    }
+
+    if (gui::onlyRE) {
+        engine.renderFull();
+        return;
+    }
 
     for (auto& win : hacks::windows) {
         std::string windowName = win.name;
@@ -61,6 +125,11 @@ void gui::RenderMain() {
         {
             ImVec2 windowSize = ImVec2(win.w, win.h);
             ImVec2 windowPos = ImVec2(win.x, win.y);
+
+            if (gui::needRescale) {
+                windowSize = ImVec2(win.orig_w * ImGuiHook::scale, win.orig_h * ImGuiHook::scale);
+                windowPos = ImVec2(win.orig_x * ImGuiHook::scale, win.orig_y * ImGuiHook::scale);
+            }
 
             ImGui::SetNextWindowSize(windowSize);
             ImGui::SetNextWindowPos(windowPos);
@@ -109,29 +178,54 @@ void gui::RenderMain() {
             engine.render();
         }
         else if (windowName == "Labels") {
-            ImGui::Checkbox("Custom Text", &labels::custom_text_enabled);
+            ImGui::Checkbox("Custom Text", &labels::custom_text_enabled, ImGuiHook::scale);
 
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             ImGui::InputText("##Custom Text2", &labels::custom_text);
             
-            ImGui::Checkbox("Time (24H)", &labels::time24_enabled);
+            ImGui::Checkbox("Time (24H)", &labels::time24_enabled, ImGuiHook::scale);
 
             ImGui::SameLine();
 
-            ImGui::Checkbox("Time (12H)", &labels::time12_enabled);            
-            ImGui::Checkbox("Noclip Accuracy", &labels::noclip_accuracy_enabled);
+            ImGui::Checkbox("Time (12H)", &labels::time12_enabled, ImGuiHook::scale);            
+            ImGui::Checkbox("Noclip Accuracy", &labels::noclip_accuracy_enabled, ImGuiHook::scale);
 
-            ImGui::Checkbox("CPS Counter", &labels::cps_counter_enabled);
+            ImGui::Checkbox("CPS Counter", &labels::cps_counter_enabled, ImGuiHook::scale);
 
-            ImGui::Checkbox("Death Counter", &labels::death_enabled);
+            ImGui::Checkbox("Death Counter", &labels::death_enabled, ImGuiHook::scale);
             
             const char *e[] = {"Top Left", "Bottom Left", "Top Right", "Bottom Right"};
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             ImGui::Combo("##Labels Position", &labels::pos, e, 4, 4);
         }
-        else {
+        else if (windowName == "GDH Settings") {
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            ImGui::InputTextWithHint("##Search", "Search:", &search_text);
+
+            if (ImGui::GetIO().MouseWheel != 0 && ImGui::IsItemActive())
+                ImGui::SetWindowFocus(NULL);
+
+            
+            const char* items[] = {"25%", "50%", "75%", "100%", "125%", "150%", "175%", "200%", "250%", "300%", "400%"};
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::Combo("##Menu scale", &gui::indexScale, items, IM_ARRAYSIZE(items))) {
+                ImGuiHook::scale = float(atof(items[gui::indexScale])) / 100.0f;    
+                gui::needRescale = true;
+                ImGuiHook::needReload = true;
+            }
+        }
+        else {        
             for (auto& hck : win.hacks) {
-                if (ImGui::Checkbox(hck.name.c_str(), &hck.enabled)) {
+                std::string search_name = hck.name;
+                std::string search_item = search_text;
+                
+                std::transform(search_item.begin(), search_item.end(), search_item.begin(), ::tolower);
+                std::transform(search_name.begin(), search_name.end(), search_name.begin(), ::tolower);
+
+                bool founded = search_item.empty() ? true : (search_name.find(search_item) != std::string::npos);
+                ImGui::PushStyleColor(ImGuiCol_Text, founded ? ImColor(255, 255, 255).Value : ImColor(64, 64, 64).Value);
+
+                if (ImGui::Checkbox(hck.name.c_str(), &hck.enabled, ImGuiHook::scale)) {
                     if (hck.name == "Unlock Items") { hacks::unlock_items = hck.enabled; }
                     else if (hck.name == "Ignore ESC") { hacks::ignore_esc = hck.enabled; }
                     else if (hck.name == "Startpos Switcher") { hacks::startpos_switcher = hck.enabled; }
@@ -154,6 +248,11 @@ void gui::RenderMain() {
                     }
                 }
 
+                ImGui::PopStyleColor();
+
+                if (ImGui::IsItemHovered() && !hck.desc.empty())
+                    ImGui::SetTooltip(hck.desc.c_str());
+                
                 if (hck.name == "RGB Icons") {
                     ImGui::SameLine();
                     if (ImGui::ArrowButton("##rainbowSettings", ImGuiDir_Right)) {
@@ -173,9 +272,6 @@ void gui::RenderMain() {
                         ImGui::EndPopup();
                     }
                 }
-
-                if (ImGui::IsItemHovered() && !hck.desc.empty())
-                    ImGui::SetTooltip(hck.desc.c_str());
             }
         }
 
@@ -200,6 +296,5 @@ void gui::Toggle() {
 }
 
 void gui::Unload() {
-    gui::show = false;
     stretchedWindows.clear();
 }
