@@ -176,7 +176,7 @@ void gui::RenderMain() {
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             ImGui::DragFloat("##speedhack_value", &hacks::speed_value, 0.01f, 0, FLT_MAX, "Speed: %.2fx");
 
-            ImGui::Checkbox("Speedhack Audio", &hacks::speedhack_audio);
+            ImGui::Checkbox("Speedhack Audio", &hacks::speedhack_audio, ImGuiHook::scale);
 
         }
         else if (windowName == "Replay Engine") {
