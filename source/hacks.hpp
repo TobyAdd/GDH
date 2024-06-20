@@ -58,6 +58,7 @@ namespace hacks {
     extern float fps_value;
     
     extern float speed_value;
+    extern bool speedhack_audio;
 
     void update_framerate();
 

@@ -110,4 +110,65 @@ namespace gd {
             return from<int>(this, 3798);
         }
 	};
+
+    namespace FMOD {
+        static auto base = GetModuleHandleA("fmod.dll");
+        
+        struct Sound {
+            void getDefaults(float *frequency, int *priority) {
+                static const auto addr = GetProcAddress(base, "?getDefaults@Sound@FMOD@@QEAA?AW4FMOD_RESULT@@PEAMPEAH@Z");
+                reinterpret_cast<void*(__stdcall*)(void*, float *, int *)>(addr)(this, frequency, priority);
+            }
+        };
+
+        struct Channel {
+            void setPitch(float pitch) {
+                static const auto addr = GetProcAddress(base, "?setPitch@ChannelControl@FMOD@@QEAA?AW4FMOD_RESULT@@M@Z");
+                reinterpret_cast<void*(__stdcall*)(void*, float)>(addr)(this, pitch);
+            }
+
+            void setVolume(float volume) {
+                static const auto addr = GetProcAddress(base, "?setVolume@ChannelControl@FMOD@@QEAA?AW4FMOD_RESULT@@M@Z");
+                reinterpret_cast<void*(__stdcall*)(void*, float)>(addr)(this, volume);
+            }
+
+            void setFrequency(float frequency) {
+                static const auto addr = GetProcAddress(base, "?setFrequency@Channel@FMOD@@QEAA?AW4FMOD_RESULT@@M@Z");
+                reinterpret_cast<void*(__stdcall*)(void*, float)>(addr)(this, frequency);
+            }
+
+            void getCurrentSound(Sound **sound) {
+                static const auto addr = GetProcAddress(base, "?getCurrentSound@Channel@FMOD@@QEAA?AW4FMOD_RESULT@@PEAPEAVSound@2@@Z");
+                reinterpret_cast<void*(__stdcall*)(void*, Sound **sound)>(addr)(this, sound);
+            }
+        };
+        
+        struct System {
+            void getChannel(int index, Channel **channel) {
+                static const auto addr = GetProcAddress(base, "?getChannel@System@FMOD@@QEAA?AW4FMOD_RESULT@@HPEAPEAVChannel@2@@Z");
+                reinterpret_cast<void*(__stdcall*)(void*, int, Channel **)>(addr)(this, index, channel);
+            }
+
+            void setOutput(int output) {
+                static const auto addr = GetProcAddress(base, "?setOutput@System@FMOD@@QEAA?AW4FMOD_RESULT@@W4FMOD_OUTPUTTYPE@@@Z");
+                reinterpret_cast<void*(__stdcall*)(void*, int)>(addr)(this, output);
+            }
+        };
+    }
+
+    class FMODAudioEngine : public cocos2d::CCNode {
+    public:
+        static FMODAudioEngine* sharedEngine() {
+            auto** instancePtr = reinterpret_cast<FMODAudioEngine**>(base + 0x687dc0);
+            if (!*instancePtr) {
+                *instancePtr = new FMODAudioEngine();
+                (*instancePtr)->init();
+            }
+            return *instancePtr;
+        }
+
+        auto& m_system() {
+            return from<FMOD::System*>(this, 0x230);
+        }
+    };
 }

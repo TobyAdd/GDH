@@ -6,6 +6,7 @@
 #include "replayEngine.hpp"
 #include "labels.hpp"
 #include "license.hpp"
+#include "speedhackAudio.hpp"
 
 bool gui::show = false;
 bool gui::inited = false;
@@ -97,6 +98,8 @@ void License() {
 
 std::vector<std::string> stretchedWindows;
 void gui::RenderMain() {   
+    SpeedhackAudio::update();
+
     if (isAnimating) {
         animateAlpha(anim_durr);
     }
@@ -106,7 +109,7 @@ void gui::RenderMain() {
     ImGuiIO &io = ImGui::GetIO();
     ImGui::SetNextWindowPos(ImVec2(0, io.DisplaySize.y), ImGuiCond_Always, ImVec2(0.0f, 1.0f));
     ImGui::Begin("BottomLeftText", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoFocusOnAppearing);
-    ImGui::Text("%s v4.4 Alpha | TobyAdd | Prevter | Qwix | https://discord.gg/ahYEz4MAwP | https://t.me/tobyadd_public", gui::onlyRE ? "Replay Engine" : "GDH");
+    ImGui::Text("%s v4.5 Alpha | TobyAdd | Prevter | Qwix | https://discord.gg/ahYEz4MAwP | https://t.me/tobyadd_public", gui::onlyRE ? "Replay Engine" : "GDH");
     ImGui::End();
 
     if (!gui::license_accepted) {
@@ -172,6 +175,8 @@ void gui::RenderMain() {
 
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             ImGui::DragFloat("##speedhack_value", &hacks::speed_value, 0.01f, 0, FLT_MAX, "Speed: %.2fx");
+
+            ImGui::Checkbox("Speedhack Audio", &hacks::speedhack_audio);
 
         }
         else if (windowName == "Replay Engine") {

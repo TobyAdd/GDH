@@ -19,6 +19,8 @@ float hacks::ricon_delta = 0;
 bool hacks::fps_enabled = false;
 float hacks::fps_value = 240.f;
 
+bool hacks::speedhack_audio = false;
+
 float hacks::speed_value = 1.f;
 std::vector<window> hacks::windows = {
     {"Core", 10, 10, 200, 200, 
@@ -111,7 +113,7 @@ std::vector<window> hacks::windows = {
             
         }
     },
-    {"Player", 220, 10, 210, 480, 
+    {"Player", 220, 10, 210, 500, 
         {
             {"Allow Low Volume", "Removes the limit on minimum volume percentage",
                 {
@@ -307,8 +309,8 @@ std::vector<window> hacks::windows = {
             }
         }
     },
-    {"Framerate", 440, 270, 210, 100},
-    {"GDH Settings", 440, 380, 210, 100},
+    {"Framerate", 440, 270, 210, 130},
+    {"GDH Settings", 440, 410, 210, 100},
     {"Replay Engine", 660, 10, 300, 200},
     {"Labels", 660, 220, 300, 230}
 };
@@ -399,6 +401,7 @@ void hacks::save(const std::vector<window>& windows, const std::filesystem::path
     j["fps_enabled"] = hacks::fps_enabled;
     j["fps"] = hacks::fps_value;
     j["speed"] = hacks::speed_value;
+    j["speedhack_audio"] = hacks::speedhack_audio;
     j["rgb_icons_enabled"] = hacks::rgb_icons;
     j["icon_coef"] = hacks::ricon_coef;
     j["icon_shift"] = hacks::ricon_shift;
@@ -462,6 +465,7 @@ void hacks::load(const std::filesystem::path &filename, std::vector<window>& win
     hacks::fps_enabled = j.value("fps_enabled", false);
     hacks::fps_value = j.value("fps", 240.f);
     hacks::speed_value = j.value("speed", 1.f);
+    hacks::speedhack_audio = j.value("speedhack_audio", true);
 
     hacks::rgb_icons = j.value("rgb_icons_enabled", true);
     hacks::ricon_coef = j.value("icon_coef", 0.25f);
