@@ -3,10 +3,14 @@
 #include "console.hpp"
 #include "replayEngine.hpp"
 #include "labels.hpp"
+#include "recorder.hpp"
 
 gd::PlayLayer* hooks::pl = nullptr;
+gd::ShaderLayer* hooks::shader_layer = nullptr;
+
 gd::StartPosObject* startpos = nullptr;
 std::vector<gd::StartPosObject*> startPositions;
+std::vector<gd::GameObject *> coinsObjects;
 
 namespace startpos_switcher {
     int selectedStartpos = 0;
@@ -64,6 +68,10 @@ void __fastcall hooks::PlayLayer_addObjectH(gd::PlayLayer *self, gd::GameObject 
     PlayLayer_addObject(self, obj);
     if (obj->m_nObjectID() == 31) {
         startPositions.push_back(static_cast<gd::StartPosObject *>(obj));
+    }
+
+    if (obj->m_nObjectID() == 1329 || obj->m_nObjectID() == 142) {
+        coinsObjects.push_back(obj);
     }
 }
 
@@ -157,6 +165,14 @@ bool __fastcall hooks::PlayLayer_initH(gd::PlayLayer* self, void* m_level, bool 
 
 void(__thiscall* PlayLayer_update)(gd::PlayLayer*, float);
 void __fastcall PlayLayer_update_H(gd::PlayLayer* self, float dt) {    
+    if (recorder.is_recording) {
+        recorder.handle_recording(self, dt);
+    }
+
+    if (recorderAudio.is_recording) {
+        recorderAudio.handle_recording(self, dt);
+    }
+
     PlayLayer_update(self, dt);
 
     hacks::ricon_delta += dt;
@@ -245,11 +261,23 @@ void __fastcall PlayLayer_reset_H(gd::PlayLayer* self) {
     noclip_accuracy.handle_reset(self);
     cps_counter.reset();
 
+    if (hacks::auto_pickup_coins) {
+        for (size_t i = 0; i < coinsObjects.size(); i++)
+        {
+            if (coinsObjects[i])
+            {
+                // pickupCoin
+                reinterpret_cast<void(__thiscall *)(void *, void *)>(gd::base + 0x206C70)(self, coinsObjects[i]);
+                // desctoyObject
+                reinterpret_cast<void(__thiscall *)(void *, void *)>(gd::base + 0x206b50)(self, coinsObjects[i]);
+            }
+        }
+    }
+
     if (hacks::instant_complate) {
         float a = 0;
         reinterpret_cast<void(__thiscall *)(void* self, float *a2)>(hacks::base + 0x388570)(self, &a);
-    }
-        
+    }        
 }
 
 void __fastcall hooks::PlayLayer_levelCompleteHook(gd::PlayLayer *self)
@@ -280,6 +308,11 @@ void __fastcall hooks::PlayLayer_destructor_H(gd::PlayLayer *self)
     hacks::ricon_delta = 0;
 
     startPositions.clear();
+    coinsObjects.clear();
+
+    if (recorderAudio.is_recording && recorderAudio.showcase_mode) {
+        recorderAudio.stop();
+    }
 }
 
 int __fastcall hooks::GJBaseGameLayer_HandleButton_H(gd::PlayLayer*self, int hold, int player_button, bool is_player1)
@@ -310,9 +343,43 @@ int __fastcall hooks::GJBaseGameLayer_HandleButton_H(gd::PlayLayer*self, int hol
     return ret;
 }
 
+void __fastcall hooks::PlayLayer_startMusicHook(gd::PlayLayer *self) {
+    PlayLayer_startMusic(self);
+    if (recorderAudio.enabled && recorderAudio.showcase_mode) {
+        if (recorderAudio.is_recording) {
+            recorderAudio.stop();
+        }
+        recorderAudio.start();
+    }
+}
+
 void __fastcall hooks::PlayLayer_destroyPlayer_H(gd::PlayLayer* self, gd::PlayerObject* player, gd::GameObject* obj) {
     PlayLayer_destroyPlayer(self, player, obj);
     noclip_accuracy.handle_death();
+}
+
+gd::PauseLayer* hooks::pause_menu;
+void __fastcall hooks::PauseLayer_customSetup_H(gd::PauseLayer* self) {
+    PauseLayer_customSetup(self);
+    pause_menu = self;
+    if (hacks::hide_menu)
+        self->setVisible(false);
+}
+
+void __fastcall hooks::PauseLayer_destructor_H(gd::PauseLayer* self, bool remove) {
+    PauseLayer_destructor(self, remove);
+    hooks::pause_menu = nullptr;
+}
+
+bool __fastcall hooks::ShaderLayer_initH(gd::ShaderLayer* self) {
+    auto ret = ShaderLayer_init(self);
+    hooks::shader_layer = self;
+    return ret;
+}
+
+void __fastcall hooks::ShaderLayer_destructor_H(gd::ShaderLayer* self, bool remove) {
+    ShaderLayer_destructor(self, remove);
+    hooks::shader_layer = nullptr;
 }
 
 void hooks::init() {
@@ -323,10 +390,15 @@ void hooks::init() {
     MH_CreateHook((void *)(hacks::base + 0x3958b0), PlayLayer_reset_H, (void **)&PlayLayer_reset);
     MH_CreateHook((void *)(hacks::base + 0x384850), PlayLayer_levelCompleteHook, (void **)&PlayLayer_levelComplete);
     MH_CreateHook((void *)(hacks::base + 0x35cd70), PlayLayer_quit_H, (void **)&PlayLayer_quit);
+    MH_CreateHook((void *)(hacks::base + 0x3973f0), PlayLayer_startMusicHook, (void **)&PlayLayer_startMusic);
     MH_CreateHook((void *)(hacks::base + 0x2238a0), GJBaseGameLayer_HandleButton_H, (void **)&GJBaseGameLayer_HandleButton);
     MH_CreateHook((void *)(hacks::base + 0x3905a0), PlayLayer_destroyPlayer_H, (void **)&PlayLayer_destroyPlayer);
     MH_CreateHook((void *)(hacks::base + 0x38a990), PlayLayer_addObjectH, (void **)&PlayLayer_addObject);
     MH_CreateHook((void *)(hacks::base + 0x382540), PlayLayer_destructor_H, (void **)&PlayLayer_destructor);
     MH_CreateHook((void *)(hacks::base + 0x485B00), StartPosObject_init_H, (void **)&StartPosObject_init);
+    MH_CreateHook((void *)(hacks::base + 0x35abc0), PauseLayer_customSetup_H, (void **)&PauseLayer_customSetup);
+    MH_CreateHook((void *)(hacks::base + 0x35AB10), PauseLayer_destructor_H, (void **)&PauseLayer_destructor);
+    MH_CreateHook((void *)(hacks::base + 0x45CE00), ShaderLayer_initH, (void **)&ShaderLayer_init);
+    MH_CreateHook((void *)(hacks::base + 0x4558D0), ShaderLayer_destructor_H, (void **)&ShaderLayer_destructor);
     MH_CreateHook(GetProcAddress(hacks::cocos_base, "?dispatchKeyboardMSG@CCKeyboardDispatcher@cocos2d@@QEAA_NW4enumKeyCodes@2@_N1@Z"), dispatchKeyboardMSGHook, (void **)&dispatchKeyboardMSG);
 }

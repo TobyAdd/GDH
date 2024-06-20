@@ -40,6 +40,7 @@ namespace hacks {
     extern std::vector<window> windows;
     void init();
 
+    extern bool auto_pickup_coins;
     extern bool unlock_items;
     extern bool ignore_esc;
     extern bool startpos_switcher;
@@ -59,6 +60,8 @@ namespace hacks {
     
     extern float speed_value;
     extern bool speedhack_audio;
+
+    extern bool hide_menu;
 
     void update_framerate();
 

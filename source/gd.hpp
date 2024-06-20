@@ -8,6 +8,9 @@ inline R& from(T base, intptr_t offset) {
     return *reinterpret_cast<R*>(reinterpret_cast<uintptr_t>(base) + offset);
 }
 
+const int FMOD_OUTPUTTYPE_AUTODETECT = 0;
+const int FMOD_OUTPUTTYPE_WAVWRITER = 3;
+
 namespace cocos2d {
     static auto base = GetModuleHandleA("libcocos2d.dll");
 }
@@ -43,7 +46,7 @@ namespace gd {
 		}
 
 		auto m_waveTrail() {
-			return from<cocos2d::CCSprite*>(this, 0x7b0); 
+			return from<cocos2d::CCSprite*>(this, 1968); 
 		}
 
         cocos2d::CCSprite* m_pSecondarySprite() {
@@ -72,6 +75,10 @@ namespace gd {
 
         bool m_isPracticeMode() {
 			return from<bool>(this, 12776);
+		}
+
+        bool m_hasCompletedLevel() {
+			return from<bool>(this, 14485);
 		}
 
         void resetLevel() {
@@ -109,6 +116,28 @@ namespace gd {
         auto &m_unknow() {
             return from<int>(this, 3798);
         }
+	};
+
+    class PauseLayer : public CCLayer {
+	public:
+	};
+
+    class ShaderLayer : public CCLayer {
+	public:
+        void visit2() {
+            reinterpret_cast<void(__thiscall*)(void*)>(base + 0x45CE00)(this);
+        }
+	};
+
+    class GameManager : public CCNode {
+	public:
+		static GameManager* sharedState() {
+			return reinterpret_cast<GameManager*(__stdcall*)()>(base + 0x172b30)();
+		}
+
+		bool getGameVariable(char const* var) {
+			return reinterpret_cast<bool(__thiscall*)(GameManager*, char const*)>(base + 0x17a0e0)(this, var);
+		}
 	};
 
     namespace FMOD {

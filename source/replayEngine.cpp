@@ -5,6 +5,7 @@
 #include "gui.hpp"
 #include "labels.hpp"
 #include <random>
+#include "recorder.hpp"
 
 ReplayEngine engine;
 SpamBot spamBot;
@@ -193,7 +194,7 @@ void ReplayEngine::openReplayMultishit() {
 }
 
 bool inited = false;
-const char *items[] = {"General", "Assist", "Editor", "Recorder", "Sequence", "About", "Exit"};
+const char *items[] = {"General", "Assist", "Editor", "Recorder (WIP)", "Sequence", "About", "Exit"};
 int items_index = 0;
 
 void ReplayEngine::renderFull() {
@@ -447,7 +448,223 @@ void ReplayEngine::renderFull() {
         }
     }
     else if (items_index == 3) {
+        if (ImGui::BeginTabBar("Recorder")) {
+            if (ImGui::BeginTabItem("Video")) {
 
+                if (ImGui::Checkbox("Record", &recorder.enabled, ImGuiHook::scale)) {
+                    if (recorder.enabled)
+                        recorder.start();
+                    else 
+                        recorder.stop();
+                }
+
+                ImGui::SameLine();
+
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                ImGui::InputText("##videoname", &recorder.video_name);
+
+                ImGui::SameLine();
+
+                ImGui::Spacing();
+
+                ImGui::Text("Resolution:");
+                ImGui::Separator();
+
+                ImGui::PushItemWidth(45.f * ImGuiHook::scale);
+                ImGui::InputInt("##width", &recorder.width, 0);
+                ImGui::SameLine(0, 5);
+
+                ImGui::Text("x");
+                ImGui::SameLine(0, 5);
+
+                ImGui::PushItemWidth(45.f * ImGuiHook::scale);
+                ImGui::InputInt("##height", &recorder.height, 0);
+                ImGui::SameLine(0, 5);
+
+                ImGui::Text("@");
+                ImGui::SameLine(0, 5);
+
+                ImGui::PushItemWidth(35.f * ImGuiHook::scale);
+                ImGui::InputInt("##fps", &recorder.fps, 0);
+
+                ImGui::Spacing();
+
+                ImGui::Text("Encoding Settings");
+                ImGui::Separator(); 
+                
+                ImGui::PushItemWidth(50.f * ImGuiHook::scale);
+                ImGui::InputText("Bitrate", &recorder.bitrate);
+
+                ImGui::SameLine();
+
+                ImGui::PushItemWidth(80.f * ImGuiHook::scale);
+                ImGui::InputText("Codec", &recorder.codec);
+
+                ImGui::PushItemWidth(250 * ImGuiHook::scale);
+                ImGui::InputText("Extra Arguments", &recorder.extra_args);
+                
+                ImGui::Spacing();
+
+                ImGui::Text("Level Settings");
+                ImGui::Separator();
+
+                ImGui::PushItemWidth(200 * ImGuiHook::scale);
+                ImGui::InputFloat("Second to Render After", &recorder.after_end_duration, 1);
+
+                ImGui::Spacing();
+
+                ImGui::Text("Presets");
+                ImGui::Separator();
+
+                if (ImGui::Button("HD"))
+                {
+                    recorder.width = 1280;
+                    recorder.height = 720;
+                    recorder.fps = 60;
+                    recorder.bitrate = "30M";
+                }
+
+                ImGui::SameLine();
+
+                if (ImGui::Button("FULL HD"))
+                {
+                    recorder.width = 1920;
+                    recorder.height = 1080;
+                    recorder.fps = 60;
+                    recorder.bitrate = "50M";
+                }
+
+                ImGui::SameLine();
+
+                if (ImGui::Button("4K"))
+                {
+                    recorder.width = 3840;
+                    recorder.height = 2160;
+                    recorder.fps = 60;
+                    recorder.bitrate = "70M";
+                }
+
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("Audio")) {
+                if (ImGui::Checkbox("Record Buffer", &recorderAudio.enabled, ImGuiHook::scale)) {
+                    if (!recorderAudio.showcase_mode) {
+                        if (recorderAudio.enabled)
+                            recorderAudio.start();
+                        else 
+                            recorderAudio.stop();
+                    }
+                }
+
+                ImGui::Checkbox("Showcase Mode", &recorderAudio.showcase_mode, ImGuiHook::scale);
+
+                ImGui::SameLine();
+
+                //ImGui::Checkbox("Disable Objects Render", &hacks::disable_render, ImGuiHook::scale);
+
+                if (recorderAudio.showcase_mode) {
+                    ImGui::Spacing();
+
+                    ImGui::Text("Level Settings");
+                    ImGui::Separator();
+
+                
+                    ImGui::PushItemWidth(200 * ImGuiHook::scale);
+                    ImGui::InputFloat("Second to Render After##2", &recorderAudio.after_end_duration, 1);
+                }
+
+                ImGui::Spacing();
+
+                ImGui::Text("Save Buffer");
+                ImGui::Separator();
+
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                ImGui::InputText("##videoname", &recorderAudio.audio_name);
+
+                ImGui::PushItemWidth(250 * ImGuiHook::scale);
+                ImGui::InputText("Extra Arguments", &recorderAudio.extra_args);
+
+                if (ImGui::Button("Save", {ImGui::GetContentRegionAvail().x, NULL})) {
+                    std::string audio_name_ = recorderAudio.audio_name;
+                    std::string command = "ffmpeg.exe -y -i fmodoutput.wav ";
+                    if (!recorderAudio.extra_args.empty()) {
+                        command += recorderAudio.extra_args + " ";
+                    }
+
+                    command += "\"" + audio_name_ + "\"";
+                    auto process = subprocess::Popen(command);
+                }
+
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("Merge")) {
+                static bool shortest = true;
+                static std::vector<std::string> videos;
+                static std::vector<std::string> audios;
+                static int index_videos = 0;
+                static int index_audios = 0;
+
+                ImGui::BeginChild("##VideoSelect", {NULL, 130 * ImGuiHook::scale}, true);
+                for (size_t i = 0; i < videos.size(); i++) {
+                    bool is_selected = (index_videos == i);
+                    if (ImGui::Selectable(videos[i].c_str(), is_selected)) {
+                        index_videos = i;
+                    }
+                }
+                ImGui::EndChild();
+
+                ImGui::BeginChild("##AudioSelect", {NULL, 130 * ImGuiHook::scale}, true);
+                for (size_t i = 0; i < audios.size(); i++) {
+                    bool is_selected = (index_audios == i);
+                    if (ImGui::Selectable(audios[i].c_str(), is_selected)) {
+                        index_audios = i;
+                    }
+                }
+                ImGui::EndChild();
+
+                if (ImGui::Button("Refresh", {ImGui::GetContentRegionAvail().x, NULL})) {
+                    videos.clear();
+                    audios.clear();
+                    for (const auto &entry : std::filesystem::directory_iterator(std::filesystem::current_path())) {
+                        if (entry.path().extension() == ".mp4") {
+                            videos.push_back(entry.path().string());
+                        }
+
+                        if (entry.path().extension() == ".mp3") {
+                            audios.push_back(entry.path().string());
+                        }
+                    }
+                }
+
+                ImGui::Checkbox("Shortest", &shortest, ImGuiHook::scale);
+
+                
+                ImGui::SameLine();
+
+                if (ImGui::Button("Merge", {ImGui::GetContentRegionAvail().x, NULL})) {
+                    if (videos.empty() || audios.empty()) {
+                        log = "Please select both a video and an audio file";
+                    } else if (index_videos >= 0 && index_videos < (int)videos.size() && index_audios >= 0 && index_audios < (int)audios.size()) {
+                        std::string command2 = "ffmpeg.exe -y -i \"" + videos[index_videos] + "\" -i \"" + audios[index_audios] + "\" -map 0:v -map 1:a -c:v copy ";
+                        if (shortest) {
+                            command2 += "-shortest ";
+                        }
+                        std::filesystem::path video_rel(videos[index_videos]);
+                        command2 += "\"audio_" + video_rel.filename().string() + "\"";
+                        Console::WriteLn(command2);
+                        auto process = subprocess::Popen(command2);
+                    }
+                }
+
+
+                ImGui::EndTabItem();
+            }
+
+
+            ImGui::EndTabBar();
+        }
     }
     else if (items_index == 4) {
         ImGui::Checkbox("Toggle", &sequence.enable_sqp, ImGuiHook::scale);

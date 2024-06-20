@@ -19,6 +19,8 @@ float hacks::ricon_delta = 0;
 bool hacks::fps_enabled = false;
 float hacks::fps_value = 240.f;
 
+bool hacks::hide_menu = false;
+bool hacks::auto_pickup_coins = false;
 bool hacks::speedhack_audio = false;
 
 float hacks::speed_value = 1.f;
@@ -115,6 +117,7 @@ std::vector<window> hacks::windows = {
     },
     {"Player", 220, 10, 210, 500, 
         {
+            {"Auto Pickup Coins", "Collects all coins in the level"},   
             {"Allow Low Volume", "Removes the limit on minimum volume percentage",
                 {
                     {"76 ? 0f 57 f6 48 8b 05 ? ? ? ? 48 85 c0 75 ? b9 ? ? ? ? e8 ? ? ? ? 48 89 44 24 ? 48 8b c8 e8 ? ? ? ? 90 48 89 05 ? ? ? ? 48 8b 10 48 8b c8 ff 52 ? 48 8b 05 ? ? ? ? f3 44 0f 10 80", "EB"},
@@ -172,6 +175,7 @@ std::vector<window> hacks::windows = {
                     {"48 8d 88 ? ? ? ? 4c 8b 01 b2 ? 41 ff 50 ? b9", "48 8D 08 4C 8B 01 0F 57 C9 41 FF 90 A0 00 00 00"}
                 }
             },
+            {"Hide Pause Menu", "Removes the pause menu"},            
             {"No Camera Move", "Disables camera movement via trigger",
                 {
                     {"0f 8f ? ? ? ? 0f 84 ? ? ? ? 81 e9 ? ? ? ? 0f 84 ? ? ? ? 83 e9 ? 74 ? 83 f9 ? 0f 85 ? ? ? ? 8b 83", "E9 20 03 00"}
@@ -359,6 +363,8 @@ void hacks::init() {
                 else if (hck.name == "Reset Camera") { hacks::startpos_switcher_reset_camera = hck.enabled; }
                 else if (hck.name == "Use A/D") { hacks::use_a_s_d = hck.enabled; }
                 else if (hck.name == "Instant Complete") { hacks::instant_complate = hck.enabled; }
+                else if (hck.name == "Hide Pause Menu") { hacks::hide_menu = hck.enabled; }
+                else if (hck.name == "Auto Pickup Coins") { hacks::auto_pickup_coins = hck.enabled; }
                 else {
                     for (auto& opc : hck.opcodes) {
                         std::string bytesStr = hck.enabled ? opc.on : opc.off;

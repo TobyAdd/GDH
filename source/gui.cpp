@@ -23,6 +23,12 @@ int anim_durr = 100;
 bool needUnloadFont = false;
 std::string search_text;
 
+void ShitoCursor() {
+    if (hooks::pl && !hooks::pl->m_hasCompletedLevel() && !hooks::pause_menu && !gd::GameManager::sharedState()->getGameVariable("0024") ) {
+        cocos2d::CCEGLView::sharedOpenGLView()->showCursor(gui::show);
+    }
+}
+
 void animateAlpha(int ms)
 {
     ImGuiStyle& style = ImGui::GetStyle();
@@ -40,7 +46,7 @@ void animateAlpha(int ms)
         if (!isFadingIn)
         {
             gui::show = !gui::show;
-            //ShitoCursor();
+            ShitoCursor();
         }
 
         return;
@@ -103,13 +109,13 @@ void gui::RenderMain() {
     if (isAnimating) {
         animateAlpha(anim_durr);
     }
-
+    
     if (!gui::show) return;
 
     ImGuiIO &io = ImGui::GetIO();
     ImGui::SetNextWindowPos(ImVec2(0, io.DisplaySize.y), ImGuiCond_Always, ImVec2(0.0f, 1.0f));
     ImGui::Begin("BottomLeftText", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoFocusOnAppearing);
-    ImGui::Text("%s v4.5 Alpha | TobyAdd | Prevter | Qwix | https://discord.gg/ahYEz4MAwP | https://t.me/tobyadd_public", gui::onlyRE ? "Replay Engine" : "GDH");
+    ImGui::Text("%s v4.6 Alpha | TobyAdd | Prevter | Qwix | https://discord.gg/ahYEz4MAwP | https://t.me/tobyadd_public", gui::onlyRE ? "Replay Engine" : "GDH");
     ImGui::End();
 
     if (!gui::license_accepted) {
@@ -238,6 +244,12 @@ void gui::RenderMain() {
                     else if (hck.name == "Use A/D") { hacks::use_a_s_d = hck.enabled; }
                     else if (hck.name == "Instant Complete") { hacks::instant_complate = hck.enabled; }
                     else if (hck.name == "RGB Icons") { hacks::rgb_icons = hck.enabled; }
+                    else if (hck.name == "Hide Pause Menu") { 
+                        hacks::hide_menu = hck.enabled; 
+                        if (hooks::pl && hooks::pause_menu)
+                            hooks::pause_menu->setVisible(!hck.enabled);
+                    }
+                    else if (hck.name == "Auto Pickup Coins") { hacks::auto_pickup_coins = hck.enabled; }
                     else {
                         for (auto& opc : hck.opcodes) {
                             std::string bytesStr = hck.enabled ? opc.on : opc.off;
@@ -295,7 +307,7 @@ void gui::Toggle() {
         if (isFadingIn)
         {
             gui::show = !gui::show;  
-            //ShitoCursor();         
+            ShitoCursor();         
         }
     }
 }

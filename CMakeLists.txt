@@ -21,6 +21,7 @@ add_subdirectory(libraries/imgui-hook)
 add_subdirectory(libraries/cocos-headers)
 
 target_link_libraries(${PROJECT} minhook imgui-hook opengl32 cocos2d)
+target_link_libraries(${PROJECT} ${CMAKE_SOURCE_DIR}/libraries/glew32.lib)
 
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 
