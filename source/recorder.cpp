@@ -37,8 +37,10 @@ void RenderTexture::capture_frame(std::mutex& lock, std::vector<uint8_t>& data, 
 
     auto director = CCDirector::sharedDirector();
     auto scene = hooks::pl;
-    auto shaderscene = hooks::shader_layer;
+
+    recorder.playLayerVisiting = true;
     scene->visit();
+    recorder.playLayerVisiting = false;
 
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     lock.lock();

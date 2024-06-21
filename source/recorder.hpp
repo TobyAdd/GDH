@@ -21,6 +21,9 @@ class Recorder {
     public:
         std::string video_name = "video.mp4";
 
+        bool playLayerVisiting = false;
+        bool shaderLayerVisiting = false;
+
         bool enabled = false;
         bool is_recording = false;
         int width = 1280;

@@ -28,11 +28,8 @@ namespace hooks {
     inline void(__thiscall* PauseLayer_destructor)(gd::PauseLayer*, bool remove);
     void __fastcall PauseLayer_destructor_H(gd::PauseLayer* self, bool remove);
 
-    inline bool(__thiscall* ShaderLayer_init)(gd::ShaderLayer*);
-    bool __fastcall ShaderLayer_initH(gd::ShaderLayer* self);
-
-    inline void(__thiscall* ShaderLayer_destructor)(gd::ShaderLayer*, bool remove);
-    void __fastcall ShaderLayer_destructor_H(gd::ShaderLayer* self, bool remove);
+    inline void(__thiscall* ShaderLayer_visit)(gd::ShaderLayer*);
+    void __fastcall ShaderLayer_visitH(gd::ShaderLayer* self);
 
     extern gd::PlayLayer* pl;
     extern gd::PauseLayer* pause_menu;

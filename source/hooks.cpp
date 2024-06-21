@@ -4,6 +4,7 @@
 #include "replayEngine.hpp"
 #include "labels.hpp"
 #include "recorder.hpp"
+#include <intrin.h>
 
 gd::PlayLayer* hooks::pl = nullptr;
 gd::ShaderLayer* hooks::shader_layer = nullptr;
@@ -371,18 +372,28 @@ void __fastcall hooks::PauseLayer_destructor_H(gd::PauseLayer* self, bool remove
     hooks::pause_menu = nullptr;
 }
 
-bool __fastcall hooks::ShaderLayer_initH(gd::ShaderLayer* self) {
-    auto ret = ShaderLayer_init(self);
-    hooks::shader_layer = self;
-    return ret;
+typedef void (APIENTRY *glViewport_t)(GLint x, GLint y, GLsizei width, GLsizei height);
+glViewport_t glViewport_O = nullptr;
+void APIENTRY glViewport_H(GLint x, GLint y, GLsizei width, GLsizei height) {  
+    if (recorder.playLayerVisiting && recorder.is_recording && recorder.shaderLayerVisiting)
+	{
+		if (width != 2608 && height != 2608 && width != 1304 && height != 1304 && width != 652 && height != 652)
+		{
+			width = recorder.width;
+			height = recorder.height;
+		}
+	}  
+    glViewport_O(x, y, width, height);
 }
 
-void __fastcall hooks::ShaderLayer_destructor_H(gd::ShaderLayer* self, bool remove) {
-    ShaderLayer_destructor(self, remove);
-    hooks::shader_layer = nullptr;
+void  __fastcall hooks::ShaderLayer_visitH(gd::ShaderLayer* self) {
+    recorder.shaderLayerVisiting = true;
+    ShaderLayer_visit(self);
+    recorder.shaderLayerVisiting = false;
 }
 
 void hooks::init() {
+    MH_CreateHookApi(L"opengl32", "glViewport", &glViewport_H, reinterpret_cast<LPVOID*>(&glViewport_O));
     MH_CreateHook(GetProcAddress((HMODULE)hacks::cocos_base, "?update@CCScheduler@cocos2d@@UEAAXM@Z"), CCScheduler_update_H, (void **)&CCScheduler_update);
     MH_CreateHook((void *)(hacks::base + 0x1DABE0), GameStatsManager_isItemEnabledH, (void **)&GameStatsManager_isItemEnabled);
     MH_CreateHook((void *)(hacks::base + 0x1F7DD0), PlayLayer_initH, (void **)&PlayLayer_init);
@@ -398,7 +409,6 @@ void hooks::init() {
     MH_CreateHook((void *)(hacks::base + 0x485B00), StartPosObject_init_H, (void **)&StartPosObject_init);
     MH_CreateHook((void *)(hacks::base + 0x35abc0), PauseLayer_customSetup_H, (void **)&PauseLayer_customSetup);
     MH_CreateHook((void *)(hacks::base + 0x35AB10), PauseLayer_destructor_H, (void **)&PauseLayer_destructor);
-    MH_CreateHook((void *)(hacks::base + 0x45CE00), ShaderLayer_initH, (void **)&ShaderLayer_init);
-    MH_CreateHook((void *)(hacks::base + 0x4558D0), ShaderLayer_destructor_H, (void **)&ShaderLayer_destructor);
+    MH_CreateHook((void *)(hacks::base + 0x45CE00), ShaderLayer_visitH, (void **)&ShaderLayer_visit);
     MH_CreateHook(GetProcAddress(hacks::cocos_base, "?dispatchKeyboardMSG@CCKeyboardDispatcher@cocos2d@@QEAA_NW4enumKeyCodes@2@_N1@Z"), dispatchKeyboardMSGHook, (void **)&dispatchKeyboardMSG);
 }
