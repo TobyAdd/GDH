@@ -1,42 +1,27 @@
-cmake_minimum_required(VERSION 3.0.0)
-set(CMAKE_CXX_STANDARD 17)
+cmake_minimum_required(VERSION 3.21)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
-set(PROJECT GDH)
-project(${PROJECT})
+project(GDH VERSION 1.0.0)
 
-add_compile_definitions(UNICODE _UNICODE)
+file(GLOB_RECURSE SOURCES src/*.cpp)
+add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
-file(GLOB_RECURSE SOURCE_FILES source/*.cpp)
-add_library(${PROJECT} SHARED ${SOURCE_FILES})
+if (NOT DEFINED ENV{GEODE_SDK})
+    message(FATAL_ERROR "Unable to find Geode SDK! Please define GEODE_SDK environment variable to point to Geode")
+else()
+    message(STATUS "Found Geode: $ENV{GEODE_SDK}")
+endif()
 
-target_include_directories(${PROJECT} PRIVATE
-    libraries/minhook/include
-    libraries/imgui-hook
-    libraries/imgui-hook/imgui
-    libraries
-)
+add_subdirectory($ENV{GEODE_SDK} ${CMAKE_CURRENT_BINARY_DIR}/geode)
 
-add_subdirectory(libraries/minhook)
-add_subdirectory(libraries/imgui-hook)
-add_subdirectory(libraries/cocos-headers)
+target_include_directories(${PROJECT_NAME} PRIVATE libs)
 
-target_link_libraries(${PROJECT} minhook imgui-hook opengl32 cocos2d)
-target_link_libraries(${PROJECT} ${CMAKE_SOURCE_DIR}/libraries/glew32.lib)
+set(HAS_IMGUI ON)
+add_subdirectory(libs/imgui)
+CPMAddPackage("gh:matcool/gd-imgui-cocos#09a9555")
+target_link_libraries(${PROJECT_NAME} imgui-cocos imgui)
 
-add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-
-# Specify the output directory for the DLL
-set_target_properties(${PROJECT} PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin
-)
-
-# Set the desired folder to copy the DLL after build
-set(DESTINATION_FOLDER "C:/Program Files (x86)/Steam/steamapps/common/Geometry Dash")  
-
-# Copy the DLL to the desired folder after build
-add_custom_command(TARGET ${PROJECT} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
-    $<TARGET_FILE:${PROJECT}>
-    ${DESTINATION_FOLDER}
-)
+setup_geode_mod(${PROJECT_NAME})

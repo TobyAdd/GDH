@@ -1,0 +1,15 @@
+{
+	"geode": "3.0.0",
+	"gd": {
+		"win": "2.206",
+		"android": "2.206",
+		"mac": "2.206",
+		"ios": "2.206"
+	},
+	"id": "tobyadd.gdh",
+	"name": "GDH",
+	"version": "v4.6.0",
+	"developer": "TobyAdd",
+	"description": "GDH is an open-source Geometry Dash mod that aims to improve the game's performance and add new features",
+	"early-load": true
+}
