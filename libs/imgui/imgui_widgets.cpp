@@ -1190,7 +1190,7 @@ bool ImGui::Checkbox(const char* label, bool* v, float scale)
         interpolationFactor = *v ? animationProgress : 1.0f - animationProgress;
     }
 
-    const ImU32 backgroundColor = ImGui::GetColorU32(ImLerp(ImColor(67, 72, 78).Value, ImColor(165, 255, 190).Value, interpolationFactor));
+    const ImU32 backgroundColor = ImGui::GetColorU32(ImLerp(ImGui::IsItemHovered() ? ImColor(81, 87, 94).Value : ImColor(67, 72, 78).Value, ImColor(165, 255, 190).Value, interpolationFactor));
     const ImVec2 buttonEndPosition(buttonPosition.x + buttonWidth, buttonPosition.y + buttonHeight);
     drawList->AddRectFilled(buttonPosition, buttonEndPosition, backgroundColor, buttonHeight * 0.5f);
     const ImU32 circleColor = *v ? IM_COL32(0, 90, 5, int(ImGui::GetStyle().Alpha * 255)) : IM_COL32(140, 144, 153, int(ImGui::GetStyle().Alpha * 255));

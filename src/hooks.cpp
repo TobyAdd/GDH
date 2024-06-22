@@ -40,7 +40,7 @@ namespace startpos_switcher {
         if (direction) {
             StartPosObject* obj = selectedStartpos == -1 ? nullptr : startPositions[selectedStartpos];
             
-            pl->m_unkCheckpointObject = nullptr;
+            pl->m_currentCheckpoint = nullptr;
             pl->setStartPosObject(obj);
             pl->resetLevel();
 
@@ -206,12 +206,6 @@ class $modify(GameStatsManager) {
 };
 
 class $modify(PauseLayer) {
-    struct Fields {
-        ~Fields() {
-            hooks::pauseLayer = nullptr;
-        }
-    };
-
     static void onModify(auto& self) {
         (void) self.setHookPriority("PauseLayer::onQuit", 0x99999);
     }
@@ -227,5 +221,10 @@ class $modify(PauseLayer) {
         if (hacks::hide_menu) {
             this->setVisible(false);
         }
+    }
+
+    void onResume(cocos2d::CCObject* sender) {
+        PauseLayer::onResume(sender);
+        hooks::pauseLayer = nullptr;
     }
 };

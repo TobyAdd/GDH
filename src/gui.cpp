@@ -147,7 +147,6 @@ void gui::RenderMain() {
             if (gui::needRescale) {
                 windowSize = ImVec2(win.orig_w * gui::scale, win.orig_h * gui::scale);
                 windowPos = ImVec2(win.orig_x * gui::scale, win.orig_y * gui::scale);
-                geode::log::info("{} {} {} {}", windowSize.x, windowSize.y, windowPos.x, windowPos.y);
             }
 
             ImGui::SetNextWindowSize(windowSize);
@@ -242,7 +241,7 @@ void gui::RenderMain() {
                     else if (hck.name == "Hide Pause Menu") { 
                         auto pl = PlayLayer::get();
                         hacks::hide_menu = hck.enabled; 
-                        if (pl && hooks::pauseLayer)
+                        if (pl && pl->m_isPaused && hooks::pauseLayer != nullptr)
                             hooks::pauseLayer->setVisible(!hck.enabled);
                     }
                     else if (hck.name == "Auto Pickup Coins") { hacks::auto_pickup_coins = hck.enabled; }
