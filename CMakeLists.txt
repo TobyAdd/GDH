@@ -6,6 +6,8 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 project(GDH VERSION 1.0.0)
 
+add_compile_definitions(UNICODE _UNICODE)
+
 file(GLOB_RECURSE SOURCES src/*.cpp)
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 

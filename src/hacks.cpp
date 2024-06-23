@@ -1,6 +1,7 @@
 #include "hacks.hpp"
 #include "memory.hpp"
 #include "gui.hpp"
+#include "labels.hpp"
 
 bool hacks::unlock_items = false;
 bool hacks::ignore_esc = false;
@@ -55,7 +56,7 @@ std::vector<window> hacks::windows = {
             }
         }
     },
-    {"Bypass", 10, 220, 200, 230, 
+    {"Bypass", 10, 220, 200, 250, 
         {  
             {"Text Length", "Removes the limit that deletes previous checkpoints after the 50th checkpoint",
                 {
@@ -108,7 +109,12 @@ std::vector<window> hacks::windows = {
                     {"0f 8c ? ? ? ? 48 8b 0d ? ? ? ? 48 85 c9 75 ? b9 ? ? ? ? e8 ? ? ? ? 48 89 45 ? 48 8b c8 e8 ? ? ? ? 90 48 89 05 ? ? ? ? 48 8b 10 48 8b c8 ff 52 ? 48 8b 0d ? ? ? ? 45 33 c0", "90 90 90 90 90 90"},
                     {"0f 84 ? ? ? ? 48 8b 0d ? ? ? ? 48 85 c9 75 ? b9 ? ? ? ? e8 ? ? ? ? 48 89 44 24 ? 48 8b c8 e8 ? ? ? ? 90 48 89 05 ? ? ? ? 48 8b 10 48 8b c8 ff 52 ? 48 8b 0d ? ? ? ? 48 8d 15 ? ? ? ? e8 ? ? ? ? 0f b6 d8", "90 90 90 90 90 90"}
                 }
-            }            
+            }  ,
+            {"Main Levels", "Unlocks all main levels",
+                {
+                    {"0f 8e ? ? ? ? 2b d0", "E9 40 01 00 00 90"}
+                }
+            }         
         }
     },
     {"Player", 220, 10, 210, 500, 
@@ -395,14 +401,14 @@ void hacks::save(const std::vector<window>& windows, const std::filesystem::path
     j["icon_saturation"] = hacks::ricon_saturation;
     j["icon_brightness"] = hacks::ricon_brightness;
 
-    // j["time24_enabled"] = labels::time24_enabled;
-    // j["time12_enabled"] = labels::time12_enabled;
-    // j["noclip_accuracy_enabled"] = labels::noclip_accuracy_enabled;
-    // j["cps_counter_enabled"] = labels::cps_counter_enabled;
-    // j["death_enabled"] = labels::death_enabled;
-    // j["custom_text_enabled"] = labels::custom_text_enabled;
-    // j["custom_text"] = labels::custom_text;
-    // j["labels_pos"] = labels::pos;
+    j["time24_enabled"] = labels::time24_enabled;
+    j["time12_enabled"] = labels::time12_enabled;
+    j["noclip_accuracy_enabled"] = labels::noclip_accuracy_enabled;
+    j["cps_counter_enabled"] = labels::cps_counter_enabled;
+    j["death_enabled"] = labels::death_enabled;
+    j["custom_text_enabled"] = labels::custom_text_enabled;
+    j["custom_text"] = labels::custom_text;
+    j["labels_pos"] = labels::pos;
 
     j["gui_size"] = gui::scale;
     j["gui_scale_index"] = gui::indexScale;
@@ -462,14 +468,14 @@ void hacks::load(const std::filesystem::path &filename, std::vector<window>& win
     hacks::ricon_saturation = j.value("icon_saturation", 1.0f);
     hacks::ricon_brightness = j.value("icon_brightness", 1.0f);
 
-    // labels::time24_enabled = j.value("time24_enabled", false);
-    // labels::time12_enabled = j.value("time12_enabled", false);
-    // labels::noclip_accuracy_enabled = j.value("noclip_accuracy_enabled", false);
-    // labels::cps_counter_enabled = j.value("cps_counter_enabled", false);
-    // labels::death_enabled = j.value("death_enabled", false);
-    // labels::custom_text_enabled = j.value("custom_text_enabled", false);
-    // labels::custom_text = j.value("custom_text", "test");
-    // labels::pos = j.value("labels_pos", 0);
+    labels::time24_enabled = j.value("time24_enabled", false);
+    labels::time12_enabled = j.value("time12_enabled", false);
+    labels::noclip_accuracy_enabled = j.value("noclip_accuracy_enabled", false);
+    labels::cps_counter_enabled = j.value("cps_counter_enabled", false);
+    labels::death_enabled = j.value("death_enabled", false);
+    labels::custom_text_enabled = j.value("custom_text_enabled", false);
+    labels::custom_text = j.value("custom_text", "test");
+    labels::pos = j.value("labels_pos", 0);
 
     gui::scale = j.value("gui_size", 1.f);
     gui::indexScale = j.value("gui_scale_index", 3);

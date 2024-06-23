@@ -3,7 +3,7 @@
 #include "memory.hpp"
 #include "hacks.hpp"
 #include "hooks.hpp"
-// #include "replayEngine.hpp"
+#include "replayEngine.hpp"
 #include "labels.hpp"
 #include "license.hpp"
 // #include "speedhackAudio.hpp"
@@ -12,7 +12,6 @@ bool gui::show = false;
 bool gui::inited = false;
 bool gui::needRescale = false;
 int gui::indexScale = 3;
-bool gui::onlyRE = false;
 bool gui::license_accepted = false;
 float gui::scale = 1.f;
 
@@ -124,16 +123,11 @@ void gui::RenderMain() {
     ImGuiIO &io = ImGui::GetIO();
     ImGui::SetNextWindowPos(ImVec2(0, io.DisplaySize.y), ImGuiCond_Always, ImVec2(0.0f, 1.0f));
     ImGui::Begin("BottomLeftText", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoFocusOnAppearing);
-    ImGui::Text("%s v4.6 Geode | TobyAdd | Prevter | Qwix | https://discord.gg/ahYEz4MAwP | https://t.me/tobyadd_public", gui::onlyRE ? "Replay Engine" : "GDH");
+    ImGui::Text("GDH v4.6 Geode | TobyAdd | Prevter | Qwix | https://discord.gg/ahYEz4MAwP | https://t.me/tobyadd_public");
     ImGui::End();
 
     if (!gui::license_accepted) {
         License();
-        return;
-    }
-
-    if (gui::onlyRE) {
-        //engine.renderFull();
         return;
     }
 
@@ -180,7 +174,7 @@ void gui::RenderMain() {
 
         }
         else if (windowName == "Replay Engine") {
-            //engine.render();
+            engine.render();
         }
         else if (windowName == "Labels") {
             ImGui::Checkbox("Custom Text", &labels::custom_text_enabled, gui::scale);

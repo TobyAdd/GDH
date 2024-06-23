@@ -7,6 +7,7 @@
 #include <Geode/modify/PauseLayer.hpp>
 #include "speedhackAudio.hpp"
 #include "labels.hpp"
+#include "replayEngine.hpp"
 
 PauseLayer* hooks::pauseLayer;
 
@@ -107,6 +108,9 @@ class $modify(PlayLayer) {
     void postUpdate(float dt) {
         PlayLayer::postUpdate(dt);
 
+        engine.handle_recording2(true);
+        engine.handle_recording2(false);
+
         noclip_accuracy.handle_update(this, dt);
 
         if (m_fields->labels) {
@@ -160,6 +164,8 @@ class $modify(PlayLayer) {
 
     void resetLevel() {
         PlayLayer::resetLevel();
+        engine.handle_reseting();
+        
         noclip_accuracy.handle_reset(this);
         cps_counter.reset();
 
@@ -183,14 +189,18 @@ class $modify(PlayLayer) {
         PlayLayer::destroyPlayer(player, obj);
         noclip_accuracy.handle_death();
     }
-
-
 };
 
 class $modify(GJBaseGameLayer) {
     void handleButton(bool down, int button, bool isPlayer1) {
-        GJBaseGameLayer::handleButton(down, button, isPlayer1);        
+        GJBaseGameLayer::handleButton(down, button, isPlayer1);    
+        engine.handle_recording(down, button, isPlayer1);
         if (down) cps_counter.recordClick();
+    }
+
+    void processCommands(float dt) {
+        GJBaseGameLayer::processCommands(dt);
+        engine.handle_playing();
     }
 };
 

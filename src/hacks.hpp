@@ -54,8 +54,6 @@ namespace hacks {
 
     extern bool hide_menu;
 
-    void update_framerate();
-
     void save(const std::vector<window>& windows, const std::filesystem::path &filename);
     void load(const std::filesystem::path &filename, std::vector<window>& windows);
 }
