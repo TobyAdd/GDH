@@ -108,9 +108,6 @@ class $modify(PlayLayer) {
     void postUpdate(float dt) {
         PlayLayer::postUpdate(dt);
 
-        engine.handle_recording2(true);
-        engine.handle_recording2(false);
-
         noclip_accuracy.handle_update(this, dt);
 
         if (m_fields->labels) {
@@ -185,6 +182,20 @@ class $modify(PlayLayer) {
         }
     }
 
+    void playEndAnimationToPos(cocos2d::CCPoint pos) {
+        PlayLayer::playEndAnimationToPos(pos);
+        if (engine.mode == state::record) {
+            engine.mode = state::disable;
+        }
+    }
+
+    void playPlatformerEndAnimationToPos(cocos2d::CCPoint pos, bool idk) {
+        PlayLayer::playPlatformerEndAnimationToPos(pos, idk);
+        if (engine.mode == state::record) {
+            engine.mode = state::disable;
+        }
+    }
+
     void destroyPlayer(PlayerObject* player, GameObject* obj) {
         PlayLayer::destroyPlayer(player, obj);
         noclip_accuracy.handle_death();
@@ -200,6 +211,8 @@ class $modify(GJBaseGameLayer) {
 
     void processCommands(float dt) {
         GJBaseGameLayer::processCommands(dt);
+        engine.handle_recording2(true);
+        engine.handle_recording2(false);
         engine.handle_playing();
     }
 };

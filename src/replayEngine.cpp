@@ -58,10 +58,11 @@ void ReplayEngine::handle_playing()
 
     while (index2 < (int)replay2.size() && tick >= replay2[index2].tick)
     {
-        if (replay[index2].player)
+        if (replay2[index2].player)
         {
             gjbgl->m_player1->m_position.x = replay2[index2].x;
-            gjbgl->m_player1->m_position.y = replay2[index2].y;
+            gjbgl->m_player1->m_position.y = replay2[index2].y;            
+            gjbgl->m_player1->setPosition({replay2[index2].x, replay2[index2].y});
             gjbgl->m_player1->setRotation(replay2[index2].rotation);
             gjbgl->m_player1->m_yVelocity = replay2[index2].y_accel;
         }
@@ -69,9 +70,11 @@ void ReplayEngine::handle_playing()
         {
             gjbgl->m_player2->m_position.x = replay2[index2].x;
             gjbgl->m_player2->m_position.y = replay2[index2].y;
+            gjbgl->m_player2->setPosition({replay2[index2].x, replay2[index2].y});
             gjbgl->m_player2->setRotation(replay2[index2].rotation);
             gjbgl->m_player2->m_yVelocity = replay2[index2].y_accel;
         }
+        geode::log::debug("{} {}", replay2[index2].tick, replay2[index2].x);
         index2++;
     }
 }

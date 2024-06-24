@@ -123,6 +123,8 @@ std::vector<window> hacks::windows = {
             {"Allow Low Volume", "Removes the limit on minimum volume percentage",
                 {
                     {"76 ? 0f 57 f6 48 8b 05 ? ? ? ? 48 85 c0 75 ? b9 ? ? ? ? e8 ? ? ? ? 48 89 44 24 ? 48 8b c8 e8 ? ? ? ? 90 48 89 05 ? ? ? ? 48 8b 10 48 8b c8 ff 52 ? 48 8b 05 ? ? ? ? f3 44 0f 10 80", "EB"},
+                    {"76 ? 0f 57 f6 48 8b 05 ? ? ? ? 48 85 c0 75 ? b9 ? ? ? ? e8 ? ? ? ? 48 89 44 24 ? 48 8b c8 e8 ? ? ? ? 90 48 89 05 ? ? ? ? 48 8b 10 48 8b c8 ff 52 ? 48 8b 05 ? ? ? ? f3 0f 11 b0", "EB"},
+                    {"76 ? 0f 57 f6 48 8b 05 ? ? ? ? 48 85 c0 75 ? b9 ? ? ? ? e8 ? ? ? ? 48 89 44 24 ? 48 8b c8 e8 ? ? ? ? 90 48 89 05 ? ? ? ? 48 8b 10 48 8b c8 ff 52 ? 48 8b 05 ? ? ? ? c7 80", "EB"},
                     {"76 ? 0f 57 f6 48 8b 05 ? ? ? ? 48 85 c0 75 ? b9 ? ? ? ? e8 ? ? ? ? 48 89 44 24 ? 48 8b c8 e8 ? ? ? ? 90 48 89 05 ? ? ? ? 48 8b 10 48 8b c8 ff 52 ? 48 8b 05 ? ? ? ? f3 0f 11 b0", "EB"}
                 }
             },            
@@ -322,6 +324,7 @@ std::vector<window> hacks::windows = {
 };
 
 void hacks::init() {
+    int success = 0, fail = 0;
     for (auto& win : hacks::windows) {
         for (auto& hck : win.hacks) {
             for (auto& opc : hck.opcodes) {
@@ -336,9 +339,13 @@ void hacks::init() {
                 if (GetModuleInformation(GetCurrentProcess(), (HMODULE)base, &moduleInfo, sizeof(MODULEINFO))) {
                     opc.address = memory::PatternScan(reinterpret_cast<uintptr_t>(moduleInfo.lpBaseOfDll), moduleInfo.SizeOfImage, opc.pattern);
                     if (opc.address != 0) {
+                        success++;
                         opc.address -= uintptr_t(moduleInfo.lpBaseOfDll);
                         size_t opcode_size = memory::CountBytesInHexStr(opc.on);
                         opc.off = memory::ReadMemoryHexStr(base + opc.address, opcode_size);
+                    }
+                    else {
+                        fail++;
                     }
                 }
             }
@@ -369,6 +376,14 @@ void hacks::init() {
                 }
             }
         }
+    }
+
+    geode::log::info("success: {}, fail: {}; loaded and updated opcodes", success, fail);
+    if (fail != 0) {
+        geode::log::error("some patterns were not found (hacks might be broken)");
+    }
+    else {
+        geode::log::info("all patterns were successfully found");
     }
 }
 
