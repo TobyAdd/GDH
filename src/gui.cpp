@@ -126,7 +126,7 @@ void gui::RenderMain() {
     ImGuiIO &io = ImGui::GetIO();
     ImGui::SetNextWindowPos(ImVec2(0, io.DisplaySize.y), ImGuiCond_Always, ImVec2(0.0f, 1.0f));
     ImGui::Begin("BottomLeftText", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoFocusOnAppearing);
-    ImGui::Text("GDH v4.6 Geode | TobyAdd | Prevter | Qwix | https://discord.gg/ahYEz4MAwP | https://t.me/tobyadd_public");
+    ImGui::Text("GDH v4.6.1 Geode | TobyAdd | Prevter | Qwix | https://discord.gg/ahYEz4MAwP | https://t.me/tobyadd_public");
     ImGui::End();
 
     if (!gui::license_accepted) {
@@ -251,6 +251,7 @@ void gui::RenderMain() {
                             hooks::pauseLayer->setVisible(!hck.enabled);
                     }
                     else if (hck.name == "Auto Pickup Coins") { hacks::auto_pickup_coins = hck.enabled; }
+                    else if (hck.name == "Respawn Time") { hacks::respawn_time_enabled = hck.enabled; }
                     else {
                         for (auto& opc : hck.opcodes) {
                             std::string bytesStr = hck.enabled ? opc.on : opc.off;
@@ -283,6 +284,22 @@ void gui::RenderMain() {
 
                         ImGui::DragFloat("##riconCoef", &hacks::ricon_coef, 0.01f, 0.0f, 10.0f, "Speed Coefficent: %.2f");
                         ImGui::DragFloat("##riconShift", &hacks::ricon_shift, 0.01f, 0.0f, 1.0f, "Secondary Color Shift: %.2f");
+
+                        if (ImGui::Button("Close", {ImGui::GetContentRegionAvail().x, NULL})) {
+                            ImGui::CloseCurrentPopup();
+                        }
+                        ImGui::EndPopup();
+                    }
+                }
+
+                if (hck.name == "Respawn Time") {
+                    ImGui::SameLine();
+                    if (ImGui::ArrowButton("##respawnTimeSettings", ImGuiDir_Right)) {
+                        ImGui::OpenPopup("Respawn Time Settings");
+                    }
+
+                    if (ImGui::BeginPopupModal("Respawn Time Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+                        ImGui::DragFloat("##respawnTime", &hacks::respawn_time_value, 0.01f, 0.0f, FLT_MAX, "Respawn Time: %.2f");
 
                         if (ImGui::Button("Close", {ImGui::GetContentRegionAvail().x, NULL})) {
                             ImGui::CloseCurrentPopup();

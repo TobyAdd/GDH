@@ -25,7 +25,8 @@ float hacks::tps_value = 240.f;
 
 float hacks::speed_value = 1.f;
 
-
+bool hacks::respawn_time_enabled = false;
+float hacks::respawn_time_value = 1.f;
 
 std::vector<window> hacks::windows = {
     {"Core", 10, 10, 200, 200, 
@@ -149,6 +150,7 @@ std::vector<window> hacks::windows = {
                     {"f3 0f 10 05 ? ? ? ? ff 15 ? ? ? ? 48 89 44 24", "0F 57 C0 90 90 90 90 90"}
                 }
             },
+            {"Respawn Time", "Changes respawn time on death"},
             {"Ignore ESC", "Prevents exiting the level"},
             {"Instant Complete", "Instant level completion"},
             {"Startpos Switcher", "The ability to switch between starting positions using the left/right arrow keys"},
@@ -366,6 +368,7 @@ void hacks::init() {
                 else if (hck.name == "Instant Complete") { hacks::instant_complate = hck.enabled; }
                 else if (hck.name == "Hide Pause Menu") { hacks::hide_menu = hck.enabled; }
                 else if (hck.name == "Auto Pickup Coins") { hacks::auto_pickup_coins = hck.enabled; }
+                else if (hck.name == "Respawn Time") { hacks::respawn_time_enabled = hck.enabled; }
                 else {
                     for (auto& opc : hck.opcodes) {
                         std::string bytesStr = hck.enabled ? opc.on : opc.off;
@@ -430,6 +433,9 @@ void hacks::save(const std::vector<window>& windows, const std::filesystem::path
     j["custom_text_enabled"] = labels::custom_text_enabled;
     j["custom_text"] = labels::custom_text;
     j["labels_pos"] = labels::pos;
+
+    j["respawn_time_enabled"] = hacks::respawn_time_enabled;
+    j["respawn_time_value"] = hacks::respawn_time_value;
 
     j["gui_size"] = gui::scale;
     j["gui_scale_index"] = gui::indexScale;
@@ -500,6 +506,9 @@ void hacks::load(const std::filesystem::path &filename, std::vector<window>& win
     labels::custom_text_enabled = j.value("custom_text_enabled", false);
     labels::custom_text = j.value("custom_text", "test");
     labels::pos = j.value("labels_pos", 0);
+
+    hacks::respawn_time_enabled = j.value("respawn_time_enabled", false);
+    hacks::respawn_time_value = j.value("respawn_time_value", 1.f);
 
     gui::scale = j.value("gui_size", 1.f);
     gui::indexScale = j.value("gui_scale_index", 3);

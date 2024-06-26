@@ -179,7 +179,9 @@ void ReplayEngine::openReplayMultishit() {
     }
     ImGui::EndChild();
 
-    ImGui::Separator();
+    if (ImGui::Button("Open Folder", {ImGui::GetContentRegionAvail().x, NULL})) {
+        ShellExecuteW(nullptr, L"open", L"explorer", hacks::folderMacroPath.wstring().c_str(), nullptr, SW_SHOWDEFAULT);
+    }
     
     if (ImGui::Button("Close", {ImGui::GetContentRegionAvail().x, NULL})) {
         ImGui::CloseCurrentPopup();

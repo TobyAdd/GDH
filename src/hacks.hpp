@@ -61,6 +61,9 @@ namespace hacks {
 
     extern bool hide_menu;
 
+    extern bool respawn_time_enabled;
+    extern float respawn_time_value;
+
     void update_framerate();
 
     void save(const std::vector<window>& windows, const std::filesystem::path &filename);
