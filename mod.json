@@ -1,4 +1,18 @@
 {
+	"links": {
+		"community": "https://discord.gg/ahYEz4MAwP",
+		"source": "https://github.com/TobyAdd/GDH"
+	},
+	"issues": {
+		"info": "Report bugs on GitHub issues page",
+		"url": "https://github.com/TobyAdd/GDH/issues"
+	},
+	"tags": [
+		"universal",
+		"interface",
+		"utility",
+		"cheats"
+	],
 	"geode": "3.1.1",
 	"gd": {
 		"win": "2.206"
