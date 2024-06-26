@@ -21,7 +21,12 @@ bool hacks::hide_menu = false;
 bool hacks::auto_pickup_coins = false;
 bool hacks::speedhack_audio = true;
 
+float hacks::tps_value = 240.f;
+
 float hacks::speed_value = 1.f;
+
+
+
 std::vector<window> hacks::windows = {
     {"Core", 10, 10, 200, 200, 
         {
@@ -318,7 +323,7 @@ std::vector<window> hacks::windows = {
         }
     },
     {"Framerate", 440, 270, 210, 100},
-    {"GDH Settings", 440, 380, 210, 100},
+    {"GDH Settings", 440, 380, 210, 130},
     {"Replay Engine", 660, 10, 300, 200},
     {"Labels", 660, 220, 300, 230}
 };
@@ -408,6 +413,7 @@ void hacks::save(const std::vector<window>& windows, const std::filesystem::path
         j["Windows"].push_back(windowJson);
     }
 
+    j["tps_value"] = hacks::tps_value;
     j["speed"] = hacks::speed_value;
     j["speedhack_audio"] = hacks::speedhack_audio;
     j["rgb_icons_enabled"] = hacks::rgb_icons;
@@ -428,6 +434,8 @@ void hacks::save(const std::vector<window>& windows, const std::filesystem::path
     j["gui_size"] = gui::scale;
     j["gui_scale_index"] = gui::indexScale;
     j["gui_license_accepted"] = gui::license_accepted;
+
+    j["menu_key"] = gui::menu_key;
 
     std::ofstream file(filename);
     file << j.dump(4);
@@ -470,6 +478,7 @@ void hacks::load(const std::filesystem::path &filename, std::vector<window>& win
         }
     }
 
+    hacks::tps_value = j.value("tps_value", 240.f);
     hacks::speed_value = j.value("speed", 1.f);
     if (hacks::speed_value == 0.f) {
         hacks::speed_value = 1.f;
@@ -495,6 +504,20 @@ void hacks::load(const std::filesystem::path &filename, std::vector<window>& win
     gui::scale = j.value("gui_size", 1.f);
     gui::indexScale = j.value("gui_scale_index", 3);
     gui::license_accepted = j.value("gui_license_accepted", false);
+    gui::menu_key = j.value("menu_key", GLFW_KEY_TAB);
 
     file.close();
+}
+
+uintptr_t framerate_address = 0;
+void hacks::update_framerate() {
+    if (framerate_address == 0) {
+        MODULEINFO moduleInfo;
+        if (GetModuleInformation(GetCurrentProcess(), (HMODULE)geode::base::get(), &moduleInfo, sizeof(MODULEINFO))) {
+            framerate_address = memory::PatternScan(reinterpret_cast<uintptr_t>(moduleInfo.lpBaseOfDll), moduleInfo.SizeOfImage, "89 88 ? ? ? ? a3");
+        }  
+    }
+    if (framerate_address != 0) {
+        memory::WriteFloat(framerate_address, 1.f / hacks::tps_value);
+    }        
 }

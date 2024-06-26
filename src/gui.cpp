@@ -6,7 +6,7 @@
 #include "replayEngine.hpp"
 #include "labels.hpp"
 #include "license.hpp"
-// #include "speedhackAudio.hpp"
+#include "speedhackAudio.hpp"
 
 bool gui::show = false;
 bool gui::inited = false;
@@ -14,6 +14,9 @@ bool gui::needRescale = false;
 int gui::indexScale = 3;
 bool gui::license_accepted = false;
 float gui::scale = 1.f;
+
+bool gui::change_keybind;
+int gui::menu_key = GLFW_KEY_TAB;
 
 std::chrono::steady_clock::time_point animationStartTime;
 bool isAnimating = false;
@@ -112,7 +115,7 @@ void License() {
 
 std::vector<std::string> stretchedWindows;
 void gui::RenderMain() {   
-    //SpeedhackAudio::update();
+    speedhackAudio::update();
 
     if (isAnimating) {
         animateAlpha(anim_durr);
@@ -211,6 +214,15 @@ void gui::RenderMain() {
                 gui::scale = float(atof(items[gui::indexScale])) / 100.0f;    
                 gui::needRescale = true;
                 ImGuiCocos::get().reload();
+            }
+
+            std::string keybind_menu = "Menu Key: " + std::to_string(menu_key);
+            if (change_keybind) {
+                keybind_menu = "Press any key...";
+            }
+
+            if (ImGui::Button(keybind_menu.c_str(), {ImGui::GetContentRegionAvail().x, NULL})) {
+                change_keybind = true;
             }
         }
         else {        

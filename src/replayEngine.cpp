@@ -1,92 +1,86 @@
 #include "replayEngine.hpp"
-#include "memory.hpp"
-#include "gui.hpp"
 #include "hacks.hpp"
+#include "gui.hpp"
 
 ReplayEngine engine;
 
-int ReplayEngine::get_tick() {
-    auto gjbgl = GJBaseGameLayer::get();
-    if (!gjbgl) return 0;
-    
-    return gjbgl->m_gameState.m_currentProgress;
-}
+unsigned ReplayEngine::get_frame() {
+    auto pl = GameManager::sharedState()->getPlayLayer();
+    if (pl)
+        return static_cast<unsigned>(from<double>(pl, 0x3C8) * hacks::tps_value);
+    return 0;
+} 
 
-void ReplayEngine::handle_recording(bool hold, int button, bool player) {
-    if (mode == state::record)
-        replay.push_back({get_tick(), hold, button, player});
-}
 
-void ReplayEngine::handle_recording2(bool player) {
-    if (mode == state::record) {
-        auto gjbgl = GJBaseGameLayer::get();
-        if (!player && !gjbgl->m_gameState.m_isDualMode)
-            return;
-
-        int tick = get_tick();
-
-        bool frameExists = std::find_if(replay2.begin(), replay2.end(), [&](const auto &data)
-                                    { return data.tick == tick && data.player == player; }) != replay2.end();
-
-        if (frameExists)
-        {
-            return;
-        }
-
-        replay2.push_back({tick,
-                        player ? gjbgl->m_player1->m_position.x : gjbgl->m_player2->m_position.x,
-                        player ? gjbgl->m_player1->m_position.y : gjbgl->m_player2->m_position.y,
-                        player ? gjbgl->m_player1->getRotation() : gjbgl->m_player2->getRotation(),
-                        player ? gjbgl->m_player1->m_yVelocity : gjbgl->m_player2->m_yVelocity,
-                        player});
-    }
-}
-
-void ReplayEngine::handle_playing()
-{
-    if (mode != state::play)
+void ReplayEngine::handle_recording(GJBaseGameLayer* self, bool player) {
+    if (!player && !self->m_gameState.m_isDualMode)
         return;
 
-    auto gjbgl = GJBaseGameLayer::get();
-    unsigned tick = get_tick();
+    unsigned frame = get_frame();
 
-    while (index < (int)replay.size() && tick >= replay[index].tick)
+    bool frameExists = std::find_if(replay.begin(), replay.end(), [&](const auto &data)
+                                    { return data.frame == frame && data.player == player; }) != replay.end();
+
+    if (frameExists)
     {
-        gjbgl->handleButton(replay[index].hold, replay[index].button, replay[index].player);
-        index++;
+        return;
     }
 
-    while (index2 < (int)replay2.size() && tick >= replay2[index2].tick)
+    replay.push_back({frame,
+                      player ? self->m_player1->m_position.x : self->m_player2->m_position.x,
+                      player ? self->m_player1->m_position.y : self->m_player2->m_position.y,
+                      player ? self->m_player1->getRotation() : self->m_player2->getRotation(),
+                      player ? self->m_player1->m_yVelocity : self->m_player2->m_yVelocity,
+                      player});
+}
+
+void ReplayEngine::handle_recording2(bool hold, int button, bool player) {
+    replay2.push_back({get_frame(), hold, button, player});
+}
+
+void ReplayEngine::handle_playing(GJBaseGameLayer* self)
+{
+    unsigned frame = get_frame();
+
+    if (accuracy_fix) {
+        while (index < (int)replay.size() && frame >= replay[index].frame)
+        {
+            if (replay[index].player)
+            {
+                self->m_player1->m_position.x = replay[index].x;
+                self->m_player1->m_position.y = replay[index].y;
+                if (rotation_fix)
+                    self->m_player1->setRotation(replay[index].rotation);
+                self->m_player1->m_yVelocity = replay[index].y_accel;
+            }
+            else
+            {
+                self->m_player2->m_position.x = replay[index].x;
+                self->m_player2->m_position.y = replay[index].y;
+                if (rotation_fix)
+                    self->m_player2->setRotation(replay[index].rotation);
+                self->m_player2->m_yVelocity = replay[index].y_accel;
+            }
+            index++;
+        }
+    }
+
+
+    while (index2 < (int)replay2.size() && frame >= replay2[index2].frame)
     {
-        if (replay2[index2].player)
-        {
-            gjbgl->m_player1->m_position.x = replay2[index2].x;
-            gjbgl->m_player1->m_position.y = replay2[index2].y;            
-            gjbgl->m_player1->setPosition({replay2[index2].x, replay2[index2].y});
-            gjbgl->m_player1->setRotation(replay2[index2].rotation);
-            gjbgl->m_player1->m_yVelocity = replay2[index2].y_accel;
-        }
-        else
-        {
-            gjbgl->m_player2->m_position.x = replay2[index2].x;
-            gjbgl->m_player2->m_position.y = replay2[index2].y;
-            gjbgl->m_player2->setPosition({replay2[index2].x, replay2[index2].y});
-            gjbgl->m_player2->setRotation(replay2[index2].rotation);
-            gjbgl->m_player2->m_yVelocity = replay2[index2].y_accel;
-        }
-        geode::log::debug("{} {}", replay2[index2].tick, replay2[index2].x);
-        index2++;
+        self->handleButton(replay2[index2].hold, replay2[index2].button, replay2[index2].player);
+        index2++; 
     }
 }
 
-void ReplayEngine::handle_reseting() {
-    int lastCheckpointFrame = get_tick();
+void ReplayEngine::handle_reseting(PlayLayer* self) {
+    int lastCheckpointFrame = get_frame();
 
     if (mode == state::record) {
         remove_actions(lastCheckpointFrame);
 
-        if (!replay.empty() && replay.back().hold) {
-            handle_recording(false, replay.back().button, replay.back().player);
+        if (!replay2.empty() && replay2.back().hold) {
+            handle_recording2(false, replay2.back().button, replay2.back().player);
         }
     }
     else if (mode == state::play) {
@@ -95,42 +89,23 @@ void ReplayEngine::handle_reseting() {
     }
 }
 
-void ReplayEngine::remove_actions(int tick)
-{
-    auto check = [&](ReplayData &action) -> bool
-    {
-        return action.tick >= tick;
-    };
-    replay.erase(remove_if(replay.begin(), replay.end(), check), replay.end());
-
-    auto check2 = [&](ReplayData2 &action) -> bool
-    {
-        return action.tick > tick;
-    };
-    replay2.erase(remove_if(replay2.begin(), replay2.end(), check2), replay2.end());
-}
-
 std::string ReplayEngine::save(std::string name)
 {
-    if (replay.empty())
+    if (replay2.empty())
         return "Replay doesn't have actions";
 
     std::ofstream file(hacks::folderMacroPath / std::string(name + ".re"), std::ios::binary);
 
-    std::string magicString = "ENGINE2";
-    file.write(magicString.c_str(), magicString.size());
+    file.write(reinterpret_cast<char *>(&hacks::tps_value), sizeof(hacks::tps_value));
 
-    unsigned replay_size = (unsigned int)replay.size();
+    unsigned replay_size = replay.size();
+    unsigned replay2_size = replay2.size();
 
     file.write(reinterpret_cast<char *>(&replay_size), sizeof(replay_size));
+    file.write(reinterpret_cast<char *>(&replay2_size), sizeof(replay2_size));
 
-    file.write(reinterpret_cast<char *>(&replay[0]), sizeof(ReplayData) * replay_size);
-
-    unsigned replay_size2 = (unsigned int)replay2.size();
-
-    file.write(reinterpret_cast<char *>(&replay_size2), sizeof(replay_size2));
-
-    file.write(reinterpret_cast<char *>(&replay2[0]), sizeof(ReplayData2) * replay_size2);
+    file.write(reinterpret_cast<char *>(&replay[0]), sizeof(replay_data) * replay_size);
+    file.write(reinterpret_cast<char *>(&replay2[0]), sizeof(replay_data2) * replay2_size);
 
     file.close();
     return "Replay saved";
@@ -138,35 +113,46 @@ std::string ReplayEngine::save(std::string name)
 
 std::string ReplayEngine::load(std::string name)
 {
-    if (!replay.empty())
+    if (!replay2.empty())
         return "Please clear replay before loading another";
 
     std::ifstream file(hacks::folderMacroPath / std::string(name + ".re"), std::ios::binary);
     if (!file)
         return "Replay doesn't exist";
 
-    std::string expectedMagicString = "ENGINE2";
-    std::string magicString(expectedMagicString.size(), '\0');
+    file.read(reinterpret_cast<char *>(&hacks::tps_value), sizeof(hacks::tps_value));
 
-    file.read(&magicString[0], expectedMagicString.size());
-
-    if (magicString != expectedMagicString) {
-        file.close();
-        return "Invalid replay file";
-    }
+    hacks::update_framerate();
 
     unsigned replay_size = 0;
-    file.read(reinterpret_cast<char *>(&replay_size), sizeof(replay_size));
-    replay.resize(replay_size);
-    file.read(reinterpret_cast<char *>(&replay[0]), sizeof(ReplayData) * replay_size);
+    unsigned replay2_size = 0;
 
-    unsigned replay_size2 = 0;
-    file.read(reinterpret_cast<char *>(&replay_size2), sizeof(replay_size2));
-    replay2.resize(replay_size2);
-    file.read(reinterpret_cast<char *>(&replay2[0]), sizeof(ReplayData2) * replay_size2);
+    file.read(reinterpret_cast<char *>(&replay_size), sizeof(replay_size));
+    file.read(reinterpret_cast<char *>(&replay2_size), sizeof(replay2_size));
+
+    replay.resize(replay_size);
+    replay2.resize(replay2_size);
+
+    file.read(reinterpret_cast<char *>(&replay[0]), sizeof(replay_data) * replay_size);
+    file.read(reinterpret_cast<char *>(&replay2[0]), sizeof(replay_data2) * replay2_size);
 
     file.close();
     return "Replay loaded";
+}
+
+void ReplayEngine::remove_actions(unsigned frame)
+{
+    auto check = [&](replay_data &action) -> bool
+    {
+        return action.frame > frame;
+    };
+    replay.erase(remove_if(replay.begin(), replay.end(), check), replay.end());
+
+    auto check2 = [&](replay_data2 &action) -> bool
+    {
+        return action.frame >= frame;
+    };
+    replay2.erase(remove_if(replay2.begin(), replay2.end(), check2), replay2.end());
 }
 
 std::vector<std::string> replay_list;
@@ -182,7 +168,7 @@ void openSelectReplay(const char *str_id) {
 }
 
 void ReplayEngine::openReplayMultishit() {
-    ImGui::BeginChild("Select Replay", {400 * gui::scale, 300 * gui::scale});
+    ImGui::BeginChild("Select Replay##3", {400 * gui::scale, 300 * gui::scale});
     for (int i = 0; i < (int)replay_list.size(); i++)
     {
         if (ImGui::Button(replay_list[i].c_str(), {ImGui::GetContentRegionAvail().x, NULL}))
@@ -192,6 +178,8 @@ void ReplayEngine::openReplayMultishit() {
         }
     }
     ImGui::EndChild();
+
+    ImGui::Separator();
     
     if (ImGui::Button("Close", {ImGui::GetContentRegionAvail().x, NULL})) {
         ImGui::CloseCurrentPopup();
@@ -204,17 +192,45 @@ void ReplayEngine::render() {
         ImGui::EndPopup();
     }
 
+    if (ImGui::BeginPopupModal("Replay Engine Settings", 0, ImGuiWindowFlags_NoResize)) {
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (ImGui::DragFloat("##tps_value", &hacks::tps_value, 1, 1, FLT_MAX, "%0.f TPS")) {
+            hacks::update_framerate();
+        }
+
+        if (ImGui::IsItemHovered()) 
+            ImGui::SetTooltip("Recommend setting the recording to 240 TPS to ensure stability in both recording and playback of the macro");
+
+        ImGui::Checkbox("Real Time", &engine.real_time, gui::scale);
+
+        //ImGui::SameLine();
+
+        //ImGui::Checkbox("Ignore Inputs", &engine.ignore_inputs, gui::scale);
+
+        ImGui::Checkbox("Accuracy Fix", &engine.accuracy_fix, gui::scale);
+
+        ImGui::SameLine();
+
+        ImGui::Checkbox("Rotation Fix", &engine.rotation_fix, gui::scale);
+
+        if (ImGui::Button("Close", {ImGui::GetContentRegionAvail().x, NULL})) {
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+    }
+
     int mode_ = (int)mode;
 
     if (ImGui::RadioButton("Disable", &mode_, 0, gui::scale))
         mode = state::disable;
-
     ImGui::SameLine();
 
     if (ImGui::RadioButton("Record", &mode_, 1, gui::scale))
     {
         if (mode != state::record) {
             replay.clear();
+            replay2.clear();
         }
         mode = state::record;
     }
@@ -248,13 +264,18 @@ void ReplayEngine::render() {
 
     if (ImGui::Button("Clear", {ImGui::GetContentRegionAvail().x, NULL})) {
         replay.clear();
-        log = "The replay has been cleared";
+        replay2.clear();
+        log = "Replay has been cleared";
     }
 
-    ImGui::Text("Replay Size: %i", replay.size());
-    ImGui::Text("Tick: %i", get_tick());
+    ImGui::Text("Replay Size: %i", replay2.size());
+    ImGui::Text("Frame: %i", get_frame());
 
     ImGui::Separator();
 
-    ImGui::Text("%s", log.c_str());
+    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImColor(64, 64, 64).Value);
+    if (ImGui::MenuItem(log.c_str())) {
+        ImGui::OpenPopup("Replay Engine Settings");
+    }
+    ImGui::PopStyleColor();
 }

@@ -19,6 +19,7 @@ void CheckDir(const std::filesystem::path &path)
 $execute {
     ImGuiCocos::get().setForceLegacy(true);
     CheckDir(hacks::folderMacroPath);
+    hacks::update_framerate();
     hacks::load(hacks::fileDataPath, hacks::windows);
     hacks::init();
 }
@@ -56,10 +57,17 @@ class $modify(cocos2d::CCEGLView) {
 
         if (inited) {
             if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-                if (key == GLFW_KEY_TAB) {
-                    gui::Toggle();
+                if (!gui::change_keybind) {
+                    if (key == gui::menu_key) {
+                        gui::Toggle();
+                    }
+                    startpos_switcher::handleKeyPress(key);  
                 }
-                startpos_switcher::handleKeyPress(key);  
+                else {
+                    gui::change_keybind = false;
+                    if (key != GLFW_KEY_ESCAPE)
+                        gui::menu_key = key;
+                }
             }
         }        
     }

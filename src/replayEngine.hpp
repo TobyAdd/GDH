@@ -4,21 +4,12 @@ enum state
 {
     disable,
     record,
-    play,
-    continue_record
+    play
 };
 
-struct ReplayData
+struct replay_data
 {
-    int tick;
-    bool hold;
-    int button;
-    bool player;
-};
-
-struct ReplayData2
-{
-    int tick;
+    unsigned frame;
     float x;
     float y;
     float rotation;
@@ -26,35 +17,49 @@ struct ReplayData2
     bool player;
 };
 
+struct replay_data2
+{
+    unsigned frame;
+    bool hold;
+    int button;
+    bool player;
+};
+
 class ReplayEngine
 {
 private:
+    std::string log = "tired of coding this shit";
     void openReplayMultishit();
-    std::string log = "new era for re";
 public:
     state mode = disable;
     std::string replay_name;
 
+    bool accuracy_fix = true;
+    bool rotation_fix = false;
+
+    bool real_time = true;
+    bool ignore_inputs = false;
+
+    bool frame_advance = false;
+
     void render();
 
     int index = 0;
-    std::vector<ReplayData> replay;
-
+    std::vector<replay_data> replay;
+    
     int index2 = 0;
-    std::vector<ReplayData2> replay2;
+    std::vector<replay_data2> replay2;
 
-    int get_tick();
-
-    void handle_recording(bool hold, int button, bool player);
-    void handle_recording2(bool player);
-
-    void handle_playing();
-    void handle_reseting();
+    unsigned get_frame();
+    void handle_recording(GJBaseGameLayer* self, bool player);
+    void handle_recording2(bool hold, int button, bool player);
+    void handle_playing(GJBaseGameLayer* self);
+    void handle_reseting(PlayLayer* self);
 
     std::string save(std::string name);
     std::string load(std::string name);
 
-    void remove_actions(int tick);
+    void remove_actions(unsigned frame);
 };
 
 extern ReplayEngine engine;

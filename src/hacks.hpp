@@ -1,5 +1,10 @@
 #include "includes.hpp"
 
+template <class R, class T>
+R& from(T base, intptr_t offset) {
+	return *reinterpret_cast<R*>(reinterpret_cast<uintptr_t>(base) + offset);
+}
+
 struct opcode {    
     std::string pattern;
     std::string on;
@@ -48,11 +53,15 @@ namespace hacks {
     extern float ricon_saturation;
     extern float ricon_brightness;
     extern float ricon_delta;
-    
+
+    extern float tps_value;
+
     extern float speed_value;
     extern bool speedhack_audio;
 
     extern bool hide_menu;
+
+    void update_framerate();
 
     void save(const std::vector<window>& windows, const std::filesystem::path &filename);
     void load(const std::filesystem::path &filename, std::vector<window>& windows);

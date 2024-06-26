@@ -9,6 +9,9 @@ namespace gui {
     extern bool license_accepted;
     extern float scale;
 
+    extern bool change_keybind;
+    extern int menu_key;
+
     void RenderMain();
     void Toggle();
     void Unload();

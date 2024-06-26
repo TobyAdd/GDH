@@ -14,11 +14,43 @@ PauseLayer* hooks::pauseLayer;
 std::vector<StartPosObject*> startPositions;
 std::vector<GameObject *> coinsObjects;
 
+float left_over = 0.f;
+bool next_frame = false;
+
 class $modify(cocos2d::CCScheduler) {
     void update(float dt) {
         dt *= hacks::speed_value;
-        speedhackAudio::update();
-        CCScheduler::update(dt);
+
+        if (engine.mode == state::disable)    
+            return CCScheduler::update(dt);
+        
+        float newdt = 1.f / hacks::tps_value; 
+
+        if (engine.frame_advance) {
+            if (next_frame) {
+                next_frame = false;
+                return CCScheduler::update(newdt);
+            }
+
+            return;
+        }
+
+        if (!engine.real_time) {
+            return CCScheduler::update(newdt);
+        }
+    
+        unsigned times = static_cast<int>((dt + left_over) / newdt);  
+        auto start = std::chrono::high_resolution_clock::now();
+        using namespace std::literals;
+
+        for (unsigned i = 0; i < times; ++i) {
+            CCScheduler::update(newdt);
+            if (std::chrono::high_resolution_clock::now() - start > 33.333ms) {            
+                times = i + 1;
+                break;
+            }
+        }
+        left_over += dt - newdt * times; 
     }
 };
 
@@ -161,7 +193,9 @@ class $modify(PlayLayer) {
 
     void resetLevel() {
         PlayLayer::resetLevel();
-        engine.handle_reseting();
+        left_over = 0;
+
+        engine.handle_reseting(this);
         
         noclip_accuracy.handle_reset(this);
         cps_counter.reset();
@@ -184,16 +218,14 @@ class $modify(PlayLayer) {
 
     void playEndAnimationToPos(cocos2d::CCPoint pos) {
         PlayLayer::playEndAnimationToPos(pos);
-        if (engine.mode == state::record) {
+        if (engine.mode == state::record)
             engine.mode = state::disable;
-        }
     }
 
     void playPlatformerEndAnimationToPos(cocos2d::CCPoint pos, bool idk) {
         PlayLayer::playPlatformerEndAnimationToPos(pos, idk);
-        if (engine.mode == state::record) {
+        if (engine.mode == state::record)
             engine.mode = state::disable;
-        }
     }
 
     void destroyPlayer(PlayerObject* player, GameObject* obj) {
@@ -204,16 +236,23 @@ class $modify(PlayLayer) {
 
 class $modify(GJBaseGameLayer) {
     void handleButton(bool down, int button, bool isPlayer1) {
-        GJBaseGameLayer::handleButton(down, button, isPlayer1);    
-        engine.handle_recording(down, button, isPlayer1);
+        GJBaseGameLayer::handleButton(down, button, isPlayer1);   
+        if (engine.mode == state::record) {
+            engine.handle_recording2(down, button, isPlayer1);
+        } 
         if (down) cps_counter.recordClick();
     }
 
-    void processCommands(float dt) {
-        GJBaseGameLayer::processCommands(dt);
-        engine.handle_recording2(true);
-        engine.handle_recording2(false);
-        engine.handle_playing();
+    void update(float dt) {
+        GJBaseGameLayer::update(dt);
+
+        if (engine.mode == state::record) {
+            engine.handle_recording(this, true);
+            engine.handle_recording(this, false);
+        }
+        else if (engine.mode == state::play) {
+            engine.handle_playing(this);
+        }
     }
 };
 
