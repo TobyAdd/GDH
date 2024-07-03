@@ -19,6 +19,8 @@ struct hack {
     std::string desc;
     std::vector<opcode> opcodes; 
     bool enabled = false;
+
+    int keybind = 0;
 };
 
 struct window {
@@ -68,4 +70,6 @@ namespace hacks {
 
     void save(const std::vector<window>& windows, const std::filesystem::path &filename);
     void load(const std::filesystem::path &filename, std::vector<window>& windows);
+
+    std::string GetKeyName(int key);
 }

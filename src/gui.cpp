@@ -15,8 +15,11 @@ int gui::indexScale = 3;
 bool gui::license_accepted = false;
 float gui::scale = 1.f;
 
-bool gui::change_keybind;
+bool gui::change_keybind = false;
+int gui::keybind_key = -2;
 int gui::menu_key = GLFW_KEY_TAB;
+
+bool keybind_mode = false;
 
 std::chrono::steady_clock::time_point animationStartTime;
 bool isAnimating = false;
@@ -126,7 +129,7 @@ void gui::RenderMain() {
     ImGuiIO &io = ImGui::GetIO();
     ImGui::SetNextWindowPos(ImVec2(0, io.DisplaySize.y), ImGuiCond_Always, ImVec2(0.0f, 1.0f));
     ImGui::Begin("BottomLeftText", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoFocusOnAppearing);
-    ImGui::Text("GDH v4.6.1 Geode | TobyAdd | Prevter | Qwix | https://discord.gg/ahYEz4MAwP | https://t.me/tobyadd_public");
+    ImGui::Text("GDH v4.6.2 Geode | TobyAdd | Prevter | Qwix | https://discord.gg/ahYEz4MAwP | https://t.me/tobyadd_public");
     ImGui::End();
 
     if (!gui::license_accepted) {
@@ -216,13 +219,35 @@ void gui::RenderMain() {
                 ImGuiCocos::get().reload();
             }
 
-            std::string keybind_menu = "Menu Key: " + std::to_string(menu_key);
-            if (change_keybind) {
-                keybind_menu = "Press any key...";
-            }
+            ImGui::Checkbox("Keybind Mode", &keybind_mode, gui::scale);
 
-            if (ImGui::Button(keybind_menu.c_str(), {ImGui::GetContentRegionAvail().x, NULL})) {
-                change_keybind = true;
+            if (keybind_mode) {
+                ImGui::SameLine();
+                if (ImGui::Button("More", {ImGui::GetContentRegionAvail().x, NULL})) {
+                    ImGui::OpenPopup("Keybinds");
+                }
+
+                if (ImGui::BeginPopupModal("Keybinds", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+                    std::string menukey_str = "Menu Key: " + hacks::GetKeyName(gui::menu_key); 
+                    if (gui::menu_key == -1) {
+                        menukey_str = "Press any key...";
+
+                        if (gui::keybind_key != -2) {
+                            gui::menu_key = gui::keybind_key;
+                            gui::keybind_key = -2;
+                        }
+                    }
+
+                    if (ImGui::Button(menukey_str.c_str(), {400 * gui::scale, NULL})) {
+                        gui::menu_key = -1;
+                        change_keybind = true;
+                    }
+
+                    if (ImGui::Button("Close", {ImGui::GetContentRegionAvail().x, NULL})) {
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::EndPopup();
+                }
             }
         }
         else {        
@@ -236,34 +261,61 @@ void gui::RenderMain() {
                 bool founded = search_item.empty() ? true : (search_name.find(search_item) != std::string::npos);
                 ImGui::PushStyleColor(ImGuiCol_Text, founded ? ImColor(255, 255, 255).Value : ImColor(64, 64, 64).Value);
 
-                if (ImGui::Checkbox(hck.name.c_str(), &hck.enabled, gui::scale)) {
-                    if (hck.name == "Unlock Items") { hacks::unlock_items = hck.enabled; }
-                    else if (hck.name == "Ignore ESC") { hacks::ignore_esc = hck.enabled; }
-                    else if (hck.name == "Startpos Switcher") { hacks::startpos_switcher = hck.enabled; }
-                    else if (hck.name == "Reset Camera") { hacks::startpos_switcher_reset_camera = hck.enabled; }
-                    else if (hck.name == "Use A/D") { hacks::use_a_s_d = hck.enabled; }
-                    else if (hck.name == "Instant Complete") { hacks::instant_complate = hck.enabled; }
-                    else if (hck.name == "RGB Icons") { hacks::rgb_icons = hck.enabled; }
-                    else if (hck.name == "Hide Pause Menu") { 
-                        auto pl = PlayLayer::get();
-                        hacks::hide_menu = hck.enabled; 
-                        if (pl && pl->m_isPaused && hooks::pauseLayer != nullptr)
-                            hooks::pauseLayer->setVisible(!hck.enabled);
-                    }
-                    else if (hck.name == "Auto Pickup Coins") { hacks::auto_pickup_coins = hck.enabled; }
-                    else if (hck.name == "Respawn Time") { hacks::respawn_time_enabled = hck.enabled; }
-                    else {
-                        for (auto& opc : hck.opcodes) {
-                            std::string bytesStr = hck.enabled ? opc.on : opc.off;
-                            if (opc.address != 0) {
-                                uintptr_t base = (uintptr_t)GetModuleHandleA(0);
-                                if (!opc.module.empty())
-                                {
-                                    base = (uintptr_t)GetModuleHandleA(opc.module.c_str());
+                if (!keybind_mode) {
+                    if (ImGui::Checkbox(hck.name.c_str(), &hck.enabled, gui::scale)) {
+                        if (hck.name == "Unlock Items") { hacks::unlock_items = hck.enabled; }
+                        else if (hck.name == "Ignore ESC") { hacks::ignore_esc = hck.enabled; }
+                        else if (hck.name == "Startpos Switcher") { hacks::startpos_switcher = hck.enabled; }
+                        else if (hck.name == "Reset Camera") { hacks::startpos_switcher_reset_camera = hck.enabled; }
+                        else if (hck.name == "Use A/D") { hacks::use_a_s_d = hck.enabled; }
+                        else if (hck.name == "Instant Complete") { hacks::instant_complate = hck.enabled; }
+                        else if (hck.name == "RGB Icons") { hacks::rgb_icons = hck.enabled; }
+                        else if (hck.name == "Hide Pause Menu") { 
+                            auto pl = PlayLayer::get();
+                            hacks::hide_menu = hck.enabled; 
+                            if (pl && pl->m_isPaused && hooks::pauseLayer != nullptr)
+                                hooks::pauseLayer->setVisible(!hck.enabled);
+                        }
+                        else if (hck.name == "Auto Pickup Coins") { hacks::auto_pickup_coins = hck.enabled; }
+                        else if (hck.name == "Respawn Time") { hacks::respawn_time_enabled = hck.enabled; }
+                        else if (hck.name == "Restart Level") { 
+                            auto pl = PlayLayer::get();
+                            if (pl)
+                                pl->resetLevel();
+                        }
+                        else if (hck.name == "Practice Mode") { 
+                            auto pl = PlayLayer::get();
+                            if (pl)
+                                pl->togglePracticeMode(!pl->m_isPracticeMode);
+                        }
+                        else {
+                            for (auto& opc : hck.opcodes) {
+                                std::string bytesStr = hck.enabled ? opc.on : opc.off;
+                                if (opc.address != 0) {
+                                    uintptr_t base = (uintptr_t)GetModuleHandleA(0);
+                                    if (!opc.module.empty())
+                                    {
+                                        base = (uintptr_t)GetModuleHandleA(opc.module.c_str());
+                                    }
+                                    memory::WriteBytes(base + opc.address, bytesStr);
                                 }
-                                memory::WriteBytes(base + opc.address, bytesStr);
                             }
                         }
+                    }
+                }
+                else {
+                    std::string keybind_with_hack = hck.name + ": " + hacks::GetKeyName(hck.keybind);
+                    if (hck.keybind == -1) {
+                        keybind_with_hack = "Press any key...";
+                        if (gui::keybind_key != -2) {
+                            hck.keybind = gui::keybind_key;
+                            gui::keybind_key = -2;
+                        }
+                    }
+
+                    if (ImGui::Button(keybind_with_hack.c_str(), {ImGui::GetContentRegionAvail().x, NULL})) {
+                        hck.keybind = (hck.keybind == -1) ? 0 : -1;
+                        change_keybind = true;
                     }
                 }
 
@@ -313,6 +365,60 @@ void gui::RenderMain() {
         ImGui::PopFont();
         ImGui::End();
     }
+}
+
+void gui::toggleKeybinds(int key) {
+    auto pl = PlayLayer::get();
+    if (!pl) return;
+
+    for (auto& win : hacks::windows) {
+        for (auto& hck : win.hacks) {
+            if (hck.keybind == key && key != 0) {                
+                hck.enabled = !hck.enabled;
+
+                if (hck.name == "Unlock Items") { hacks::unlock_items = hck.enabled; }
+                else if (hck.name == "Ignore ESC") { hacks::ignore_esc = hck.enabled; }
+                else if (hck.name == "Startpos Switcher") { hacks::startpos_switcher = hck.enabled; }
+                else if (hck.name == "Reset Camera") { hacks::startpos_switcher_reset_camera = hck.enabled; }
+                else if (hck.name == "Use A/D") { hacks::use_a_s_d = hck.enabled; }
+                else if (hck.name == "Instant Complete") { hacks::instant_complate = hck.enabled; }
+                else if (hck.name == "RGB Icons") { hacks::rgb_icons = hck.enabled; }
+                else if (hck.name == "Hide Pause Menu") { 
+                    auto pl = PlayLayer::get();
+                    hacks::hide_menu = hck.enabled; 
+                    if (pl && pl->m_isPaused && hooks::pauseLayer != nullptr)
+                        hooks::pauseLayer->setVisible(!hck.enabled);
+                }
+                else if (hck.name == "Auto Pickup Coins") { hacks::auto_pickup_coins = hck.enabled; }
+                else if (hck.name == "Respawn Time") { hacks::respawn_time_enabled = hck.enabled; }
+                else if (hck.name == "Restart Level") { 
+                    auto pl = PlayLayer::get();
+                    if (pl)
+                        pl->resetLevel();
+                }
+                else if (hck.name == "Practice Mode") { 
+                    auto pl = PlayLayer::get();
+                    if (pl)
+                        pl->togglePracticeMode(!pl->m_isPracticeMode);
+                }
+                else {                    
+                    for (auto& opc : hck.opcodes) {
+                        std::string bytesStr = hck.enabled ? opc.on : opc.off;
+                        if (opc.address != 0) {
+                            uintptr_t base = (uintptr_t)GetModuleHandleA(0);
+                            if (!opc.module.empty())
+                            {
+                                base = (uintptr_t)GetModuleHandleA(opc.module.c_str());
+                            }
+                            memory::WriteBytes(base + opc.address, bytesStr);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    hacks::save(hacks::windows, hacks::fileDataPath);
 }
 
 void gui::Toggle() {

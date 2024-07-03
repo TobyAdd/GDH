@@ -10,7 +10,10 @@ namespace gui {
     extern float scale;
 
     extern bool change_keybind;
+    extern int keybind_key;
     extern int menu_key;
+
+    void toggleKeybinds(int key);
 
     void RenderMain();
     void Toggle();

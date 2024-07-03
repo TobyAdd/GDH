@@ -62,11 +62,14 @@ class $modify(cocos2d::CCEGLView) {
                         gui::Toggle();
                     }
                     startpos_switcher::handleKeyPress(key);  
+                    gui::toggleKeybinds(key);
                 }
                 else {
                     gui::change_keybind = false;
-                    if (key != GLFW_KEY_ESCAPE)
-                        gui::menu_key = key;
+                    if (key != GLFW_KEY_BACKSPACE)
+                        gui::keybind_key = key;
+                    else
+                        gui::keybind_key = 0;
                 }
             }
         }        
