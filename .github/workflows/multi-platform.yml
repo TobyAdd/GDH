@@ -58,8 +58,8 @@ jobs:
           tag_name: nightly
           name: 'Development Release'
           body: |
-            This is a nightly build of the mod for commit ${{ github.sha }} (${{ github.event.head_commit.message }}).
-            This may not be stable and may contain bugs and issues.
+            This is a nightly build of GDH for commit ${{ github.sha }}. You can use this build to test the latest features and changes.
+            Since this is based of the latest commit, this may not be stable and may contain bugs and issues.
           files: |
             ${{ github.workspace }}/bin/tobyadd.gdh.geode
           
