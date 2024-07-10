@@ -61,7 +61,7 @@ jobs:
             This is a nightly build of GDH for commit ${{ github.sha }}. 
             You can use this build to test the latest features and changes.
 
-            ## Note
+            ## Note:
             
             Since this is based of the latest commit, this may not be stable and may contain bugs and issues.
           files: |
