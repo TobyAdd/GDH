@@ -11,7 +11,7 @@ namespace labels {
     extern bool custom_text_enabled;
     extern std::string custom_text;
 
-    extern int pos; //0 - lefttop; 1 - topbottom; 2 - righttop; 3 - rightbottom
+    extern int pos; // 0 - lefttop; 1 - topbottom; 2 - righttop; 3 - rightbottom
 
     std::string get_labels();
 }
