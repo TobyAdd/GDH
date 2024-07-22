@@ -40,26 +40,4 @@ jobs:
           name: Geode Build
           path: ${{ steps.build.outputs.build-output }}
 
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: ${{ github.workspace }}/bin
-          merge-multiple: true
-
-      - name: Get latest release tag
-        id: get_latest_release
-        run: echo ::set-output name=tag::$(curl -s https://api.github.com/repos/Prevter/OpenHack/releases/latest | jq -r .tag_name)
-
-      - name: Create nightly release
-        uses: andelf/nightly-release@main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: nightly
-          name: 'Development Release'
-          body: |
-            This is a nightly build of the mod for commit ${{ github.sha }} (${{ github.event.head_commit.message }}).
-            This may not be stable and may contain bugs and issues.
-          files: |
-            ${{ github.workspace }}/bin/tobyadd.gdh.geode
           
