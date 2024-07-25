@@ -1,7 +1,7 @@
 ## GDH
 GDH is an open-source Geometry Dash mod that aims to improve the game's performance and add new features
 ## Gallery
-![изображение](https://github.com/TobyAdd/GDH/assets/66429886/79a380f3-5f9b-4fb9-a8e9-0ae9a5e6221a)
+![изображение](https://github.com/user-attachments/assets/089fae49-28a9-4058-8514-5b65b4c25050)
 ## Install GDH using Installer (Recommended)
 https://github.com/TobyAdd/GDH-Installer/blob/main/README.md
 ## Install GDH manually
