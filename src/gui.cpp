@@ -264,7 +264,13 @@ void gui::RenderMain() {
                         else if (hck.name == "Use A/D") { hacks::use_a_s_d = hck.enabled; }
                         else if (hck.name == "Instant Complete") { hacks::instant_complate = hck.enabled; }
                         else if (hck.name == "RGB Icons") { hacks::rgb_icons = hck.enabled; }
-                        else if (hck.name == "Show Hitboxes") { hacks::show_hitboxes = hck.enabled; }
+                        else if (hck.name == "Show Hitboxes") { 
+                            hacks::show_hitboxes = hck.enabled;
+                            auto pl = PlayLayer::get();
+                            if (pl && !hck.enabled && !(pl->m_isPracticeMode && GameManager::get()->getGameVariable("0166"))) {
+                                pl->m_debugDrawNode->setVisible(false);
+                            }
+                        }
                         else if (hck.name == "Hide Pause Menu") { 
                             auto pl = PlayLayer::get();
                             hacks::hide_menu = hck.enabled; 
@@ -395,7 +401,13 @@ void gui::toggleKeybinds(int key) {
                 else if (hck.name == "Use A/D") { hacks::use_a_s_d = hck.enabled; }
                 else if (hck.name == "Instant Complete") { hacks::instant_complate = hck.enabled; }
                 else if (hck.name == "RGB Icons") { hacks::rgb_icons = hck.enabled; }
-                else if (hck.name == "Show Hitboxes") { hacks::show_hitboxes = hck.enabled; }
+                else if (hck.name == "Show Hitboxes") { 
+                    hacks::show_hitboxes = hck.enabled;
+                    auto pl = PlayLayer::get();
+                    if (pl && !hck.enabled && !(pl->m_isPracticeMode && GameManager::get()->getGameVariable("0166"))) {
+                        pl->m_debugDrawNode->setVisible(false);
+                    }
+                }
                 else if (hck.name == "Hide Pause Menu") { 
                     auto pl = PlayLayer::get();
                     hacks::hide_menu = hck.enabled; 

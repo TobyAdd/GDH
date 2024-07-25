@@ -269,7 +269,6 @@ class $modify(PlayLayer) {
         if (hacks::show_hitboxes) {
             if (!(m_isPracticeMode && GameManager::get()->getGameVariable("0166")))
                 PlayLayer::updateDebugDraw();
-
             
             m_debugDrawNode->setVisible(true);
 
@@ -311,7 +310,7 @@ class $modify(GJBaseGameLayer) {
     void processCommands(float dt) {
         GJBaseGameLayer::processCommands(dt);
 
-        if (hacks::draw_trail) {
+        if (hacks::show_hitboxes && hacks::draw_trail) {
             if (!m_player1->m_isDead) {
                 playerTrail1.push_back(m_player1->getObjectRect());
                 playerTrail2.push_back(m_player2->getObjectRect());
