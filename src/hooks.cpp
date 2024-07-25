@@ -5,6 +5,7 @@
 #include <Geode/modify/GJBaseGameLayer.hpp>
 #include <Geode/modify/GameStatsManager.hpp>
 #include <Geode/modify/PauseLayer.hpp>
+#include <Geode/modify/CCDrawNode.hpp>
 #include "speedhackAudio.hpp"
 #include "labels.hpp"
 #include "replayEngine.hpp"
@@ -16,6 +17,8 @@ std::vector<GameObject *> coinsObjects;
 
 float left_over = 0.f;
 bool next_frame = false;
+
+std::deque<cocos2d::CCRect> playerTrail1, playerTrail2;
 
 class $modify(cocos2d::CCScheduler) {
     void update(float dt) {
@@ -98,6 +101,16 @@ namespace startpos_switcher {
             startpos_switcher::switchStartPos(increment);
         }
     }
+}
+
+void drawRect(cocos2d::CCDrawNode *node, const cocos2d::CCRect &rect, const cocos2d::_ccColor4F &color, float borderWidth, const cocos2d::_ccColor4F &borderColor) {
+    std::vector<cocos2d::CCPoint> vertices = {
+            cocos2d::CCPoint(rect.getMinX(), rect.getMinY()),
+            cocos2d::CCPoint(rect.getMinX(), rect.getMaxY()),
+            cocos2d::CCPoint(rect.getMaxX(), rect.getMaxY()),
+            cocos2d::CCPoint(rect.getMaxX(), rect.getMinY())
+    };
+    node->drawPolygon(vertices.data(), vertices.size(), color, borderWidth, borderColor);
 }
 
 
@@ -193,7 +206,11 @@ class $modify(PlayLayer) {
 
     void resetLevel() {
         PlayLayer::resetLevel();
+    
         left_over = 0;
+
+        playerTrail1.clear();
+        playerTrail2.clear();
 
         engine.handle_reseting(this);
         
@@ -245,6 +262,29 @@ class $modify(PlayLayer) {
             }
         }
     }
+
+    void updateProgressbar() {
+        PlayLayer::updateProgressbar();
+
+        if (hacks::show_hitboxes) {
+            if (!(m_isPracticeMode && GameManager::get()->getGameVariable("0166")))
+                PlayLayer::updateDebugDraw();
+
+            
+            m_debugDrawNode->setVisible(true);
+
+            if (hacks::draw_trail) {
+                for (auto &hitbox: playerTrail1) {
+                    drawRect(m_debugDrawNode, hitbox, {0, 0, 0, 0}, 0.25f, {1.f, 1.f, 0.f, 1.0f});
+                }
+                    
+                for (auto &hitbox: playerTrail2) {
+                    drawRect(m_debugDrawNode, hitbox, {0, 0, 0, 0}, 0.25f, {1.f, 1.f, 0.f, 1.0f});
+                }
+
+            }
+        }
+    }
 };
 
 class $modify(GJBaseGameLayer) {
@@ -265,6 +305,23 @@ class $modify(GJBaseGameLayer) {
         }
         else if (engine.mode == state::play) {
             engine.handle_playing(this);
+        }
+    }
+
+    void processCommands(float dt) {
+        GJBaseGameLayer::processCommands(dt);
+
+        if (hacks::draw_trail) {
+            if (!m_player1->m_isDead) {
+                playerTrail1.push_back(m_player1->getObjectRect());
+                playerTrail2.push_back(m_player2->getObjectRect());
+            }
+
+            auto maxLength = static_cast<size_t>(hacks::trail_length);
+            while (playerTrail1.size() > maxLength)
+                playerTrail1.pop_front();
+            while (playerTrail2.size() > maxLength)
+                playerTrail2.pop_front();
         }
     }
 };
@@ -301,5 +358,26 @@ class $modify(PauseLayer) {
     void onResume(cocos2d::CCObject* sender) {
         PauseLayer::onResume(sender);
         hooks::pauseLayer = nullptr;
+    }
+};
+
+
+class $modify(cocos2d::CCDrawNode) {
+    bool drawPolygon(cocos2d::CCPoint* vertex, unsigned int count, const cocos2d::ccColor4F& fillColor,
+                     float borderWidth, const cocos2d::ccColor4F& borderColor) {
+
+        if (hacks::show_hitboxes)
+            borderWidth = abs(borderWidth);
+
+        return cocos2d::CCDrawNode::drawPolygon(vertex, count, fillColor, borderWidth, borderColor);
+    }
+
+    bool drawCircle(const cocos2d::CCPoint& position, float radius, const cocos2d::ccColor4F& color,
+                    float borderWidth, const cocos2d::ccColor4F& borderColor, unsigned int segments) {
+
+        if (hacks::show_hitboxes)
+            borderWidth = abs(borderWidth);            
+
+        return cocos2d::CCDrawNode::drawCircle(position, radius, color, borderWidth, borderColor, segments);
     }
 };

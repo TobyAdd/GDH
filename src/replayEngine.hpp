@@ -28,7 +28,7 @@ struct replay_data2
 class ReplayEngine
 {
 private:
-    std::string log = "tired of coding this shit";
+    std::string log = "More settings";
     void openReplayMultishit();
 public:
     state mode = disable;

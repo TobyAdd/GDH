@@ -28,6 +28,11 @@ float hacks::speed_value = 1.f;
 bool hacks::respawn_time_enabled = false;
 float hacks::respawn_time_value = 1.f;
 
+bool hacks::show_hitboxes = false;
+bool hacks::draw_trail = false;
+int hacks::trail_length = 240;
+bool hacks::show_hitboxes_on_death = false;
+
 std::vector<window> hacks::windows = {
     {"Core", 10, 10, 200, 200, 
         {
@@ -171,6 +176,7 @@ std::vector<window> hacks::windows = {
                     {"75 ? 83 be ? ? ? ? ? 75 ? 80 be ? ? ? ? ? 75", "EB"}
                 }
             },
+            {"Show Hitboxes", "Visualizes hitbox levels"},
             {"All Modes Platformer", "Removes the limit on all modes in the platformer",
                 {
                     {"0f 85 ? ? ? ? 4c 8b c7 49 8b d6 48 8b ce e8 ? ? ? ? 84 c0 0f 84 ? ? ? ? 4c 8b c7 49 8b d6 48 8b ce e8 ? ? ? ? ba ? ? ? ? 49 8b ce e8 ? ? ? ? 48 8b df 48 8b 07 48 8b cf ff 90 ? ? ? ? 48 8b d0 48 8d 4d ? ff 15 ? ? ? ? 49 8d 8e ? ? ? ? 48 8b d0 ff 15 ? ? ? ? 49 89 be ? ? ? ? 80 be ? ? ? ? ? 74 ? 48 8b 86 ? ? ? ? 48 85 c0 74 ? 48 8b d8 eb ? 48 85 db 74 ? 48 89 9e ? ? ? ? 80 bb ? ? ? ? ? 74 ? 41 b0 ? eb ? 45 33 c0 b2 ? 49 8b ce e8 ? ? ? ? 48 8b 06 b2 ? 48 8b ce ff 90 ? ? ? ? e9 ? ? ? ? 4c 8b c7 49 8b d6 48 8b ce e8 ? ? ? ? 84 c0 0f 84 ? ? ? ? 4c 8b c7 49 8b d6 48 8b ce e8 ? ? ? ? 45 33 c0 33 d2 49 8b ce e8 ? ? ? ? 45 33 c0 33 d2 49 8b ce e8 ? ? ? ? 45 33 c0 33 d2 49 8b ce e8 ? ? ? ? 45 33 c0 33 d2 49 8b ce e8 ? ? ? ? 45 33 c0 33 d2 49 8b ce e8 ? ? ? ? 45 33 c0 33 d2 49 8b ce e8 ? ? ? ? 48 8b df 48 8b 07 48 8b cf ff 90 ? ? ? ? 48 8b d0 48 8d 4d ? ff 15 ? ? ? ? 49 8d 8e ? ? ? ? 48 8b d0 ff 15 ? ? ? ? 49 89 be ? ? ? ? 80 be ? ? ? ? ? 74 ? 48 8b 86 ? ? ? ? 48 85 c0 74 ? 48 8b d8 eb ? 48 85 db 74 ? 48 89 9e ? ? ? ? 80 bb ? ? ? ? ? 74 ? 41 b0 ? 41 0f b6 d0 49 8b ce e8 ? ? ? ? e9 ? ? ? ? 45 33 c0 b2 ? 49 8b ce e8 ? ? ? ? e9 ? ? ? ? 4c 8b c7", "90 90 90 90 90 90"},
@@ -372,6 +378,7 @@ void hacks::init() {
                 else if (hck.name == "Hide Pause Menu") { hacks::hide_menu = hck.enabled; }
                 else if (hck.name == "Auto Pickup Coins") { hacks::auto_pickup_coins = hck.enabled; }
                 else if (hck.name == "Respawn Time") { hacks::respawn_time_enabled = hck.enabled; }
+                else if (hck.name == "Show Hitboxes") { hacks::show_hitboxes = hck.enabled; }
                 else {
                     for (auto& opc : hck.opcodes) {
                         std::string bytesStr = hck.enabled ? opc.on : opc.off;
@@ -444,6 +451,10 @@ void hacks::save(const std::vector<window>& windows, const std::filesystem::path
     j["custom_text_enabled"] = labels::custom_text_enabled;
     j["custom_text"] = labels::custom_text;
     j["labels_pos"] = labels::pos;
+
+    j["draw_trail"] = hacks::draw_trail;
+    j["trail_length"] = hacks::trail_length;
+    j["show_hitboxes_on_death"] = hacks::show_hitboxes_on_death;
 
     j["respawn_time_enabled"] = hacks::respawn_time_enabled;
     j["respawn_time_value"] = hacks::respawn_time_value;
@@ -526,6 +537,10 @@ void hacks::load(const std::filesystem::path &filename, std::vector<window>& win
     labels::custom_text_enabled = j.value("custom_text_enabled", false);
     labels::custom_text = j.value("custom_text", "test");
     labels::pos = j.value("labels_pos", 0);
+
+    hacks::draw_trail = j.value("draw_trail", false);
+    hacks::trail_length = j.value("trail_length", 240);
+    hacks::show_hitboxes_on_death = j.value("show_hitboxes_on_death", false);
 
     hacks::respawn_time_enabled = j.value("respawn_time_enabled", false);
     hacks::respawn_time_value = j.value("respawn_time_value", 1.f);

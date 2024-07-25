@@ -66,6 +66,11 @@ namespace hacks {
     extern bool respawn_time_enabled;
     extern float respawn_time_value;
 
+    extern bool show_hitboxes;
+    extern bool draw_trail;
+    extern int trail_length;
+    extern bool show_hitboxes_on_death;
+
     void update_framerate();
 
     void save(const std::vector<window>& windows, const std::filesystem::path &filename);

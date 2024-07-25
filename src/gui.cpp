@@ -126,12 +126,6 @@ void gui::RenderMain() {
     
     if (!gui::show) return;
 
-    ImGuiIO &io = ImGui::GetIO();
-    ImGui::SetNextWindowPos(ImVec2(0, io.DisplaySize.y), ImGuiCond_Always, ImVec2(0.0f, 1.0f));
-    ImGui::Begin("BottomLeftText", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoFocusOnAppearing);
-    ImGui::Text("GDH v4.6.2 Geode | TobyAdd | Prevter | Qwix | https://discord.gg/ahYEz4MAwP | https://t.me/tobyadd_public");
-    ImGui::End();
-
     if (!gui::license_accepted) {
         License();
         return;
@@ -270,6 +264,7 @@ void gui::RenderMain() {
                         else if (hck.name == "Use A/D") { hacks::use_a_s_d = hck.enabled; }
                         else if (hck.name == "Instant Complete") { hacks::instant_complate = hck.enabled; }
                         else if (hck.name == "RGB Icons") { hacks::rgb_icons = hck.enabled; }
+                        else if (hck.name == "Show Hitboxes") { hacks::show_hitboxes = hck.enabled; }
                         else if (hck.name == "Hide Pause Menu") { 
                             auto pl = PlayLayer::get();
                             hacks::hide_menu = hck.enabled; 
@@ -359,6 +354,23 @@ void gui::RenderMain() {
                         ImGui::EndPopup();
                     }
                 }
+
+                if (hck.name == "Show Hitboxes") {
+                    ImGui::SameLine();
+                    if (ImGui::ArrowButton("#hitboxesSettings", ImGuiDir_Right)) {
+                        ImGui::OpenPopup("Hitboxes Settings");
+                    }
+
+                    if (ImGui::BeginPopupModal("Hitboxes Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+                        ImGui::Checkbox("Draw Trail", &hacks::draw_trail);
+                        ImGui::DragInt("##trail_length", &hacks::trail_length, 1, 0, INT_MAX, "Trail Length: %i");
+                        //ImGui::Checkbox("Show Hitboxes on Death", &hacks::show_hitboxes_on_death);
+                        if (ImGui::Button("Close", {ImGui::GetContentRegionAvail().x, NULL})) {
+                            ImGui::CloseCurrentPopup();
+                        }
+                        ImGui::EndPopup();
+                    }
+                }
             }
         }
 
@@ -383,6 +395,7 @@ void gui::toggleKeybinds(int key) {
                 else if (hck.name == "Use A/D") { hacks::use_a_s_d = hck.enabled; }
                 else if (hck.name == "Instant Complete") { hacks::instant_complate = hck.enabled; }
                 else if (hck.name == "RGB Icons") { hacks::rgb_icons = hck.enabled; }
+                else if (hck.name == "Show Hitboxes") { hacks::show_hitboxes = hck.enabled; }
                 else if (hck.name == "Hide Pause Menu") { 
                     auto pl = PlayLayer::get();
                     hacks::hide_menu = hck.enabled; 
