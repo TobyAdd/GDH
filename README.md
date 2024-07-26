@@ -11,13 +11,13 @@ GDH is an open-source Geometry Dash mod that aims to improve the game's performa
 ## Gallery
 <img src="https://github.com/user-attachments/assets/089fae49-28a9-4058-8514-5b65b4c25050" alt="Screenshot" width=800 />
 
-## Install GDH directly through the mod catalogue in Geode itself
+## Install GDH directly through the mod catalogue in Geode itself (Recommended)
 1. Make sure [Geode](https://geode-sdk.org/) is installed
 2. In the mod install menu, under the Discover page, find GDH and install it
 3. Restart the game
 4. Press <kbd>Tab</kbd> to show the integrated menu
 
-## Install GDH using Installer (Recommended)
+## Install GDH using Installer
 [Complete Guide](https://github.com/TobyAdd/GDH-Installer/blob/main/README.md#how-to-install)
 
 ## Install GDH manually
@@ -33,5 +33,5 @@ If you want to propose an idea, you can do so on our [Discord server](https://di
 
 ---
 
-Thanks to the [aciddev_](https://github.com/thisisignitedoreo) for the icon & small README improvements.<br/>
+Thanks to the [aciddev_](https://github.com/thisisignitedoreo) for the icon, small README improvements & translating it.<br/>
 Thanks to all the [contributors](https://github.com/TobyAdd/GDH/graphs/contributors).
