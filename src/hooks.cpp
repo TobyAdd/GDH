@@ -3,6 +3,7 @@
 #include <Geode/modify/CCScheduler.hpp>
 #include <Geode/modify/PlayLayer.hpp>
 #include <Geode/modify/GJBaseGameLayer.hpp>
+#include <Geode/modify/GameManager.hpp>
 #include <Geode/modify/GameStatsManager.hpp>
 #include <Geode/modify/PauseLayer.hpp>
 #include <Geode/modify/CCDrawNode.hpp>
@@ -325,14 +326,37 @@ class $modify(GJBaseGameLayer) {
     }
 };
 
-class $modify(GameStatsManager) {
-    bool isItemUnlocked(UnlockType p0, int p1) {
-        auto ret = GameStatsManager::isItemUnlocked(p0, p1);
-
-        if (hacks::unlock_items)
+class $modify(GameManager) {
+    bool isColorUnlocked(int key, UnlockType type) {
+        if (GameManager::isColorUnlocked(key, type))
             return true;
 
-        return ret;
+        return hacks::unlock_items;
+    }
+
+    bool isIconUnlocked(int key, IconType type) {
+        if (GameManager::isIconUnlocked(key, type))
+            return true;
+
+        return hacks::unlock_items;
+    }
+};
+
+class $modify(GameStatsManager) {
+    bool isItemUnlocked(UnlockType p0, int p1) {
+        if (GameStatsManager::isItemUnlocked(p0, p1))
+            return true;
+
+        if (!hacks::unlock_items)
+            return false;
+
+        if (p0 == UnlockType::GJItem & p1 == 16)
+            return true;
+
+        if (p0 == UnlockType::GJItem & p1 == 17)
+            return true;
+
+        return false;
     }
 };
 

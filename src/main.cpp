@@ -19,8 +19,8 @@ void CheckDir(const std::filesystem::path &path)
 $execute {
     ImGuiCocos::get().setForceLegacy(true);
     CheckDir(hacks::folderMacroPath);
-    hacks::update_framerate();
     hacks::load(hacks::fileDataPath, hacks::windows);
+    hacks::update_framerate();
     hacks::init();
 }
 

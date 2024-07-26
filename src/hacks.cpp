@@ -141,7 +141,7 @@ std::vector<window> hacks::windows = {
             },            
             {"Anticheat Bypass", "Disables level kicking at level completion",
                 {
-                    {"0f 85 ? ? ? ? 80 bf ? ? ? ? ? 0f 85 ? ? ? ? 80 bf ? ? ? ? ? 0f 85 ? ? ? ? e8", "90 90 90 90 90 90"},
+                    {"0f 85 ? ? ? ? 80 bf ? ? ? ? ? ? ? ? ? ? ? 80 bf ? ? ? ? ? 0f 85 ? ? ? ? e8", "90 90 90 90 90 90"},
                     {"0f 85 ? ? ? ? 80 bf ? ? ? ? ? 0f 85 ? ? ? ? 80 bf ? ? ? ? ? 0f 85 ? ? ? ? 80 bf ? ? ? ? ? 0f 85 ? ? ? ? 48 8b 8f ? ? ? ? ff 15", "90 90 90 90 90 90"}
                 }
             },          
@@ -362,6 +362,7 @@ void hacks::init() {
                     else {
                         fail++;
                         geode::log::error("hack broken: {}", hck.name);
+                        geode::log::error("pattern {}", opc.pattern);
                     }
                 }
             }
