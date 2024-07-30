@@ -7,6 +7,7 @@
 #include "hacks.hpp"
 #include "gui.hpp"
 #include "hooks.hpp"
+#include "replayEngine.hpp"
 
 void CheckDir(const std::filesystem::path &path)
 {
@@ -58,9 +59,12 @@ class $modify(cocos2d::CCEGLView) {
         if (inited) {
             if (action == GLFW_PRESS || action == GLFW_REPEAT) {
                 if (!gui::change_keybind) {
-                    if (key == gui::menu_key) {
-                        gui::Toggle();
+                    if (key == gui::menu_key) gui::Toggle();
+                    else if (key == hacks::speed_key) hacks::speed_enabled = !hacks::speed_enabled;
+                    else if (key == hacks::playback_key) {
+                        engine.mode = (engine.mode == state::play) ? state::disable : state::play;
                     }
+
                     startpos_switcher::handleKeyPress(key);  
                     gui::toggleKeybinds(key);
                 }

@@ -270,7 +270,7 @@ void ReplayEngine::render() {
         log = "Replay has been cleared";
     }
 
-    ImGui::Text("Replay Size: %i", replay2.size());
+    ImGui::Text("Replay Size: %zu", replay2.size());
     ImGui::Text("Frame: %i", get_frame());
 
     ImGui::Separator();

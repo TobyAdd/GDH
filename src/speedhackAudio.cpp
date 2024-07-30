@@ -11,7 +11,7 @@ namespace speedhackAudio {
                 channel->getCurrentSound(&sound);
                 float freq;
                 sound->getDefaults(&freq, nullptr);
-                if (hacks::speedhack_audio)
+                if (hacks::speed_enabled && hacks::speedhack_audio)
                     channel->setFrequency(freq * hacks::speed_value);
                 else
                     channel->setFrequency(freq * 1.f);

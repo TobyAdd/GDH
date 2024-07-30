@@ -7,9 +7,12 @@
 #include <Geode/modify/GameStatsManager.hpp>
 #include <Geode/modify/PauseLayer.hpp>
 #include <Geode/modify/CCDrawNode.hpp>
+#include <Geode/modify/HardStreak.hpp>
 #include "speedhackAudio.hpp"
 #include "labels.hpp"
 #include "replayEngine.hpp"
+#include <random>
+#include "memory.hpp"
 
 PauseLayer* hooks::pauseLayer;
 
@@ -21,9 +24,21 @@ bool next_frame = false;
 
 std::deque<cocos2d::CCRect> playerTrail1, playerTrail2;
 
+int getRandomNumber(int min, int max)
+{
+    std::random_device rd;
+    std::mt19937_64 generator(rd());
+
+    std::uniform_int_distribution<int> distribution(min, max);
+
+    int randomNum = distribution(generator);
+    return randomNum;
+}
+
 class $modify(cocos2d::CCScheduler) {
     void update(float dt) {
-        dt *= hacks::speed_value;
+        if (hacks::speed_enabled)
+            dt *= hacks::speed_value;
 
         if (engine.mode == state::disable)    
             return CCScheduler::update(dt);
@@ -60,6 +75,8 @@ class $modify(cocos2d::CCScheduler) {
 
 namespace startpos_switcher {
     int selectedStartpos = 0;
+    int left_key = GLFW_KEY_Q;
+    int right_key = GLFW_KEY_E;
 
     void switchStartPos(int incBy, bool direction = true) {
         auto pl = PlayLayer::get();
@@ -94,11 +111,8 @@ namespace startpos_switcher {
         auto pl = PlayLayer::get();
         if (!pl) return;
 
-        if (!hacks::use_a_s_d && (keyCode == GLFW_KEY_LEFT || keyCode == GLFW_KEY_RIGHT)) {
-            int increment = (keyCode == GLFW_KEY_LEFT) ? -1 : 1;
-            startpos_switcher::switchStartPos(increment);
-        } else if (hacks::use_a_s_d && (keyCode == GLFW_KEY_A || keyCode == GLFW_KEY_D)) {
-            int increment = (keyCode == GLFW_KEY_A) ? -1 : 1;
+        if (keyCode == left_key || keyCode == right_key) {
+            int increment = (keyCode == left_key) ? -1 : 1;
             startpos_switcher::switchStartPos(increment);
         }
     }
@@ -118,6 +132,8 @@ void drawRect(cocos2d::CCDrawNode *node, const cocos2d::CCRect &rect, const coco
 class $modify(PlayLayer) {
     struct Fields {
         cocos2d::CCLabelBMFont* labels;
+        cocos2d::CCSprite* tint_death_bg;
+
         ~Fields() {
             startPositions.clear();
             coinsObjects.clear();
@@ -128,6 +144,8 @@ class $modify(PlayLayer) {
     bool init(GJGameLevel* level, bool useReplay, bool dontCreateObjects) {
         if (!PlayLayer::init(level, useReplay, dontCreateObjects)) return false;
 
+        auto wnd_size = cocos2d::CCDirector::sharedDirector()->getWinSize();
+
         m_fields->labels = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
 
         m_fields->labels->setID("labels"_spr);
@@ -136,6 +154,14 @@ class $modify(PlayLayer) {
         m_fields->labels->setOpacity(150);
         m_fields->labels->setAnchorPoint({1, 0});
         addChild(m_fields->labels);
+
+        m_fields->tint_death_bg = cocos2d::CCSprite::create("game_bg_13_001.png");
+        m_fields->tint_death_bg->setPosition({wnd_size.width/2, wnd_size.height/2});
+        m_fields->tint_death_bg->setScaleX(wnd_size.width);
+        m_fields->tint_death_bg->setScaleY(wnd_size.height);
+        m_fields->tint_death_bg->setColor({255, 0, 0});
+        m_fields->tint_death_bg->setOpacity(0);
+        addChild(m_fields->tint_death_bg);
 
         return true;
     }
@@ -183,6 +209,15 @@ class $modify(PlayLayer) {
             }
         }
 
+        if (m_fields->tint_death_bg) {
+            if (hacks::tint_on_death && noclip_accuracy.prevDied && noclip_accuracy.deaths != 0) {
+                m_fields->tint_death_bg->setOpacity(getRandomNumber(70, 100)); // my worst solution, sorry :(
+            }
+            else {
+                m_fields->tint_death_bg->setOpacity(0);
+            }   
+        }
+
         if (hacks::rgb_icons) {
             hacks::ricon_delta += dt;
             float r1, g1, b1, r2, g2, b2;
@@ -192,7 +227,6 @@ class $modify(PlayLayer) {
 
             cocos2d::_ccColor3B color1 = {(GLubyte)(r1 * 255.0f), (GLubyte)(g1 * 255.0f), (GLubyte)(b1 * 255.0f)};
             cocos2d::_ccColor3B color2 = {(GLubyte)(r2 * 255.0f), (GLubyte)(g2 * 255.0f), (GLubyte)(b2 * 255.0f)};
-
 
             m_player1->setColor(color1);
             m_player2->setColor(color2);
@@ -207,6 +241,10 @@ class $modify(PlayLayer) {
 
     void resetLevel() {
         PlayLayer::resetLevel();
+
+        if (hacks::random_seed_enabled) {
+            memory::WriteInt(geode::base::get() + 0x687DD0, hacks::seed_value);
+        }
     
         left_over = 0;
 
@@ -402,5 +440,16 @@ class $modify(cocos2d::CCDrawNode) {
             borderWidth = abs(borderWidth);            
 
         return cocos2d::CCDrawNode::drawCircle(position, radius, color, borderWidth, borderColor, segments);
+    }
+};
+
+class $modify(HardStreak)
+{
+    void updateStroke(float p0)
+    {
+        if (hacks::wave_trail)
+            m_pulseSize = hacks::wave_trail_size;
+
+        HardStreak::updateStroke(p0);
     }
 };

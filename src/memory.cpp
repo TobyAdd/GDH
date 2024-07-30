@@ -117,3 +117,15 @@ bool memory::WriteFloat(uintptr_t address, float value) {
         return false;
     }
 }
+
+bool memory::WriteInt(uintptr_t address, int value) {
+    DWORD oldProtect;
+    if (VirtualProtect(reinterpret_cast<void*>(address), sizeof(int), PAGE_EXECUTE_READWRITE, &oldProtect)) {
+        WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &value, sizeof(int), nullptr);
+        return VirtualProtect(reinterpret_cast<void*>(address), sizeof(int), oldProtect, &oldProtect);
+    }
+    else
+    {
+        return false;
+    }
+}

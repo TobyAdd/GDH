@@ -46,7 +46,6 @@ namespace hacks {
     extern bool ignore_esc;
     extern bool startpos_switcher;
     extern bool startpos_switcher_reset_camera;
-    extern bool use_a_s_d;
     extern bool instant_complate;
 
     extern bool rgb_icons;
@@ -58,6 +57,8 @@ namespace hacks {
 
     extern float tps_value;
 
+    extern int speed_key;
+    extern bool speed_enabled;
     extern float speed_value;
     extern bool speedhack_audio;
 
@@ -71,10 +72,27 @@ namespace hacks {
     extern int trail_length;
     extern bool show_hitboxes_on_death;
 
+    extern bool wave_trail;
+    extern float wave_trail_size;
+
+    extern bool tint_on_death;
+
+    extern int playback_key;
+
+    extern bool random_seed_enabled;
+    extern int seed_value;
+
+    extern bool layout_mode;
+
     void update_framerate();
 
     void save(const std::vector<window>& windows, const std::filesystem::path &filename);
     void load(const std::filesystem::path &filename, std::vector<window>& windows);
 
     std::string GetKeyName(int key);
+}
+
+namespace startpos_switcher {
+    extern int left_key;
+    extern int right_key;
 }

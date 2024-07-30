@@ -167,8 +167,11 @@ void gui::RenderMain() {
         ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);      
 
         if (windowName == "Framerate") {
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - (35 + 5) * gui::scale);
             ImGui::DragFloat("##speedhack_value", &hacks::speed_value, 0.01f, 0, FLT_MAX, "Speed: %.2fx");
+
+            ImGui::SameLine();
+            ImGui::Checkbox("##speedhack_enabled", &hacks::speed_enabled, gui::scale);
 
             ImGui::Checkbox("Speedhack Audio", &hacks::speedhack_audio, gui::scale);
 
@@ -222,22 +225,28 @@ void gui::RenderMain() {
                 }
 
                 if (ImGui::BeginPopupModal("Keybinds", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-                    std::string menukey_str = "Menu Key: " + hacks::GetKeyName(gui::menu_key); 
-                    if (gui::menu_key == -1) {
-                        menukey_str = "Press any key...";
-
-                        if (gui::keybind_key != -2) {
-                            gui::menu_key = gui::keybind_key;
-                            gui::keybind_key = -2;
+                    auto renderKeyButton = [&](const std::string& label, int& key) {
+                        std::string keyStr = label + hacks::GetKeyName(key);
+                        if (key == -1) {
+                            keyStr = "Press any key...";
+                            if (gui::keybind_key != -2) {
+                                key = gui::keybind_key;
+                                gui::keybind_key = -2;
+                            }
                         }
-                    }
+                        if (ImGui::Button(keyStr.c_str(), {400 * gui::scale, 0})) {
+                            key = -1;
+                            change_keybind = true;
+                        }
+                    };
 
-                    if (ImGui::Button(menukey_str.c_str(), {400 * gui::scale, NULL})) {
-                        gui::menu_key = -1;
-                        change_keybind = true;
-                    }
+                    renderKeyButton("Menu Key: ", gui::menu_key);
+                    renderKeyButton("Speedhack Key: ", hacks::speed_key);
+                    renderKeyButton("Disable/Playback Macro: ", hacks::playback_key);
+                    renderKeyButton("Startpos Switcher Left: ", startpos_switcher::left_key);
+                    renderKeyButton("Startpos Switcher Right: ", startpos_switcher::right_key);
 
-                    if (ImGui::Button("Close", {ImGui::GetContentRegionAvail().x, NULL})) {
+                    if (ImGui::Button("Close", {ImGui::GetContentRegionAvail().x, 0})) {
                         ImGui::CloseCurrentPopup();
                     }
                     ImGui::EndPopup();
@@ -261,9 +270,10 @@ void gui::RenderMain() {
                         else if (hck.name == "Ignore ESC") { hacks::ignore_esc = hck.enabled; }
                         else if (hck.name == "Startpos Switcher") { hacks::startpos_switcher = hck.enabled; }
                         else if (hck.name == "Reset Camera") { hacks::startpos_switcher_reset_camera = hck.enabled; }
-                        else if (hck.name == "Use A/D") { hacks::use_a_s_d = hck.enabled; }
                         else if (hck.name == "Instant Complete") { hacks::instant_complate = hck.enabled; }
                         else if (hck.name == "RGB Icons") { hacks::rgb_icons = hck.enabled; }
+                        else if (hck.name == "Wave Trail Size") { hacks::wave_trail = hck.enabled; }
+                        else if (hck.name == "Random Seed") { hacks::random_seed_enabled = hck.enabled; }
                         else if (hck.name == "Show Hitboxes") { 
                             hacks::show_hitboxes = hck.enabled;
                             auto pl = PlayLayer::get();
@@ -323,7 +333,7 @@ void gui::RenderMain() {
                 ImGui::PopStyleColor();
 
                 if (ImGui::IsItemHovered() && !hck.desc.empty())
-                    ImGui::SetTooltip(hck.desc.c_str());
+                    ImGui::SetTooltip("%s", hck.desc.c_str());
                 
                 if (hck.name == "RGB Icons") {
                     ImGui::SameLine();
@@ -377,6 +387,55 @@ void gui::RenderMain() {
                         ImGui::EndPopup();
                     }
                 }
+
+                if (hck.name == "Wave Trail Size") {
+                    ImGui::SameLine();
+                    if (ImGui::ArrowButton("##waveTrailSizeSettings", ImGuiDir_Right)) {
+                        ImGui::OpenPopup("Wave Trail Size Settings");
+                    }
+
+                    if (ImGui::BeginPopupModal("Wave Trail Size Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+                        ImGui::DragFloat("##waveTrailSize", &hacks::wave_trail_size, 0.01f, 0.0f, FLT_MAX, "Wave Trail Size: %.2f");
+
+                        if (ImGui::Button("Close", {ImGui::GetContentRegionAvail().x, NULL})) {
+                            ImGui::CloseCurrentPopup();
+                        }
+                        ImGui::EndPopup();
+                    }
+                }
+
+                if (hck.name == "Noclip") {
+                    ImGui::SameLine();
+                    if (ImGui::ArrowButton("##noclipSettings", ImGuiDir_Right)) {
+                        ImGui::OpenPopup("Noclip Settings");
+                    }
+
+                    if (ImGui::BeginPopupModal("Noclip Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+                        ImGui::Checkbox("Tint on death", &hacks::tint_on_death, gui::scale);
+
+                        if (ImGui::Button("Close", {400 * gui::scale, NULL})) {
+                            ImGui::CloseCurrentPopup();
+                        }
+                        ImGui::EndPopup();
+                    }
+                }
+
+                if (hck.name == "Random Seed") {
+                    ImGui::SameLine();
+                    if (ImGui::ArrowButton("##randomSeedSettings", ImGuiDir_Right)) {
+                        ImGui::OpenPopup("Random Seed Settings");
+                    }
+
+                    if (ImGui::BeginPopupModal("Random Seed Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                        ImGui::DragInt("##seed", &hacks::seed_value, 1, 0, INT_MAX, "Seed Value: %i");
+
+                        if (ImGui::Button("Close", {400 * gui::scale, NULL})) {
+                            ImGui::CloseCurrentPopup();
+                        }
+                        ImGui::EndPopup();
+                    }
+                }
             }
         }
 
@@ -398,9 +457,10 @@ void gui::toggleKeybinds(int key) {
                 else if (hck.name == "Ignore ESC") { hacks::ignore_esc = hck.enabled; }
                 else if (hck.name == "Startpos Switcher") { hacks::startpos_switcher = hck.enabled; }
                 else if (hck.name == "Reset Camera") { hacks::startpos_switcher_reset_camera = hck.enabled; }
-                else if (hck.name == "Use A/D") { hacks::use_a_s_d = hck.enabled; }
                 else if (hck.name == "Instant Complete") { hacks::instant_complate = hck.enabled; }
                 else if (hck.name == "RGB Icons") { hacks::rgb_icons = hck.enabled; }
+                else if (hck.name == "Wave Trail Size") { hacks::wave_trail = hck.enabled; }
+                else if (hck.name == "Random Seed") { hacks::random_seed_enabled = hck.enabled; }
                 else if (hck.name == "Show Hitboxes") { 
                     hacks::show_hitboxes = hck.enabled;
                     auto pl = PlayLayer::get();

@@ -7,7 +7,6 @@ bool hacks::unlock_items = false;
 bool hacks::ignore_esc = false;
 bool hacks::startpos_switcher = false;
 bool hacks::startpos_switcher_reset_camera = false;
-bool hacks::use_a_s_d = false;
 bool hacks::instant_complate = false;
 
 bool hacks::rgb_icons = false;
@@ -19,11 +18,13 @@ float hacks::ricon_delta = 0;
 
 bool hacks::hide_menu = false;
 bool hacks::auto_pickup_coins = false;
-bool hacks::speedhack_audio = true;
 
 float hacks::tps_value = 240.f;
 
+int hacks::speed_key = 0;
+bool hacks::speed_enabled = false;
 float hacks::speed_value = 1.f;
+bool hacks::speedhack_audio = true;
 
 bool hacks::respawn_time_enabled = false;
 float hacks::respawn_time_value = 1.f;
@@ -32,6 +33,18 @@ bool hacks::show_hitboxes = false;
 bool hacks::draw_trail = false;
 int hacks::trail_length = 240;
 bool hacks::show_hitboxes_on_death = false;
+
+bool hacks::wave_trail = false;
+float hacks::wave_trail_size = 1.f;
+
+bool hacks::tint_on_death = false;
+
+int hacks::playback_key = 0;
+
+bool hacks::random_seed_enabled = false;
+int hacks::seed_value = 1337;
+
+bool hacks::layout_mode = false;
 
 std::vector<window> hacks::windows = {
     {"Core", 10, 10, 200, 200, 
@@ -155,6 +168,7 @@ std::vector<window> hacks::windows = {
                     {"f3 0f 10 05 ? ? ? ? ff 15 ? ? ? ? 48 89 44 24", "0F 57 C0 90 90 90 90 90"}
                 }
             },
+            {"Random Seed", "Changes the seed game so that the random trigger is not triggered randomly"},
             {"Respawn Time", "Changes respawn time on death"},
             {"Restart Level", "Reload the level"},
             {"Practice Mode", "Enter practice mode"},
@@ -162,7 +176,6 @@ std::vector<window> hacks::windows = {
             {"Instant Complete", "Instant level completion"},
             {"Startpos Switcher", "The ability to switch between starting positions using the left/right arrow keys"},
             {"Reset Camera", "When switching between starting positions, the camera may move, so this feature fixes that unpleasant switch"},
-            {"Use A/D", "Switching between starting positions using the A/D keys"},
             {"RGB Icons", "LGBT icons, yes :3"},
             {"Solid Wave Trail", "Disables wave blending",
                 {
@@ -269,6 +282,7 @@ std::vector<window> hacks::windows = {
                     {"0f 85 ? ? ? ? c6 83 ? ? ? ? ? 48 8b 8b ? ? ? ? ff 15", "E9 8D 00 00 00 90"}
                 }
             },
+            {"Wave Trail Size", "Resizes the trail"},
             {"No Wave Pulse", "Disables the pulsation of the trail on the wave",
                 {
                     {"f3 41 0f 10 87 ? ? ? ? f3 0f 5c c7", "F3 0F 10 05 A8 4E 28 00 90"}
@@ -374,12 +388,13 @@ void hacks::init() {
                 else if (hck.name == "Ignore ESC") { hacks::ignore_esc = hck.enabled; }
                 else if (hck.name == "Startpos Switcher") { hacks::startpos_switcher = hck.enabled; }
                 else if (hck.name == "Reset Camera") { hacks::startpos_switcher_reset_camera = hck.enabled; }
-                else if (hck.name == "Use A/D") { hacks::use_a_s_d = hck.enabled; }
                 else if (hck.name == "Instant Complete") { hacks::instant_complate = hck.enabled; }
                 else if (hck.name == "Hide Pause Menu") { hacks::hide_menu = hck.enabled; }
                 else if (hck.name == "Auto Pickup Coins") { hacks::auto_pickup_coins = hck.enabled; }
                 else if (hck.name == "Respawn Time") { hacks::respawn_time_enabled = hck.enabled; }
+                else if (hck.name == "Wave Trail Size") { hacks::wave_trail = hck.enabled; }
                 else if (hck.name == "Show Hitboxes") { hacks::show_hitboxes = hck.enabled; }
+                else if (hck.name == "Random Seed") { hacks::random_seed_enabled = hck.enabled; }
                 else {
                     for (auto& opc : hck.opcodes) {
                         std::string bytesStr = hck.enabled ? opc.on : opc.off;
@@ -436,8 +451,12 @@ void hacks::save(const std::vector<window>& windows, const std::filesystem::path
     }
 
     j["tps_value"] = hacks::tps_value;
+
+    j["speed_enabled"] = hacks::speed_enabled;
     j["speed"] = hacks::speed_value;
     j["speedhack_audio"] = hacks::speedhack_audio;
+
+
     j["rgb_icons_enabled"] = hacks::rgb_icons;
     j["icon_coef"] = hacks::ricon_coef;
     j["icon_shift"] = hacks::ricon_shift;
@@ -460,11 +479,21 @@ void hacks::save(const std::vector<window>& windows, const std::filesystem::path
     j["respawn_time_enabled"] = hacks::respawn_time_enabled;
     j["respawn_time_value"] = hacks::respawn_time_value;
 
+    j["wave_trail_size"] = hacks::wave_trail_size;
+
+    j["tint_on_death"] = hacks::tint_on_death;
+
+    j["seed_value"] = hacks::seed_value;
+
     j["gui_size"] = gui::scale;
     j["gui_scale_index"] = gui::indexScale;
     j["gui_license_accepted"] = gui::license_accepted;
 
     j["menu_key"] = gui::menu_key;
+    j["speed_key"] = hacks::speed_key;
+    j["playback_key"] = hacks::playback_key;
+    j["startpos_switcher::left_key"] = startpos_switcher::left_key;
+    j["startpos_switcher::right_key"] = startpos_switcher::right_key;
 
     std::ofstream file(filename);
     file << j.dump(4);
@@ -517,6 +546,8 @@ void hacks::load(const std::filesystem::path &filename, std::vector<window>& win
     }
 
     hacks::tps_value = j.value("tps_value", 240.f);
+
+    hacks::speed_enabled = j.value("speed_enabled", false);
     hacks::speed_value = j.value("speed", 1.f);
     if (hacks::speed_value == 0.f) {
         hacks::speed_value = 1.f;
@@ -546,10 +577,21 @@ void hacks::load(const std::filesystem::path &filename, std::vector<window>& win
     hacks::respawn_time_enabled = j.value("respawn_time_enabled", false);
     hacks::respawn_time_value = j.value("respawn_time_value", 1.f);
 
+    hacks::wave_trail_size = j.value("wave_trail_size", 1.f);
+
+    hacks::tint_on_death = j.value("tint_on_death", false);
+
+    hacks::seed_value = j.value("seed_value", 1337);
+
     gui::scale = j.value("gui_size", 1.f);
     gui::indexScale = j.value("gui_scale_index", 3);
     gui::license_accepted = j.value("gui_license_accepted", false);
+
     gui::menu_key = j.value("menu_key", GLFW_KEY_TAB);
+    hacks::speed_key = j.value("speed_key", 0);
+    hacks::playback_key = j.value("playback_key", 0);
+    startpos_switcher::left_key = j.value("startpos_switcher::left_key", 0);
+    startpos_switcher::right_key = j.value("startpos_switcher::right_key", 0);
 
     if (gui::menu_key == 0 || gui::menu_key == -1) {
         gui::menu_key = GLFW_KEY_TAB;
