@@ -8,6 +8,9 @@
 #include <Geode/modify/PauseLayer.hpp>
 #include <Geode/modify/CCDrawNode.hpp>
 #include <Geode/modify/HardStreak.hpp>
+#include <Geode/modify/GameObject.hpp>
+#include <Geode/modify/EffectGameObject.hpp>
+#include <Geode/modify/LevelEditorLayer.hpp>
 #include "speedhackAudio.hpp"
 #include "labels.hpp"
 #include "replayEngine.hpp"
@@ -20,9 +23,28 @@ std::vector<StartPosObject*> startPositions;
 std::vector<GameObject *> coinsObjects;
 
 float left_over = 0.f;
-bool next_frame = false;
 
 std::deque<cocos2d::CCRect> playerTrail1, playerTrail2;
+
+void drawRect(cocos2d::CCDrawNode *node, const cocos2d::CCRect &rect, const cocos2d::_ccColor4F &color, float borderWidth, const cocos2d::_ccColor4F &borderColor) {
+    std::vector<cocos2d::CCPoint> vertices = {
+            cocos2d::CCPoint(rect.getMinX(), rect.getMinY()),
+            cocos2d::CCPoint(rect.getMinX(), rect.getMaxY()),
+            cocos2d::CCPoint(rect.getMaxX(), rect.getMaxY()),
+            cocos2d::CCPoint(rect.getMaxX(), rect.getMinY())
+    };
+    node->drawPolygon(vertices.data(), vertices.size(), color, borderWidth, borderColor);
+}
+
+void drawTrail(cocos2d::CCDrawNode *node) {
+    for (auto &hitbox: playerTrail1) {
+        drawRect(node, hitbox, {0, 0, 0, 0}, 0.25f, {1.f, 1.f, 0.f, 1.0f});
+    }
+        
+    for (auto &hitbox: playerTrail2) {
+        drawRect(node, hitbox, {0, 0, 0, 0}, 0.25f, {1.f, 1.f, 0.f, 1.0f});
+    }
+}
 
 int getRandomNumber(int min, int max)
 {
@@ -46,8 +68,8 @@ class $modify(cocos2d::CCScheduler) {
         float newdt = 1.f / hacks::tps_value; 
 
         if (engine.frame_advance) {
-            if (next_frame) {
-                next_frame = false;
+            if (engine.next_frame) {
+                engine.next_frame = false;
                 return CCScheduler::update(newdt);
             }
 
@@ -118,17 +140,6 @@ namespace startpos_switcher {
     }
 }
 
-void drawRect(cocos2d::CCDrawNode *node, const cocos2d::CCRect &rect, const cocos2d::_ccColor4F &color, float borderWidth, const cocos2d::_ccColor4F &borderColor) {
-    std::vector<cocos2d::CCPoint> vertices = {
-            cocos2d::CCPoint(rect.getMinX(), rect.getMinY()),
-            cocos2d::CCPoint(rect.getMinX(), rect.getMaxY()),
-            cocos2d::CCPoint(rect.getMaxX(), rect.getMaxY()),
-            cocos2d::CCPoint(rect.getMaxX(), rect.getMinY())
-    };
-    node->drawPolygon(vertices.data(), vertices.size(), color, borderWidth, borderColor);
-}
-
-
 class $modify(PlayLayer) {
     struct Fields {
         cocos2d::CCLabelBMFont* labels;
@@ -138,6 +149,8 @@ class $modify(PlayLayer) {
             startPositions.clear();
             coinsObjects.clear();
             hacks::ricon_delta = 0;
+            playerTrail1.clear();
+            playerTrail2.clear();
         }
     };
 
@@ -311,16 +324,8 @@ class $modify(PlayLayer) {
             
             m_debugDrawNode->setVisible(true);
 
-            if (hacks::draw_trail) {
-                for (auto &hitbox: playerTrail1) {
-                    drawRect(m_debugDrawNode, hitbox, {0, 0, 0, 0}, 0.25f, {1.f, 1.f, 0.f, 1.0f});
-                }
-                    
-                for (auto &hitbox: playerTrail2) {
-                    drawRect(m_debugDrawNode, hitbox, {0, 0, 0, 0}, 0.25f, {1.f, 1.f, 0.f, 1.0f});
-                }
-
-            }
+            if (hacks::draw_trail)
+                drawTrail(m_debugDrawNode);
         }
     }
 };
@@ -354,6 +359,9 @@ class $modify(GJBaseGameLayer) {
                 playerTrail1.push_back(m_player1->getObjectRect());
                 playerTrail2.push_back(m_player2->getObjectRect());
             }
+
+            auto pl = GameManager::sharedState()->getPlayLayer();
+            if (!pl) return;
 
             auto maxLength = static_cast<size_t>(hacks::trail_length);
             while (playerTrail1.size() > maxLength)
@@ -451,5 +459,30 @@ class $modify(HardStreak)
             m_pulseSize = hacks::wave_trail_size;
 
         HardStreak::updateStroke(p0);
+    }
+};
+
+class $modify(LevelEditorLayer) {
+    bool init(GJGameLevel *p0, bool p1) {
+        bool ret = LevelEditorLayer::init(p0, p1);
+
+        playerTrail1.clear();
+        playerTrail2.clear();
+
+        return ret;
+    }
+
+    void updateEditor(float dt) {
+        LevelEditorLayer::updateEditor(dt);
+
+        if (hacks::show_hitboxes && hacks::draw_trail) {            
+            drawTrail(m_debugDrawNode);
+        }
+    }
+
+    void onPlaytest() {
+        LevelEditorLayer::onPlaytest();
+        playerTrail1.clear();
+        playerTrail2.clear();
     }
 };

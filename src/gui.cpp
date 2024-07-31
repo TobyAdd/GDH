@@ -26,6 +26,8 @@ bool isAnimating = false;
 bool isFadingIn = false;
 int anim_durr = 100;
 
+bool gui::broken_save = false;
+
 bool needUnloadFont = false;
 std::string search_text;
 
@@ -83,10 +85,10 @@ void License() {
     ImGui::Begin("Welcome", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
     ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]);
-    ImGui::Text("Welcome to GDH.");
+    ImGui::Text(gui::broken_save ? "Looks like the save file was corrupted" : "Welcome to GDH.");
     ImGui::PopFont();
 
-    ImGui::Text("Please read the license agreement.");
+    ImGui::Text(gui::broken_save ? "GDH settings were reset to prevent a crash" : "Please read the license agreement.");
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {10, 10});
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImColor(40, 45, 51).Value);
@@ -119,7 +121,7 @@ void License() {
 std::vector<std::string> stretchedWindows;
 void gui::RenderMain() {   
     speedhackAudio::update();
-
+    
     if (isAnimating) {
         animateAlpha(anim_durr);
     }
@@ -240,11 +242,17 @@ void gui::RenderMain() {
                         }
                     };
 
+                    ImGui::Text("Tip: To disable the bind, bind it to backspace");
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
                     renderKeyButton("Menu Key: ", gui::menu_key);
                     renderKeyButton("Speedhack Key: ", hacks::speed_key);
                     renderKeyButton("Disable/Playback Macro: ", hacks::playback_key);
                     renderKeyButton("Startpos Switcher Left: ", startpos_switcher::left_key);
                     renderKeyButton("Startpos Switcher Right: ", startpos_switcher::right_key);
+                    renderKeyButton("Enable Frame Advance + Next Frame: ", hacks::frame_advance_key);
+                    renderKeyButton("Disable Frame Advance: ", hacks::frame_advance_disable_key);
 
                     if (ImGui::Button("Close", {ImGui::GetContentRegionAvail().x, 0})) {
                         ImGui::CloseCurrentPopup();
@@ -378,7 +386,7 @@ void gui::RenderMain() {
                     }
 
                     if (ImGui::BeginPopupModal("Hitboxes Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-                        ImGui::Checkbox("Draw Trail", &hacks::draw_trail);
+                        ImGui::Checkbox("Draw Trail", &hacks::draw_trail, gui::scale);
                         ImGui::DragInt("##trail_length", &hacks::trail_length, 1, 0, INT_MAX, "Trail Length: %i");
                         //ImGui::Checkbox("Show Hitboxes on Death", &hacks::show_hitboxes_on_death);
                         if (ImGui::Button("Close", {ImGui::GetContentRegionAvail().x, NULL})) {

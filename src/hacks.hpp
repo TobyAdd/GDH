@@ -82,7 +82,8 @@ namespace hacks {
     extern bool random_seed_enabled;
     extern int seed_value;
 
-    extern bool layout_mode;
+    extern int frame_advance_key;
+    extern int frame_advance_disable_key;
 
     void update_framerate();
 

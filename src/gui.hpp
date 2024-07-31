@@ -8,6 +8,7 @@ namespace gui {
     extern int indexScale;
     extern bool license_accepted;
     extern float scale;
+    extern bool broken_save;
 
     extern bool change_keybind;
     extern int keybind_key;

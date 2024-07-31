@@ -41,6 +41,7 @@ public:
     bool ignore_inputs = false;
 
     bool frame_advance = false;
+    bool next_frame = false;
 
     void render();
 

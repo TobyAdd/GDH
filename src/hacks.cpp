@@ -2,6 +2,7 @@
 #include "memory.hpp"
 #include "gui.hpp"
 #include "labels.hpp"
+#include "replayEngine.hpp"
 
 bool hacks::unlock_items = false;
 bool hacks::ignore_esc = false;
@@ -44,7 +45,8 @@ int hacks::playback_key = 0;
 bool hacks::random_seed_enabled = false;
 int hacks::seed_value = 1337;
 
-bool hacks::layout_mode = false;
+int hacks::frame_advance_key = GLFW_KEY_C;
+int hacks::frame_advance_disable_key = GLFW_KEY_V;
 
 std::vector<window> hacks::windows = {
     {"Core", 10, 10, 200, 200, 
@@ -494,6 +496,11 @@ void hacks::save(const std::vector<window>& windows, const std::filesystem::path
     j["playback_key"] = hacks::playback_key;
     j["startpos_switcher::left_key"] = startpos_switcher::left_key;
     j["startpos_switcher::right_key"] = startpos_switcher::right_key;
+    j["startpos_switcher::left_key"] = startpos_switcher::left_key;
+    j["startpos_switcher::right_key"] = startpos_switcher::right_key;
+    j["frame_advance_key"] = hacks::frame_advance_key;
+    j["frame_advance_disable_key"] = hacks::frame_advance_disable_key;
+
 
     std::ofstream file(filename);
     file << j.dump(4);
@@ -512,8 +519,11 @@ void hacks::load(const std::filesystem::path &filename, std::vector<window>& win
         return;
     }
 
-    json j;
-    file >> j;
+    json j = json::parse(file, nullptr, false);
+    if (j.is_discarded()) {
+        gui::broken_save = true;
+        return;
+    }
 
     for (auto& win : windows) {
         for (const auto& windowData : j["Windows"]) {
@@ -592,6 +602,9 @@ void hacks::load(const std::filesystem::path &filename, std::vector<window>& win
     hacks::playback_key = j.value("playback_key", 0);
     startpos_switcher::left_key = j.value("startpos_switcher::left_key", 0);
     startpos_switcher::right_key = j.value("startpos_switcher::right_key", 0);
+
+    hacks::frame_advance_key = j.value("frame_advance_key", GLFW_KEY_C);
+    hacks::frame_advance_disable_key = j.value("frame_advance_disable_key", GLFW_KEY_V);
 
     if (gui::menu_key == 0 || gui::menu_key == -1) {
         gui::menu_key = GLFW_KEY_TAB;

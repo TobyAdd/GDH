@@ -65,6 +65,12 @@ class $modify(cocos2d::CCEGLView) {
                         engine.mode = (engine.mode == state::play) ? state::disable : state::play;
                     }
 
+                    if (key == hacks::frame_advance_key) {
+                        engine.frame_advance = true;
+                        engine.next_frame = true;
+                    } 
+                    else if (key == hacks::frame_advance_disable_key) engine.frame_advance = false;
+
                     startpos_switcher::handleKeyPress(key);  
                     gui::toggleKeybinds(key);
                 }
