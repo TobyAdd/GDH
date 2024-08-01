@@ -16,6 +16,7 @@
 #include "replayEngine.hpp"
 #include <random>
 #include "memory.hpp"
+#include "gui.hpp"
 
 PauseLayer* hooks::pauseLayer;
 
@@ -67,7 +68,8 @@ class $modify(cocos2d::CCScheduler) {
         
         float newdt = 1.f / hacks::tps_value; 
 
-        if (engine.frame_advance) {
+        auto pl = GameManager::sharedState()->getPlayLayer();
+        if (engine.frame_advance && pl && !pl->m_isPaused) {
             if (engine.next_frame) {
                 engine.next_frame = false;
                 return CCScheduler::update(newdt);
@@ -151,6 +153,11 @@ class $modify(PlayLayer) {
             hacks::ricon_delta = 0;
             playerTrail1.clear();
             playerTrail2.clear();
+
+            if (engine.frame_advance) {
+                imgui_popup::add_popup("Frame Advance disabled");
+                engine.frame_advance = false;
+            }
         }
     };
 

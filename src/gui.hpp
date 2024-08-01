@@ -20,3 +20,16 @@ namespace gui {
     void Toggle();
     void Unload();
 }
+
+struct popup_message {
+    std::string caption;
+    double expiry_time;
+};
+
+namespace imgui_popup {
+    const float popupDuration = 5.0f;
+
+    extern std::vector<popup_message> messages;
+    void add_popup(std::string caption);
+    void render();
+}

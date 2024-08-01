@@ -1,3 +1,5 @@
+#define IMGUI_DEFINE_MATH_OPERATORS
+#include <Geode/Geode.hpp>
 #include "gui.hpp"
 //#include "console.hpp"
 #include "memory.hpp"
@@ -121,6 +123,10 @@ void License() {
 std::vector<std::string> stretchedWindows;
 void gui::RenderMain() {   
     speedhackAudio::update();
+
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1);
+    imgui_popup::render();
+    ImGui::PopStyleVar();
     
     if (isAnimating) {
         animateAlpha(anim_durr);
@@ -456,6 +462,22 @@ void gui::toggleKeybinds(int key) {
     auto pl = PlayLayer::get();
     if (!pl) return;
 
+    if (engine.mode == state::record || engine.mode == state::play) {
+        if (key == hacks::frame_advance_key) {
+            if (!engine.frame_advance)
+                imgui_popup::add_popup("Frame Advance enabled");
+
+            engine.frame_advance = true;
+            engine.next_frame = true;
+        } 
+        else if (key == hacks::frame_advance_disable_key) {
+            if (engine.frame_advance)
+                imgui_popup::add_popup("Frame Advance disabled");
+
+            engine.frame_advance = false;
+        }
+    }
+
     for (auto& win : hacks::windows) {
         for (auto& hck : win.hacks) {
             if (hck.keybind == key && key != 0) {                
@@ -531,4 +553,68 @@ void gui::Toggle() {
 
 void gui::Unload() {
     stretchedWindows.clear();
+}
+
+void CustomRoundedProgressBar(float fraction, ImVec2 pos, ImVec2 size, float rounding, ImU32 bgColor, ImU32 fillColor) {
+    ImGui::GetWindowDrawList()->AddRectFilled(
+        pos,
+        pos + size,
+        bgColor,
+        rounding
+    );
+
+    ImVec2 fillSize = ImVec2(size.x * fraction, size.y);
+    ImGui::GetWindowDrawList()->AddRectFilled(
+        pos,
+        pos + fillSize,
+        fillColor,
+        rounding
+    );
+}
+namespace imgui_popup {
+    std::vector<popup_message> messages;
+    void add_popup(std::string caption) {
+        messages.push_back({caption, ImGui::GetTime() + popupDuration});
+    }
+
+    void render() {
+        ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+        float currentY = 10.0f;
+        float elapsedTime = 0.0f;
+
+        for (auto& message : messages) {
+            if (ImGui::GetTime() > message.expiry_time) {
+                continue;
+            }
+
+            std::string windowName = "PopupWindow##" + std::to_string(reinterpret_cast<std::uintptr_t>(&message));
+
+            ImGuiStyle& style = ImGui::GetStyle();
+
+            ImGui::SetNextWindowPos(ImVec2(displaySize.x - ((ImGui::CalcTextSize(message.caption.c_str()).x + + style.WindowPadding.x * 2) * gui::scale) - 10.0f, currentY), ImGuiCond_Always);
+            ImGui::SetNextWindowSize(ImVec2((ImGui::CalcTextSize(message.caption.c_str()).x + style.WindowPadding.x * 2) * gui::scale, (40.0f * gui::scale)), ImGuiCond_Always);
+
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0, 0});
+            ImGui::Begin(windowName.c_str(), nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs);
+            ImGui::PopStyleVar();
+
+            float timeRemaining = message.expiry_time - ImGui::GetTime();
+            float progress = timeRemaining / popupDuration;
+            CustomRoundedProgressBar(progress, ImGui::GetWindowPos(), ImGui::GetWindowSize(), ImGui::GetStyle().WindowRounding, ImColor(27, 27, 29, 250), ImColor(47, 47, 49, 250));
+
+            std::string popupName = "Popup##" + std::to_string(reinterpret_cast<std::uintptr_t>(&message));
+
+            ImGui::BeginChild(popupName.c_str(), {0, 0}, ImGuiChildFlags_Border, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoInputs);       
+            ImGui::Text("%s", message.caption.c_str());
+            ImGui::EndChild();
+            
+            ImGui::End();
+
+            currentY += (40.0f * gui::scale) + (10.0f * gui::scale);
+        }
+
+        messages.erase(std::remove_if(messages.begin(), messages.end(), [](const popup_message& msg) {
+            return ImGui::GetTime() > msg.expiry_time;
+        }), messages.end());
+    }
 }

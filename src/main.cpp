@@ -33,6 +33,7 @@ class $modify(MenuLayer) {
         if (!inited) {
             inited = true;
             ImGuiCocos::get().setup([] {
+                imgui_popup::messages.clear();
                 gui::Unload();
                 ApplyColor();
                 ApplyStyle(gui::scale);
@@ -59,20 +60,16 @@ class $modify(cocos2d::CCEGLView) {
         if (inited) {
             if (action == GLFW_PRESS || action == GLFW_REPEAT) {
                 if (!gui::change_keybind) {
-                    if (key == gui::menu_key) gui::Toggle();
-                    else if (key == hacks::speed_key) hacks::speed_enabled = !hacks::speed_enabled;
-                    else if (key == hacks::playback_key) {
-                        engine.mode = (engine.mode == state::play) ? state::disable : state::play;
+                    if (!ImGui::IsAnyItemActive()) {
+                        if (key == gui::menu_key) gui::Toggle();
+                        else if (key == hacks::speed_key) hacks::speed_enabled = !hacks::speed_enabled;
+                        else if (key == hacks::playback_key) {
+                            engine.mode = (engine.mode == state::play) ? state::disable : state::play;
+                        }
+
+                        startpos_switcher::handleKeyPress(key);  
+                        gui::toggleKeybinds(key);
                     }
-
-                    if (key == hacks::frame_advance_key) {
-                        engine.frame_advance = true;
-                        engine.next_frame = true;
-                    } 
-                    else if (key == hacks::frame_advance_disable_key) engine.frame_advance = false;
-
-                    startpos_switcher::handleKeyPress(key);  
-                    gui::toggleKeybinds(key);
                 }
                 else {
                     gui::change_keybind = false;

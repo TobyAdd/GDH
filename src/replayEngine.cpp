@@ -230,6 +230,9 @@ void ReplayEngine::render() {
 
     if (ImGui::RadioButton("Record", &mode_, 1, gui::scale))
     {
+        if (engine.frame_advance)
+            imgui_popup::add_popup("Frame Advance enabled (that's so you don't say the level was freezing)");
+
         if (mode != state::record) {
             replay.clear();
             replay2.clear();
@@ -240,6 +243,9 @@ void ReplayEngine::render() {
     ImGui::SameLine();
 
     if (ImGui::RadioButton("Play", &mode_, 2, gui::scale)) {
+        if (engine.frame_advance)
+            imgui_popup::add_popup("Frame Advance enabled (that's so you don't say the level was freezing)");
+
         mode = state::play;
     }  
 
@@ -255,19 +261,19 @@ void ReplayEngine::render() {
     }
 
     if (ImGui::Button("Save", {ImGui::GetContentRegionAvail().x / 3, NULL})) {
-        log = save(replay_name);
+        imgui_popup::add_popup(save(replay_name));
     }
     ImGui::SameLine();
 
     if (ImGui::Button("Load", {ImGui::GetContentRegionAvail().x / 2, NULL})) {
-        log = load(replay_name);
+        imgui_popup::add_popup(load(replay_name));
     }
     ImGui::SameLine();
 
     if (ImGui::Button("Clear", {ImGui::GetContentRegionAvail().x, NULL})) {
         replay.clear();
         replay2.clear();
-        log = "Replay has been cleared";
+        imgui_popup::add_popup("Replay has been cleared");
     }
 
     ImGui::Text("Replay Size: %zu", replay2.size());
@@ -276,7 +282,7 @@ void ReplayEngine::render() {
     ImGui::Separator();
 
     ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImColor(64, 64, 64).Value);
-    if (ImGui::MenuItem(log.c_str())) {
+    if (ImGui::MenuItem("More settings")) {
         ImGui::OpenPopup("Replay Engine Settings");
     }
     ImGui::PopStyleColor();
