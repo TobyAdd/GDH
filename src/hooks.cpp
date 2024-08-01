@@ -11,6 +11,7 @@
 #include <Geode/modify/GameObject.hpp>
 #include <Geode/modify/EffectGameObject.hpp>
 #include <Geode/modify/LevelEditorLayer.hpp>
+#include <Geode/modify/LevelInfoLayer.hpp>
 #include "speedhackAudio.hpp"
 #include "labels.hpp"
 #include "replayEngine.hpp"
@@ -146,6 +147,7 @@ class $modify(PlayLayer) {
     struct Fields {
         cocos2d::CCLabelBMFont* labels;
         cocos2d::CCSprite* tint_death_bg;
+        GameObject* anticheat_obj = nullptr;
 
         ~Fields() {
             startPositions.clear();
@@ -305,7 +307,22 @@ class $modify(PlayLayer) {
     }
 
     void destroyPlayer(PlayerObject* player, GameObject* obj) {
-        PlayLayer::destroyPlayer(player, obj);
+        if (!m_fields->anticheat_obj)
+            m_fields->anticheat_obj = obj;
+
+        
+        if (obj == m_fields->anticheat_obj)
+            PlayLayer::destroyPlayer(player, obj);
+
+        bool shouldDestroy = hacks::nolcip_enabled ? 
+            ((player == m_player1 && !hacks::noclip_p1) || 
+            (player == m_player2 && !hacks::noclip_p2)) 
+            : true;
+
+        if (shouldDestroy) {
+            PlayLayer::destroyPlayer(player, obj);
+        }
+
         noclip_accuracy.handle_death();
 
         if (hacks::respawn_time_enabled) {
@@ -491,5 +508,17 @@ class $modify(LevelEditorLayer) {
         LevelEditorLayer::onPlaytest();
         playerTrail1.clear();
         playerTrail2.clear();
+    }
+};
+
+class $modify(LevelInfoLayer) {
+    bool init(GJGameLevel* p0, bool p1) {
+        if (!LevelInfoLayer::init(p0, p1))
+            return false;
+
+        if (hacks::auto_song_download && m_songWidget->m_downloadBtn->isVisible())
+            m_songWidget->m_downloadBtn->activate();
+
+        return true;
     }
 };

@@ -41,6 +41,12 @@ namespace hacks {
     extern std::vector<window> windows;
     void init();
 
+    extern bool nolcip_enabled;
+    extern bool noclip_p1;
+    extern bool noclip_p2;
+
+    extern bool auto_song_download;
+
     extern bool auto_pickup_coins;
     extern bool unlock_items;
     extern bool ignore_esc;

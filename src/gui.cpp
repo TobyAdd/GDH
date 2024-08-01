@@ -281,6 +281,8 @@ void gui::RenderMain() {
                 if (!keybind_mode) {
                     if (ImGui::Checkbox(hck.name.c_str(), &hck.enabled, gui::scale)) {
                         if (hck.name == "Unlock Items") { hacks::unlock_items = hck.enabled; }
+                        else if (hck.name == "Noclip") { hacks::nolcip_enabled = hck.enabled; }
+                        else if (hck.name == "Auto Sond Download") { hacks::auto_song_download = hck.enabled; }
                         else if (hck.name == "Ignore ESC") { hacks::ignore_esc = hck.enabled; }
                         else if (hck.name == "Startpos Switcher") { hacks::startpos_switcher = hck.enabled; }
                         else if (hck.name == "Reset Camera") { hacks::startpos_switcher_reset_camera = hck.enabled; }
@@ -425,6 +427,10 @@ void gui::RenderMain() {
                     }
 
                     if (ImGui::BeginPopupModal("Noclip Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+                        ImGui::Checkbox("Player 1", &hacks::noclip_p1, gui::scale);
+                        ImGui::SameLine();
+                        ImGui::Checkbox("Player 2", &hacks::noclip_p2, gui::scale);
+
                         ImGui::Checkbox("Tint on death", &hacks::tint_on_death, gui::scale);
 
                         if (ImGui::Button("Close", {400 * gui::scale, NULL})) {
@@ -484,6 +490,8 @@ void gui::toggleKeybinds(int key) {
                 hck.enabled = !hck.enabled;
 
                 if (hck.name == "Unlock Items") { hacks::unlock_items = hck.enabled; }
+                else if (hck.name == "Noclip") { hacks::nolcip_enabled = hck.enabled; }
+                else if (hck.name == "Auto Sond Download") { hacks::auto_song_download = hck.enabled; }
                 else if (hck.name == "Ignore ESC") { hacks::ignore_esc = hck.enabled; }
                 else if (hck.name == "Startpos Switcher") { hacks::startpos_switcher = hck.enabled; }
                 else if (hck.name == "Reset Camera") { hacks::startpos_switcher_reset_camera = hck.enabled; }
@@ -595,7 +603,7 @@ namespace imgui_popup {
             ImGui::SetNextWindowSize(ImVec2((ImGui::CalcTextSize(message.caption.c_str()).x + style.WindowPadding.x * 2) * gui::scale, (40.0f * gui::scale)), ImGuiCond_Always);
 
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0, 0});
-            ImGui::Begin(windowName.c_str(), nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs);
+            ImGui::Begin(windowName.c_str(), nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoInputs);
             ImGui::PopStyleVar();
 
             float timeRemaining = message.expiry_time - ImGui::GetTime();
@@ -604,7 +612,7 @@ namespace imgui_popup {
 
             std::string popupName = "Popup##" + std::to_string(reinterpret_cast<std::uintptr_t>(&message));
 
-            ImGui::BeginChild(popupName.c_str(), {0, 0}, ImGuiChildFlags_Border, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoInputs);       
+            ImGui::BeginChild(popupName.c_str(), {0, 0}, ImGuiChildFlags_Border, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoInputs);       
             ImGui::Text("%s", message.caption.c_str());
             ImGui::EndChild();
             

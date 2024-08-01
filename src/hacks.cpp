@@ -4,6 +4,12 @@
 #include "labels.hpp"
 #include "replayEngine.hpp"
 
+bool hacks::auto_song_download = false;
+
+bool hacks::nolcip_enabled = false;
+bool hacks::noclip_p1 = true;
+bool hacks::noclip_p2 = true;
+
 bool hacks::unlock_items = false;
 bool hacks::ignore_esc = false;
 bool hacks::startpos_switcher = false;
@@ -58,11 +64,7 @@ std::vector<window> hacks::windows = {
                     {"ff 15 ? ? ? ? 48 8b 8c 24 ? ? ? ? 48 33 cc e8 ? ? ? ? 48 81 c4", "90 90 90 90 90 90", "libcocos2d.dll"}
                 }
             },
-            {"Noclip", "The player will be invincible to obstacles",
-                {
-                    {"0f 85 ? ? ? ? 80 b9 ? ? ? ? ? 0f 85 ? ? ? ? 4d 85 c0", "90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90"}
-                }
-            },
+            {"Noclip", "The player will be invincible to obstacles"},
             {"Unlock Items", "The following elements will be unlocked:\n- Icons + Colors\n- Practice Music Sync\n- Music Unlocker"},
             {"No Respawn Blink", "Upon respawning, the cube will not produce an unpleasant flicker",
                 {
@@ -146,6 +148,7 @@ std::vector<window> hacks::windows = {
     {"Player", 220, 10, 210, 500, 
         {
             {"Auto Pickup Coins", "Collects all coins in the level"},   
+            {"Auto Sond Download", "Automatic downloading of song when you enter an online level"},   
             {"Allow Low Volume", "Removes the limit on minimum volume percentage",
                 {
                     {"76 ? 0f 57 f6 48 8b 05 ? ? ? ? 48 85 c0 75 ? b9 ? ? ? ? e8 ? ? ? ? 48 89 44 24 ? 48 8b c8 e8 ? ? ? ? 90 48 89 05 ? ? ? ? 48 8b 10 48 8b c8 ff 52 ? 48 8b 05 ? ? ? ? f3 44 0f 10 80", "EB"},
@@ -387,6 +390,8 @@ void hacks::init() {
         for (auto& hck : win.hacks) {
             if (hck.enabled) {
                 if (hck.name == "Unlock Items") { hacks::unlock_items = hck.enabled; }
+                else if (hck.name == "Noclip") { hacks::nolcip_enabled = hck.enabled; }
+                else if (hck.name == "Auto Sond Download") { hacks::auto_song_download = hck.enabled; }
                 else if (hck.name == "Ignore ESC") { hacks::ignore_esc = hck.enabled; }
                 else if (hck.name == "Startpos Switcher") { hacks::startpos_switcher = hck.enabled; }
                 else if (hck.name == "Reset Camera") { hacks::startpos_switcher_reset_camera = hck.enabled; }
@@ -458,6 +463,8 @@ void hacks::save(const std::vector<window>& windows, const std::filesystem::path
     j["speed"] = hacks::speed_value;
     j["speedhack_audio"] = hacks::speedhack_audio;
 
+    j["noclip_p1"] = hacks::noclip_p1;
+    j["noclip_p2"] = hacks::noclip_p2;
 
     j["rgb_icons_enabled"] = hacks::rgb_icons;
     j["icon_coef"] = hacks::ricon_coef;
@@ -564,6 +571,9 @@ void hacks::load(const std::filesystem::path &filename, std::vector<window>& win
     }
 
     hacks::speedhack_audio = j.value("speedhack_audio", true);
+
+    hacks::noclip_p1 = j.value("noclip_p1", true);
+    hacks::noclip_p2 = j.value("noclip_p2", true);
 
     hacks::rgb_icons = j.value("rgb_icons_enabled", true);
     hacks::ricon_coef = j.value("icon_coef", 0.25f);
