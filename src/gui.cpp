@@ -591,7 +591,7 @@ namespace imgui_popup {
 
             ImGuiStyle& style = ImGui::GetStyle();
 
-            ImGui::SetNextWindowPos(ImVec2(displaySize.x - ((ImGui::CalcTextSize(message.caption.c_str()).x + + style.WindowPadding.x * 2) * gui::scale) - 10.0f, currentY), ImGuiCond_Always);
+            ImGui::SetNextWindowPos(ImVec2(displaySize.x - ((ImGui::CalcTextSize(message.caption.c_str()).x + style.WindowPadding.x * 2) * gui::scale) - 10.0f, currentY), ImGuiCond_Always);
             ImGui::SetNextWindowSize(ImVec2((ImGui::CalcTextSize(message.caption.c_str()).x + style.WindowPadding.x * 2) * gui::scale, (40.0f * gui::scale)), ImGuiCond_Always);
 
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0, 0});
