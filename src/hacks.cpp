@@ -36,6 +36,8 @@ bool hacks::speedhack_audio = true;
 bool hacks::respawn_time_enabled = false;
 float hacks::respawn_time_value = 1.f;
 
+bool hacks::jump_hack = false;
+
 bool hacks::show_hitboxes = false;
 bool hacks::draw_trail = false;
 int hacks::trail_length = 240;
@@ -179,6 +181,7 @@ std::vector<window> hacks::windows = {
             {"Practice Mode", "Enter practice mode"},
             {"Ignore ESC", "Prevents exiting the level"},
             {"Instant Complete", "Instant level completion"},
+            {"Jump Hack", "Кemoves the barrier to jump gravity"},
             {"Startpos Switcher", "The ability to switch between starting positions using the left/right arrow keys"},
             {"Reset Camera", "When switching between starting positions, the camera may move, so this feature fixes that unpleasant switch"},
             {"RGB Icons", "LGBT icons, yes :3"},
@@ -392,6 +395,7 @@ void hacks::init() {
                 if (hck.name == "Unlock Items") { hacks::unlock_items = hck.enabled; }
                 else if (hck.name == "Noclip") { hacks::nolcip_enabled = hck.enabled; }
                 else if (hck.name == "Auto Sond Download") { hacks::auto_song_download = hck.enabled; }
+                else if (hck.name == "Jump Hack") { hacks::jump_hack = hck.enabled; }
                 else if (hck.name == "Ignore ESC") { hacks::ignore_esc = hck.enabled; }
                 else if (hck.name == "Startpos Switcher") { hacks::startpos_switcher = hck.enabled; }
                 else if (hck.name == "Reset Camera") { hacks::startpos_switcher_reset_camera = hck.enabled; }

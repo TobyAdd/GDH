@@ -205,9 +205,9 @@ void ReplayEngine::render() {
 
         ImGui::Checkbox("Real Time", &engine.real_time, gui::scale);
 
-        //ImGui::SameLine();
+        ImGui::SameLine();
 
-        //ImGui::Checkbox("Ignore Inputs", &engine.ignore_inputs, gui::scale);
+        ImGui::Checkbox("Frame Advance", &engine.frame_advance, gui::scale);
 
         ImGui::Checkbox("Accuracy Fix", &engine.accuracy_fix, gui::scale);
 

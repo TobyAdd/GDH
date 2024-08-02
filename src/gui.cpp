@@ -283,6 +283,7 @@ void gui::RenderMain() {
                         if (hck.name == "Unlock Items") { hacks::unlock_items = hck.enabled; }
                         else if (hck.name == "Noclip") { hacks::nolcip_enabled = hck.enabled; }
                         else if (hck.name == "Auto Sond Download") { hacks::auto_song_download = hck.enabled; }
+                        else if (hck.name == "Jump Hack") { hacks::jump_hack = hck.enabled; }
                         else if (hck.name == "Ignore ESC") { hacks::ignore_esc = hck.enabled; }
                         else if (hck.name == "Startpos Switcher") { hacks::startpos_switcher = hck.enabled; }
                         else if (hck.name == "Reset Camera") { hacks::startpos_switcher_reset_camera = hck.enabled; }
@@ -492,6 +493,7 @@ void gui::toggleKeybinds(int key) {
                 if (hck.name == "Unlock Items") { hacks::unlock_items = hck.enabled; }
                 else if (hck.name == "Noclip") { hacks::nolcip_enabled = hck.enabled; }
                 else if (hck.name == "Auto Sond Download") { hacks::auto_song_download = hck.enabled; }
+                else if (hck.name == "Jump Hack") { hacks::jump_hack = hck.enabled; }
                 else if (hck.name == "Ignore ESC") { hacks::ignore_esc = hck.enabled; }
                 else if (hck.name == "Startpos Switcher") { hacks::startpos_switcher = hck.enabled; }
                 else if (hck.name == "Reset Camera") { hacks::startpos_switcher_reset_camera = hck.enabled; }

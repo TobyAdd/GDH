@@ -366,6 +366,9 @@ class $modify(GJBaseGameLayer) {
     void update(float dt) {
         GJBaseGameLayer::update(dt);
 
+        if (hacks::jump_hack)
+            m_player1->m_isOnGround = true;
+
         if (engine.mode == state::record) {
             engine.handle_recording(this, true);
             engine.handle_recording(this, false);

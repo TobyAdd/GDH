@@ -72,6 +72,8 @@ namespace hacks {
 
     extern bool respawn_time_enabled;
     extern float respawn_time_value;
+    
+    extern bool jump_hack;
 
     extern bool show_hitboxes;
     extern bool draw_trail;
