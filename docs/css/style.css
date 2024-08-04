@@ -55,15 +55,6 @@ body {
     list-style: none;
 }
 
-.links-other {
-    display: none;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 16px 16px;
-    list-style: none;
-    margin-bottom: 16px;
-}
-
 .links a {
     text-decoration: none;
     padding: 8px 16px;
@@ -71,27 +62,6 @@ body {
     background-color: var(--bg-accent);
     border-radius: 32px;
     font-size: 24px;
-}
-
-.links-other a {
-    text-decoration: none;
-}
-
-.links-other li {
-    color: var(--foreground);
-    background-color: var(--bg-accent);
-    border-radius: 32px;
-    font-size: 24px;
-    padding: 8px 16px;
-    cursor: pointer;
-}
-
-.links-other li:hover {
-    background-color: var(--foreground);
-}
-
-.links-other li:hover a {
-    color: var(--background);
 }
 
 .links a:hover {
@@ -277,10 +247,6 @@ body {
 @media (max-width: 1210px) {
     .menu-link {
         display: none;
-    }
-
-    .links-other {
-        display: flex;
     }
 }
 
