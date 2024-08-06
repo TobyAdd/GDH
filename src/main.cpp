@@ -21,7 +21,7 @@ $execute {
     ImGuiCocos::get().setForceLegacy(true);
     CheckDir(hacks::folderMacroPath);
     hacks::load(hacks::fileDataPath, hacks::windows);
-    hacks::update_framerate();
+    hacks::update_framerate(hacks::tps_enabled ? hacks::tps_value : 240.f);
     hacks::init();
 }
 
@@ -44,6 +44,12 @@ class $modify(MenuLayer) {
                 io.Fonts->AddFontFromMemoryCompressedTTF(roboto_font_data, roboto_font_size, 32.f * gui::scale, nullptr, io.Fonts->GetGlyphRangesCyrillic());
                 io.Fonts->AddFontFromMemoryCompressedTTF(roboto_font_data, roboto_font_size, 20.f * gui::scale, nullptr, io.Fonts->GetGlyphRangesCyrillic());
                 io.Fonts->Build();
+
+                if (!gui::license_accepted) {
+                    imgui_popup::add_popup(gui::broken_save 
+                        ? "Looks like the save file was corrupted! GDH settings were reset to prevent a crash"
+                        : "GDH installed. Press Tab to open the GUI");
+                }
             }).draw([] {
                 gui::RenderMain();
             });

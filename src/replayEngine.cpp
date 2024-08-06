@@ -3,6 +3,8 @@
 #include "gui.hpp"
 
 ReplayEngine engine;
+SpamBot spamBot;
+StraightFly straightFly;
 
 unsigned ReplayEngine::get_frame() {
     auto pl = GameManager::sharedState()->getPlayLayer();
@@ -122,7 +124,12 @@ std::string ReplayEngine::load(std::string name)
 
     file.read(reinterpret_cast<char *>(&hacks::tps_value), sizeof(hacks::tps_value));
 
-    hacks::update_framerate();
+    if (!hacks::tps_enabled) {
+        hacks::tps_enabled = true;
+        imgui_popup::add_popup("TPS Bypass enabled");
+    }
+
+    hacks::update_framerate(hacks::tps_value);
 
     unsigned replay_size = 0;
     unsigned replay2_size = 0;
@@ -189,19 +196,24 @@ void ReplayEngine::openReplayMultishit() {
 }
 
 void ReplayEngine::render() {
+    static geode::Mod* cbfMod = geode::Loader::get()->getLoadedMod("syzzi.click_between_frames");
+    static bool hasCBF = cbfMod != nullptr && cbfMod->isEnabled();
+
+    if (hasCBF && !cbfMod->getSettingValue<bool>("soft-toggle")) {
+        ImGui::PushStyleColor(ImGuiCol_Text, ImColor(255, 128, 128).Value);
+        ImGui::TextWrapped("Click Between Frames mod is enabled, turn it off to use Replay Engine");
+        ImGui::PopStyleColor();
+        return;
+    }
+
     if (ImGui::BeginPopupModal("Select Replay", 0, ImGuiWindowFlags_NoResize)) {
         openReplayMultishit();
         ImGui::EndPopup();
     }
 
     if (ImGui::BeginPopupModal("Replay Engine Settings", 0, ImGuiWindowFlags_NoResize)) {
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (ImGui::DragFloat("##tps_value", &hacks::tps_value, 1, 1, FLT_MAX, "%0.f TPS")) {
-            hacks::update_framerate();
-        }
-
-        if (ImGui::IsItemHovered()) 
-            ImGui::SetTooltip("Recommend setting the recording to 240 TPS to ensure stability in both recording and playback of the macro");
+        ImGui::Text("Settings:");
+        ImGui::Separator();
 
         ImGui::Checkbox("Real Time", &engine.real_time, gui::scale);
 
@@ -214,6 +226,45 @@ void ReplayEngine::render() {
         ImGui::SameLine();
 
         ImGui::Checkbox("Rotation Fix", &engine.rotation_fix, gui::scale);
+        
+        ImGui::Spacing();        
+        ImGui::Text("Spambot");
+        ImGui::Separator();
+
+        if (ImGui::Checkbox("Enable##Spambot", &spamBot.enabled))
+        {
+            spamBot.reset_temp();
+        }
+
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x / 2);
+        ImGui::DragInt("##spamhold", &spamBot.hold, 1, 1, INT_MAX, "Hold: %i");
+
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        ImGui::DragInt("##spamrelease", &spamBot.release, 1, 1, INT_MAX, "Release: %i");
+
+        ImGui::Checkbox("Player 1", &spamBot.player_p1);
+        ImGui::SameLine();
+        ImGui::Checkbox("Player 2", &spamBot.player_p2);
+
+        ImGui::Spacing();
+        ImGui::Text("Straight Fly Bot");
+        ImGui::Separator();
+
+        if (ImGui::Checkbox("Enable##Straight Fly Bot", &straightFly.enabled))
+        {
+            auto gjbgl = GJBaseGameLayer::get();
+            straightFly.start(gjbgl);
+        }
+
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        ImGui::DragInt("##StraightFlyAcc", &straightFly.accuracy, 1, 0, 100, "Y Accuracy: %i");
+        ImGui::Text("Note: Straight Fly Bot works only on first player");
+
+        ImGui::Separator();
+        
 
         if (ImGui::Button("Close", {ImGui::GetContentRegionAvail().x, NULL})) {
             ImGui::CloseCurrentPopup();
@@ -230,23 +281,35 @@ void ReplayEngine::render() {
 
     if (ImGui::RadioButton("Record", &mode_, 1, gui::scale))
     {
-        if (engine.frame_advance)
-            imgui_popup::add_popup("Frame Advance enabled (that's so you don't say the level was freezing)");
+        if (hacks::tps_enabled) {
+            if (engine.frame_advance)
+                imgui_popup::add_popup("Frame Advance enabled (that's so you don't say the level was freezing)");
 
-        if (mode != state::record) {
-            replay.clear();
-            replay2.clear();
+            if (mode != state::record) {
+                replay.clear();
+                replay2.clear();
+            }
+            mode = state::record;
         }
-        mode = state::record;
+        else {
+            mode = state::disable;
+            imgui_popup::add_popup("Enable TPS Bypass to record the replay");
+        }
     }
     
     ImGui::SameLine();
 
     if (ImGui::RadioButton("Play", &mode_, 2, gui::scale)) {
-        if (engine.frame_advance)
-            imgui_popup::add_popup("Frame Advance enabled (that's so you don't say the level was freezing)");
+        if (hacks::tps_enabled) {
+            if (engine.frame_advance)
+                imgui_popup::add_popup("Frame Advance enabled (that's so you don't say the level was freezing)");
 
-        mode = state::play;
+            mode = state::play;
+        }
+        else {
+            mode = state::disable;
+            imgui_popup::add_popup("Enable TPS Bypass to playback the replay");
+        }
     }  
 
     ImGui::Separator();   
@@ -286,4 +349,77 @@ void ReplayEngine::render() {
         ImGui::OpenPopup("Replay Engine Settings");
     }
     ImGui::PopStyleColor();
+}
+
+bool SpamBot::next_frame()
+{
+    if ((downed && ++release_current >= release) || (!downed && ++hold_current >= hold))
+    {
+        downed = !downed;
+        (downed) ? release_current = 0 : hold_current = 0;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+void SpamBot::handle_spambot(GJBaseGameLayer *self)
+{
+    if (enabled && next_frame())
+    {
+        bool action = downed;
+        if (player_p1)
+        {
+            self->handleButton(action, 1, true);
+        }
+        if (player_p2)
+        {
+            self->handleButton(action, 1, false);
+        }
+    }
+}
+
+
+void SpamBot::reset_temp()
+{
+    hold_current = 0;
+    release_current = 0;
+}
+
+void StraightFly::handle_straightfly(GJBaseGameLayer *self)
+{
+    if (!enabled)
+        return;
+
+    float y = self->m_player1->m_position.y;
+    double accel = self->m_player1->m_yVelocity;
+    bool holding = self->m_player1->m_jumpBuffered;
+
+    if (start_y == 0)
+    {
+        start(self);
+    }
+
+    if (self->m_player1->m_isUpsideDown)
+    {
+        float delta_y = y - start_y;
+        y = start_y - delta_y;
+        accel *= -1;
+    }
+
+    if (accel < 0 && y < start_y - accel - accuracy / 100 && !holding)
+    {
+        self->handleButton(true, 1, true);
+    }
+    else if (accel > 0 && y > start_y - accel + accuracy / 100 && holding)
+    {
+        self->handleButton(false, 1, true);
+    }
+}
+
+void StraightFly::start(GJBaseGameLayer *self)
+{
+    start_y = self ? self->m_player1->m_position.y : 0.0f;
 }

@@ -63,3 +63,38 @@ public:
 };
 
 extern ReplayEngine engine;
+
+class SpamBot
+{
+public:
+    bool enabled = false;
+    int hold = 5;
+    int release = 5;
+    int hold_current = 0;
+    int release_current = 0;
+    bool player_p1 = true;
+    bool player_p2 = false;
+
+    bool downed = false;
+
+    bool next_frame();
+    void handle_spambot(GJBaseGameLayer *self);
+    void reset_temp();
+};
+
+extern SpamBot spamBot;
+
+class StraightFly
+{
+public:
+    bool enabled = false;
+    int accuracy = 40;
+
+    void handle_straightfly(GJBaseGameLayer *self);
+    void start(GJBaseGameLayer *self);
+
+private:
+    float start_y = 0.0f;
+};
+
+extern StraightFly straightFly;

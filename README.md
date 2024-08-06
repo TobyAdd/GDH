@@ -4,7 +4,7 @@
 
 # GDH
 
-GDH is an open-source Geometry Dash mod that aims to improve the game's performance and add new features
+GDH is an open-source Geometry Dash mod menu that aims to improve the game's performance and add new features
 
 Это README также [доступно на русском языке](README.ru.md)
 

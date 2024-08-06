@@ -26,6 +26,7 @@ float hacks::ricon_delta = 0;
 bool hacks::hide_menu = false;
 bool hacks::auto_pickup_coins = false;
 
+bool hacks::tps_enabled = false;
 float hacks::tps_value = 240.f;
 
 int hacks::speed_key = 0;
@@ -55,6 +56,8 @@ int hacks::seed_value = 1337;
 
 int hacks::frame_advance_key = GLFW_KEY_C;
 int hacks::frame_advance_disable_key = GLFW_KEY_V;
+
+bool hacks::reset_maket = false;
 
 std::vector<window> hacks::windows = {
     {"Core", 10, 10, 200, 200, 
@@ -150,7 +153,7 @@ std::vector<window> hacks::windows = {
     {"Player", 220, 10, 210, 500, 
         {
             {"Auto Pickup Coins", "Collects all coins in the level"},   
-            {"Auto Sond Download", "Automatic downloading of song when you enter an online level"},   
+            {"Auto Song Download", "Automatic downloading of song when you enter an online level"},   
             {"Allow Low Volume", "Removes the limit on minimum volume percentage",
                 {
                     {"76 ? 0f 57 f6 48 8b 05 ? ? ? ? 48 85 c0 75 ? b9 ? ? ? ? e8 ? ? ? ? 48 89 44 24 ? 48 8b c8 e8 ? ? ? ? 90 48 89 05 ? ? ? ? 48 8b 10 48 8b c8 ff 52 ? 48 8b 05 ? ? ? ? f3 44 0f 10 80", "EB"},
@@ -354,8 +357,8 @@ std::vector<window> hacks::windows = {
             }
         }
     },
-    {"Framerate", 440, 270, 210, 100},
-    {"GDH Settings", 440, 380, 210, 130},
+    {"Framerate", 440, 270, 210, 130},
+    {"GDH Settings", 440, 410, 210, 130},
     {"Replay Engine", 660, 10, 300, 200},
     {"Labels", 660, 220, 300, 230}
 };
@@ -394,7 +397,7 @@ void hacks::init() {
             if (hck.enabled) {
                 if (hck.name == "Unlock Items") { hacks::unlock_items = hck.enabled; }
                 else if (hck.name == "Noclip") { hacks::nolcip_enabled = hck.enabled; }
-                else if (hck.name == "Auto Sond Download") { hacks::auto_song_download = hck.enabled; }
+                else if (hck.name == "Auto Song Download") { hacks::auto_song_download = hck.enabled; }
                 else if (hck.name == "Jump Hack") { hacks::jump_hack = hck.enabled; }
                 else if (hck.name == "Ignore ESC") { hacks::ignore_esc = hck.enabled; }
                 else if (hck.name == "Startpos Switcher") { hacks::startpos_switcher = hck.enabled; }
@@ -461,6 +464,7 @@ void hacks::save(const std::vector<window>& windows, const std::filesystem::path
         j["Windows"].push_back(windowJson);
     }
 
+    j["tps_enabled"] = hacks::tps_enabled;
     j["tps_value"] = hacks::tps_value;
 
     j["speed_enabled"] = hacks::speed_enabled;
@@ -512,6 +516,8 @@ void hacks::save(const std::vector<window>& windows, const std::filesystem::path
     j["frame_advance_key"] = hacks::frame_advance_key;
     j["frame_advance_disable_key"] = hacks::frame_advance_disable_key;
 
+    j["version"] = geode::Mod::get()->getVersion().toVString();
+
 
     std::ofstream file(filename);
     file << j.dump(4);
@@ -536,13 +542,21 @@ void hacks::load(const std::filesystem::path &filename, std::vector<window>& win
         return;
     }
 
+    std::string version = j.value("version", "no ver");
+    if (version != geode::Mod::get()->getVersion().toVString()) {
+        hacks::reset_maket = true;
+    }
+
     for (auto& win : windows) {
         for (const auto& windowData : j["Windows"]) {
             if (win.name == windowData["name"].get<std::string>()) {
-                win.x = windowData["x"];
-                win.y = windowData["y"];
-                win.w = windowData["w"];
-                win.h = windowData["h"];
+
+                if (!hacks::reset_maket) {
+                    win.x = windowData["x"];
+                    win.y = windowData["y"];
+                    win.w = windowData["w"];
+                    win.h = windowData["h"];
+                }
 
                 for (const auto& hackName : windowData["hacks"]) {
                     for (auto& hck : win.hacks) {
@@ -566,6 +580,7 @@ void hacks::load(const std::filesystem::path &filename, std::vector<window>& win
         }
     }
 
+    hacks::tps_enabled = j.value("tps_enabled", false);
     hacks::tps_value = j.value("tps_value", 240.f);
 
     hacks::speed_enabled = j.value("speed_enabled", false);
@@ -628,7 +643,7 @@ void hacks::load(const std::filesystem::path &filename, std::vector<window>& win
 }
 
 uintptr_t framerate_address = 0;
-void hacks::update_framerate() {
+void hacks::update_framerate(float value) {
     if (framerate_address == 0) {
         MODULEINFO moduleInfo;
         if (GetModuleInformation(GetCurrentProcess(), (HMODULE)geode::base::get(), &moduleInfo, sizeof(MODULEINFO))) {
@@ -636,7 +651,7 @@ void hacks::update_framerate() {
         }  
     }
     if (framerate_address != 0) {
-        memory::WriteFloat(framerate_address, 1.f / hacks::tps_value);
+        memory::WriteFloat(framerate_address, 1.f / value);
     }        
 }
 

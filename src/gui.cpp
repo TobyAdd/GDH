@@ -176,6 +176,20 @@ void gui::RenderMain() {
 
         if (windowName == "Framerate") {
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - (35 + 5) * gui::scale);
+            if (ImGui::DragFloat("##tps_value", &hacks::tps_value, 1, 1, FLT_MAX, "%0.f TPS")) {
+                hacks::update_framerate(hacks::tps_enabled ? hacks::tps_value : 240.f);
+            }
+
+            
+            if (ImGui::IsItemHovered()) 
+                ImGui::SetTooltip("NOT RECOMMENDED FOR NORMAL USE\nTHIS FEATURE IS PURELY MADE FOR REPLAY ENGINE TO BYPASS PHYSICS AND\nMAKE FIXED FRAME UPDATES (IT RUINS THE PERFORMANCE BUT IT MAKES THE MACRO MORE ACCURATE)\n\nRecommend setting the recording to 240 TPS to ensure stability in both recording and playback of the macro");
+
+            ImGui::SameLine();
+            if (ImGui::Checkbox("##tps_enabled", &hacks::tps_enabled, gui::scale)) {
+                hacks::update_framerate(hacks::tps_enabled ? hacks::tps_value : 240.f);
+            }
+
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - (35 + 5) * gui::scale);
             ImGui::DragFloat("##speedhack_value", &hacks::speed_value, 0.01f, 0, FLT_MAX, "Speed: %.2fx");
 
             ImGui::SameLine();
@@ -282,7 +296,7 @@ void gui::RenderMain() {
                     if (ImGui::Checkbox(hck.name.c_str(), &hck.enabled, gui::scale)) {
                         if (hck.name == "Unlock Items") { hacks::unlock_items = hck.enabled; }
                         else if (hck.name == "Noclip") { hacks::nolcip_enabled = hck.enabled; }
-                        else if (hck.name == "Auto Sond Download") { hacks::auto_song_download = hck.enabled; }
+                        else if (hck.name == "Auto Song Download") { hacks::auto_song_download = hck.enabled; }
                         else if (hck.name == "Jump Hack") { hacks::jump_hack = hck.enabled; }
                         else if (hck.name == "Ignore ESC") { hacks::ignore_esc = hck.enabled; }
                         else if (hck.name == "Startpos Switcher") { hacks::startpos_switcher = hck.enabled; }
@@ -492,7 +506,7 @@ void gui::toggleKeybinds(int key) {
 
                 if (hck.name == "Unlock Items") { hacks::unlock_items = hck.enabled; }
                 else if (hck.name == "Noclip") { hacks::nolcip_enabled = hck.enabled; }
-                else if (hck.name == "Auto Sond Download") { hacks::auto_song_download = hck.enabled; }
+                else if (hck.name == "Auto Song Download") { hacks::auto_song_download = hck.enabled; }
                 else if (hck.name == "Jump Hack") { hacks::jump_hack = hck.enabled; }
                 else if (hck.name == "Ignore ESC") { hacks::ignore_esc = hck.enabled; }
                 else if (hck.name == "Startpos Switcher") { hacks::startpos_switcher = hck.enabled; }
@@ -589,7 +603,7 @@ namespace imgui_popup {
 
     void render() {
         ImVec2 displaySize = ImGui::GetIO().DisplaySize;
-        float currentY = 10.0f;
+        float currentY = displaySize.y - 10.0f;
         float elapsedTime = 0.0f;
 
         for (auto& message : messages) {
@@ -600,9 +614,12 @@ namespace imgui_popup {
             std::string windowName = "PopupWindow##" + std::to_string(reinterpret_cast<std::uintptr_t>(&message));
 
             ImGuiStyle& style = ImGui::GetStyle();
+            float textWidth = ImGui::CalcTextSize(message.caption.c_str()).x;
+            float windowWidth = (textWidth + style.WindowPadding.x * 2) * gui::scale;
+            float windowHeight = (40.0f * gui::scale);
 
-            ImGui::SetNextWindowPos(ImVec2(displaySize.x - ((ImGui::CalcTextSize(message.caption.c_str()).x + style.WindowPadding.x * 2) * gui::scale) - 10.0f, currentY), ImGuiCond_Always);
-            ImGui::SetNextWindowSize(ImVec2((ImGui::CalcTextSize(message.caption.c_str()).x + style.WindowPadding.x * 2) * gui::scale, (40.0f * gui::scale)), ImGuiCond_Always);
+            ImGui::SetNextWindowPos(ImVec2(displaySize.x - windowWidth - 10.0f, currentY - windowHeight), ImGuiCond_Always);
+            ImGui::SetNextWindowSize(ImVec2(windowWidth, windowHeight), ImGuiCond_Always);
 
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0, 0});
             ImGui::Begin(windowName.c_str(), nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoInputs);
@@ -620,7 +637,7 @@ namespace imgui_popup {
             
             ImGui::End();
 
-            currentY += (40.0f * gui::scale) + (10.0f * gui::scale);
+            currentY -= (40.0f * gui::scale) + (10.0f * gui::scale);
         }
 
         messages.erase(std::remove_if(messages.begin(), messages.end(), [](const popup_message& msg) {

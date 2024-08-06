@@ -64,7 +64,7 @@ class $modify(cocos2d::CCScheduler) {
         if (hacks::speed_enabled)
             dt *= hacks::speed_value;
 
-        if (engine.mode == state::disable)    
+        if (!hacks::tps_enabled)    
             return CCScheduler::update(dt);
         
         float newdt = 1.f / hacks::tps_value; 
@@ -376,6 +376,9 @@ class $modify(GJBaseGameLayer) {
         else if (engine.mode == state::play) {
             engine.handle_playing(this);
         }
+
+        spamBot.handle_spambot(this);
+        straightFly.handle_straightfly(this);
     }
 
     void processCommands(float dt) {

@@ -61,6 +61,7 @@ namespace hacks {
     extern float ricon_brightness;
     extern float ricon_delta;
 
+    extern bool tps_enabled;
     extern float tps_value;
 
     extern int speed_key;
@@ -93,7 +94,9 @@ namespace hacks {
     extern int frame_advance_key;
     extern int frame_advance_disable_key;
 
-    void update_framerate();
+    extern bool reset_maket;
+
+    void update_framerate(float value);
 
     void save(const std::vector<window>& windows, const std::filesystem::path &filename);
     void load(const std::filesystem::path &filename, std::vector<window>& windows);
