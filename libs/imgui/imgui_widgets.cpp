@@ -1164,16 +1164,12 @@ bool ImGui::ImageButton(ImTextureID user_texture_id, const ImVec2& size, const I
 //     return pressed;
 // }
 
-const char* RemoveTrailingHashHash(const char* str) {
-    const char* hashHash = strstr(str, "##");
-    if (hashHash) {
-        size_t length = hashHash - str;
-        char* result = new char[length + 1];
-        strncpy(result, str, length);
-        result[length] = '\0';
-        return result;
+std::string removeTrailingHash(std::string_view str) {
+    auto it = str.find("##");
+    if (it != std::string::npos) {
+        return std::string(str.substr(0, it));
     }
-    return str;
+    return std::string(str);
 }
 
 // Custom checkbox
@@ -1186,7 +1182,7 @@ bool ImGui::Checkbox(const char* label, bool* v, float scale)
     float buttonHeight = 22.0f * scale;
     float buttonRadius = buttonHeight * 0.50f; 
 
-    ImGui::InvisibleButton(label, ImVec2(buttonWidth + ImGui::CalcTextSize(RemoveTrailingHashHash(label)).x + 4.f * scale, buttonHeight));    
+    ImGui::InvisibleButton(label, ImVec2(buttonWidth + ImGui::CalcTextSize(removeTrailingHash(label).c_str()).x + 4.f * scale, buttonHeight));    
 
     bool buttonClicked = false;
     if (ImGui::IsItemClicked()) {
@@ -1210,7 +1206,7 @@ bool ImGui::Checkbox(const char* label, bool* v, float scale)
     drawList->AddCircleFilled(ImVec2(circlePositionX, buttonPosition.y + buttonRadius), buttonRadius - 1.5f, circleColor);
 
     const ImVec2 textPosition(buttonPosition.x + buttonWidth + 5.0f, buttonPosition.y + buttonHeight / 2.0f - ImGui::GetTextLineHeight() / 2.0f);
-    drawList->AddText(textPosition, ImGui::GetColorU32(ImGuiCol_Text), RemoveTrailingHashHash(label));
+    drawList->AddText(textPosition, ImGui::GetColorU32(ImGuiCol_Text), removeTrailingHash(label).c_str());
 
     return buttonClicked;
 }
