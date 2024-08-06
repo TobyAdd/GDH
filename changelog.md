@@ -1,9 +1,12 @@
-# v4.6.6
+# v4.6.7
 - More friendly mod description
 - Spambot
 - Straight Fly Bot
 - Popup windows now appear at the bottom right to avoid conflicts with adjacent windows
 - TPS bypass has been moved to the "Framerate" tab (+ fixed problems with bypassing physics when it is off)
+
+# v4.6.6
+- missed
 
 # v4.6.5
 - Fixed keybinds
