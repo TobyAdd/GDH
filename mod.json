@@ -1,0 +1,14 @@
+{
+	"geode": "3.4.0",
+	"gd": {
+		"win": "2.206",
+		"android": "2.206",
+		"mac": "2.206",
+		"ios": "2.206"
+	},
+	"id": "tobyadd.gdh_mobile",
+	"name": "GDH Mobile",
+	"version": "v1.0.0",
+	"developer": "TobyAdd",
+	"description": "sex"
+}
