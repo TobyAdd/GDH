@@ -181,7 +181,7 @@ void gui::RenderMain() {
             }
 
             
-            if (ImGui::IsItemHovered()) 
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
                 ImGui::SetTooltip("NOT RECOMMENDED FOR NORMAL USE\nTHIS FEATURE IS PURELY MADE FOR REPLAY ENGINE TO BYPASS PHYSICS AND\nMAKE FIXED FRAME UPDATES (IT RUINS THE PERFORMANCE BUT IT MAKES THE MACRO MORE ACCURATE)\n\nRecommend setting the recording to 240 TPS to ensure stability in both recording and playback of the macro");
 
             ImGui::SameLine();
@@ -299,6 +299,7 @@ void gui::RenderMain() {
                         else if (hck.name == "Auto Song Download") { hacks::auto_song_download = hck.enabled; }
                         else if (hck.name == "Jump Hack") { hacks::jump_hack = hck.enabled; }
                         else if (hck.name == "Ignore ESC") { hacks::ignore_esc = hck.enabled; }
+                        else if (hck.name == "Smart Startpos") { startpos_switcher::smart_startpos = hck.enabled; }
                         else if (hck.name == "Startpos Switcher") { hacks::startpos_switcher = hck.enabled; }
                         else if (hck.name == "Reset Camera") { hacks::startpos_switcher_reset_camera = hck.enabled; }
                         else if (hck.name == "Instant Complete") { hacks::instant_complate = hck.enabled; }
@@ -363,7 +364,7 @@ void gui::RenderMain() {
 
                 ImGui::PopStyleColor();
 
-                if (ImGui::IsItemHovered() && !hck.desc.empty())
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal) && !hck.desc.empty())
                     ImGui::SetTooltip("%s", hck.desc.c_str());
                 
                 if (hck.name == "RGB Icons") {
@@ -411,7 +412,7 @@ void gui::RenderMain() {
                     if (ImGui::BeginPopupModal("Hitboxes Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
                         ImGui::Checkbox("Draw Trail", &hacks::draw_trail, gui::scale);
                         ImGui::DragInt("##trail_length", &hacks::trail_length, 1, 0, INT_MAX, "Trail Length: %i");
-                        //ImGui::Checkbox("Show Hitboxes on Death", &hacks::show_hitboxes_on_death);
+                        ImGui::Checkbox("Show Hitboxes on Death", &hacks::show_hitboxes_on_death);
                         if (ImGui::Button("Close", {ImGui::GetContentRegionAvail().x, NULL})) {
                             ImGui::CloseCurrentPopup();
                         }
@@ -510,6 +511,7 @@ void gui::toggleKeybinds(int key) {
                 else if (hck.name == "Jump Hack") { hacks::jump_hack = hck.enabled; }
                 else if (hck.name == "Ignore ESC") { hacks::ignore_esc = hck.enabled; }
                 else if (hck.name == "Startpos Switcher") { hacks::startpos_switcher = hck.enabled; }
+                else if (hck.name == "Smart Startpos") { startpos_switcher::smart_startpos = hck.enabled; }
                 else if (hck.name == "Reset Camera") { hacks::startpos_switcher_reset_camera = hck.enabled; }
                 else if (hck.name == "Instant Complete") { hacks::instant_complate = hck.enabled; }
                 else if (hck.name == "RGB Icons") { hacks::rgb_icons = hck.enabled; }

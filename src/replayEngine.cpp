@@ -1,6 +1,7 @@
 #include "replayEngine.hpp"
 #include "hacks.hpp"
 #include "gui.hpp"
+#include "recorder.hpp"
 
 ReplayEngine engine;
 SpamBot spamBot;
@@ -9,7 +10,7 @@ StraightFly straightFly;
 unsigned ReplayEngine::get_frame() {
     auto pl = GameManager::sharedState()->getPlayLayer();
     if (pl)
-        return static_cast<unsigned>(from<double>(pl, 0x3C8) * hacks::tps_value);
+        return static_cast<unsigned>(pl->m_gameState.m_levelTime * hacks::tps_value);
     return 0;
 } 
 
@@ -211,60 +212,277 @@ void ReplayEngine::render() {
         ImGui::EndPopup();
     }
 
-    if (ImGui::BeginPopupModal("Replay Engine Settings", 0, ImGuiWindowFlags_NoResize)) {
-        ImGui::Text("Settings:");
-        ImGui::Separator();
+    if (ImGui::BeginPopupModal("Replay Engine Settings", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize)) {
+        if (ImGui::BeginTabBar("Replay Engine Settings Tabs")) {
+            if (ImGui::BeginTabItem("Settings")) {
+                ImGui::Checkbox("Real Time", &engine.real_time, gui::scale);
 
-        ImGui::Checkbox("Real Time", &engine.real_time, gui::scale);
+                ImGui::SameLine();
 
-        ImGui::SameLine();
+                ImGui::Checkbox("Frame Advance", &engine.frame_advance, gui::scale);
 
-        ImGui::Checkbox("Frame Advance", &engine.frame_advance, gui::scale);
+                ImGui::Checkbox("Accuracy Fix", &engine.accuracy_fix, gui::scale);
 
-        ImGui::Checkbox("Accuracy Fix", &engine.accuracy_fix, gui::scale);
+                ImGui::SameLine();
 
-        ImGui::SameLine();
+                ImGui::Checkbox("Rotation Fix", &engine.rotation_fix, gui::scale);
 
-        ImGui::Checkbox("Rotation Fix", &engine.rotation_fix, gui::scale);
-        
-        ImGui::Spacing();        
-        ImGui::Text("Spambot");
-        ImGui::Separator();
+                ImGui::EndTabItem();
+            }
 
-        if (ImGui::Checkbox("Enable##Spambot", &spamBot.enabled))
-        {
-            spamBot.reset_temp();
+            if (ImGui::BeginTabItem("Spambot")) {
+                if (ImGui::Checkbox("Enable##Spambot", &spamBot.enabled))
+                {
+                    spamBot.reset_temp();
+                }
+
+                ImGui::SameLine();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x / 2);
+                ImGui::DragInt("##spamhold", &spamBot.hold, 1, 1, INT_MAX, "Hold: %i");
+
+                ImGui::SameLine();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                ImGui::DragInt("##spamrelease", &spamBot.release, 1, 1, INT_MAX, "Release: %i");
+
+                ImGui::Checkbox("Player 1", &spamBot.player_p1);
+                ImGui::SameLine();
+                ImGui::Checkbox("Player 2", &spamBot.player_p2);
+
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("Straight Fly Bot")) {
+                if (ImGui::Checkbox("Enable##Straight Fly Bot", &straightFly.enabled))
+                {
+                    auto gjbgl = GJBaseGameLayer::get();
+                    straightFly.start(gjbgl);
+                }
+
+                ImGui::SameLine();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                ImGui::DragInt("##StraightFlyAcc", &straightFly.accuracy, 1, 0, 100, "Y Accuracy: %i");
+                ImGui::Text("Note: Straight Fly Bot works only on first player");
+
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("Recorder")) {
+                 if (ImGui::Checkbox("Record", &recorder.enabled, gui::scale)) {
+                    if (recorder.enabled)
+                        recorder.start();
+                    else 
+                        recorder.stop();
+                }
+
+                ImGui::SameLine();
+
+                ImGui::SetNextItemWidth(250.f * gui::scale);
+                ImGui::InputText("##videoname", &recorder.video_name);
+
+                ImGui::SameLine();
+
+                ImGui::Spacing();
+
+                ImGui::Text("Resolution:");
+                ImGui::Separator();
+
+                ImGui::PushItemWidth(45.f * gui::scale);
+                ImGui::InputInt("##width", &recorder.width, 0);
+                ImGui::SameLine(0, 5);
+
+                ImGui::Text("x");
+                ImGui::SameLine(0, 5);
+
+                ImGui::PushItemWidth(45.f * gui::scale);
+                ImGui::InputInt("##height", &recorder.height, 0);
+                ImGui::SameLine(0, 5);
+
+                ImGui::Text("@");
+                ImGui::SameLine(0, 5);
+
+                ImGui::PushItemWidth(35.f * gui::scale);
+                ImGui::InputInt("##fps", &recorder.fps, 0);
+
+                ImGui::Spacing();
+
+                ImGui::Text("Encoding Settings");
+                ImGui::Separator(); 
+                
+                ImGui::PushItemWidth(50.f * gui::scale);
+                ImGui::InputText("Bitrate", &recorder.bitrate);
+
+                ImGui::SameLine();
+
+                ImGui::PushItemWidth(80.f * gui::scale);
+                ImGui::InputText("Codec", &recorder.codec);
+
+                ImGui::PushItemWidth(250 * gui::scale);
+                ImGui::InputText("Extra Arguments", &recorder.extra_args);
+                
+                ImGui::Spacing();
+
+                ImGui::Text("Level Settings");
+                ImGui::Separator();
+
+                ImGui::PushItemWidth(200 * gui::scale);
+                ImGui::InputFloat("Second to Render After", &recorder.after_end_duration, 1);
+
+                ImGui::Spacing();
+
+                ImGui::Text("Presets");
+                ImGui::Separator();
+
+                if (ImGui::Button("HD"))
+                {
+                    recorder.width = 1280;
+                    recorder.height = 720;
+                    recorder.fps = 60;
+                    recorder.bitrate = "30M";
+                }
+
+                ImGui::SameLine();
+
+                if (ImGui::Button("FULL HD"))
+                {
+                    recorder.width = 1920;
+                    recorder.height = 1080;
+                    recorder.fps = 60;
+                    recorder.bitrate = "50M";
+                }
+
+                ImGui::SameLine();
+
+                if (ImGui::Button("4K"))
+                {
+                    recorder.width = 3840;
+                    recorder.height = 2160;
+                    recorder.fps = 60;
+                    recorder.bitrate = "70M";
+                }
+
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("Audio")) {
+                if (ImGui::Checkbox("Record Buffer", &recorderAudio.enabled, gui::scale)) {
+                    if (!recorderAudio.showcase_mode) {
+                        if (recorderAudio.enabled)
+                            recorderAudio.start();
+                        else 
+                            recorderAudio.stop();
+                    }
+                }
+
+                ImGui::Checkbox("Showcase Mode", &recorderAudio.showcase_mode, gui::scale);
+
+                ImGui::SameLine();
+
+                ImGui::Checkbox("Disable Objects Render", &hacks::disable_render, gui::scale);
+
+                if (recorderAudio.showcase_mode) {
+                    ImGui::Spacing();
+
+                    ImGui::Text("Level Settings");
+                    ImGui::Separator();
+
+                
+                    ImGui::PushItemWidth(200 * gui::scale);
+                    ImGui::InputFloat("Second to Render After##2", &recorderAudio.after_end_duration, 1);
+                }
+
+                ImGui::Spacing();
+
+                ImGui::Text("Save Buffer");
+                ImGui::Separator();
+
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                ImGui::InputText("##videoname", &recorderAudio.audio_name);
+
+                ImGui::PushItemWidth(250 * gui::scale);
+                ImGui::InputText("Extra Arguments", &recorderAudio.extra_args);
+
+                if (ImGui::Button("Save", {ImGui::GetContentRegionAvail().x, NULL})) {
+                    std::string audio_name_ = recorderAudio.audio_name;
+                    std::string command = "ffmpeg.exe -y -i fmodoutput.wav ";
+                    if (!recorderAudio.extra_args.empty()) {
+                        command += recorderAudio.extra_args + " ";
+                    }
+
+                    command += fmt::format("\"{}\\{}\"", hacks::folderShowcasesPath, audio_name_);
+
+                    geode::log::debug("{}", command);
+
+                    auto process = subprocess::Popen(command);
+                }
+
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("Merge")) {
+                static bool shortest = true;
+                static std::vector<std::string> videos;
+                static std::vector<std::string> audios;
+                static int index_videos = 0;
+                static int index_audios = 0;
+
+                ImGui::BeginChild("##VideoSelect", {NULL, 130 * gui::scale}, true);
+                for (size_t i = 0; i < videos.size(); i++) {
+                    bool is_selected = (index_videos == i);
+                    if (ImGui::Selectable(videos[i].c_str(), is_selected)) {
+                        index_videos = i;
+                    }
+                }
+                ImGui::EndChild();
+
+                ImGui::BeginChild("##AudioSelect", {NULL, 130 * gui::scale}, true);
+                for (size_t i = 0; i < audios.size(); i++) {
+                    bool is_selected = (index_audios == i);
+                    if (ImGui::Selectable(audios[i].c_str(), is_selected)) {
+                        index_audios = i;
+                    }
+                }
+                ImGui::EndChild();
+
+                if (ImGui::Button("Refresh", {ImGui::GetContentRegionAvail().x, NULL})) {
+                    videos.clear();
+                    audios.clear();
+                    for (const auto &entry : std::filesystem::directory_iterator(hacks::folderShowcasesPath)) {
+                        if (entry.path().extension() == ".mp4") {
+                            videos.push_back(entry.path().string());
+                        }
+
+                        if (entry.path().extension() == ".mp3") {
+                            audios.push_back(entry.path().string());
+                        }
+                    }
+                }
+
+                ImGui::Checkbox("Shortest", &shortest, gui::scale);
+
+                
+                ImGui::SameLine();
+
+                if (ImGui::Button("Merge", {ImGui::GetContentRegionAvail().x, NULL})) {
+                    if (videos.empty() || audios.empty()) {
+                        
+                    } else if (index_videos >= 0 && index_videos < (int)videos.size() && index_audios >= 0 && index_audios < (int)audios.size()) {
+                        std::string command2 = "ffmpeg.exe -i \"" + videos[index_videos] + "\" -i \"" + audios[index_audios] + "\" -map 0:v -map 1:a -c:v copy ";
+                        if (shortest) {
+                            command2 += "-shortest ";
+                        }
+                        std::filesystem::path video_rel(videos[index_videos]);
+                        command2 += fmt::format("\"{}\\audio_{}\"", hacks::folderShowcasesPath, video_rel.filename().string());
+                        geode::log::debug("{}", command2);
+                        auto process = subprocess::Popen(command2);
+                    }
+                }
+
+
+                ImGui::EndTabItem();
+            }
+
+            ImGui::EndTabBar();
         }
-
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x / 2);
-        ImGui::DragInt("##spamhold", &spamBot.hold, 1, 1, INT_MAX, "Hold: %i");
-
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        ImGui::DragInt("##spamrelease", &spamBot.release, 1, 1, INT_MAX, "Release: %i");
-
-        ImGui::Checkbox("Player 1", &spamBot.player_p1);
-        ImGui::SameLine();
-        ImGui::Checkbox("Player 2", &spamBot.player_p2);
-
-        ImGui::Spacing();
-        ImGui::Text("Straight Fly Bot");
-        ImGui::Separator();
-
-        if (ImGui::Checkbox("Enable##Straight Fly Bot", &straightFly.enabled))
-        {
-            auto gjbgl = GJBaseGameLayer::get();
-            straightFly.start(gjbgl);
-        }
-
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        ImGui::DragInt("##StraightFlyAcc", &straightFly.accuracy, 1, 0, 100, "Y Accuracy: %i");
-        ImGui::Text("Note: Straight Fly Bot works only on first player");
-
-        ImGui::Separator();
-        
 
         if (ImGui::Button("Close", {ImGui::GetContentRegionAvail().x, NULL})) {
             ImGui::CloseCurrentPopup();

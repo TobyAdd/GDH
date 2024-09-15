@@ -36,6 +36,7 @@ struct window {
 namespace hacks {
     static const auto folderPath = geode::Mod::get()->getSaveDir();
     static const auto folderMacroPath = folderPath / "Macros";
+    static const auto folderShowcasesPath = folderPath / "Showcases";
     static const auto fileDataPath = folderPath / "config.json";
 
     extern std::vector<window> windows;
@@ -96,6 +97,8 @@ namespace hacks {
 
     extern bool reset_maket;
 
+    extern bool disable_render;
+
     void update_framerate(float value);
 
     void save(const std::vector<window>& windows, const std::filesystem::path &filename);
@@ -105,6 +108,7 @@ namespace hacks {
 }
 
 namespace startpos_switcher {
+    extern bool smart_startpos;
     extern int left_key;
     extern int right_key;
 }

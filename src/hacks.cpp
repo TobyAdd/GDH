@@ -59,6 +59,8 @@ int hacks::frame_advance_disable_key = GLFW_KEY_V;
 
 bool hacks::reset_maket = false;
 
+bool hacks::disable_render = false;
+
 std::vector<window> hacks::windows = {
     {"Core", 10, 10, 200, 200, 
         {
@@ -185,7 +187,8 @@ std::vector<window> hacks::windows = {
             {"Ignore ESC", "Prevents exiting the level"},
             {"Instant Complete", "Instant level completion"},
             {"Jump Hack", "Кemoves the barrier to jump gravity"},
-            {"Startpos Switcher", "The ability to switch between starting positions using the left/right arrow keys"},
+            {"Smart Startpos", "Restores correct gameplay without startpos settings"},
+            {"Startpos Switcher", "The ability to switch between starting positions using the keys that you setted in keybinds"},
             {"Reset Camera", "When switching between starting positions, the camera may move, so this feature fixes that unpleasant switch"},
             {"RGB Icons", "LGBT icons, yes :3"},
             {"Solid Wave Trail", "Disables wave blending",
@@ -401,6 +404,7 @@ void hacks::init() {
                 else if (hck.name == "Jump Hack") { hacks::jump_hack = hck.enabled; }
                 else if (hck.name == "Ignore ESC") { hacks::ignore_esc = hck.enabled; }
                 else if (hck.name == "Startpos Switcher") { hacks::startpos_switcher = hck.enabled; }
+                else if (hck.name == "Smart Startpos") { startpos_switcher::smart_startpos = hck.enabled; }
                 else if (hck.name == "Reset Camera") { hacks::startpos_switcher_reset_camera = hck.enabled; }
                 else if (hck.name == "Instant Complete") { hacks::instant_complate = hck.enabled; }
                 else if (hck.name == "Hide Pause Menu") { hacks::hide_menu = hck.enabled; }

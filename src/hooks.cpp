@@ -1,5 +1,6 @@
 #include "hooks.hpp"
 #include "hacks.hpp"
+#include "recorder.hpp"
 #include <Geode/modify/CCScheduler.hpp>
 #include <Geode/modify/PlayLayer.hpp>
 #include <Geode/modify/GJBaseGameLayer.hpp>
@@ -22,7 +23,7 @@
 PauseLayer* hooks::pauseLayer;
 
 std::vector<StartPosObject*> startPositions;
-std::vector<GameObject *> coinsObjects;
+std::vector<GameObject*> gravityPortals, dualPortals, gamemodePortals, miniPortals, speedChanges, mirrorPortals, coinsObjects;
 
 float left_over = 0.f;
 
@@ -59,6 +60,60 @@ int getRandomNumber(int min, int max)
     return randomNum;
 }
 
+
+void setupStartPos(StartPosObject* startPos) {
+    LevelSettingsObject* startPosSettings = startPos->m_startSettings;
+    LevelSettingsObject* levelSettings = PlayLayer::get()->m_levelSettings;
+
+    auto getClosestObject = [](std::vector<GameObject*>& vec, StartPosObject* startPos) -> GameObject* {
+        std::sort(vec.begin(), vec.end(), [] (GameObject* a, GameObject* b) {
+            return a->getPositionX() < b->getPositionX();
+        });
+
+        for (auto obj : vec) {
+            if (obj->getPositionX() - 10 > startPos->getPositionX())
+                break;
+            else if (obj->getPositionX() - 10 < startPos->getPositionX())
+                return obj;
+        }
+
+        return nullptr;
+    };
+
+    startPosSettings->m_startDual = levelSettings->m_startDual;
+    if (auto obj = getClosestObject(dualPortals, startPos))
+        startPosSettings->m_startDual = obj->m_objectID == 286;
+
+    startPosSettings->m_startMode = levelSettings->m_startMode;
+    if (auto obj = getClosestObject(gamemodePortals, startPos)) {
+        switch(obj->m_objectID) {
+            case 12:   startPosSettings->m_startMode = 0; break;
+            case 13:   startPosSettings->m_startMode = 1; break;
+            case 47:   startPosSettings->m_startMode = 2; break;
+            case 111:  startPosSettings->m_startMode = 3; break;
+            case 660:  startPosSettings->m_startMode = 4; break;
+            case 745:  startPosSettings->m_startMode = 5; break;
+            case 1331: startPosSettings->m_startMode = 6; break;
+            case 1933: startPosSettings->m_startMode = 7; break;
+        }
+    }
+
+    startPosSettings->m_startMini = levelSettings->m_startMini;
+    if (auto obj = getClosestObject(miniPortals, startPos))
+        startPosSettings->m_startMini = obj->m_objectID == 101;
+        
+    startPosSettings->m_startSpeed = levelSettings->m_startSpeed;
+    if (auto obj = getClosestObject(speedChanges, startPos)) {
+        switch(obj->m_objectID) {
+            case 200:  startPosSettings->m_startSpeed = Speed::Slow; break;
+            case 201:  startPosSettings->m_startSpeed = Speed::Normal; break;
+            case 202:  startPosSettings->m_startSpeed = Speed::Fast; break;
+            case 203:  startPosSettings->m_startSpeed = Speed::Faster; break;
+            case 1334: startPosSettings->m_startSpeed = Speed::Fastest; break;
+        }
+    }
+}
+
 class $modify(cocos2d::CCScheduler) {
     void update(float dt) {
         if (hacks::speed_enabled)
@@ -68,6 +123,20 @@ class $modify(cocos2d::CCScheduler) {
             return CCScheduler::update(dt);
         
         float newdt = 1.f / hacks::tps_value; 
+
+        if (recorder.is_recording) {
+            if (recorder.frame_has_data) {
+                return;
+            }
+            else {
+                return CCScheduler::update(newdt);
+            }
+        }
+
+        
+        if (recorderAudio.is_recording) {
+            recorderAudio.handle_recording(dt);
+        }
 
         auto pl = GameManager::sharedState()->getPlayLayer();
         if (engine.frame_advance && pl && !pl->m_isPaused) {
@@ -99,6 +168,8 @@ class $modify(cocos2d::CCScheduler) {
 };
 
 namespace startpos_switcher {
+    bool smart_startpos = false;
+
     int selectedStartpos = 0;
     int left_key = GLFW_KEY_Q;
     int right_key = GLFW_KEY_E;
@@ -150,7 +221,17 @@ class $modify(PlayLayer) {
         GameObject* anticheat_obj = nullptr;
 
         ~Fields() {
+            if (recorderAudio.is_recording && recorderAudio.showcase_mode) {
+                recorderAudio.stop();
+            }
+
             startPositions.clear();
+            gamemodePortals.clear();
+            mirrorPortals.clear();
+            miniPortals.clear();
+            dualPortals.clear();
+            speedChanges.clear();
+            gravityPortals.clear();
             coinsObjects.clear();
             hacks::ricon_delta = 0;
             playerTrail1.clear();
@@ -162,6 +243,23 @@ class $modify(PlayLayer) {
             }
         }
     };
+
+    void startMusic() {
+        PlayLayer::startMusic();
+        if (recorderAudio.enabled && recorderAudio.showcase_mode) {
+            if (recorderAudio.is_recording) {
+                recorderAudio.stop();
+            }
+            recorderAudio.start();
+        }
+    }
+
+    void updateVisibility(float dt) {
+        if (hacks::disable_render)
+            return;
+            
+        PlayLayer::updateVisibility(dt);
+    }
 
     bool init(GJGameLevel* level, bool useReplay, bool dontCreateObjects) {
         if (!PlayLayer::init(level, useReplay, dontCreateObjects)) return false;
@@ -190,12 +288,51 @@ class $modify(PlayLayer) {
 
     void addObject(GameObject* obj) {
         PlayLayer::addObject(obj);
-        if (obj->m_objectID == 31) {
+        switch (obj->m_objectID)
+        {
+        case 9:
+        case 10:
+        case 11:
+            gravityPortals.push_back(obj);
+            break;
+        case 12:
+        case 13:
+        case 47:
+        case 111:
+        case 660:
+        case 745:
+        case 1331:
+        case 1933:
+            gamemodePortals.push_back(obj);
+            break;
+        case 31:
             startPositions.push_back(static_cast<StartPosObject *>(obj));
-        }
-
-        if (obj->m_objectID == 1329 || obj->m_objectID == 142) {
+            break;
+        case 45:
+        case 46:
+            mirrorPortals.push_back(obj);
+            break;
+        case 99:
+        case 101:
+            miniPortals.push_back(obj);
+            break;
+        case 286:
+        case 287:
+            dualPortals.push_back(obj);
+            break;
+        case 200:
+        case 201:
+        case 202:
+        case 203:
+        case 1334:
+            speedChanges.push_back(obj);
+            break;        
+        //auto coins shit yea
+        case 1329:
+        case 142:
             coinsObjects.push_back(obj);
+        default:
+            break;
         }
     }
 
@@ -263,6 +400,12 @@ class $modify(PlayLayer) {
 
     void resetLevel() {
         PlayLayer::resetLevel();
+
+        if (startpos_switcher::smart_startpos) {
+            for (StartPosObject* obj : startPositions)
+                setupStartPos(obj);
+        }
+
 
         if (hacks::random_seed_enabled) {
             memory::WriteInt(geode::base::get() + 0x687DD0, hacks::seed_value);
@@ -366,6 +509,10 @@ class $modify(GJBaseGameLayer) {
     void update(float dt) {
         GJBaseGameLayer::update(dt);
 
+        if (recorder.is_recording) {
+            recorder.handle_recording(dt);
+        }
+
         if (hacks::jump_hack)
             m_player1->m_isOnGround = true;
 
@@ -468,6 +615,12 @@ class $modify(cocos2d::CCDrawNode) {
         if (hacks::show_hitboxes)
             borderWidth = abs(borderWidth);
 
+        auto pl = GameManager::sharedState()->getPlayLayer();
+        //0x3242 - m_isDead
+        if (hacks::show_hitboxes_on_death && pl && !pl->m_player1->m_isDead) {
+            borderWidth = 0;
+        }
+
         return cocos2d::CCDrawNode::drawPolygon(vertex, count, fillColor, borderWidth, borderColor);
     }
 
@@ -475,7 +628,12 @@ class $modify(cocos2d::CCDrawNode) {
                     float borderWidth, const cocos2d::ccColor4F& borderColor, unsigned int segments) {
 
         if (hacks::show_hitboxes)
-            borderWidth = abs(borderWidth);            
+            borderWidth = abs(borderWidth);    
+
+        auto pl = GameManager::sharedState()->getPlayLayer();
+        if (hacks::show_hitboxes_on_death && pl && !pl->m_player1->m_isDead) {
+            borderWidth = 0;
+        }        
 
         return cocos2d::CCDrawNode::drawCircle(position, radius, color, borderWidth, borderColor, segments);
     }

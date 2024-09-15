@@ -18,4 +18,15 @@ namespace speedhackAudio {
             }
         }
     }
+
+    void update_frame_offset(float ms) {
+        FMOD::Channel *channel;
+        FMOD::System *system = FMODAudioEngine::sharedEngine()->m_system;
+        for (auto i = 0; i < 2; i++) {
+            system->getChannel(126 + i, &channel);
+            if (channel) {
+                channel->setPosition(ms, FMOD_TIMEUNIT_MS);
+            }
+        }
+    }
 }

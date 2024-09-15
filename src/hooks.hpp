@@ -1,5 +1,7 @@
 #include "includes.hpp"
 
+extern float left_over;
+
 namespace hooks {
     extern PauseLayer* pauseLayer;
 }
