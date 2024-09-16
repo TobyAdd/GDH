@@ -133,11 +133,6 @@ class $modify(cocos2d::CCScheduler) {
             }
         }
 
-        
-        if (recorderAudio.is_recording) {
-            recorderAudio.handle_recording(dt);
-        }
-
         auto pl = GameManager::sharedState()->getPlayLayer();
         if (engine.frame_advance && pl && !pl->m_isPaused) {
             if (engine.next_frame) {
@@ -507,11 +502,15 @@ class $modify(GJBaseGameLayer) {
     }
 
     void update(float dt) {
-        GJBaseGameLayer::update(dt);
-
         if (recorder.is_recording) {
             recorder.handle_recording(dt);
         }
+        
+        if (recorderAudio.is_recording) {
+            recorderAudio.handle_recording(dt);
+        }
+
+        GJBaseGameLayer::update(dt);
 
         if (hacks::jump_hack)
             m_player1->m_isOnGround = true;

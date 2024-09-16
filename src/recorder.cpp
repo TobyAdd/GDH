@@ -18,6 +18,24 @@ class $modify(ShaderLayer)
 	}
 };
 
+intptr_t glViewportAddress = 0;
+    
+void glViewportHook(GLint a, GLint b, GLsizei c, GLsizei d) {
+    if (recorder.is_recording && recorder.playlayer_visiting && recorder.shader_visiting) {
+        if (c != 2608 && d != 2608 && c != 1304 && d != 1304 && c != 652 && d != 652) {
+            c = recorder.width;
+            d = recorder.height;
+        }
+    }
+
+    reinterpret_cast<void(__stdcall *)(GLint, GLint, GLsizei, GLsizei)>(glViewportAddress)(a, b, c, d);
+}
+
+$execute {
+    glViewportAddress = geode::addresser::getNonVirtual(glViewport);
+    auto result = geode::Mod::get()->hook(reinterpret_cast<void *>(glViewportAddress), &glViewportHook, "glViewport");
+}
+
 void RenderTexture::begin() {   
     glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &oldFBO);
 
@@ -37,7 +55,7 @@ void RenderTexture::begin() {
     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, texture->getName(), 0);
     
     texture->setAliasTexParameters();
-    //texture->autorelease();
+    texture->autorelease();
 
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, oldRBO);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, oldFBO);    
@@ -51,7 +69,10 @@ void RenderTexture::capture_frame(std::mutex& lock, std::vector<uint8_t>& data, 
 
     auto director = cocos2d::CCDirector::sharedDirector();
     auto scene = GameManager::sharedState()->getPlayLayer();
+
+    recorder.playlayer_visiting = true;
     scene->visit();
+    recorder.playlayer_visiting = false;
 
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     lock.lock();
@@ -143,8 +164,6 @@ void Recorder::handle_recording(float dt) {
             last_frame_time = playLayer->m_gameState.m_levelTime;
             render_frame();
         }
-
-        
     }
     else {
         stop();
