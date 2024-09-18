@@ -50,6 +50,8 @@ public:
     int index2 = 0;
     std::vector<replay_data2> replay2;
 
+    bool settings_openned = false;
+
     unsigned get_frame();
     void handle_recording(GJBaseGameLayer* self, bool player);
     void handle_recording2(bool hold, int button, bool player);

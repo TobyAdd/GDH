@@ -88,7 +88,7 @@ void RenderTexture::end() {
     texture->release();
 }
 
-void Recorder::start() {
+void Recorder::start(std::string command) {
     last_frame_time = extra_time = 0;
 
     after_end_extra_time = 0.f;
@@ -99,25 +99,8 @@ void Recorder::start() {
     texture.height = height;
     texture.width = width;
     texture.begin();
-    std::string video_name_ = video_name;
 
-    std::thread([&, video_name_] {
-        std::string command = fmt::format("ffmpeg.exe -y -f rawvideo -pix_fmt rgb24 -s {}x{} -r {} -i -", width, height, fps);
-
-        if (!codec.empty()) {
-            command += fmt::format(" -c:v {}", codec);
-        }
-
-        if (!bitrate.empty()) {
-            command += fmt::format(" -b:v {}", bitrate);
-        }
-
-        if (!extra_args.empty()) {
-            command += fmt::format(" {}", extra_args);
-        }
-
-        command += fmt::format(" -pix_fmt yuv420p -vf \"vflip\" \"{}\\{}\"", hacks::folderShowcasesPath, video_name_);
-            
+    std::thread([&, command] {            
         auto process = subprocess::Popen(command);
         while (is_recording || frame_has_data) {
             lock.lock();
@@ -158,7 +141,7 @@ void Recorder::handle_recording(float dt) {
         if (time >= frame_dt) {
             float song_offset = (static_cast<float>(playLayer->m_gameState.m_currentProgress) / hacks::tps_value) * 1000.f;
             song_offset += playLayer->m_levelSettings->m_songOffset * 1000.f;
-            speedhackAudio::update_frame_offset(song_offset);
+            //speedhackAudio::update_frame_offset(song_offset);
 
             extra_time = time - frame_dt;
             last_frame_time = playLayer->m_gameState.m_levelTime;
@@ -168,6 +151,26 @@ void Recorder::handle_recording(float dt) {
     else {
         stop();
     }   
+}
+
+std::string Recorder::compile_command() {
+    std::string command = fmt::format("ffmpeg.exe -y -f rawvideo -pix_fmt rgb24 -s {}x{} -r {} -i -", width, height, fps);
+
+    if (!codec.empty()) {
+        command += fmt::format(" -c:v {}", codec);
+    }
+
+    if (!bitrate.empty()) {
+        command += fmt::format(" -b:v {}", bitrate);
+    }
+
+    if (!extra_args.empty()) {
+        command += fmt::format(" {}", extra_args);
+    }
+
+    command += fmt::format(" -pix_fmt yuv420p -vf \"vflip\" \"{}\\{}\"", hacks::folderShowcasesPath, video_name);
+
+    return command;
 }
 
 void RecorderAudio::start() {

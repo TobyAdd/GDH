@@ -42,10 +42,14 @@ class Recorder {
         float after_end_extra_time;
         float after_end_duration = 3.f;
         
-        void start();
+        void start(std::string command);
         void stop();
         void render_frame();
         void handle_recording(float dt);  
+
+        bool advanced_mode = false;
+        std::string full_cmd;
+        std::string compile_command();
 };
 
 

@@ -211,8 +211,8 @@ void ReplayEngine::render() {
         openReplayMultishit();
         ImGui::EndPopup();
     }
-
-    if (ImGui::BeginPopupModal("Replay Engine Settings", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize)) {
+    
+    if (ImGui::BeginPopupModal("Replay Engine Settings", &settings_openned)) {
         if (ImGui::BeginTabBar("Replay Engine Settings Tabs")) {
             if (ImGui::BeginTabItem("Settings")) {
                 ImGui::Checkbox("Real Time", &engine.real_time, gui::scale);
@@ -267,17 +267,43 @@ void ReplayEngine::render() {
             }
 
             if (ImGui::BeginTabItem("Recorder")) {
-                 if (ImGui::Checkbox("Record", &recorder.enabled, gui::scale)) {
-                    if (recorder.enabled)
-                        recorder.start();
+                if (ImGui::Checkbox("Record", &recorder.enabled, gui::scale)) {
+                    if (recorder.enabled) {
+                        if (!recorder.advanced_mode) {
+                            recorder.full_cmd = recorder.compile_command();
+                        }
+
+                        recorder.start(recorder.full_cmd);
+                    }                        
                     else 
                         recorder.stop();
                 }
 
                 ImGui::SameLine();
 
-                ImGui::SetNextItemWidth(250.f * gui::scale);
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                 ImGui::InputText("##videoname", &recorder.video_name);
+
+                ImGui::Checkbox("Advanced Mode", &recorder.advanced_mode);
+
+                if (recorder.advanced_mode) {
+                    ImGui::SameLine();
+                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                    ImGui::InputText("##full_args", &recorder.full_cmd);
+                    if (ImGui::Button("Compile")) {
+                        recorder.full_cmd = recorder.compile_command();
+                    }
+
+                    ImGui::SameLine();
+                    if (ImGui::Button("Copy to clipboard")) {
+                        ImGui::SetClipboardText(recorder.full_cmd.c_str());
+                    }
+
+                    ImGui::SameLine();
+                    if (ImGui::Button("Paste to from clipboard")) {
+                        recorder.full_cmd = (std::string)ImGui::GetClipboardText();
+                    }
+                }
 
                 ImGui::SameLine();
 
@@ -484,10 +510,6 @@ void ReplayEngine::render() {
             ImGui::EndTabBar();
         }
 
-        if (ImGui::Button("Close", {ImGui::GetContentRegionAvail().x, NULL})) {
-            ImGui::CloseCurrentPopup();
-        }
-
         ImGui::EndPopup();
     }
 
@@ -564,6 +586,7 @@ void ReplayEngine::render() {
 
     ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImColor(64, 64, 64).Value);
     if (ImGui::MenuItem("More settings")) {
+        settings_openned = true;
         ImGui::OpenPopup("Replay Engine Settings");
     }
     ImGui::PopStyleColor();
