@@ -543,7 +543,7 @@ void ReplayEngine::render() {
                     if (videos.empty() || audios.empty()) {
                         
                     } else if (index_videos >= 0 && index_videos < (int)videos.size() && index_audios >= 0 && index_audios < (int)audios.size()) {
-                        std::string command2 = "ffmpeg.exe -i \"" + videos[index_videos].string() + "\" -i \"" + audios[index_audios].string() + "\" -map 0:v -map 1:a -c:v copy ";
+                        std::string command2 = "ffmpeg.exe -y -i \"" + videos[index_videos].string() + "\" -i \"" + audios[index_audios].string() + "\" -map 0:v -map 1:a -c:v copy ";
                         if (shortest) {
                             command2 += "-shortest ";
                         }

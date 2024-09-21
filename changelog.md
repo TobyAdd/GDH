@@ -1,3 +1,6 @@
+# 4.7.1
+- Fixed FFmpeg stuff
+
 # v4.7.0
 - Recorder
 - Сhanged to a more safe method of obtaining the list of macros
