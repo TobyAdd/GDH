@@ -1,3 +1,16 @@
+# v4.7.0
+- Recorder
+- Сhanged to a more safe method of obtaining the list of macros
+- Auto-enter macros name based on level name
+- Show Hitboxes on Death
+
+# v4.6.8
+- More friendly mod description
+- Spambot
+- Straight Fly Bot
+- Popup windows now appear at the bottom right to avoid conflicts with adjacent windows
+- TPS bypass has been moved to the "Framerate" tab (+ fixed problems with bypassing physics when it is off)
+
 # v4.6.7
 - More friendly mod description
 - Spambot
