@@ -1,3 +1,6 @@
+# 4.7.2
+- Fixed Russian characters conflict
+
 # 4.7.1
 - Fixed FFmpeg stuff
 
