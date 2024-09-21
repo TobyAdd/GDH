@@ -4,6 +4,8 @@
 #include "labels.hpp"
 #include "replayEngine.hpp"
 
+std::filesystem::path hacks::folderShowcasesPath = hacks::folderPath / "Showcases";
+
 bool hacks::auto_song_download = false;
 
 bool hacks::nolcip_enabled = false;
@@ -522,6 +524,8 @@ void hacks::save(const std::vector<window>& windows, const std::filesystem::path
 
     j["version"] = geode::Mod::get()->getVersion().toVString();
 
+    j["showcase_path"] = hacks::folderShowcasesPath;
+
 
     std::ofstream file(filename);
     file << j.dump(4);
@@ -642,6 +646,8 @@ void hacks::load(const std::filesystem::path &filename, std::vector<window>& win
     if (gui::menu_key == 0 || gui::menu_key == -1) {
         gui::menu_key = GLFW_KEY_TAB;
     }
+
+    hacks::folderShowcasesPath = j.value("showcase_path", folderPath / "Showcases");
 
     file.close();
 }

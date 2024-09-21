@@ -47,6 +47,7 @@ class Recorder {
         void render_frame();
         void handle_recording(float dt);  
 
+        bool ffmpeg_installed = false;
         bool advanced_mode = false;
         std::string full_cmd;
         std::string compile_command();
@@ -57,7 +58,7 @@ extern Recorder recorder;
 
 class RecorderAudio {
     public:
-        std::string audio_name = "audio.mp3";
+        std::string audio_name = "audio.wav";
 
         bool enabled = false;
         bool is_recording = false;
@@ -68,6 +69,9 @@ class RecorderAudio {
         float after_end_duration = 3.f;
 
         std::string extra_args;
+
+        float old_volume_music;
+        float old_volume_sfx;
         
         void start();
         void stop(); 

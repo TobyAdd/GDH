@@ -2,6 +2,7 @@
 #include "hacks.hpp"
 #include "gui.hpp"
 #include "recorder.hpp"
+#include <shlobj.h>
 
 ReplayEngine engine;
 SpamBot spamBot;
@@ -163,13 +164,13 @@ void ReplayEngine::remove_actions(unsigned frame)
     replay2.erase(remove_if(replay2.begin(), replay2.end(), check2), replay2.end());
 }
 
-std::vector<std::string> replay_list;
+std::vector<std::filesystem::path> replay_list;
 void openSelectReplay(const char *str_id) {
     replay_list.clear();
     for (const auto &entry : std::filesystem::directory_iterator(hacks::folderMacroPath)) {
         std::string replay = entry.path().filename().string();
         if (replay.size() >= 3 && replay.substr(replay.size() - 3) == ".re") {
-            replay_list.push_back(replay.substr(0, replay.size() - 3));
+            replay_list.push_back(entry);
         }
     }
     ImGui::OpenPopup(str_id);
@@ -179,9 +180,9 @@ void ReplayEngine::openReplayMultishit() {
     ImGui::BeginChild("Select Replay##3", {400 * gui::scale, 300 * gui::scale});
     for (int i = 0; i < (int)replay_list.size(); i++)
     {
-        if (ImGui::Button(replay_list[i].c_str(), {ImGui::GetContentRegionAvail().x, NULL}))
+        if (ImGui::Button(replay_list[i].filename().replace_extension().string().c_str(), {ImGui::GetContentRegionAvail().x, NULL}))
         {
-            replay_name = replay_list[i];
+            replay_name = replay_list[i].filename().replace_extension().string();
             ImGui::CloseCurrentPopup();
         }
     }
@@ -194,6 +195,26 @@ void ReplayEngine::openReplayMultishit() {
     if (ImGui::Button("Close", {ImGui::GetContentRegionAvail().x, NULL})) {
         ImGui::CloseCurrentPopup();
     }
+}
+
+std::filesystem::path SelectFolder(HWND owner = NULL) {
+    WCHAR path[MAX_PATH];
+
+    BROWSEINFOW bi = { 0 };
+    bi.lpszTitle = L"Select a directory";
+    bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE;
+    bi.hwndOwner = owner;
+
+    LPITEMIDLIST pidl = SHBrowseForFolderW(&bi);
+    if (pidl != 0) {
+        if (SHGetPathFromIDListW(pidl, path)) {
+            CoTaskMemFree(pidl);
+            return std::filesystem::path(path);
+        }
+        CoTaskMemFree(pidl);
+    }
+
+    return std::filesystem::path();
 }
 
 void ReplayEngine::render() {
@@ -267,123 +288,162 @@ void ReplayEngine::render() {
             }
 
             if (ImGui::BeginTabItem("Recorder")) {
-                if (ImGui::Checkbox("Record", &recorder.enabled, gui::scale)) {
-                    if (recorder.enabled) {
-                        if (!recorder.advanced_mode) {
+                if (recorder.ffmpeg_installed) {
+                    if (ImGui::Checkbox("Record", &recorder.enabled, gui::scale)) {
+                        if (recorder.enabled) {
+                            if (!recorder.advanced_mode) {
+                                recorder.full_cmd = recorder.compile_command();
+                            }
+
+                            recorder.start(recorder.full_cmd);
+                        }                        
+                        else 
+                            recorder.stop();
+                    }
+
+                    ImGui::SameLine();
+
+                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                    ImGui::InputText("##videoname", &recorder.video_name);
+
+                    ImGui::Checkbox("Advanced Mode", &recorder.advanced_mode);
+
+                    if (recorder.advanced_mode) {
+                        ImGui::SameLine();
+                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                        ImGui::InputText("##full_args", &recorder.full_cmd);
+                        if (ImGui::Button("Compile")) {
                             recorder.full_cmd = recorder.compile_command();
                         }
 
-                        recorder.start(recorder.full_cmd);
-                    }                        
-                    else 
-                        recorder.stop();
-                }
+                        ImGui::SameLine();
+                        if (ImGui::Button("Copy to clipboard")) {
+                            ImGui::SetClipboardText(recorder.full_cmd.c_str());
+                        }
 
-                ImGui::SameLine();
-
-                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                ImGui::InputText("##videoname", &recorder.video_name);
-
-                ImGui::Checkbox("Advanced Mode", &recorder.advanced_mode);
-
-                if (recorder.advanced_mode) {
-                    ImGui::SameLine();
-                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                    ImGui::InputText("##full_args", &recorder.full_cmd);
-                    if (ImGui::Button("Compile")) {
-                        recorder.full_cmd = recorder.compile_command();
+                        ImGui::SameLine();
+                        if (ImGui::Button("Paste to from clipboard")) {
+                            recorder.full_cmd = (std::string)ImGui::GetClipboardText();
+                        }
                     }
 
                     ImGui::SameLine();
-                    if (ImGui::Button("Copy to clipboard")) {
-                        ImGui::SetClipboardText(recorder.full_cmd.c_str());
+
+                    ImGui::Spacing();
+
+                    ImGui::Text("Resolution:");
+                    ImGui::Separator();
+
+                    ImGui::PushItemWidth(45.f * gui::scale);
+                    ImGui::InputInt("##width", &recorder.width, 0);
+                    ImGui::SameLine(0, 5);
+
+                    ImGui::Text("x");
+                    ImGui::SameLine(0, 5);
+
+                    ImGui::PushItemWidth(45.f * gui::scale);
+                    ImGui::InputInt("##height", &recorder.height, 0);
+                    ImGui::SameLine(0, 5);
+
+                    ImGui::Text("@");
+                    ImGui::SameLine(0, 5);
+
+                    ImGui::PushItemWidth(35.f * gui::scale);
+                    ImGui::InputInt("##fps", &recorder.fps, 0);
+
+                    ImGui::Spacing();
+
+                    ImGui::Text("Encoding Settings");
+                    ImGui::Separator(); 
+                    
+                    ImGui::PushItemWidth(50.f * gui::scale);
+                    ImGui::InputText("Bitrate", &recorder.bitrate);
+
+                    ImGui::SameLine();
+
+                    ImGui::PushItemWidth(80.f * gui::scale);
+                    ImGui::InputText("Codec", &recorder.codec);
+
+                    ImGui::PushItemWidth(250 * gui::scale);
+                    ImGui::InputText("Extra Arguments", &recorder.extra_args);
+                    
+                    ImGui::Spacing();
+
+                    ImGui::Text("Level Settings");
+                    ImGui::Separator();
+
+                    ImGui::PushItemWidth(200 * gui::scale);
+                    ImGui::InputFloat("Second to Render After", &recorder.after_end_duration, 1);
+
+                    ImGui::Spacing();
+
+                    ImGui::Text("Presets");
+                    ImGui::Separator();
+
+                    if (ImGui::Button("HD"))
+                    {
+                        recorder.width = 1280;
+                        recorder.height = 720;
+                        recorder.fps = 60;
+                        recorder.bitrate = "30M";
                     }
 
                     ImGui::SameLine();
-                    if (ImGui::Button("Paste to from clipboard")) {
-                        recorder.full_cmd = (std::string)ImGui::GetClipboardText();
+
+                    if (ImGui::Button("FULL HD"))
+                    {
+                        recorder.width = 1920;
+                        recorder.height = 1080;
+                        recorder.fps = 60;
+                        recorder.bitrate = "50M";
                     }
+
+                    ImGui::SameLine();
+
+                    if (ImGui::Button("4K"))
+                    {
+                        recorder.width = 3840;
+                        recorder.height = 2160;
+                        recorder.fps = 60;
+                        recorder.bitrate = "70M";
+                    }
+
+                    ImGui::Spacing();
+
+                    ImGui::Text("Folders");
+                    ImGui::Separator();
+
+                    if (ImGui::Button("Open Showcase Folder")) {
+                        ShellExecuteW(nullptr, L"open", L"explorer", hacks::folderShowcasesPath.wstring().c_str(), nullptr, SW_SHOWDEFAULT);
+                    }
+
+                    ImGui::SameLine();
+
+                    if (ImGui::Button("Change folder")) {
+                        std::filesystem::path selectedPath = SelectFolder();
+                        if (!selectedPath.empty()) {
+                            hacks::folderShowcasesPath = selectedPath;
+                        }
+                    }
+
+                    ImGui::SameLine();
+
+                    if (ImGui::Button("Reset Folder")) {
+                        hacks::folderShowcasesPath = hacks::folderPath / "Showcases";
+                    }
+
+                    
+                    ImGui::Text("Showcase Folder: %s", hacks::folderShowcasesPath.string().c_str());
                 }
-
-                ImGui::SameLine();
-
-                ImGui::Spacing();
-
-                ImGui::Text("Resolution:");
-                ImGui::Separator();
-
-                ImGui::PushItemWidth(45.f * gui::scale);
-                ImGui::InputInt("##width", &recorder.width, 0);
-                ImGui::SameLine(0, 5);
-
-                ImGui::Text("x");
-                ImGui::SameLine(0, 5);
-
-                ImGui::PushItemWidth(45.f * gui::scale);
-                ImGui::InputInt("##height", &recorder.height, 0);
-                ImGui::SameLine(0, 5);
-
-                ImGui::Text("@");
-                ImGui::SameLine(0, 5);
-
-                ImGui::PushItemWidth(35.f * gui::scale);
-                ImGui::InputInt("##fps", &recorder.fps, 0);
-
-                ImGui::Spacing();
-
-                ImGui::Text("Encoding Settings");
-                ImGui::Separator(); 
-                
-                ImGui::PushItemWidth(50.f * gui::scale);
-                ImGui::InputText("Bitrate", &recorder.bitrate);
-
-                ImGui::SameLine();
-
-                ImGui::PushItemWidth(80.f * gui::scale);
-                ImGui::InputText("Codec", &recorder.codec);
-
-                ImGui::PushItemWidth(250 * gui::scale);
-                ImGui::InputText("Extra Arguments", &recorder.extra_args);
-                
-                ImGui::Spacing();
-
-                ImGui::Text("Level Settings");
-                ImGui::Separator();
-
-                ImGui::PushItemWidth(200 * gui::scale);
-                ImGui::InputFloat("Second to Render After", &recorder.after_end_duration, 1);
-
-                ImGui::Spacing();
-
-                ImGui::Text("Presets");
-                ImGui::Separator();
-
-                if (ImGui::Button("HD"))
-                {
-                    recorder.width = 1280;
-                    recorder.height = 720;
-                    recorder.fps = 60;
-                    recorder.bitrate = "30M";
-                }
-
-                ImGui::SameLine();
-
-                if (ImGui::Button("FULL HD"))
-                {
-                    recorder.width = 1920;
-                    recorder.height = 1080;
-                    recorder.fps = 60;
-                    recorder.bitrate = "50M";
-                }
-
-                ImGui::SameLine();
-
-                if (ImGui::Button("4K"))
-                {
-                    recorder.width = 3840;
-                    recorder.height = 2160;
-                    recorder.fps = 60;
-                    recorder.bitrate = "70M";
+                else {
+                    ImGui::Text("Looks like FFmpeg is not installed, here are the instructions:");
+                    ImGui::Text("1. Download ffmpeg (archive)");
+                    ImGui::SameLine();
+                    if (ImGui::Button("Download")) {
+                        ShellExecuteA(0, "open", "https://github.com/AnimMouse/ffmpeg-autobuild/releases/latest", 0, 0, SW_SHOWNORMAL);
+                    }
+                    ImGui::Text("2. Extract from archive \"ffmpeg.exe\" file to Geometry Dash folder");
+                    ImGui::Text("3. Restart Geometry Dash");
                 }
 
                 ImGui::EndTabItem();
@@ -418,52 +478,43 @@ void ReplayEngine::render() {
 
                 ImGui::Spacing();
 
-                ImGui::Text("Save Buffer");
+                ImGui::Text("Filename");
                 ImGui::Separator();
 
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                ImGui::InputText("##videoname", &recorderAudio.audio_name);
+                ImGui::InputText("##audio_filename", &recorderAudio.audio_name);
 
-                ImGui::PushItemWidth(250 * gui::scale);
-                ImGui::InputText("Extra Arguments", &recorderAudio.extra_args);
+                ImGui::Spacing();
 
-                if (ImGui::Button("Save", {ImGui::GetContentRegionAvail().x, NULL})) {
-                    std::string audio_name_ = recorderAudio.audio_name;
-                    std::string command = "ffmpeg.exe -y -i fmodoutput.wav ";
-                    if (!recorderAudio.extra_args.empty()) {
-                        command += recorderAudio.extra_args + " ";
-                    }
+                ImGui::Text("Folders");
+                ImGui::Separator();
 
-                    command += fmt::format("\"{}\\{}\"", hacks::folderShowcasesPath, audio_name_);
-
-                    geode::log::debug("{}", command);
-
-                    auto process = subprocess::Popen(command);
+                if (ImGui::Button("Open Showcase Folder")) {
+                    ShellExecuteW(nullptr, L"open", L"explorer", hacks::folderShowcasesPath.wstring().c_str(), nullptr, SW_SHOWDEFAULT);
                 }
-
                 ImGui::EndTabItem();
             }
 
             if (ImGui::BeginTabItem("Merge")) {
                 static bool shortest = true;
-                static std::vector<std::string> videos;
-                static std::vector<std::string> audios;
+                static std::vector<std::filesystem::path> videos;
+                static std::vector<std::filesystem::path> audios;
                 static int index_videos = 0;
                 static int index_audios = 0;
 
-                ImGui::BeginChild("##VideoSelect", {NULL, 130 * gui::scale}, true);
+                ImGui::BeginChild("##VideoSelect", {NULL, 150 * gui::scale}, true);
                 for (size_t i = 0; i < videos.size(); i++) {
                     bool is_selected = (index_videos == i);
-                    if (ImGui::Selectable(videos[i].c_str(), is_selected)) {
+                    if (ImGui::Selectable(videos[i].filename().string().c_str(), is_selected)) {
                         index_videos = i;
                     }
                 }
                 ImGui::EndChild();
 
-                ImGui::BeginChild("##AudioSelect", {NULL, 130 * gui::scale}, true);
+                ImGui::BeginChild("##AudioSelect", {NULL, 150 * gui::scale}, true);
                 for (size_t i = 0; i < audios.size(); i++) {
                     bool is_selected = (index_audios == i);
-                    if (ImGui::Selectable(audios[i].c_str(), is_selected)) {
+                    if (ImGui::Selectable(audios[i].filename().string().c_str(), is_selected)) {
                         index_audios = i;
                     }
                 }
@@ -477,7 +528,7 @@ void ReplayEngine::render() {
                             videos.push_back(entry.path().string());
                         }
 
-                        if (entry.path().extension() == ".mp3") {
+                        if (entry.path().extension() == ".wav") {
                             audios.push_back(entry.path().string());
                         }
                     }
@@ -492,7 +543,7 @@ void ReplayEngine::render() {
                     if (videos.empty() || audios.empty()) {
                         
                     } else if (index_videos >= 0 && index_videos < (int)videos.size() && index_audios >= 0 && index_audios < (int)audios.size()) {
-                        std::string command2 = "ffmpeg.exe -i \"" + videos[index_videos] + "\" -i \"" + audios[index_audios] + "\" -map 0:v -map 1:a -c:v copy ";
+                        std::string command2 = "ffmpeg.exe -i \"" + videos[index_videos].string() + "\" -i \"" + audios[index_audios].string() + "\" -map 0:v -map 1:a -c:v copy ";
                         if (shortest) {
                             command2 += "-shortest ";
                         }

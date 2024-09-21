@@ -36,7 +36,7 @@ struct window {
 namespace hacks {
     static const auto folderPath = geode::Mod::get()->getSaveDir();
     static const auto folderMacroPath = folderPath / "Macros";
-    static const auto folderShowcasesPath = folderPath / "Showcases";
+    extern std::filesystem::path folderShowcasesPath;
     static const auto fileDataPath = folderPath / "config.json";
 
     extern std::vector<window> windows;

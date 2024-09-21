@@ -176,15 +176,39 @@ std::string Recorder::compile_command() {
 void RecorderAudio::start() {
     is_recording = true;
     after_end_extra_time = 0;
-    FMODAudioEngine::sharedEngine()->m_system->setOutput(FMOD_OUTPUTTYPE_WAVWRITER);
-    geode::log::debug("Audio buffer recording started!");
+
+    auto fmod_engine = FMODAudioEngine::get();
+    
+    old_volume_music = fmod_engine->getBackgroundMusicVolume();
+    old_volume_sfx = fmod_engine->getEffectsVolume();
+
+    fmod_engine->setBackgroundMusicVolume(1.f);
+    fmod_engine->setEffectsVolume(1.f);
+
+    fmod_engine->m_system->setOutput(FMOD_OUTPUTTYPE_WAVWRITER);
+    geode::log::debug("Audio recording started!");
 }
 
 void RecorderAudio::stop() {
     enabled = false;
     is_recording = false;
-    FMODAudioEngine::sharedEngine()->m_system->setOutput(FMOD_OUTPUTTYPE_AUTODETECT);
-    geode::log::debug("Audio buffer recording stoped!");
+
+
+    auto fmod_engine = FMODAudioEngine::get();
+    fmod_engine->m_system->setOutput(FMOD_OUTPUTTYPE_AUTODETECT);
+
+    fmod_engine->setBackgroundMusicVolume(old_volume_music);
+    fmod_engine->setEffectsVolume(old_volume_sfx);
+
+    geode::log::debug("Audio recording stoped!");
+    if (std::filesystem::exists("fmodoutput.wav")) {
+        try {
+            std::filesystem::rename("fmodoutput.wav", hacks::folderShowcasesPath / audio_name);
+        }
+        catch (const std::filesystem::filesystem_error& e) {
+            geode::log::error("Error moving file: {}", e.what());
+        }
+    }    
 }
 
 void RecorderAudio::handle_recording(float dt) {

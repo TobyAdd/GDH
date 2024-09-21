@@ -278,6 +278,18 @@ class $modify(PlayLayer) {
         m_fields->tint_death_bg->setOpacity(0);
         addChild(m_fields->tint_death_bg);
 
+        if (engine.mode == state::disable) {
+            engine.replay_name = level->m_levelName;
+        }
+
+        if (!recorder.is_recording) {
+            recorder.video_name = level->m_levelName + ".mp4";
+        }
+
+        if (!recorderAudio.is_recording) {
+            recorderAudio.audio_name = level->m_levelName + ".wav";
+        }
+
         return true;
     }
 
