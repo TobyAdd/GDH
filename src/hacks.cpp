@@ -526,8 +526,6 @@ void hacks::save(const std::vector<window>& windows, const std::filesystem::path
 
     if (!engine.containsRussianLetters(hacks::folderShowcasesPath))
         j["showcase_path"] = hacks::folderShowcasesPath;
-    else
-        imgui_popup::add_popup("Anticrash: Russian characters detected in the path. Please change it in the \"Recorder\" tab to a folder without Russian characters.");
 
     std::ofstream file(filename);
     file << j.dump(4);

@@ -300,15 +300,21 @@ void ReplayEngine::render() {
             if (ImGui::BeginTabItem("Recorder")) {
                 if (recorder.ffmpeg_installed) {
                     if (ImGui::Checkbox("Record", &recorder.enabled, gui::scale)) {
-                        if (recorder.enabled) {
-                            if (!recorder.advanced_mode) {
-                                recorder.full_cmd = recorder.compile_command();
-                            }
+                        if (engine.containsRussianLetters(hacks::folderShowcasesPath)) {
+                            recorder.enabled = false;
+                            imgui_popup::add_popup("Invalid path to the showcase folder. Please remove any Cyrillic characters");
+                        }
+                        else {
+                            if (recorder.enabled) {
+                                if (!recorder.advanced_mode) {
+                                    recorder.full_cmd = recorder.compile_command();
+                                }
 
-                            recorder.start(recorder.full_cmd);
-                        }                        
-                        else 
-                            recorder.stop();
+                                recorder.start(recorder.full_cmd);
+                            }                        
+                            else 
+                                recorder.stop();
+                        }
                     }
 
                     ImGui::SameLine();
@@ -374,8 +380,14 @@ void ReplayEngine::render() {
                     ImGui::PushItemWidth(80.f * gui::scale);
                     ImGui::InputText("Codec", &recorder.codec);
 
-                    ImGui::PushItemWidth(250 * gui::scale);
+                    ImGui::PushItemWidth(300 * gui::scale);
                     ImGui::InputText("Extra Arguments", &recorder.extra_args);
+
+                    ImGui::PushItemWidth(300 * gui::scale);
+                    ImGui::InputText("VF Args", &recorder.vf_args);
+
+                    if (ImGui::IsItemHovered())
+                        ImGui::SetTooltip("Note: Dont erase the vflip effect as it is needed to vertically expand the video to make the recording look normal");
                     
                     ImGui::Spacing();
 
@@ -462,11 +474,17 @@ void ReplayEngine::render() {
 
             if (ImGui::BeginTabItem("Audio")) {
                 if (ImGui::Checkbox("Record Buffer", &recorderAudio.enabled, gui::scale)) {
-                    if (!recorderAudio.showcase_mode) {
-                        if (recorderAudio.enabled)
-                            recorderAudio.start();
-                        else 
-                            recorderAudio.stop();
+                    if (engine.containsRussianLetters(hacks::folderShowcasesPath)) {
+                        recorder.enabled = false;
+                        imgui_popup::add_popup("Invalid path to the showcase folder. Please remove any Cyrillic characters");
+                    }
+                    else {
+                        if (!recorderAudio.showcase_mode) {
+                            if (recorderAudio.enabled)
+                                recorderAudio.start();
+                            else 
+                                recorderAudio.stop();
+                        }
                     }
                 }
 

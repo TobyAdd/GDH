@@ -27,6 +27,7 @@ class Recorder {
         std::string bitrate = "30M";
         std::string codec = "libx264";
         std::string extra_args = "-preset ultrafast";
+        std::string vf_args = "\"vflip\"";
 
         std::vector<uint8_t> current_frame;
         bool frame_has_data = false;

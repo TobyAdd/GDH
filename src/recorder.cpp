@@ -139,10 +139,10 @@ void Recorder::handle_recording(float dt) {
         }
 
         double frame_dt = 1.0 / static_cast<double>(fps);
-        double time = playLayer->m_gameState.m_levelTime - last_frame_time + extra_time;
+        double time = playLayer->m_gameState.m_levelTime + extra_time - last_frame_time;
         if (time >= frame_dt) {
-            float song_offset = (static_cast<float>(playLayer->m_gameState.m_currentProgress) / hacks::tps_value) * 1000.f;
-            song_offset += playLayer->m_levelSettings->m_songOffset * 1000.f;
+            //float song_offset = (static_cast<float>(playLayer->m_gameState.m_currentProgress) / hacks::tps_value) * 1000.f;
+            //song_offset += playLayer->m_levelSettings->m_songOffset * 1000.f;
             //speedhackAudio::update_frame_offset(song_offset);
 
             extra_time = time - frame_dt;
@@ -169,8 +169,11 @@ std::string Recorder::compile_command() {
     if (!extra_args.empty()) {
         command += fmt::format(" {}", extra_args);
     }
+    
+    if (!vf_args.empty())
+        command += fmt::format(" -vf {}", vf_args);
 
-    command += fmt::format(" -pix_fmt yuv420p -vf \"vflip\" \"{}\\{}\"", hacks::folderShowcasesPath, video_name);
+    command += fmt::format(" -an \"{}\\{}\"", hacks::folderShowcasesPath, video_name);
 
     return command;
 }
