@@ -52,8 +52,9 @@ class $modify(MenuLayer) {
                         ? "Looks like the save file was corrupted! GDH settings were reset to prevent a crash"
                         : "GDH installed. Press Tab to open the GUI");
                 }
-
+                    
                 recorder.ffmpeg_installed = std::filesystem::exists("ffmpeg.exe");
+
             }).draw([] {
                 gui::RenderMain();
             });

@@ -62,6 +62,8 @@ public:
     std::string load(std::string name);
 
     void remove_actions(unsigned frame);
+
+    bool containsRussianLetters(const std::filesystem::path& p);
 };
 
 extern ReplayEngine engine;

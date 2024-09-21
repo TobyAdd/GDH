@@ -4,6 +4,7 @@
 #include "replayEngine.hpp"
 #include "speedhackAudio.hpp"
 #include <Geode/modify/ShaderLayer.hpp>
+#include "gui.hpp"
 
 Recorder recorder;
 RecorderAudio recorderAudio;
@@ -122,6 +123,7 @@ void Recorder::stop() {
     is_recording = false;
     enabled = false;
     left_over = 0;
+    imgui_popup::add_popup("Video recording stoped!");
 }
 
 void Recorder::render_frame() {
@@ -201,6 +203,8 @@ void RecorderAudio::stop() {
     fmod_engine->setEffectsVolume(old_volume_sfx);
 
     geode::log::debug("Audio recording stoped!");
+    imgui_popup::add_popup("Audio recording stoped!");
+
     if (std::filesystem::exists("fmodoutput.wav")) {
         try {
             std::filesystem::rename("fmodoutput.wav", hacks::folderShowcasesPath / audio_name);

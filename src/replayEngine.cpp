@@ -8,6 +8,16 @@ ReplayEngine engine;
 SpamBot spamBot;
 StraightFly straightFly;
 
+bool ReplayEngine::containsRussianLetters(const std::filesystem::path& p) {
+    auto pathStr = p.u8string();
+    for (char c : pathStr) {
+        if ((unsigned char)c >= 0xD0 && (unsigned char)c <= 0xD1) {
+            return true;
+        }
+    }
+    return false;
+}
+
 unsigned ReplayEngine::get_frame() {
     auto pl = GameManager::sharedState()->getPlayLayer();
     if (pl)
@@ -444,6 +454,7 @@ void ReplayEngine::render() {
                     }
                     ImGui::Text("2. Extract from archive \"ffmpeg.exe\" file to Geometry Dash folder");
                     ImGui::Text("3. Restart Geometry Dash");
+                    if (ImGui::Button("Bypass")) recorder.ffmpeg_installed = true;
                 }
 
                 ImGui::EndTabItem();

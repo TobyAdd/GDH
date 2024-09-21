@@ -33,6 +33,8 @@ bool gui::broken_save = false;
 bool needUnloadFont = false;
 std::string search_text;
 
+bool gui::russian_char_warning = false;
+
 void updateCursorState() {
     bool canShowInLevel = true;
     if (auto* playLayer = PlayLayer::get()) {

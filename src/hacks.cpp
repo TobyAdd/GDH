@@ -524,8 +524,10 @@ void hacks::save(const std::vector<window>& windows, const std::filesystem::path
 
     j["version"] = geode::Mod::get()->getVersion().toVString();
 
-    j["showcase_path"] = hacks::folderShowcasesPath;
-
+    if (!engine.containsRussianLetters(hacks::folderShowcasesPath))
+        j["showcase_path"] = hacks::folderShowcasesPath;
+    else
+        imgui_popup::add_popup("Anticrash: Russian characters detected in the path. Please change it in the \"Recorder\" tab to a folder without Russian characters.");
 
     std::ofstream file(filename);
     file << j.dump(4);
@@ -647,7 +649,8 @@ void hacks::load(const std::filesystem::path &filename, std::vector<window>& win
         gui::menu_key = GLFW_KEY_TAB;
     }
 
-    hacks::folderShowcasesPath = j.value("showcase_path", folderPath / "Showcases");
+    if (!engine.containsRussianLetters(hacks::folderShowcasesPath))
+        hacks::folderShowcasesPath = j.value("showcase_path", folderPath / "Showcases");
 
     file.close();
 }
