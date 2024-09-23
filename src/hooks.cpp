@@ -13,6 +13,8 @@
 #include <Geode/modify/EffectGameObject.hpp>
 #include <Geode/modify/LevelEditorLayer.hpp>
 #include <Geode/modify/LevelInfoLayer.hpp>
+#include <Geode/modify/EndLevelLayer.hpp>
+#include <Geode/modify/AchievementNotifier.hpp>
 #include "speedhackAudio.hpp"
 #include "labels.hpp"
 #include "replayEngine.hpp"
@@ -408,6 +410,13 @@ class $modify(PlayLayer) {
     void resetLevel() {
         PlayLayer::resetLevel();
 
+        if (!m_isPracticeMode && !startPositions.empty()) {
+            recorder.delay = m_gameState.m_levelTime;
+        }
+        else if (startPositions.empty()) {
+            recorder.delay = 0;
+        }
+
         if (startpos_switcher::smart_startpos) {
             for (StartPosObject* obj : startPositions)
                 setupStartPos(obj);
@@ -500,6 +509,41 @@ class $modify(PlayLayer) {
 
             if (hacks::draw_trail)
                 drawTrail(m_debugDrawNode);
+        }
+    }
+};
+
+class $modify(MyEndLevelLayer, EndLevelLayer) {
+    struct Fields {
+        cocos2d::CCSprite* black_bg;
+    };
+
+    void pizdec(float) {
+        if (recorder.is_recording && recorder.fade_out) {
+            int opacity = (recorder.after_end_extra_time >= (recorder.after_end_duration - 0.1f)) ? 255 : 255 * recorder.after_end_extra_time / (recorder.after_end_duration - 0.1f);
+            m_fields->black_bg->setOpacity(opacity);
+        }
+        else if (recorder.need_remove_black) {
+            recorder.need_remove_black = false;
+            m_fields->black_bg->setOpacity(0);
+        }
+    }
+
+    void customSetup() {
+        EndLevelLayer::customSetup();
+
+        if (recorder.is_recording && recorder.fade_out) {
+            auto wnd_size = cocos2d::CCDirector::sharedDirector()->getWinSize();
+            m_fields->black_bg = cocos2d::CCSprite::create("game_bg_13_001.png");
+            m_fields->black_bg->setPosition({wnd_size.width/2, wnd_size.height/2});
+            m_fields->black_bg->setScaleX(wnd_size.width);
+            m_fields->black_bg->setScaleY(wnd_size.height);
+            m_fields->black_bg->setColor({0, 0, 0});
+            m_fields->black_bg->setOpacity(0);
+            m_fields->black_bg->setZOrder(999);
+            addChild(m_fields->black_bg);
+
+            schedule(schedule_selector(MyEndLevelLayer::pizdec), 0.0f);
         }
     }
 };
@@ -618,6 +662,13 @@ class $modify(PauseLayer) {
     }
 };
 
+class $modify(AchievementNotifier) {
+    void notifyAchievement(char const* title, char const* desc, char const* icon, bool quest) {
+        if (recorder.is_recording || recorderAudio.is_recording) return;
+        
+        AchievementNotifier::notifyAchievement(title, desc, icon, quest);
+    }
+};
 
 class $modify(cocos2d::CCDrawNode) {
     bool drawPolygon(cocos2d::CCPoint* vertex, unsigned int count, const cocos2d::ccColor4F& fillColor,

@@ -524,8 +524,7 @@ void hacks::save(const std::vector<window>& windows, const std::filesystem::path
 
     j["version"] = geode::Mod::get()->getVersion().toVString();
 
-    if (!engine.containsRussianLetters(hacks::folderShowcasesPath))
-        j["showcase_path"] = hacks::folderShowcasesPath;
+    j["showcase_path"] = hacks::folderShowcasesPath.string();
 
     std::ofstream file(filename);
     file << j.dump(4);

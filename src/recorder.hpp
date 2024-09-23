@@ -24,10 +24,20 @@ class Recorder {
         int width = 1280;
         int height = 720;
         int fps = 60;
-        std::string bitrate = "30M";
+        std::string bitrate = "0";
         std::string codec = "libx264";
-        std::string extra_args = "-preset ultrafast";
+        std::string extra_args = "-pix_fmt yuv420p -preset ultrafast";
         std::string vf_args = "\"vflip\"";
+
+        bool vflip = true;
+
+        bool fade_in = false;
+        float fade_in_start = 0;
+        float fade_in_end = 0.5f;
+
+        bool fade_out = false;
+
+        double delay;
 
         std::vector<uint8_t> current_frame;
         bool frame_has_data = false;
@@ -48,10 +58,13 @@ class Recorder {
         void render_frame();
         void handle_recording(float dt);  
 
+        bool need_remove_black = false;
+
         bool ffmpeg_installed = false;
         bool advanced_mode = false;
         std::string full_cmd;
         std::string compile_command();
+        void compile_vf_args();
 };
 
 

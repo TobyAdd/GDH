@@ -21,7 +21,7 @@ bool ReplayEngine::containsRussianLetters(const std::filesystem::path& p) {
 unsigned ReplayEngine::get_frame() {
     auto pl = GameManager::sharedState()->getPlayLayer();
     if (pl)
-        return static_cast<unsigned>(pl->m_gameState.m_levelTime * hacks::tps_value);
+        return static_cast<unsigned>(from<double>(pl, 0x3C8) * hacks::tps_value);
     return 0;
 } 
 
@@ -297,7 +297,7 @@ void ReplayEngine::render() {
                 ImGui::EndTabItem();
             }
 
-            if (ImGui::BeginTabItem("Recorder")) {
+            if (ImGui::BeginTabItem("Recorder (Beta)")) {
                 if (recorder.ffmpeg_installed) {
                     if (ImGui::Checkbox("Record", &recorder.enabled, gui::scale)) {
                         if (engine.containsRussianLetters(hacks::folderShowcasesPath)) {
@@ -386,9 +386,32 @@ void ReplayEngine::render() {
                     ImGui::PushItemWidth(300 * gui::scale);
                     ImGui::InputText("VF Args", &recorder.vf_args);
 
-                    if (ImGui::IsItemHovered())
-                        ImGui::SetTooltip("Note: Dont erase the vflip effect as it is needed to vertically expand the video to make the recording look normal");
+                    if (ImGui::Checkbox("vflip", &recorder.vflip)) {
+                        recorder.compile_vf_args();
+                    }
+
+                    if (ImGui::Checkbox("Fade in", &recorder.fade_in)) {
+                        recorder.compile_vf_args();
+                    }
+
+                    ImGui::SameLine();
+
+                    ImGui::PushItemWidth(120 * gui::scale);
+                    if (ImGui::DragFloat("##fade_in_start", &recorder.fade_in_start, 0.01f, 0, FLT_MAX, "Start: %.2fs")) {
+                        recorder.compile_vf_args();
+                    }
+
+                    ImGui::SameLine();
                     
+                    ImGui::PushItemWidth(120 * gui::scale);
+                    if (ImGui::DragFloat("##fade_in_end", &recorder.fade_in_end, 0.01f, 0, FLT_MAX, "End: %.2fs")) {
+                        recorder.compile_vf_args();
+                    }
+
+                    ImGui::Checkbox("Fade out", &recorder.fade_in);
+
+                    ImGui::Text("Note: The length of the fade-out is calculated based on the value of \"Second to Render After\" (WIP)");
+
                     ImGui::Spacing();
 
                     ImGui::Text("Level Settings");
@@ -407,7 +430,6 @@ void ReplayEngine::render() {
                         recorder.width = 1280;
                         recorder.height = 720;
                         recorder.fps = 60;
-                        recorder.bitrate = "30M";
                     }
 
                     ImGui::SameLine();
@@ -417,7 +439,15 @@ void ReplayEngine::render() {
                         recorder.width = 1920;
                         recorder.height = 1080;
                         recorder.fps = 60;
-                        recorder.bitrate = "50M";
+                    }
+
+                    ImGui::SameLine();
+
+                    if (ImGui::Button("QHD"))
+                    {
+                        recorder.width = 2560;
+                        recorder.height = 1440;
+                        recorder.fps = 60;
                     }
 
                     ImGui::SameLine();
@@ -427,7 +457,110 @@ void ReplayEngine::render() {
                         recorder.width = 3840;
                         recorder.height = 2160;
                         recorder.fps = 60;
-                        recorder.bitrate = "70M";
+                    }
+
+                    ImGui::SameLine();
+
+                    if (ImGui::Button("8K"))
+                    {
+                        recorder.width = 7680;
+                        recorder.height = 4320;
+                        recorder.fps = 60;
+                    }
+
+                    if (ImGui::Button("CPU BGR"))
+                    {
+                        recorder.codec = "libx264rgb";
+                        recorder.extra_args = "-crf 15 -pix_fmt bgr0";
+                        recorder.compile_vf_args();
+                    }
+
+                    ImGui::SameLine();
+
+                    if (ImGui::Button("CPU YUV420P"))
+                    {
+                        recorder.codec = "libx265";
+                        recorder.extra_args = "-crf 17 -pix_fmt yuv420p";
+                    }
+
+                    ImGui::SameLine();
+
+                    if (ImGui::Button("CPU x265"))
+                    {
+                        recorder.codec = "libx265";
+                        recorder.extra_args = "-preset fast -pix_fmt yuv420p -x265-params limit-sao:subme=3:rc-lookahead=40:b-adapt=1:crf=16:bframes=8:psy-rd=2:psy-rdoq=4:aq-mode=3:deblock=-1,-1";
+                        recorder.bitrate = "0";
+                    }
+
+                    ImGui::SameLine();
+
+                    if (ImGui::Button("CPU x265 Lossless"))
+                    {
+                        recorder.codec = "libx265";
+                        recorder.extra_args = "-preset fast -pix_fmt yuv420p -x265-params limit-sao:subme=3:rc-lookahead=40:b-adapt=1:crf=0:bframes=8:psy-rd=2:psy-rdoq=4:aq-mode=3:deblock=-1,-1";
+                        recorder.bitrate = "0";
+                    }
+
+                    ImGui::SameLine();
+
+                    if (ImGui::Button("CPU HDR"))
+                    {
+                        recorder.codec = "libx265";
+                        recorder.extra_args = "-pix_fmt yuv420p10le -x265-params hdr-opt=1:repeat-headers=1:colorprim=bt2020:transfer=arib-std-b67:colormatrix=bt2020nc:master-display=G(8500,39850)B(6550,2300)R(35400,14600)WP(15635,16450)L(40000000,50):max-cll=0,0 -crf 12 -preset fast";
+                        recorder.compile_vf_args();
+                        if (!recorder.vf_args.empty())
+                            recorder.vf_args += ",";
+                        recorder.vf_args += "colorspace=bt2020:iall=bt709";
+                        recorder.bitrate = "0";
+                    }
+
+                    if (ImGui::Button("NVIDIA Visually Lossless"))
+                    {
+                        recorder.codec = "hevc_nvenc";
+                        recorder.extra_args = "-preset slow -qp 6 -pix_fmt yuv420p -rc-lookahead 16";
+                        recorder.bitrate = "0";
+                    }
+
+                    ImGui::SameLine();
+
+                    if (ImGui::Button("NVIDIA True Lossless"))
+                    {
+                        recorder.codec = "hevc_nvenc";
+                        recorder.extra_args = "-preset slow -qp 0 -pix_fmt yuv420p -rc-lookahead 16";
+                        recorder.bitrate = "0";
+                    }
+
+                    ImGui::SameLine();
+
+                    if (ImGui::Button("NVIDIA Colour Fix"))
+                    {
+                        recorder.codec = "hevc_nvenc";
+                        recorder.extra_args = "-preset slow -qp 16 -pix_fmt bgr0 -rc-lookahead 16";
+                        recorder.bitrate = "0";
+                    }
+
+                    if (ImGui::Button("AMD x264"))
+                    {
+                        recorder.codec = "h264_amf";
+                        recorder.extra_args = "-pix_fmt yuv420p";
+                    }
+
+                    ImGui::SameLine();
+
+                    if (ImGui::Button("AMD x265"))
+                    {
+                        recorder.codec = "hevc_amf";
+                        recorder.extra_args = "-pix_fmt yuv420p -qp_i 16 -qp_p 16";
+                        recorder.bitrate = "0";
+                    }
+
+                    if (ImGui::Button("Global Colour Fix"))
+                    {
+                        recorder.compile_vf_args();
+                        if (!recorder.vf_args.empty())
+                            recorder.vf_args += ",";
+
+                        recorder.vf_args += "colorspace=all=bt709:iall=bt470bg:fast=1";
                     }
 
                     ImGui::Spacing();

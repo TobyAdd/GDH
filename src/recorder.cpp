@@ -124,6 +124,10 @@ void Recorder::stop() {
     enabled = false;
     left_over = 0;
     imgui_popup::add_popup("Video recording stoped!");
+    
+    if (PlayLayer::get() && fade_out) {
+        need_remove_black = true;
+    }
 }
 
 void Recorder::render_frame() {
@@ -132,21 +136,21 @@ void Recorder::render_frame() {
 }
 
 void Recorder::handle_recording(float dt) {
-    auto playLayer = GameManager::sharedState()->getPlayLayer();
+    auto playLayer = PlayLayer::get();
     if (!playLayer->m_hasCompletedLevel || after_end_extra_time < after_end_duration) {
         if (playLayer->m_hasCompletedLevel) {
             after_end_extra_time += dt;
         }
 
         double frame_dt = 1.0 / static_cast<double>(fps);
-        double time = playLayer->m_gameState.m_levelTime + extra_time - last_frame_time;
+        double time = (playLayer->m_gameState.m_levelTime - delay) + extra_time - last_frame_time;
         if (time >= frame_dt) {
             //float song_offset = (static_cast<float>(playLayer->m_gameState.m_currentProgress) / hacks::tps_value) * 1000.f;
             //song_offset += playLayer->m_levelSettings->m_songOffset * 1000.f;
             //speedhackAudio::update_frame_offset(song_offset);
 
             extra_time = time - frame_dt;
-            last_frame_time = playLayer->m_gameState.m_levelTime;
+            last_frame_time = (playLayer->m_gameState.m_levelTime - delay);
             render_frame();
         }
     }
@@ -169,6 +173,9 @@ std::string Recorder::compile_command() {
     if (!extra_args.empty()) {
         command += fmt::format(" {}", extra_args);
     }
+    else {
+        command += " -pix_fmt yuv420p";
+    }
     
     if (!vf_args.empty())
         command += fmt::format(" -vf {}", vf_args);
@@ -176,6 +183,21 @@ std::string Recorder::compile_command() {
     command += fmt::format(" -an \"{}\\{}\"", hacks::folderShowcasesPath, video_name);
 
     return command;
+}
+
+void Recorder::compile_vf_args() {
+    vf_args = "";
+    if (vflip) {
+        vf_args += "\"vflip\"";
+    }
+
+    if (fade_in) {
+        if (vflip) {
+            vf_args += ",";
+        }
+
+        vf_args += fmt::format("\"fade=t=in:st={}:d={}\"", fade_in_start, fade_in_end);
+    }
 }
 
 void RecorderAudio::start() {
@@ -191,7 +213,6 @@ void RecorderAudio::start() {
     fmod_engine->setEffectsVolume(1.f);
 
     fmod_engine->m_system->setOutput(FMOD_OUTPUTTYPE_WAVWRITER);
-    geode::log::debug("Audio recording started!");
 }
 
 void RecorderAudio::stop() {
@@ -205,7 +226,6 @@ void RecorderAudio::stop() {
     fmod_engine->setBackgroundMusicVolume(old_volume_music);
     fmod_engine->setEffectsVolume(old_volume_sfx);
 
-    geode::log::debug("Audio recording stoped!");
     imgui_popup::add_popup("Audio recording stoped!");
 
     if (std::filesystem::exists("fmodoutput.wav")) {
