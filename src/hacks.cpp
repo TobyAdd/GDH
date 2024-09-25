@@ -523,8 +523,8 @@ void hacks::save(const std::vector<window>& windows, const std::filesystem::path
     j["frame_advance_disable_key"] = hacks::frame_advance_disable_key;
 
     j["version"] = geode::Mod::get()->getVersion().toVString();
-
-    j["showcase_path"] = hacks::folderShowcasesPath.string();
+    
+    j["showcase_path2"] = hacks::folderShowcasesPath.u8string();
 
     std::ofstream file(filename);
     file << j.dump(4);
@@ -646,8 +646,8 @@ void hacks::load(const std::filesystem::path &filename, std::vector<window>& win
         gui::menu_key = GLFW_KEY_TAB;
     }
 
-    if (!engine.containsRussianLetters(hacks::folderShowcasesPath))
-        hacks::folderShowcasesPath = j.value("showcase_path", folderPath / "Showcases");
+    if (!j["showcase_path2"].is_null())
+        hacks::folderShowcasesPath = j["showcase_path2"].get<std::u8string>();
 
     file.close();
 }
