@@ -183,7 +183,7 @@ void gui::RenderMain() {
             }
 
             
-            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+            if (ImGui::IsItemHovered())
                 ImGui::SetTooltip("NOT RECOMMENDED FOR NORMAL USE\nTHIS FEATURE IS PURELY MADE FOR REPLAY ENGINE TO BYPASS PHYSICS AND\nMAKE FIXED FRAME UPDATES (IT RUINS THE PERFORMANCE BUT IT MAKES THE MACRO MORE ACCURATE)\n\nRecommend setting the recording to 240 TPS to ensure stability in both recording and playback of the macro");
 
             ImGui::SameLine();
@@ -366,7 +366,7 @@ void gui::RenderMain() {
 
                 ImGui::PopStyleColor();
 
-                if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal) && !hck.desc.empty())
+                if (ImGui::IsItemHovered() && !hck.desc.empty())
                     ImGui::SetTooltip("%s", hck.desc.c_str());
                 
                 if (hck.name == "RGB Icons") {
