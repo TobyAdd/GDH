@@ -1,3 +1,9 @@
+# 4.7.3
+- Removed the annoying window if there are Russian characters in the path (now prevents recording a video if the path has Russian characters)
+- Save the showcase path in byte format to avoid crashes with Russian characters
+- Fixed Recorder when recording level with startpos
+- More presets
+
 # 4.7.2
 - Fixed Russian characters conflict
 

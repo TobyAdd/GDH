@@ -1,11 +1,11 @@
 {
-	"geode": "3.6.1",
+	"geode": "3.7.1",
 	"gd": {
 		"win": "2.206"
 	},
 	"id": "tobyadd.gdh",
 	"name": "GDH",
-	"version": "v4.7.2",
+	"version": "v4.7.3",
 	"developer": "TobyAdd",
 	"description": "GDH is an open-source Geometry Dash mod menu that aims to improve the game's performance and add new features",
 	"early-load": true,
