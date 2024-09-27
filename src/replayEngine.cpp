@@ -426,6 +426,53 @@ void ReplayEngine::render() {
 
                     ImGui::Separator();
 
+                    if (ImGui::Button("Save")) {
+                        json j;
+                        j["width"] = recorder.width;
+                        j["height"] = recorder.height;
+                        j["fps"] = recorder.fps;
+                        j["bitrate"] = recorder.bitrate;
+                        j["codec"] = recorder.codec;
+                        j["extra_args"] = recorder.extra_args;
+                        j["vf_args"] = recorder.vf_args;
+
+                        std::ofstream file(hacks::folderPath / "recorder_settings.json");
+                        if (file.is_open()) {
+                            file << j.dump(4);                            
+                            file.close();
+
+                            imgui_popup::add_popup("Configuration saved");
+                        } else {
+                            imgui_popup::add_popup("Could not open file for writing");
+                        }
+                    }
+
+                    ImGui::SameLine();
+
+                    if (ImGui::Button("Load")) {
+                        std::ifstream file(hacks::folderPath / "recorder_settings.json");
+                        if (file.is_open()) {
+                            json j = json::parse(file, nullptr, false);
+                            if (!j.is_discarded()) {
+                                recorder.width = j.value("width", recorder.width);
+                                recorder.height = j.value("height", recorder.height);
+                                recorder.fps = j.value("fps", recorder.fps);
+                                recorder.bitrate = j.value("bitrate", recorder.bitrate);
+                                recorder.codec = j.value("codec", recorder.codec);
+                                recorder.extra_args = j.value("extra_args", recorder.extra_args);
+                                recorder.vf_args = j.value("vf_args", recorder.vf_args);
+
+                                imgui_popup::add_popup("Configuration loaded");
+                            } else {
+                                imgui_popup::add_popup("json broken?");
+                            }
+
+                            file.close();
+                        } else {
+                            imgui_popup::add_popup("Could not open file for reading");
+                        }
+                    }
+
                     if (ImGui::Button("HD"))
                     {
                         recorder.width = 1280;
