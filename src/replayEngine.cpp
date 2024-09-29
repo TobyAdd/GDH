@@ -20,10 +20,16 @@ bool ReplayEngine::containsRussianLetters(const std::filesystem::path& p) {
 
 unsigned ReplayEngine::get_frame() {
     auto pl = GameManager::sharedState()->getPlayLayer();
-    if (pl)
-        return static_cast<unsigned>(from<double>(pl, 0x3C8) * hacks::tps_value);
-    return 0;
-} 
+    if (!pl) {
+        return 0;
+    }
+
+    return (engine.version_engine == 1)
+        ? static_cast<unsigned>(pl->m_gameState.m_levelTime * hacks::tps_value)
+        : (engine.version_engine == 2)
+            ? static_cast<unsigned>(pl->m_gameState.m_currentProgress)
+            : 0;
+}
 
 
 void ReplayEngine::handle_recording(GJBaseGameLayer* self, bool player) {
@@ -56,7 +62,7 @@ void ReplayEngine::handle_playing(GJBaseGameLayer* self)
 {
     unsigned frame = get_frame();
 
-    if (accuracy_fix) {
+    if (version_engine == 1 && accuracy_fix) {
         while (index < (int)replay.size() && frame >= replay[index].frame)
         {
             if (replay[index].player)
@@ -108,7 +114,7 @@ std::string ReplayEngine::save(std::string name)
     if (replay2.empty())
         return "Replay doesn't have actions";
 
-    std::ofstream file(hacks::folderMacroPath / std::string(name + ".re"), std::ios::binary);
+    std::ofstream file(hacks::folderMacroPath / std::string(name + ((version_engine == 1) ? ".re" : ".re2")), std::ios::binary);
 
     file.write(reinterpret_cast<char *>(&hacks::tps_value), sizeof(hacks::tps_value));
 
@@ -130,7 +136,7 @@ std::string ReplayEngine::load(std::string name)
     if (!replay2.empty())
         return "Please clear replay before loading another";
 
-    std::ifstream file(hacks::folderMacroPath / std::string(name + ".re"), std::ios::binary);
+    std::ifstream file(hacks::folderMacroPath / std::string(name + ((version_engine == 1) ? ".re" : ".re2")), std::ios::binary);
     if (!file)
         return "Replay doesn't exist";
 
@@ -161,11 +167,13 @@ std::string ReplayEngine::load(std::string name)
 
 void ReplayEngine::remove_actions(unsigned frame)
 {
-    auto check = [&](replay_data &action) -> bool
-    {
-        return action.frame > frame;
-    };
-    replay.erase(remove_if(replay.begin(), replay.end(), check), replay.end());
+    if (version_engine == 1) {
+        auto check = [&](replay_data &action) -> bool
+        {
+            return action.frame > frame;
+        };
+        replay.erase(remove_if(replay.begin(), replay.end(), check), replay.end());
+    }
 
     auto check2 = [&](replay_data2 &action) -> bool
     {
@@ -179,7 +187,10 @@ void openSelectReplay(const char *str_id) {
     replay_list.clear();
     for (const auto &entry : std::filesystem::directory_iterator(hacks::folderMacroPath)) {
         std::string replay = entry.path().filename().string();
-        if (replay.size() >= 3 && replay.substr(replay.size() - 3) == ".re") {
+        if (engine.version_engine == 1 && replay.size() >= 3 && replay.substr(replay.size() - 3) == ".re") {
+            replay_list.push_back(entry);
+        }
+        else if (engine.version_engine == 2 && replay.size() >= 4 && replay.substr(replay.size() - 4) == ".re2") {
             replay_list.push_back(entry);
         }
     }
@@ -227,6 +238,46 @@ std::filesystem::path SelectFolder(HWND owner = NULL) {
     return std::filesystem::path();
 }
 
+void GreenCheckmarkWithText(const char* label, float sz = 16.0f, ImU32 color = IM_COL32(0, 255, 0, ImGui::GetStyle().Alpha * 255))
+{
+    ImVec2 pos = ImGui::GetCursorScreenPos();
+
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+    float thickness = std::max(sz / 5.0f, 1.0f);
+    ImVec2 p1 = ImVec2(pos.x + 0.20f * sz, pos.y + 0.55f * sz);
+    ImVec2 p2 = ImVec2(pos.x + 0.55f * sz, pos.y + 0.90f * sz);
+    ImVec2 p3 = ImVec2(pos.x + 0.85f * sz, pos.y + 0.10f * sz);
+
+    draw_list->AddLine(p1, p2, color, thickness);
+    draw_list->AddLine(p2, p3, color, thickness);
+
+    ImGui::SetCursorScreenPos(ImVec2(pos.x + sz + 5.0f, pos.y));
+
+    ImGui::TextUnformatted(label);
+}
+
+void RedCrossWithText(const char* label, float sz = 16.0f, ImU32 color = IM_COL32(255, 0, 0, ImGui::GetStyle().Alpha * 255))
+{
+    ImVec2 pos = ImGui::GetCursorScreenPos();
+
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+    float thickness = std::max(sz / 5.0f, 1.0f);
+    ImVec2 p1 = ImVec2(pos.x + 0.20f * sz, pos.y + 0.20f * sz);
+    ImVec2 p2 = ImVec2(pos.x + 0.80f * sz, pos.y + 0.80f * sz);
+    ImVec2 p3 = ImVec2(pos.x + 0.20f * sz, pos.y + 0.80f * sz);
+    ImVec2 p4 = ImVec2(pos.x + 0.80f * sz, pos.y + 0.20f * sz);
+
+    draw_list->AddLine(p1, p2, color, thickness);
+    draw_list->AddLine(p3, p4, color, thickness);
+
+    ImGui::SetCursorScreenPos(ImVec2(pos.x + sz + 5.0f, pos.y));
+
+    ImGui::TextUnformatted(label);
+}
+
+
 void ReplayEngine::render() {
     static geode::Mod* cbfMod = geode::Loader::get()->getLoadedMod("syzzi.click_between_frames");
     static bool hasCBF = cbfMod != nullptr && cbfMod->isEnabled();
@@ -242,22 +293,57 @@ void ReplayEngine::render() {
         openReplayMultishit();
         ImGui::EndPopup();
     }
-    
+
+    if (settings_openned) {
+        static bool first_time = true;
+        if (first_time) {
+            first_time = false;
+            ImGui::SetNextWindowSize({740 * gui::scale, 420 * gui::scale});
+        }        
+    }
+     
     if (ImGui::BeginPopupModal("Replay Engine Settings", &settings_openned)) {
         if (ImGui::BeginTabBar("Replay Engine Settings Tabs")) {
             if (ImGui::BeginTabItem("Settings")) {
-                ImGui::Checkbox("Real Time", &engine.real_time, gui::scale);
+                ImGui::Checkbox("Real Time", &real_time, gui::scale);
 
                 ImGui::SameLine();
 
-                ImGui::Checkbox("Frame Advance", &engine.frame_advance, gui::scale);
+                ImGui::Checkbox("Frame Advance", &frame_advance, gui::scale);
 
-                ImGui::Checkbox("Accuracy Fix", &engine.accuracy_fix, gui::scale);
+                if (version_engine == 1) {
+                    ImGui::Checkbox("Accuracy Fix", &accuracy_fix, gui::scale);
+
+                    ImGui::SameLine();
+
+                    ImGui::Checkbox("Rotation Fix", &rotation_fix, gui::scale);
+                }
+
+                ImGui::Spacing();
+                ImGui::Text("Replay System");
+                ImGui::Separator();
+
+                ImGui::RadioButton("Engine v1", &version_engine, 1, gui::scale);
 
                 ImGui::SameLine();
 
-                ImGui::Checkbox("Rotation Fix", &engine.rotation_fix, gui::scale);
+                ImGui::RadioButton("Engine v2", &version_engine, 2, gui::scale);
 
+
+                ImGui::Spacing();
+                ImGui::Text("Replay System differences");
+                ImGui::Separator();
+                ImGui::Text("Engine v1");
+                GreenCheckmarkWithText("More accuracy, physics frames", 16.f * gui::scale);
+                GreenCheckmarkWithText("Any TPS value for the macro", 16.f * gui::scale);
+                RedCrossWithText("Poor performance", 16.f * gui::scale);
+
+                ImGui::NewLine();
+
+                ImGui::Text("Engine v2");
+                GreenCheckmarkWithText("Clear frames, less accurate", 16.f * gui::scale, IM_COL32(255, 255, 0, ImGui::GetStyle().Alpha * 255));
+                RedCrossWithText("240 TPS Lock", 16.f * gui::scale);
+                GreenCheckmarkWithText("Better performance", 16.f * gui::scale);
                 ImGui::EndTabItem();
             }
 
@@ -300,7 +386,7 @@ void ReplayEngine::render() {
             if (ImGui::BeginTabItem("Recorder (Beta)")) {
                 if (recorder.ffmpeg_installed) {
                     if (ImGui::Checkbox("Record", &recorder.enabled, gui::scale)) {
-                        if (engine.containsRussianLetters(hacks::folderShowcasesPath)) {
+                        if (containsRussianLetters(hacks::folderShowcasesPath)) {
                             recorder.enabled = false;
                             imgui_popup::add_popup("Invalid path to the showcase folder. Please remove any Cyrillic characters");
                         }
@@ -659,7 +745,7 @@ void ReplayEngine::render() {
 
             if (ImGui::BeginTabItem("Audio")) {
                 if (ImGui::Checkbox("Record Buffer", &recorderAudio.enabled, gui::scale)) {
-                    if (engine.containsRussianLetters(hacks::folderShowcasesPath)) {
+                    if (containsRussianLetters(hacks::folderShowcasesPath)) {
                         recorder.enabled = false;
                         imgui_popup::add_popup("Invalid path to the showcase folder. Please remove any Cyrillic characters");
                     }
@@ -786,9 +872,13 @@ void ReplayEngine::render() {
 
     if (ImGui::RadioButton("Record", &mode_, 1, gui::scale))
     {
-        if (hacks::tps_enabled) {
-            if (engine.frame_advance)
+        bool canRecord = (version_engine == 1 && hacks::tps_enabled) || (version_engine == 2 && !hacks::tps_enabled);
+        
+        if (canRecord)
+        {
+            if (frame_advance) {
                 imgui_popup::add_popup("Frame Advance enabled (that's so you don't say the level was freezing)");
+            }
 
             if (mode != state::record) {
                 replay.clear();
@@ -796,26 +886,30 @@ void ReplayEngine::render() {
             }
             mode = state::record;
         }
-        else {
+        else
+        {
             mode = state::disable;
-            imgui_popup::add_popup("Enable TPS Bypass to record the replay");
+            imgui_popup::add_popup((version_engine == 1) ? "Enable TPS Bypass to record the replay" : "Disable TPS Bypass to record the replay");
         }
     }
+
     
     ImGui::SameLine();
 
     if (ImGui::RadioButton("Play", &mode_, 2, gui::scale)) {
-        if (hacks::tps_enabled) {
-            if (engine.frame_advance)
+        bool canPlay = (version_engine == 1 && hacks::tps_enabled) || (version_engine == 2 && !hacks::tps_enabled);
+        
+        if (canPlay) {
+            if (frame_advance) {
                 imgui_popup::add_popup("Frame Advance enabled (that's so you don't say the level was freezing)");
+            }
 
             mode = state::play;
-        }
-        else {
+        } else {
             mode = state::disable;
-            imgui_popup::add_popup("Enable TPS Bypass to playback the replay");
+            imgui_popup::add_popup((version_engine == 1) ? "Enable TPS Bypass to playback the replay" : "Disable TPS Bypass to playback the replay");
         }
-    }  
+    }
 
     ImGui::Separator();   
 

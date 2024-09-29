@@ -30,6 +30,8 @@ class ReplayEngine
 private:
     void openReplayMultishit();
 public:
+    int version_engine = 1;
+
     state mode = disable;
     std::string replay_name;
 

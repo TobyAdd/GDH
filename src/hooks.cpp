@@ -410,6 +410,8 @@ class $modify(PlayLayer) {
     void resetLevel() {
         PlayLayer::resetLevel();
 
+        // geode::log::debug("[restart level] - curr {}; custom_curr {}", static_cast<unsigned>(m_gameState.m_currentProgress), static_cast<unsigned>(m_gameState.m_levelTime * 240));
+
         if (!m_isPracticeMode && !startPositions.empty()) {
             recorder.delay = m_gameState.m_levelTime;
         }
@@ -511,6 +513,12 @@ class $modify(PlayLayer) {
                 drawTrail(m_debugDrawNode);
         }
     }
+
+    CheckpointObject* createCheckpoint() {
+        auto ret = PlayLayer::createCheckpoint();
+        // geode::log::debug("[checkpoint created] - curr {}; custom_curr {}", static_cast<unsigned>(m_gameState.m_currentProgress), static_cast<unsigned>(m_gameState.m_levelTime * 240));
+        return ret;
+    }
 };
 
 class $modify(MyEndLevelLayer, EndLevelLayer) {
@@ -568,15 +576,19 @@ class $modify(GJBaseGameLayer) {
 
         GJBaseGameLayer::update(dt);
 
+        // geode::log::debug("[GJBaseGameLayer::update] - curr {}; custom_curr {}", static_cast<unsigned>(m_gameState.m_currentProgress), static_cast<unsigned>(m_gameState.m_levelTime * 240));
+
         if (hacks::jump_hack)
             m_player1->m_isOnGround = true;
 
-        if (engine.mode == state::record) {
-            engine.handle_recording(this, true);
-            engine.handle_recording(this, false);
-        }
-        else if (engine.mode == state::play) {
-            engine.handle_playing(this);
+        if (engine.version_engine == 1) {
+            if (engine.mode == state::record) {
+                engine.handle_recording(this, true);
+                engine.handle_recording(this, false);
+            }
+            else if (engine.mode == state::play) {
+                engine.handle_playing(this);
+            }
         }
 
         spamBot.handle_spambot(this);
@@ -585,6 +597,12 @@ class $modify(GJBaseGameLayer) {
 
     void processCommands(float dt) {
         GJBaseGameLayer::processCommands(dt);
+
+        // geode::log::debug("[process commands] - curr {}; custom_curr {}", static_cast<unsigned>(m_gameState.m_currentProgress), static_cast<unsigned>(m_gameState.m_levelTime * 240));
+
+        if (engine.mode == state::play) {
+            engine.handle_playing(this);
+        }
 
         if (hacks::show_hitboxes && hacks::draw_trail) {
             if (!m_player1->m_isDead) {
