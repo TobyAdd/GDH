@@ -3,6 +3,7 @@
 #include "gui.hpp"
 #include "recorder.hpp"
 #include <shlobj.h>
+#include "practice_fixes.hpp"
 
 ReplayEngine engine;
 SpamBot spamBot;
@@ -298,7 +299,7 @@ void ReplayEngine::render() {
         static bool first_time = true;
         if (first_time) {
             first_time = false;
-            ImGui::SetNextWindowSize({740 * gui::scale, 420 * gui::scale});
+            ImGui::SetNextWindowSize({740 * gui::scale, 460 * gui::scale});
         }        
     }
      
@@ -317,7 +318,10 @@ void ReplayEngine::render() {
                     ImGui::SameLine();
 
                     ImGui::Checkbox("Rotation Fix", &rotation_fix, gui::scale);
+                    ImGui::SameLine();
                 }
+
+                ImGui::Checkbox("Practice Fix", &practice_fix);
 
                 ImGui::Spacing();
                 ImGui::Text("Replay System");
@@ -337,6 +341,7 @@ void ReplayEngine::render() {
                 GreenCheckmarkWithText("More accuracy, physics frames", 16.f * gui::scale);
                 GreenCheckmarkWithText("Any TPS value for the macro", 16.f * gui::scale);
                 RedCrossWithText("Poor performance", 16.f * gui::scale);
+                RedCrossWithText("Large macro size", 16.f * gui::scale);
 
                 ImGui::NewLine();
 
@@ -344,6 +349,7 @@ void ReplayEngine::render() {
                 GreenCheckmarkWithText("Clear frames, less accurate", 16.f * gui::scale, IM_COL32(255, 255, 0, ImGui::GetStyle().Alpha * 255));
                 RedCrossWithText("240 TPS Lock", 16.f * gui::scale);
                 GreenCheckmarkWithText("Better performance", 16.f * gui::scale);
+                GreenCheckmarkWithText("Small macro size", 16.f * gui::scale);
                 ImGui::EndTabItem();
             }
 

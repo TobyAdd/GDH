@@ -37,6 +37,7 @@ public:
 
     bool accuracy_fix = true;
     bool rotation_fix = false;
+    bool practice_fix = true;
 
     bool real_time = true;
     bool ignore_inputs = false;

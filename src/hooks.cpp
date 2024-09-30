@@ -21,6 +21,7 @@
 #include <random>
 #include "memory.hpp"
 #include "gui.hpp"
+#include "practice_fixes.hpp"
 
 PauseLayer* hooks::pauseLayer;
 
@@ -216,6 +217,9 @@ class $modify(PlayLayer) {
         cocos2d::CCLabelBMFont* labels;
         cocos2d::CCSprite* tint_death_bg;
         GameObject* anticheat_obj = nullptr;
+
+        std::vector<checkpoint_data> checkpoints_p1;
+        std::vector<checkpoint_data> checkpoints_p2;
 
         ~Fields() {
             if (recorderAudio.is_recording && recorderAudio.showcase_mode) {
@@ -435,6 +439,18 @@ class $modify(PlayLayer) {
         playerTrail2.clear();
 
         engine.handle_reseting(this);
+
+        if (engine.practice_fix) {
+            if (m_isPracticeMode && !m_fields->checkpoints_p1.empty() && !m_fields->checkpoints_p2.empty()) {
+                apply_checkpoint(m_player1, m_fields->checkpoints_p1.back());
+                apply_checkpoint(m_player2, m_fields->checkpoints_p2.back());
+            }
+            else if (!m_isPracticeMode) {
+                m_fields->checkpoints_p1.clear();
+                m_fields->checkpoints_p2.clear();
+            }
+        }
+
         
         noclip_accuracy.handle_reset(this);
         cps_counter.reset();
@@ -516,8 +532,17 @@ class $modify(PlayLayer) {
 
     CheckpointObject* createCheckpoint() {
         auto ret = PlayLayer::createCheckpoint();
-        // geode::log::debug("[checkpoint created] - curr {}; custom_curr {}", static_cast<unsigned>(m_gameState.m_currentProgress), static_cast<unsigned>(m_gameState.m_levelTime * 240));
+        geode::log::debug("[checkpoint created] - curr {}", static_cast<unsigned>(m_gameState.m_currentProgress));
+        m_fields->checkpoints_p1.push_back(create_checkpoint_p1(this));
+        m_fields->checkpoints_p2.push_back(create_checkpoint_p2(this));
         return ret;
+    }
+
+    void removeCheckpoint(bool p0) {
+        PlayLayer::removeCheckpoint(p0);
+        if (!m_fields->checkpoints_p1.empty()) m_fields->checkpoints_p1.pop_back();
+        if (!m_fields->checkpoints_p2.empty()) m_fields->checkpoints_p2.pop_back();
+        geode::log::debug("[checkpoint removed] - curr {}", static_cast<unsigned>(m_gameState.m_currentProgress));
     }
 };
 
@@ -576,7 +601,7 @@ class $modify(GJBaseGameLayer) {
 
         GJBaseGameLayer::update(dt);
 
-        // geode::log::debug("[GJBaseGameLayer::update] - curr {}; custom_curr {}", static_cast<unsigned>(m_gameState.m_currentProgress), static_cast<unsigned>(m_gameState.m_levelTime * 240));
+        // geode::log::debug("[GJBaseGameLayer::update] - curr {}", static_cast<unsigned>(m_gameState.m_currentProgress));
 
         if (hacks::jump_hack)
             m_player1->m_isOnGround = true;
@@ -598,7 +623,7 @@ class $modify(GJBaseGameLayer) {
     void processCommands(float dt) {
         GJBaseGameLayer::processCommands(dt);
 
-        // geode::log::debug("[process commands] - curr {}; custom_curr {}", static_cast<unsigned>(m_gameState.m_currentProgress), static_cast<unsigned>(m_gameState.m_levelTime * 240));
+        // geode::log::debug("[process commands] - curr {}", static_cast<unsigned>(m_gameState.m_currentProgress));
 
         if (engine.mode == state::play) {
             engine.handle_playing(this);
