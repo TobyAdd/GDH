@@ -122,9 +122,6 @@ class $modify(cocos2d::CCScheduler) {
         if (hacks::speed_enabled)
             dt *= hacks::speed_value;
 
-        if (!hacks::tps_enabled)    
-            return CCScheduler::update(dt);
-        
         float newdt = 1.f / hacks::tps_value; 
 
         if (recorder.is_recording) {
@@ -132,10 +129,13 @@ class $modify(cocos2d::CCScheduler) {
                 return;
             }
             else {
-                return CCScheduler::update(newdt);
+                return CCScheduler::update((engine.version_engine == 1) ? newdt : 1.f / 60.f);
             }
         }
 
+        if (!hacks::tps_enabled)    
+            return CCScheduler::update(dt);
+        
         auto pl = GameManager::sharedState()->getPlayLayer();
         if (engine.frame_advance && pl && !pl->m_isPaused) {
             if (engine.next_frame) {

@@ -66,6 +66,9 @@ public:
     std::string save(std::string name);
     std::string load(std::string name);
 
+    std::string save2(std::string name);
+    std::string load2(std::string name);
+
     void remove_actions(unsigned frame);
 
     bool containsRussianLetters(const std::filesystem::path& p);

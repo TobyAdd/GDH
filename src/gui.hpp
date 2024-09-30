@@ -29,6 +29,7 @@ struct popup_message {
 
 namespace imgui_popup {
     const float popupDuration = 5.0f;
+    extern bool enabled;
 
     extern std::vector<popup_message> messages;
     void add_popup(std::string caption);

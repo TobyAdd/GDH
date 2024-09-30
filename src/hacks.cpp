@@ -526,6 +526,10 @@ void hacks::save(const std::vector<window>& windows, const std::filesystem::path
     
     j["showcase_path2"] = hacks::folderShowcasesPath.u8string();
 
+    j["version_engine"] = engine.version_engine;
+
+    j["imgui_popup::enabled"] = imgui_popup::enabled;
+
     std::ofstream file(filename);
     file << j.dump(4);
 }
@@ -648,6 +652,10 @@ void hacks::load(const std::filesystem::path &filename, std::vector<window>& win
 
     if (!j["showcase_path2"].is_null())
         hacks::folderShowcasesPath = j["showcase_path2"].get<std::u8string>();
+
+    engine.version_engine = j.value("version_engine", 2);
+
+    imgui_popup::enabled = j.value("imgui_popup::enabled", true);
 
     file.close();
 }

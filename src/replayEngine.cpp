@@ -115,7 +115,7 @@ std::string ReplayEngine::save(std::string name)
     if (replay2.empty())
         return "Replay doesn't have actions";
 
-    std::ofstream file(hacks::folderMacroPath / std::string(name + ((version_engine == 1) ? ".re" : ".re2")), std::ios::binary);
+    std::ofstream file(hacks::folderMacroPath / std::string(name + ".re"), std::ios::binary);
 
     file.write(reinterpret_cast<char *>(&hacks::tps_value), sizeof(hacks::tps_value));
 
@@ -137,17 +137,11 @@ std::string ReplayEngine::load(std::string name)
     if (!replay2.empty())
         return "Please clear replay before loading another";
 
-    std::ifstream file(hacks::folderMacroPath / std::string(name + ((version_engine == 1) ? ".re" : ".re2")), std::ios::binary);
+    std::ifstream file(hacks::folderMacroPath / std::string(name + ".re"), std::ios::binary);
     if (!file)
         return "Replay doesn't exist";
 
     file.read(reinterpret_cast<char *>(&hacks::tps_value), sizeof(hacks::tps_value));
-
-    if (!hacks::tps_enabled) {
-        hacks::tps_enabled = true;
-        imgui_popup::add_popup("TPS Bypass enabled");
-    }
-
     hacks::update_framerate(hacks::tps_value);
 
     unsigned replay_size = 0;
@@ -160,6 +154,58 @@ std::string ReplayEngine::load(std::string name)
     replay2.resize(replay2_size);
 
     file.read(reinterpret_cast<char *>(&replay[0]), sizeof(replay_data) * replay_size);
+    file.read(reinterpret_cast<char *>(&replay2[0]), sizeof(replay_data2) * replay2_size);
+
+    file.close();
+    return "Replay loaded";
+}
+
+std::string ReplayEngine::save2(std::string name)
+{
+    if (replay2.empty())
+        return "Replay doesn't have actions";
+
+    std::ofstream file(hacks::folderMacroPath / std::string(name + ".re2"), std::ios::binary);
+    if (!file)
+        return "Failed to open file for writing";
+
+    const std::string header = "RE2";
+
+    file.write(header.c_str(), header.size());
+
+    unsigned replay2_size = replay2.size();
+
+    file.write(reinterpret_cast<char *>(&replay2_size), sizeof(replay2_size));
+    file.write(reinterpret_cast<char *>(&replay2[0]), sizeof(replay_data2) * replay2_size);
+
+    file.close();
+    return "Replay saved";
+}
+
+
+std::string ReplayEngine::load2(std::string name)
+{
+    if (!replay2.empty())
+        return "Please clear replay before loading another";
+
+    std::ifstream file(hacks::folderMacroPath / std::string(name + ".re2"), std::ios::binary);
+    if (!file)
+        return "Replay doesn't exist";
+
+    const std::string expected_header = "RE2";
+    char file_header[4] = {0};
+
+    file.read(file_header, expected_header.size());
+
+    if (std::string(file_header) != expected_header)
+        return "Invalid replay format";
+
+    hacks::update_framerate(240.f);
+
+    unsigned replay2_size = 0;
+    file.read(reinterpret_cast<char *>(&replay2_size), sizeof(replay2_size));
+
+    replay2.resize(replay2_size);
     file.read(reinterpret_cast<char *>(&replay2[0]), sizeof(replay_data2) * replay2_size);
 
     file.close();
@@ -864,6 +910,11 @@ void ReplayEngine::render() {
                 ImGui::EndTabItem();
             }
 
+            if (ImGui::BeginTabItem("More Settings")) {
+                ImGui::Checkbox("Popup Messages", &imgui_popup::enabled);
+                ImGui::EndTabItem();
+            }
+
             ImGui::EndTabBar();
         }
 
@@ -929,12 +980,18 @@ void ReplayEngine::render() {
     }
 
     if (ImGui::Button("Save", {ImGui::GetContentRegionAvail().x / 3, NULL})) {
-        imgui_popup::add_popup(save(replay_name));
+        if (version_engine == 1)
+            imgui_popup::add_popup(save(replay_name));
+        else if (version_engine == 2) 
+            imgui_popup::add_popup(save2(replay_name));
     }
     ImGui::SameLine();
 
     if (ImGui::Button("Load", {ImGui::GetContentRegionAvail().x / 2, NULL})) {
-        imgui_popup::add_popup(load(replay_name));
+        if (version_engine == 1)
+            imgui_popup::add_popup(load(replay_name));
+        else if (version_engine == 2) 
+            imgui_popup::add_popup(load2(replay_name));
     }
     ImGui::SameLine();
 

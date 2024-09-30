@@ -601,14 +601,17 @@ void CustomRoundedProgressBar(float fraction, ImVec2 pos, ImVec2 size, float rou
 }
 namespace imgui_popup {
     std::vector<popup_message> messages;
+    bool enabled = true;
+
     void add_popup(std::string caption) {
-        messages.push_back({caption, ImGui::GetTime() + popupDuration});
+        if (enabled)
+            messages.push_back({caption, ImGui::GetTime() + popupDuration});
     }
 
     void render() {
         ImVec2 displaySize = ImGui::GetIO().DisplaySize;
         float currentY = displaySize.y - 10.0f;
-        float elapsedTime = 0.0f;
+        float elapsedTime = 0.0f;        
 
         for (auto& message : messages) {
             if (ImGui::GetTime() > message.expiry_time) {
@@ -622,7 +625,7 @@ namespace imgui_popup {
             float windowWidth = (textWidth + style.WindowPadding.x * 2) * gui::scale;
             float windowHeight = (40.0f * gui::scale);
 
-            ImGui::SetNextWindowPos(ImVec2(displaySize.x - windowWidth - 10.0f, currentY - windowHeight), ImGuiCond_Always);
+            ImGui::SetNextWindowPos(ImVec2(displaySize.x - windowWidth - 10.0f * gui::scale, currentY - windowHeight), ImGuiCond_Always);
             ImGui::SetNextWindowSize(ImVec2(windowWidth, windowHeight), ImGuiCond_Always);
 
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0, 0});
