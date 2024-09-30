@@ -584,6 +584,7 @@ class $modify(MyEndLevelLayer, EndLevelLayer) {
 class $modify(GJBaseGameLayer) {
     void handleButton(bool down, int button, bool isPlayer1) {
         GJBaseGameLayer::handleButton(down, button, isPlayer1);   
+        geode::log::debug("{} {} {}", down, button, isPlayer1);
         if (engine.mode == state::record) {
             engine.handle_recording2(down, button, isPlayer1);
         } 
