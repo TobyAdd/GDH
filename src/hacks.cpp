@@ -218,6 +218,11 @@ std::vector<window> hacks::windows = {
                     {"74 ? 49 8b 80", "EB"}
                 }
             },
+            {"Hide Attempts", "Hides the attempt count in-game",
+                {
+                    {"41 74 74 65 6D 70 74 20 25 69", "00"}
+                }
+            },
             {"Hide Pause Button", "Removes the pause button when the cursor is shown",
                 {
                     {"48 8d 88 ? ? ? ? 4c 8b 01 b2 ? 41 ff 50 ? b9", "48 8D 08 4C 8B 01 0F 57 C9 41 FF 90 A0 00 00 00"}

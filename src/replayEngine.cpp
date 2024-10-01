@@ -55,7 +55,7 @@ void ReplayEngine::handle_recording(GJBaseGameLayer* self, bool player) {
 }
 
 void ReplayEngine::handle_recording2(bool hold, int button, bool player) {
-    auto pl = PlayLayer::get();
+    // auto pl = PlayLayer::get();
 
     // if (pl && !replay2.empty() && replay2.back().hold == hold)
     //     return;

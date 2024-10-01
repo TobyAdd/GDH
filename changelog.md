@@ -1,3 +1,12 @@
+# 4.7.4
+- New Replay System (Engine v2)
+- Improved the accuracy of both engines
+- Practice Fix
+- Recorder presets save/load
+- Fixed pixelization shader on video recording
+- Ability to disable popup messages (in Replay Engine settings)
+- Hide Attempts
+
 # 4.7.3
 - Removed the annoying window if there are Russian characters in the path (now prevents recording a video if the path has Russian characters)
 - Save the showcase path in byte format to avoid crashes with Russian characters
