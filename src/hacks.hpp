@@ -99,6 +99,8 @@ namespace hacks {
 
     extern bool disable_render;
 
+    extern bool no_death_effect;
+
     void update_framerate(float value);
 
     void save(const std::vector<window>& windows, const std::filesystem::path &filename);

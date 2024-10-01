@@ -308,6 +308,7 @@ void gui::RenderMain() {
                         else if (hck.name == "RGB Icons") { hacks::rgb_icons = hck.enabled; }
                         else if (hck.name == "Wave Trail Size") { hacks::wave_trail = hck.enabled; }
                         else if (hck.name == "Random Seed") { hacks::random_seed_enabled = hck.enabled; }
+                        else if (hck.name == "No Death Effect") { hacks::no_death_effect = hck.enabled; }
                         else if (hck.name == "Show Hitboxes") { 
                             hacks::show_hitboxes = hck.enabled;
                             auto pl = PlayLayer::get();
@@ -519,6 +520,7 @@ void gui::toggleKeybinds(int key) {
                 else if (hck.name == "RGB Icons") { hacks::rgb_icons = hck.enabled; }
                 else if (hck.name == "Wave Trail Size") { hacks::wave_trail = hck.enabled; }
                 else if (hck.name == "Random Seed") { hacks::random_seed_enabled = hck.enabled; }
+                else if (hck.name == "No Death Effect") { hacks::no_death_effect = hck.enabled; }
                 else if (hck.name == "Show Hitboxes") { 
                     hacks::show_hitboxes = hck.enabled;
                     auto pl = PlayLayer::get();

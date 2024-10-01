@@ -15,6 +15,7 @@
 #include <Geode/modify/LevelInfoLayer.hpp>
 #include <Geode/modify/EndLevelLayer.hpp>
 #include <Geode/modify/AchievementNotifier.hpp>
+#include <Geode/modify/PlayerObject.hpp>
 #include "speedhackAudio.hpp"
 #include "labels.hpp"
 #include "replayEngine.hpp"
@@ -659,6 +660,13 @@ class $modify(GameManager) {
             return true;
 
         return hacks::unlock_items;
+    }
+};
+
+class $modify(PlayerObject) {
+    void playDeathEffect() {
+        if (hacks::no_death_effect) return;            
+        PlayerObject::playDeathEffect();
     }
 };
 

@@ -63,6 +63,8 @@ bool hacks::reset_maket = false;
 
 bool hacks::disable_render = false;
 
+bool hacks::no_death_effect = false;
+
 std::vector<window> hacks::windows = {
     {"Core", 10, 10, 200, 200, 
         {
@@ -80,11 +82,7 @@ std::vector<window> hacks::windows = {
                     {"0f 85 ? ? ? ? ba ? ? ? ? ff 15 ? ? ? ? ba", "E9 F3 00"}
                 }
             },
-            {"No Death Effect", "Upon death, the cube will not emit an exploding effect",
-                {
-                    {"e8 ? ? ? ? 80 bf ? ? ? ? ? 74 ? 48 8b 9f ? ? ? ? 8b 83", "90 90 90 90 90"}
-                }
-            },
+            {"No Death Effect", "Upon death, the cube will not emit an exploding effect"},
             {"Safe Mode", "Disables progress on levels",
                 {
                     {"0f 85 ? ? ? ? 40 38 b7 ? ? ? ? 0f 85 ? ? ? ? 0f b6 97", "E9 B4 01 00 00 90"},
@@ -420,6 +418,7 @@ void hacks::init() {
                 else if (hck.name == "Wave Trail Size") { hacks::wave_trail = hck.enabled; }
                 else if (hck.name == "Show Hitboxes") { hacks::show_hitboxes = hck.enabled; }
                 else if (hck.name == "Random Seed") { hacks::random_seed_enabled = hck.enabled; }
+                else if (hck.name == "No Death Effect") { hacks::no_death_effect = hck.enabled; }
                 else {
                     for (auto& opc : hck.opcodes) {
                         std::string bytesStr = hck.enabled ? opc.on : opc.off;
