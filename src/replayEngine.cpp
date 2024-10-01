@@ -3,7 +3,6 @@
 #include "gui.hpp"
 #include "recorder.hpp"
 #include <shlobj.h>
-#include "practice_fixes.hpp"
 
 ReplayEngine engine;
 SpamBot spamBot;
@@ -56,6 +55,11 @@ void ReplayEngine::handle_recording(GJBaseGameLayer* self, bool player) {
 }
 
 void ReplayEngine::handle_recording2(bool hold, int button, bool player) {
+    auto pl = PlayLayer::get();
+
+    // if (pl && !replay2.empty() && replay2.back().hold == hold)
+    //     return;
+
     replay2.push_back({get_frame(), hold, button, player});
 }
 
@@ -101,7 +105,7 @@ void ReplayEngine::handle_reseting(PlayLayer* self) {
         remove_actions(lastCheckpointFrame);
 
         // if (!replay2.empty() && replay2.back().hold) {
-        //     handle_recording2(true, replay2.back().button, replay2.back().player);
+        //     handle_recording2(false, replay2.back().button, replay2.back().player);
         // }
     }
     else if (mode == state::play) {
@@ -224,7 +228,7 @@ void ReplayEngine::remove_actions(unsigned frame)
 
     auto check2 = [&](replay_data2 &action) -> bool
     {
-        return action.frame >= frame;
+        return (version_engine == 1) ? action.frame >= frame : action.frame > frame;
     };
     replay2.erase(remove_if(replay2.begin(), replay2.end(), check2), replay2.end());
 }
@@ -345,7 +349,7 @@ void ReplayEngine::render() {
         static bool first_time = true;
         if (first_time) {
             first_time = false;
-            ImGui::SetNextWindowSize({740 * gui::scale, 460 * gui::scale});
+            ImGui::SetNextWindowSize({740 * gui::scale, 500 * gui::scale});
         }        
     }
      
@@ -388,6 +392,7 @@ void ReplayEngine::render() {
                 GreenCheckmarkWithText("Any TPS value for the macro", 16.f * gui::scale);
                 RedCrossWithText("Poor performance", 16.f * gui::scale);
                 RedCrossWithText("Large macro size", 16.f * gui::scale);
+                RedCrossWithText("Slow video recording", 16.f * gui::scale);
 
                 ImGui::NewLine();
 
@@ -396,6 +401,7 @@ void ReplayEngine::render() {
                 RedCrossWithText("240 TPS Lock", 16.f * gui::scale);
                 GreenCheckmarkWithText("Better performance", 16.f * gui::scale);
                 GreenCheckmarkWithText("Small macro size", 16.f * gui::scale);
+                GreenCheckmarkWithText("Real-time video recording", 16.f * gui::scale);
                 ImGui::EndTabItem();
             }
 

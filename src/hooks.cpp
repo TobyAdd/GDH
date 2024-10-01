@@ -530,19 +530,18 @@ class $modify(PlayLayer) {
         }
     }
 
-    CheckpointObject* createCheckpoint() {
-        auto ret = PlayLayer::createCheckpoint();
-        geode::log::debug("[checkpoint created] - curr {}", static_cast<unsigned>(m_gameState.m_currentProgress));
+    void storeCheckpoint(CheckpointObject* checkpoint) {
+        PlayLayer::storeCheckpoint(checkpoint);        
+        // geode::log::debug("[checkpoint added] - curr {}", static_cast<unsigned>(m_gameState.m_currentProgress));
         m_fields->checkpoints_p1.push_back(create_checkpoint_p1(this));
         m_fields->checkpoints_p2.push_back(create_checkpoint_p2(this));
-        return ret;
     }
 
     void removeCheckpoint(bool p0) {
         PlayLayer::removeCheckpoint(p0);
+        // geode::log::debug("[checkpoint removed] - curr {}", static_cast<unsigned>(m_gameState.m_currentProgress));
         if (!m_fields->checkpoints_p1.empty()) m_fields->checkpoints_p1.pop_back();
         if (!m_fields->checkpoints_p2.empty()) m_fields->checkpoints_p2.pop_back();
-        geode::log::debug("[checkpoint removed] - curr {}", static_cast<unsigned>(m_gameState.m_currentProgress));
     }
 };
 
@@ -584,7 +583,6 @@ class $modify(MyEndLevelLayer, EndLevelLayer) {
 class $modify(GJBaseGameLayer) {
     void handleButton(bool down, int button, bool isPlayer1) {
         GJBaseGameLayer::handleButton(down, button, isPlayer1);   
-        geode::log::debug("{} {} {}", down, button, isPlayer1);
         if (engine.mode == state::record) {
             engine.handle_recording2(down, button, isPlayer1);
         } 

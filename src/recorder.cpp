@@ -5,6 +5,7 @@
 #include "speedhackAudio.hpp"
 #include <Geode/modify/ShaderLayer.hpp>
 #include "gui.hpp"
+#include <imgui-cocos.hpp>
 
 Recorder recorder;
 RecorderAudio recorderAudio;
@@ -23,7 +24,8 @@ intptr_t glViewportAddress = 0;
     
 void glViewportHook(GLint a, GLint b, GLsizei c, GLsizei d) {
     if (recorder.is_recording && recorder.playlayer_visiting && recorder.shader_visiting) {
-        if (c != 2608 && d != 2608 && c != 1304 && d != 1304 && c != 652 && d != 652) {
+        ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+        if (c != 2608 && d != 2608 && c != 1304 && d != 1304 && c != 652 && d != 652 && c == static_cast<int>(displaySize.x) && d == static_cast<int>(displaySize.y)) {
             c = recorder.width;
             d = recorder.height;
         }
