@@ -356,13 +356,14 @@ void ReplayEngine::render() {
     if (ImGui::BeginPopupModal("Replay Engine Settings", &settings_openned)) {
         if (ImGui::BeginTabBar("Replay Engine Settings Tabs")) {
             if (ImGui::BeginTabItem("Settings")) {
-                ImGui::Checkbox("Real Time", &real_time, gui::scale);
-
-                ImGui::SameLine();
-
-                ImGui::Checkbox("Frame Advance", &frame_advance, gui::scale);
-
                 if (version_engine == 1) {
+                    ImGui::Checkbox("Real Time", &real_time, gui::scale);
+
+                    ImGui::SameLine();
+
+                    ImGui::Checkbox("Frame Advance", &frame_advance, gui::scale);
+
+                
                     ImGui::Checkbox("Accuracy Fix", &accuracy_fix, gui::scale);
 
                     ImGui::SameLine();
