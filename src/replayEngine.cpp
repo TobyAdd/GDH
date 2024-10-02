@@ -104,9 +104,9 @@ void ReplayEngine::handle_reseting(PlayLayer* self) {
     if (mode == state::record) {
         remove_actions(lastCheckpointFrame);
 
-        // if (!replay2.empty() && replay2.back().hold) {
-        //     handle_recording2(false, replay2.back().button, replay2.back().player);
-        // }
+        if (!practice_fix && !replay2.empty() && replay2.back().hold) {
+            handle_recording2(false, replay2.back().button, replay2.back().player);
+        }
     }
     else if (mode == state::play) {
         index = 0;
