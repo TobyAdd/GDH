@@ -55,11 +55,6 @@ void ReplayEngine::handle_recording(GJBaseGameLayer* self, bool player) {
 }
 
 void ReplayEngine::handle_recording2(bool hold, int button, bool player) {
-    // auto pl = PlayLayer::get();
-
-    // if (pl && !replay2.empty() && replay2.back().hold == hold)
-    //     return;
-
     replay2.push_back({get_frame(), hold, button, player});
 }
 
@@ -450,15 +445,23 @@ void ReplayEngine::render() {
                             imgui_popup::add_popup("Invalid path to the showcase folder. Please remove any Cyrillic characters");
                         }
                         else {
-                            if (recorder.enabled) {
-                                if (!recorder.advanced_mode) {
-                                    recorder.full_cmd = recorder.compile_command();
-                                }
+                            bool canRecord = (version_engine == 1) ? (recorder.fps <= hacks::tps_value) : (recorder.fps >= 60 && recorder.fps <= 240);
 
-                                recorder.start(recorder.full_cmd);
-                            }                        
-                            else 
-                                recorder.stop();
+                            if (canRecord) {
+                                if (recorder.enabled) {
+                                    if (!recorder.advanced_mode) {
+                                        recorder.full_cmd = recorder.compile_command();
+                                    }
+
+                                    recorder.start(recorder.full_cmd);
+                                }                        
+                                else 
+                                    recorder.stop();
+                            }
+                            else {
+                                recorder.enabled = false;
+                                imgui_popup::add_popup((version_engine == 1) ? "Recorder FPS is valid and less than or equal to macro FPS" : "FPS values must be within the range 60 to 240");
+                            }
                         }
                     }
 

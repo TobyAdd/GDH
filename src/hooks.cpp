@@ -130,7 +130,7 @@ class $modify(cocos2d::CCScheduler) {
                 return;
             }
             else {
-                return CCScheduler::update((engine.version_engine == 1) ? newdt : 1.f / 60.f);
+                return CCScheduler::update((engine.version_engine == 1) ? newdt : 1.f / static_cast<float>(recorder.fps));
             }
         }
 
