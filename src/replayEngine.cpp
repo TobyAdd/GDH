@@ -344,7 +344,7 @@ void ReplayEngine::render() {
         static bool first_time = true;
         if (first_time) {
             first_time = false;
-            ImGui::SetNextWindowSize({740 * gui::scale, 500 * gui::scale});
+            ImGui::SetNextWindowSize({800 * gui::scale, 570 * gui::scale});
         }        
     }
      
@@ -368,6 +368,12 @@ void ReplayEngine::render() {
                 }
 
                 ImGui::Checkbox("Practice Fix", &practice_fix);
+
+                if (practice_fix) {
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImColor(255, 128, 128).Value);
+                    ImGui::TextWrapped("Practice Fix is key for accurate macro recording. Avoid setting checkpoints while holding the mouse to prevent double-clicks that can mess up the macro. Keep Replay Size even to maintain Hold/Release order. If you can't follow this, disable Practice Fix, but note that this increases the risk of input shifts (+1 frame) when restarting a level");
+                    ImGui::PopStyleColor();
+                }
 
                 ImGui::Spacing();
                 ImGui::Text("Replay System");
