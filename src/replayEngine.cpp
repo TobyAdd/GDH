@@ -378,7 +378,9 @@ void ReplayEngine::render() {
                     ImGui::SameLine();
                 }
 
-                ImGui::Checkbox("Practice Fix", &practice_fix);
+                if (ImGui::Checkbox("Practice Fix", &practice_fix)) {
+                    if (!practice_fix) input_buffer = false;
+                }
 
                 if (practice_fix) {
                     ImGui::SameLine();

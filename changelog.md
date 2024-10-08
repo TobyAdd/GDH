@@ -1,3 +1,10 @@
+# 4.7.5
+- Fixed input frame conflict that could have broken the macro
+- Unlocked showcase video recording from 60 to 240 fps (Engine v2)
+- Synchronize Audio on Video Recording (Experimental feature, currently breaking on song triggers)
+- Improved Practice Fix
+- Fixed recorder presets
+
 # 4.7.4
 - New Replay System (Engine v2)
 - Improved the accuracy of both engines
