@@ -533,6 +533,7 @@ void hacks::save(const std::vector<window>& windows, const std::filesystem::path
     j["version_engine"] = engine.version_engine;
 
     j["imgui_popup::enabled"] = imgui_popup::enabled;
+    j["practice_fix"] = engine.practice_fix;
 
     std::ofstream file(filename);
     file << j.dump(4);
@@ -660,6 +661,7 @@ void hacks::load(const std::filesystem::path &filename, std::vector<window>& win
     engine.version_engine = j.value("version_engine", 2);
 
     imgui_popup::enabled = j.value("imgui_popup::enabled", true);
+    engine.practice_fix = j.value("practice_fix", true);
 
     file.close();
 }

@@ -55,7 +55,14 @@ void ReplayEngine::handle_recording(GJBaseGameLayer* self, bool player) {
 }
 
 void ReplayEngine::handle_recording2(bool hold, int button, bool player) {
-    replay2.push_back({get_frame(), hold, button, player});
+    unsigned int frame = get_frame();
+
+    if (!replay2.empty() && hold && !replay2.back().hold && replay2.back().frame == frame) {
+        replay2.pop_back();
+        return;
+    }
+
+    replay2.push_back({frame, hold, button, player});
 }
 
 void ReplayEngine::handle_playing(GJBaseGameLayer* self)
@@ -99,8 +106,11 @@ void ReplayEngine::handle_reseting(PlayLayer* self) {
     if (mode == state::record) {
         remove_actions(lastCheckpointFrame);
 
-        if (!practice_fix && !replay2.empty() && replay2.back().hold) {
+        if (!replay2.empty() && replay2.back().hold) {
             handle_recording2(false, replay2.back().button, replay2.back().player);
+            if (version_engine == 2) {
+                replay2.back().frame++;
+            }
         }
     }
     else if (mode == state::play) {
@@ -344,7 +354,7 @@ void ReplayEngine::render() {
         static bool first_time = true;
         if (first_time) {
             first_time = false;
-            ImGui::SetNextWindowSize({800 * gui::scale, 570 * gui::scale});
+            ImGui::SetNextWindowSize({800 * gui::scale, 500 * gui::scale});
         }        
     }
      
@@ -369,12 +379,6 @@ void ReplayEngine::render() {
 
                 ImGui::Checkbox("Practice Fix", &practice_fix);
 
-                if (practice_fix) {
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImColor(255, 128, 128).Value);
-                    ImGui::TextWrapped("Practice Fix is key for accurate macro recording. Avoid setting checkpoints while holding the mouse to prevent double-clicks that can mess up the macro. Keep Replay Size even to maintain Hold/Release order. If you can't follow this, disable Practice Fix, but note that this increases the risk of input shifts (+1 frame) when restarting a level");
-                    ImGui::PopStyleColor();
-                }
-
                 ImGui::Spacing();
                 ImGui::Text("Replay System");
                 ImGui::Separator();
@@ -398,7 +402,7 @@ void ReplayEngine::render() {
 
                 ImGui::NewLine();
 
-                ImGui::Text("Engine v2");
+                ImGui::Text("Engine v2 (Beta)");
                 GreenCheckmarkWithText("Clear frames, less accurate", 16.f * gui::scale, IM_COL32(255, 255, 0, ImGui::GetStyle().Alpha * 255));
                 RedCrossWithText("240 TPS Lock", 16.f * gui::scale);
                 GreenCheckmarkWithText("Better performance", 16.f * gui::scale);
@@ -632,6 +636,7 @@ void ReplayEngine::render() {
                         recorder.width = 1280;
                         recorder.height = 720;
                         recorder.fps = 60;
+                        recorder.bitrate = "25M";
                     }
 
                     ImGui::SameLine();
@@ -641,15 +646,17 @@ void ReplayEngine::render() {
                         recorder.width = 1920;
                         recorder.height = 1080;
                         recorder.fps = 60;
+                        recorder.bitrate = "50M";
                     }
 
                     ImGui::SameLine();
 
-                    if (ImGui::Button("QHD"))
+                    if (ImGui::Button("2K"))
                     {
                         recorder.width = 2560;
                         recorder.height = 1440;
                         recorder.fps = 60;
+                        recorder.bitrate = "70M";
                     }
 
                     ImGui::SameLine();
@@ -659,6 +666,7 @@ void ReplayEngine::render() {
                         recorder.width = 3840;
                         recorder.height = 2160;
                         recorder.fps = 60;
+                        recorder.bitrate = "80M";
                     }
 
                     ImGui::SameLine();
@@ -668,6 +676,7 @@ void ReplayEngine::render() {
                         recorder.width = 7680;
                         recorder.height = 4320;
                         recorder.fps = 60;
+                        recorder.bitrate = "250M";
                         if (secret > 0)
                             secret--;
                     }
@@ -892,7 +901,16 @@ void ReplayEngine::render() {
                     videos.clear();
                     audios.clear();
                     for (const auto &entry : std::filesystem::directory_iterator(hacks::folderShowcasesPath)) {
-                        if (entry.path().extension() == ".mp4") {
+                        if (entry.path().extension() == ".mp4" || 
+                            entry.path().extension() == ".mkv" || 
+                            entry.path().extension() == ".avi" || 
+                            entry.path().extension() == ".mov" || 
+                            entry.path().extension() == ".flv" || 
+                            entry.path().extension() == ".wmv" || 
+                            entry.path().extension() == ".webm" || 
+                            entry.path().extension() == ".m4v" || 
+                            entry.path().extension() == ".mpeg") {
+                            
                             videos.push_back(entry.path().string());
                         }
 
@@ -928,6 +946,7 @@ void ReplayEngine::render() {
 
             if (ImGui::BeginTabItem("More Settings")) {
                 ImGui::Checkbox("Popup Messages", &imgui_popup::enabled);
+                ImGui::Checkbox("Synchronize Audio on Video Recording (Experimental Feature)", &recorder.sync_audio);
                 ImGui::EndTabItem();
             }
 

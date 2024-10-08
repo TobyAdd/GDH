@@ -147,9 +147,9 @@ void Recorder::handle_recording(float dt) {
         double frame_dt = 1.0 / static_cast<double>(fps);
         double time = (playLayer->m_gameState.m_levelTime - delay) + extra_time - last_frame_time;
         if (time >= frame_dt) {
-            //float song_offset = (static_cast<float>(playLayer->m_gameState.m_currentProgress) / hacks::tps_value) * 1000.f;
-            //song_offset += playLayer->m_levelSettings->m_songOffset * 1000.f;
-            //speedhackAudio::update_frame_offset(song_offset);
+            if (recorder.sync_audio) {
+                playLayer->startMusic();
+            }
 
             extra_time = time - frame_dt;
             last_frame_time = (playLayer->m_gameState.m_levelTime - delay);
@@ -220,7 +220,6 @@ void RecorderAudio::start() {
 void RecorderAudio::stop() {
     enabled = false;
     is_recording = false;
-
 
     auto fmod_engine = FMODAudioEngine::get();
     fmod_engine->m_system->setOutput(FMOD_OUTPUTTYPE_AUTODETECT);

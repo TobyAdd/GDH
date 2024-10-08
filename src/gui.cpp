@@ -128,6 +128,12 @@ void gui::RenderMain() {
 
     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1);
     imgui_popup::render();
+    ImGui::SetNextWindowPos({0, 0});
+    ImGui::Begin("Replay", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoInputs);
+    for (auto i : engine.replay2) {
+        ImGui::Text("%i %i %i %i", i.frame, i.hold, i.button, i.player);
+    }
+    ImGui::End();
     ImGui::PopStyleVar();
     
     if (isAnimating) {

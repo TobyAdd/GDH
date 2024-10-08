@@ -65,6 +65,8 @@ class Recorder {
         std::string full_cmd;
         std::string compile_command();
         void compile_vf_args();
+
+        bool sync_audio = false;
 };
 
 
