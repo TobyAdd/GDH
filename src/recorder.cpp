@@ -148,7 +148,9 @@ void Recorder::handle_recording(float dt) {
         double time = (playLayer->m_gameState.m_levelTime - delay) + extra_time - last_frame_time;
         if (time >= frame_dt) {
             if (recorder.sync_audio) {
-                playLayer->startMusic();
+                auto fmod = FMODAudioEngine::get();
+                auto offset = (playLayer->m_levelSettings->m_songOffset + playLayer->m_gameState.m_levelTime) * 1000.0;
+                fmod->setMusicTimeMS(offset, false, 0);
             }
 
             extra_time = time - frame_dt;
