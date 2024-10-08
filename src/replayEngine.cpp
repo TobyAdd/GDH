@@ -2,6 +2,7 @@
 #include "hacks.hpp"
 #include "gui.hpp"
 #include "recorder.hpp"
+#include "practice_fixes.hpp"
 #include <shlobj.h>
 
 ReplayEngine engine;
@@ -57,7 +58,7 @@ void ReplayEngine::handle_recording(GJBaseGameLayer* self, bool player) {
 void ReplayEngine::handle_recording2(bool hold, int button, bool player) {
     unsigned int frame = get_frame();
 
-    if (!replay2.empty() && hold && !replay2.back().hold && replay2.back().frame == frame) {
+    if (!input_buffer && !replay2.empty() && hold && !replay2.back().hold && replay2.back().frame == frame) {
         replay2.pop_back();
         return;
     }
@@ -106,7 +107,7 @@ void ReplayEngine::handle_reseting(PlayLayer* self) {
     if (mode == state::record) {
         remove_actions(lastCheckpointFrame);
 
-        if (!replay2.empty() && replay2.back().hold) {
+        if (!input_buffer && !replay2.empty() && replay2.back().hold) {
             handle_recording2(false, replay2.back().button, replay2.back().player);
             if (version_engine == 2) {
                 replay2.back().frame++;
@@ -378,6 +379,15 @@ void ReplayEngine::render() {
                 }
 
                 ImGui::Checkbox("Practice Fix", &practice_fix);
+
+                if (practice_fix) {
+                    ImGui::SameLine();
+                    ImGui::Checkbox("Buffer click checkpoint (read desc)", &input_buffer);
+
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip("Could improve accuracy in platformer levels for Engine v2\nAvoid setting checkpoints while holding the mouse to prevent double-clicks that can mess up the macro (unnecessary hold inputs)\nKeep Replay Size even to maintain Hold/Release order.\nOr perhaps it would be better to disable this fix and record platformer levels under Engine v1, which will be maintained under the accuracy fix");
+                    }
+                }
 
                 ImGui::Spacing();
                 ImGui::Text("Replay System");
