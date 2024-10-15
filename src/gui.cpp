@@ -630,6 +630,10 @@ namespace imgui_popup {
 
             ImGuiStyle& style = ImGui::GetStyle();
             float textWidth = ImGui::CalcTextSize(message.caption.c_str()).x;
+            if (gui::scale != 1.f) {
+                textWidth /= gui::scale;
+            }
+
             float windowWidth = (textWidth + style.WindowPadding.x * 2) * gui::scale;
             float windowHeight = (40.0f * gui::scale);
 

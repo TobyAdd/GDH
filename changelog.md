@@ -1,3 +1,6 @@
+# 4.7.6
+- fixed replay system (again)
+
 # 4.7.5
 - Fixed input frame conflict that could have broken the macro
 - Unlocked showcase video recording from 60 to 240 fps (Engine v2)

@@ -60,7 +60,7 @@ void ReplayEngine::handle_recording2(bool hold, int button, bool player) {
 
     if (!input_buffer && !replay2.empty() && hold && !replay2.back().hold && replay2.back().frame == frame) {
         replay2.pop_back();
-        return;
+        //return;
     }
 
     replay2.push_back({frame, hold, button, player});
@@ -378,13 +378,13 @@ void ReplayEngine::render() {
                     ImGui::SameLine();
                 }
 
-                if (ImGui::Checkbox("Practice Fix", &practice_fix)) {
+                if (ImGui::Checkbox("Practice Fix", &practice_fix, gui::scale)) {
                     if (!practice_fix) input_buffer = false;
                 }
 
                 if (practice_fix) {
                     ImGui::SameLine();
-                    ImGui::Checkbox("Buffer click checkpoint (read desc)", &input_buffer);
+                    ImGui::Checkbox("Buffer click checkpoint (read desc)", &input_buffer, gui::scale);
 
                     if (ImGui::IsItemHovered()) {
                         ImGui::SetTooltip("Could improve accuracy in platformer levels for Engine v2\nAvoid setting checkpoints while holding the mouse to prevent double-clicks that can mess up the macro (unnecessary hold inputs)\nKeep Replay Size even to maintain Hold/Release order.\nOr perhaps it would be better to disable this fix and record platformer levels under Engine v1, which will be maintained under the accuracy fix");
@@ -424,7 +424,7 @@ void ReplayEngine::render() {
             }
 
             if (ImGui::BeginTabItem("Spambot")) {
-                if (ImGui::Checkbox("Enable##Spambot", &spamBot.enabled))
+                if (ImGui::Checkbox("Enable##Spambot", &spamBot.enabled, gui::scale))
                 {
                     spamBot.reset_temp();
                 }
@@ -437,15 +437,15 @@ void ReplayEngine::render() {
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                 ImGui::DragInt("##spamrelease", &spamBot.release, 1, 1, INT_MAX, "Release: %i");
 
-                ImGui::Checkbox("Player 1", &spamBot.player_p1);
+                ImGui::Checkbox("Player 1", &spamBot.player_p1, gui::scale);
                 ImGui::SameLine();
-                ImGui::Checkbox("Player 2", &spamBot.player_p2);
+                ImGui::Checkbox("Player 2", &spamBot.player_p2, gui::scale);
 
                 ImGui::EndTabItem();
             }
 
             if (ImGui::BeginTabItem("Straight Fly Bot")) {
-                if (ImGui::Checkbox("Enable##Straight Fly Bot", &straightFly.enabled))
+                if (ImGui::Checkbox("Enable##Straight Fly Bot", &straightFly.enabled, gui::scale))
                 {
                     auto gjbgl = GJBaseGameLayer::get();
                     straightFly.start(gjbgl);
@@ -492,7 +492,7 @@ void ReplayEngine::render() {
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                     ImGui::InputText("##videoname", &recorder.video_name);
 
-                    ImGui::Checkbox("Advanced Mode", &recorder.advanced_mode);
+                    ImGui::Checkbox("Advanced Mode", &recorder.advanced_mode, gui::scale);
 
                     if (recorder.advanced_mode) {
                         ImGui::SameLine();
@@ -556,11 +556,11 @@ void ReplayEngine::render() {
                     ImGui::PushItemWidth(300 * gui::scale);
                     ImGui::InputText("VF Args", &recorder.vf_args);
 
-                    if (ImGui::Checkbox("vflip", &recorder.vflip)) {
+                    if (ImGui::Checkbox("vflip", &recorder.vflip, gui::scale)) {
                         recorder.compile_vf_args();
                     }
 
-                    if (ImGui::Checkbox("Fade in", &recorder.fade_in)) {
+                    if (ImGui::Checkbox("Fade in", &recorder.fade_in, gui::scale)) {
                         recorder.compile_vf_args();
                     }
 
@@ -578,7 +578,7 @@ void ReplayEngine::render() {
                         recorder.compile_vf_args();
                     }
 
-                    ImGui::Checkbox("Fade out", &recorder.fade_out);
+                    ImGui::Checkbox("Fade out", &recorder.fade_out, gui::scale);
 
                     ImGui::Text("Note: The length of the fade-out is calculated based on the value of \"Second to Render After\" (WIP)");
 
@@ -957,8 +957,8 @@ void ReplayEngine::render() {
             }
 
             if (ImGui::BeginTabItem("More Settings")) {
-                ImGui::Checkbox("Popup Messages", &imgui_popup::enabled);
-                ImGui::Checkbox("Synchronize Audio on Video Recording (Experimental Feature)", &recorder.sync_audio);
+                ImGui::Checkbox("Popup Messages", &imgui_popup::enabled, gui::scale);
+                ImGui::Checkbox("Synchronize Audio on Video Recording (Experimental Feature)", &recorder.sync_audio, gui::scale);
                 ImGui::EndTabItem();
             }
 
