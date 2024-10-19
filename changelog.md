@@ -1,5 +1,6 @@
 # 4.7.7
 - fixed recorder aspect ratio mismatch
+- lock aspect ratio for recording resoluion input (16:9)
 
 # 4.7.6
 - fixed replay system (again)

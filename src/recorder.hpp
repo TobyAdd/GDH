@@ -24,6 +24,9 @@ class Recorder {
         int width = 1280;
         int height = 720;
         int fps = 60;
+
+        bool lock_aspect_ratio = true;
+
         std::string bitrate = "0";
         std::string codec = "libx264";
         std::string extra_args = "-pix_fmt yuv420p -preset ultrafast";

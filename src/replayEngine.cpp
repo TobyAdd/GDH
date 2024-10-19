@@ -538,14 +538,20 @@ void ReplayEngine::render() {
                     ImGui::Separator();
 
                     ImGui::PushItemWidth(45.f * gui::scale);
-                    ImGui::InputInt("##width", &recorder.width, 0);
+                    if (ImGui::InputInt("##width", &recorder.width, 0) && recorder.lock_aspect_ratio) {
+                        float aspect_ratio = 16.0f / 9.0f;
+                        recorder.height = static_cast<int>(recorder.width / aspect_ratio);
+                    }
                     ImGui::SameLine(0, 5);
 
                     ImGui::Text("x");
                     ImGui::SameLine(0, 5);
 
                     ImGui::PushItemWidth(45.f * gui::scale);
-                    ImGui::InputInt("##height", &recorder.height, 0);
+                    if (ImGui::InputInt("##height", &recorder.height, 0) && recorder.lock_aspect_ratio) {
+                        float aspect_ratio = 16.0f / 9.0f;
+                        recorder.width = static_cast<int>(recorder.height * aspect_ratio);
+                    }
                     ImGui::SameLine(0, 5);
 
                     ImGui::Text("@");
@@ -553,6 +559,10 @@ void ReplayEngine::render() {
 
                     ImGui::PushItemWidth(35.f * gui::scale);
                     ImGui::InputInt("##fps", &recorder.fps, 0);
+
+                    ImGui::SameLine(0, 5);
+
+                    ImGui::Checkbox("Lock Aspect Ratio (16:9)", &recorder.lock_aspect_ratio, gui::scale);
 
                     ImGui::Spacing();
 
