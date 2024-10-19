@@ -1,3 +1,6 @@
+# 4.7.7
+- fixed recorder aspect ratio mismatch
+
 # 4.7.6
 - fixed replay system (again)
 

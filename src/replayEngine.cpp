@@ -334,6 +334,13 @@ void RedCrossWithText(const char* label, float sz = 16.0f, ImU32 color = IM_COL3
     ImGui::TextUnformatted(label);
 }
 
+std::string aspectRatio(int width, int height) {
+    int divisor = std::gcd(width, height);
+    int aspectWidth = width / divisor;
+    int aspectHeight = height / divisor;
+    
+    return std::to_string(aspectWidth) + ":" + std::to_string(aspectHeight);
+}
 
 void ReplayEngine::render() {
     static geode::Mod* cbfMod = geode::Loader::get()->getLoadedMod("syzzi.click_between_frames");
@@ -461,10 +468,20 @@ void ReplayEngine::render() {
 
             if (ImGui::BeginTabItem("Recorder (Beta)")) {
                 if (recorder.ffmpeg_installed) {
-                    if (ImGui::Checkbox("Record", &recorder.enabled, gui::scale)) {
+                    if (ImGui::Checkbox("Record##Recorder", &recorder.enabled, gui::scale)) {
+                        ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+                        std::string window_size = aspectRatio(static_cast<int>(displaySize.x), static_cast<int>(displaySize.y));
+                        std::string recorder_size = aspectRatio(recorder.width, recorder.height);
+
                         if (containsRussianLetters(hacks::folderShowcasesPath)) {
                             recorder.enabled = false;
                             imgui_popup::add_popup("Invalid path to the showcase folder. Please remove any Cyrillic characters");
+                        }
+                        else if (window_size != recorder_size) {
+                            imgui_popup::add_popup(fmt::format("Aspect Ratio: {} != {}", window_size, recorder_size));
+                            imgui_popup::add_popup(fmt::format("Window && Recorder Resolution: {}x{}, {}x{}", static_cast<int>(displaySize.x), static_cast<int>(displaySize.y), recorder.width, recorder.height));
+                            imgui_popup::add_popup(fmt::format("Aspect ratio mismatch. Adjust resolution or resize the window"));
+                            recorder.enabled = false;
                         }
                         else {
                             bool canRecord = (version_engine == 1) ? (recorder.fps <= hacks::tps_value) : (recorder.fps >= 60 && recorder.fps <= 240);
