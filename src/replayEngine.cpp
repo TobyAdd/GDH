@@ -21,7 +21,12 @@ bool ReplayEngine::containsRussianLetters(const std::filesystem::path& p) {
 
 unsigned ReplayEngine::get_frame() {
     auto pl = GameManager::sharedState()->getPlayLayer();
+    auto el = GameManager::sharedState()->getEditorLayer();
+
     if (!pl) {
+        if (el && engine.version_engine == 2) 
+            return static_cast<unsigned>(el->m_gameState.m_currentProgress);
+
         return 0;
     }
 
@@ -362,7 +367,7 @@ void ReplayEngine::render() {
         static bool first_time = true;
         if (first_time) {
             first_time = false;
-            ImGui::SetNextWindowSize({800 * gui::scale, 500 * gui::scale});
+            ImGui::SetNextWindowSize({800 * gui::scale, 520 * gui::scale});
         }        
     }
      
@@ -418,6 +423,7 @@ void ReplayEngine::render() {
                 RedCrossWithText("Poor performance", 16.f * gui::scale);
                 RedCrossWithText("Large macro size", 16.f * gui::scale);
                 RedCrossWithText("Slow video recording", 16.f * gui::scale);
+                RedCrossWithText("No Editor Playback Support", 16.f * gui::scale);
 
                 ImGui::NewLine();
 
@@ -427,6 +433,7 @@ void ReplayEngine::render() {
                 GreenCheckmarkWithText("Better performance", 16.f * gui::scale);
                 GreenCheckmarkWithText("Small macro size", 16.f * gui::scale);
                 GreenCheckmarkWithText("Real-time video recording", 16.f * gui::scale);
+                GreenCheckmarkWithText("Editor Playback Support", 16.f * gui::scale);
                 ImGui::EndTabItem();
             }
 

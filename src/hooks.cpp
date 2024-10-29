@@ -625,7 +625,9 @@ class $modify(GJBaseGameLayer) {
 
         // geode::log::debug("[process commands] - curr {}", static_cast<unsigned>(m_gameState.m_currentProgress));
 
-        if (engine.mode == state::play) {
+        geode::log::debug("{}", m_gameState.m_currentProgress);
+
+        if (engine.version_engine == 2 && engine.mode == state::play) {
             engine.handle_playing(this);
         }
 
@@ -784,6 +786,11 @@ class $modify(LevelEditorLayer) {
         LevelEditorLayer::onPlaytest();
         playerTrail1.clear();
         playerTrail2.clear();
+
+        if (engine.mode == state::play) {
+            engine.index = 0;
+            engine.index2 = 0;
+        }
     }
 };
 
