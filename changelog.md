@@ -1,3 +1,7 @@
+# 4.7.8
+- fixed conflict between two engines
+- replay engine v2 macro playback in editor
+
 # 4.7.7
 - fixed recorder aspect ratio mismatch
 - lock aspect ratio for recording resoluion input (16:9)
