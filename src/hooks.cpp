@@ -215,7 +215,10 @@ namespace startpos_switcher {
 
 class $modify(PlayLayer) {
     struct Fields {
-        cocos2d::CCLabelBMFont* labels;
+        cocos2d::CCLabelBMFont* labels_top_left;
+        cocos2d::CCLabelBMFont* labels_top_right;
+        cocos2d::CCLabelBMFont* labels_bottom_left;
+        cocos2d::CCLabelBMFont* labels_bottom_right;
         cocos2d::CCSprite* tint_death_bg;
         GameObject* anticheat_obj = nullptr;
 
@@ -268,14 +271,32 @@ class $modify(PlayLayer) {
 
         auto wnd_size = cocos2d::CCDirector::sharedDirector()->getWinSize();
 
-        m_fields->labels = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
+        m_fields->labels_top_left     = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
+	m_fields->labels_top_right    = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
+	m_fields->labels_bottom_left  = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
+	m_fields->labels_bottom_right = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
 
-        m_fields->labels->setID("labels"_spr);
-		m_fields->labels->setZOrder(999);
-		m_fields->labels->setScale(0.4f);
-        m_fields->labels->setOpacity(150);
-        m_fields->labels->setAnchorPoint({1, 0});
-        addChild(m_fields->labels);
+        m_fields->labels_top_left->    setID("labels_top_left"_spr);
+        m_fields->labels_top_right->   setID("labels_top_right"_spr);
+        m_fields->labels_bottom_left-> setID("labels_bottom_left"_spr);
+        m_fields->labels_bottom_right->setID("labels_bottom_right"_spr);
+
+	for (size_t i = 0; i < 4; i++) {
+	    cocos2d::CCLabelBMFont* label_object =
+	        i == 0 ? m_fields->labels_top_left :
+	        i == 1 ? m_fields->labels_top_right :
+		i == 2 ? m_fields->labels_bottom_left :
+		    m_fields->labels_bottom_right;
+	    label_object->setZOrder(999);
+	    label_object->setScale(labels::label_size);
+            label_object->setOpacity(labels::label_opacity);
+            label_object->setAnchorPoint({1, 0});
+	}
+	
+        addChild(m_fields->labels_top_left);
+        addChild(m_fields->labels_top_right);
+        addChild(m_fields->labels_bottom_left);
+        addChild(m_fields->labels_bottom_right);
 
         m_fields->tint_death_bg = cocos2d::CCSprite::create("game_bg_13_001.png");
         m_fields->tint_death_bg->setPosition({wnd_size.width/2, wnd_size.height/2});
@@ -355,31 +376,44 @@ class $modify(PlayLayer) {
 
         noclip_accuracy.handle_update(this, dt);
 
-        if (m_fields->labels) {
+        if (m_fields->labels_top_left &&
+	    m_fields->labels_top_right &&
+	    m_fields->labels_bottom_left &&
+	    m_fields->labels_bottom_right) {
+	    for (size_t i = 0; i < 4; i++) {
+	        cocos2d::CCLabelBMFont* label_object =
+	            i == 0 ? m_fields->labels_top_left :
+	            i == 1 ? m_fields->labels_top_right :
+	    	     i == 2 ? m_fields->labels_bottom_left :
+		        m_fields->labels_bottom_right;
+	        label_object->setScale(labels::label_size);
+               label_object->setOpacity(labels::label_opacity);
+	     }
             auto screenLeft = cocos2d::CCDirector::sharedDirector()->getScreenLeft();
             auto screenTop = cocos2d::CCDirector::sharedDirector()->getScreenTop();
             auto screenBottom = cocos2d::CCDirector::sharedDirector()->getScreenBottom();
             auto screenRight = cocos2d::CCDirector::sharedDirector()->getScreenRight();
 
-            m_fields->labels->setCString(labels::get_labels().c_str());
-            auto size = m_fields->labels->getScaledContentSize();
+            m_fields->labels_top_left->    setCString(labels::get_labels(0).c_str());
+            m_fields->labels_top_right->   setCString(labels::get_labels(1).c_str());
+            m_fields->labels_bottom_left-> setCString(labels::get_labels(2).c_str());
+            m_fields->labels_bottom_right->setCString(labels::get_labels(3).c_str());
+            auto size_tl = m_fields->labels_top_left->    getScaledContentSize();
+            auto size_tr = m_fields->labels_top_right->   getScaledContentSize();
+            auto size_bl = m_fields->labels_bottom_left-> getScaledContentSize();
+            auto size_br = m_fields->labels_bottom_right->getScaledContentSize();
 
-            if (labels::pos == 0) {
-                m_fields->labels->setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentLeft);
-                m_fields->labels->setPosition({screenLeft + size.width + 5, screenTop - size.height - 3});
-            }
-            else if (labels::pos == 1) {
-                m_fields->labels->setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentLeft);
-                m_fields->labels->setPosition({screenLeft + size.width + 5, screenBottom + 3});
-            }
-            else if (labels::pos == 2) {
-                m_fields->labels->setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentRight);
-                m_fields->labels->setPosition({screenRight - 5, screenTop - size.height - 3});
-            }
-            else if (labels::pos == 3) {
-                m_fields->labels->setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentRight);
-                m_fields->labels->setPosition({screenRight - 5, screenBottom + 3});
-            }
+            m_fields->labels_top_left->    setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentLeft);
+            m_fields->labels_top_left->    setPosition({screenLeft + size_tl.width + 5, screenTop - size_tl.height - 3});
+	    
+            m_fields->labels_bottom_left-> setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentLeft);
+            m_fields->labels_bottom_left-> setPosition({screenLeft + size_bl.width + 5, screenBottom + 3});
+	    
+            m_fields->labels_top_right->   setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentRight);
+            m_fields->labels_top_right->   setPosition({screenRight - 5, screenTop - size_tr.height - 3});
+	    
+            m_fields->labels_bottom_right->setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentRight);
+            m_fields->labels_bottom_right->setPosition({screenRight - 5, screenBottom + 3});
         }
 
         if (m_fields->tint_death_bg) {

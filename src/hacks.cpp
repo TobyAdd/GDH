@@ -491,14 +491,37 @@ void hacks::save(const std::vector<window>& windows, const std::filesystem::path
     j["icon_saturation"] = hacks::ricon_saturation;
     j["icon_brightness"] = hacks::ricon_brightness;
 
-    j["time24_enabled"] = labels::time24_enabled;
-    j["time12_enabled"] = labels::time12_enabled;
-    j["noclip_accuracy_enabled"] = labels::noclip_accuracy_enabled;
-    j["cps_counter_enabled"] = labels::cps_counter_enabled;
-    j["death_enabled"] = labels::death_enabled;
-    j["custom_text_enabled"] = labels::custom_text_enabled;
-    j["custom_text"] = labels::custom_text;
-    j["labels_pos"] = labels::pos;
+    j["labels_t_l"] = json::array();
+    j["labels_t_r"] = json::array();
+    j["labels_b_l"] = json::array();
+    j["labels_b_r"] = json::array();
+
+    for (size_t i = 0; i < 4; i++) {
+	std::vector<labels::Label> label_vector =
+            i == 0 ? labels::labels_top_left :
+	    i == 1 ? labels::labels_top_right :
+	    i == 2 ? labels::labels_bottom_left :
+		labels::labels_bottom_right;
+		
+	json& json_array =
+            i == 0 ? j["labels_t_l"] :
+	    i == 1 ? j["labels_t_r"] :
+	    i == 2 ? j["labels_b_l"] :
+		j["labels_b_r"];
+		
+	for (auto& label : label_vector) {
+	    if (label.type == labels::LABEL_TIME24         ) json_array.push_back( {{"type", "time24"}}          ); 
+	    if (label.type == labels::LABEL_TIME12         ) json_array.push_back( {{"type", "time12"}}          ); 
+	    if (label.type == labels::LABEL_NOCLIP_ACCURACY) json_array.push_back( {{"type", "noclip_accuracy"}} ); 
+	    if (label.type == labels::LABEL_CPS_COUNTER    ) json_array.push_back( {{"type", "cps_counter"}}     ); 
+	    if (label.type == labels::LABEL_DEATH_COUNTER  ) json_array.push_back( {{"type", "death_counter"}}   ); 
+	    if (label.type == labels::LABEL_CUSTOM_TEXT    )
+	        json_array.push_back( {{"type", "custom_text"}, {"text", label.text.c_str()}} );
+	}
+    }
+
+    j["label_size"] = labels::label_size;
+    j["label_opacity"] = labels::label_opacity;
 
     j["draw_trail"] = hacks::draw_trail;
     j["trail_length"] = hacks::trail_length;
@@ -604,7 +627,7 @@ void hacks::load(const std::filesystem::path &filename, std::vector<window>& win
 
     hacks::speed_enabled = j.value("speed_enabled", false);
     hacks::speed_value = j.value("speed", 1.f);
-    if (hacks::speed_value == 0.f) {
+    if (hacks::speed_value <= 0.f) {
         hacks::speed_value = 1.f;
     }
 
@@ -619,15 +642,46 @@ void hacks::load(const std::filesystem::path &filename, std::vector<window>& win
     hacks::ricon_saturation = j.value("icon_saturation", 1.0f);
     hacks::ricon_brightness = j.value("icon_brightness", 1.0f);
 
-    labels::time24_enabled = j.value("time24_enabled", false);
-    labels::time12_enabled = j.value("time12_enabled", false);
-    labels::noclip_accuracy_enabled = j.value("noclip_accuracy_enabled", false);
-    labels::cps_counter_enabled = j.value("cps_counter_enabled", false);
-    labels::death_enabled = j.value("death_enabled", false);
-    labels::custom_text_enabled = j.value("custom_text_enabled", false);
-    labels::custom_text = j.value("custom_text", "test");
-    labels::pos = j.value("labels_pos", 0);
-
+    labels::labels_top_left = {};
+    labels::labels_top_right = {};
+    labels::labels_bottom_left = {};
+    labels::labels_bottom_right = {};
+    
+    for (size_t i = 0; i < 4; i++) {
+	std::vector<labels::Label>& label_vector =
+            i == 0 ? labels::labels_top_left :
+	    i == 1 ? labels::labels_top_right :
+	    i == 2 ? labels::labels_bottom_left :
+		labels::labels_bottom_right;
+		
+	json& json_array =
+            i == 0 ? j["labels_t_l"] :
+	    i == 1 ? j["labels_t_r"] :
+	    i == 2 ? j["labels_b_l"] :
+		j["labels_b_r"];
+		
+	for (auto label : json_array) {
+	    std::string type = label.value("type", "custom_text");
+	    labels::Label l;
+	    if (type == "time24")
+	        l = {labels::LABEL_TIME24, ""};
+	    if (type == "time12")
+		l = {labels::LABEL_TIME12, ""};
+	    if (type == "noclip_accuracy")
+		l = {labels::LABEL_NOCLIP_ACCURACY, ""};
+	    if (type == "cps_counter")
+		l = {labels::LABEL_CPS_COUNTER, ""};
+	    if (type == "death_counter")
+		l = {labels::LABEL_DEATH_COUNTER, ""};
+	    if (type == "custom_text")
+	        l = {labels::LABEL_CUSTOM_TEXT, label.value("text", "")};
+	    label_vector.push_back(l);
+	}
+    }
+    
+    labels::label_size = j.value("label_size", 0.4f);
+    labels::label_opacity = j.value("label_opacity", 150);
+    
     hacks::draw_trail = j.value("draw_trail", false);
     hacks::trail_length = j.value("trail_length", 240);
     hacks::show_hitboxes_on_death = j.value("show_hitboxes_on_death", false);
