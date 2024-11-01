@@ -35,6 +35,10 @@ std::string search_text;
 
 bool gui::russian_char_warning = false;
 
+int selected_label_corner = 0;
+int selected_label_type = 0;
+std::string selected_label_text = "";
+
 void updateCursorState() {
     bool canShowInLevel = true;
     if (auto* playLayer = PlayLayer::get()) {
@@ -190,7 +194,7 @@ void gui::RenderMain() {
 
             
             if (ImGui::IsItemHovered())
-                ImGui::SetTooltip("NOT RECOMMENDED FOR NORMAL USE\nTHIS FEATURE IS PURELY MADE FOR REPLAY ENGINE TO BYPASS PHYSICS AND\nMAKE FIXED FRAME UPDATES (IT RUINS THE PERFORMANCE BUT IT MAKES THE MACRO MORE ACCURATE)\n\nRecommend setting the recording to 240 TPS to ensure stability in both recording and playback of the macro");
+                ImGui::SetTooltip("NOT RECOMMENDED FOR NORMAL USE\nTHIS FEATURE IS PURELY MADE FOR REPLAY ENGINE TO BYPASS PHYSICS AND\nMAKES FIXED FRAME UPDATES (IT RUINS THE PERFORMANCE BUT IT MAKES THE MACRO MORE ACCURATE)\n\nRecommend setting the recording to 240 TPS to ensure stability in both recording and playback of the macro");
 
             ImGui::SameLine();
             if (ImGui::Checkbox("##tps_enabled", &hacks::tps_enabled, gui::scale)) {
@@ -210,25 +214,71 @@ void gui::RenderMain() {
             engine.render();
         }
         else if (windowName == "Labels") {
-            ImGui::Checkbox("Custom Text", &labels::custom_text_enabled, gui::scale);
+             ImGui::DragInt("##Label Opacity", &labels::label_opacity, 10.f, 0, 255, "Label Opacity: %d");
+             ImGui::DragFloat("##Label Size", &labels::label_size, 0.01f, 0.f, 1.f, "Label Size: %.2f");
 
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            ImGui::InputText("##Custom Text2", &labels::custom_text);
-            
-            ImGui::Checkbox("Time (24H)", &labels::time24_enabled, gui::scale);
+             ImGui::Separator();
+	     ImGui::RadioButton("Top Left",     &selected_label_corner, 0); ImGui::SameLine();
+	     ImGui::RadioButton("Top Right",    &selected_label_corner, 1);
+	     ImGui::RadioButton("Bottom Left",  &selected_label_corner, 2); ImGui::SameLine();
+	     ImGui::RadioButton("Bottom Right", &selected_label_corner, 3);
+	     ImGui::Separator();
+	     std::vector<labels::Label>& label_vector =
+                 selected_label_corner == 0 ? labels::labels_top_left :
+                 selected_label_corner == 1 ? labels::labels_top_right :
+                 selected_label_corner == 2 ? labels::labels_bottom_left :
+                     labels::labels_bottom_right;
 
-            ImGui::SameLine();
+	     const char *label_types[] = {
+		 "Time (24h)",
+		 "Time (12h)",
+		 "Noclip Accuracy",
+		 "CPS Counter",
+		 "Death Counter",
+		 "Custom Text"
+	     };
+	     
+             ImGui::Combo("##label type", &selected_label_type, label_types, labels::COUNT_LABELS, labels::COUNT_LABELS);
+	     ImGui::SameLine();
+	     if (ImGui::Button("Add")) {
+		  labels::Label l = { (labels::LabelType) selected_label_type, selected_label_text };
+		  label_vector.push_back(l);
+		  selected_label_text = "";
+	     }
+	     if (selected_label_type == labels::LABEL_CUSTOM_TEXT) {
+		  ImGui::InputText("##CustomText", &selected_label_text);
+	     }
 
-            ImGui::Checkbox("Time (12H)", &labels::time12_enabled, gui::scale);            
-            ImGui::Checkbox("Noclip Accuracy", &labels::noclip_accuracy_enabled, gui::scale);
-
-            ImGui::Checkbox("CPS Counter", &labels::cps_counter_enabled, gui::scale);
-
-            ImGui::Checkbox("Death Counter", &labels::death_enabled, gui::scale);
-            
-            const char *e[] = {"Top Left", "Bottom Left", "Top Right", "Bottom Right"};
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            ImGui::Combo("##Labels Position", &labels::pos, e, 4, 4);
+	     ImGui::Separator();
+	     
+	     for (size_t index = 0; index < label_vector.size(); index++) {
+		  labels::Label& item = label_vector[index];
+		 
+		  ImGui::PushID(index);
+		  if (ImGui::Button("Remove")) {
+		      label_vector.erase(std::next(label_vector.begin(), index));
+		  }
+		  ImGui::SameLine();
+		  if (ImGui::Button("Up") && index != 0) {
+		      std::iter_swap(std::next(label_vector.begin(), index), std::next(label_vector.begin(), index-1));
+		  }
+		  ImGui::SameLine();
+		  if (ImGui::Button("Down") && index != label_vector.size() - 1) {
+		      std::iter_swap(std::next(label_vector.begin(), index), std::next(label_vector.begin(), index+1));
+		  }
+		  ImGui::SameLine();
+		 
+		  if (item.type == labels::LABEL_TIME12) ImGui::Text("Time (12h)");
+		  if (item.type == labels::LABEL_TIME24) ImGui::Text("Time (24h)");
+		  if (item.type == labels::LABEL_NOCLIP_ACCURACY) ImGui::Text("Noclip Accuracy");
+		  if (item.type == labels::LABEL_CPS_COUNTER) ImGui::Text("CPS Counter");
+		  if (item.type == labels::LABEL_DEATH_COUNTER) ImGui::Text("Death Counter");
+		  if (item.type == labels::LABEL_CUSTOM_TEXT) {
+		      ImGui::Text("Custom Text");
+                      ImGui::InputText("##customtextinput", &item.text);
+		  }
+		  ImGui::PopID();
+	     }
         }
         else if (windowName == "GDH Settings") {
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
