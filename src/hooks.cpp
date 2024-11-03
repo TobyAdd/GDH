@@ -197,6 +197,10 @@ namespace startpos_switcher {
                 pl->resetCamera();
 
             pl->startMusic();
+                
+            if (reinterpret_cast<cocos2d::CCNode*>(pl->m_player1)->getPositionX() == 0) labels::start_percent = 0;
+            else labels::start_percent = std::clamp(reinterpret_cast<cocos2d::CCNode*>(pl->m_player1)->getPositionX() / pl->m_levelLength * 100.f, 0.f, 100.f);
+            labels::best_percent = labels::start_percent;
 
             return;
         }
