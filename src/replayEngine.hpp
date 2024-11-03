@@ -55,8 +55,6 @@ public:
 
     bool settings_openned = false;
 
-    int secret = 5;
-
     unsigned get_frame();
     void handle_recording(GJBaseGameLayer* self, bool player);
     void handle_recording2(bool hold, int button, bool player);
