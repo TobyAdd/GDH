@@ -516,13 +516,8 @@ void hacks::save(const std::vector<window>& windows, const std::filesystem::path
 		j["labels_t"];
 		
 	for (auto& label : label_vector) {
-	    if (label.type == labels::LABEL_TIME24         ) json_array.push_back( {{"type", "time24"}}          ); 
-	    if (label.type == labels::LABEL_TIME12         ) json_array.push_back( {{"type", "time12"}}          ); 
-	    if (label.type == labels::LABEL_NOCLIP_ACCURACY) json_array.push_back( {{"type", "noclip_accuracy"}} ); 
-	    if (label.type == labels::LABEL_CPS_COUNTER    ) json_array.push_back( {{"type", "cps_counter"}}     ); 
-	    if (label.type == labels::LABEL_DEATH_COUNTER  ) json_array.push_back( {{"type", "death_counter"}}   ); 
-	    if (label.type == labels::LABEL_CUSTOM_TEXT    )
-	        json_array.push_back( {{"type", "custom_text"}, {"text", label.text.c_str()}} );
+	    if (label.type == labels::LABEL_CUSTOM_TEXT    ) json_array.push_back( {{"type", labels::label_slugs[(int) label.type]}, {"text", label.text.c_str()}} );
+            else json_array.push_back( {{"type", labels::label_slugs[(int) label.type]}} );
 	}
     }
 
@@ -675,19 +670,15 @@ void hacks::load(const std::filesystem::path &filename, std::vector<window>& win
 		
 	for (auto label : json_array) {
 	    std::string type = label.value("type", "custom_text");
+            labels::LabelType label_type = labels::COUNT_LABELS;
+            for (int i = 0; i < labels::COUNT_LABELS; i++) {
+                if ((std::string)labels::label_slugs[i] == type) {
+                    label_type = (labels::LabelType) i; break;
+                }
+            }
 	    labels::Label l;
-	    if (type == "time24")
-	        l = {labels::LABEL_TIME24, ""};
-	    if (type == "time12")
-		l = {labels::LABEL_TIME12, ""};
-	    if (type == "noclip_accuracy")
-		l = {labels::LABEL_NOCLIP_ACCURACY, ""};
-	    if (type == "cps_counter")
-		l = {labels::LABEL_CPS_COUNTER, ""};
-	    if (type == "death_counter")
-		l = {labels::LABEL_DEATH_COUNTER, ""};
-	    if (type == "custom_text")
-	        l = {labels::LABEL_CUSTOM_TEXT, label.value("text", "")};
+	    if (label_type == labels::LABEL_CUSTOM_TEXT) l = {labels::LABEL_CUSTOM_TEXT, label.value("text", "")};
+            else l = {label_type, ""};
 	    label_vector.push_back(l);
 	}
     }
