@@ -217,8 +217,10 @@ class $modify(PlayLayer) {
     struct Fields {
         cocos2d::CCLabelBMFont* labels_top_left;
         cocos2d::CCLabelBMFont* labels_top_right;
+        cocos2d::CCLabelBMFont* labels_top;
         cocos2d::CCLabelBMFont* labels_bottom_left;
         cocos2d::CCLabelBMFont* labels_bottom_right;
+        cocos2d::CCLabelBMFont* labels_bottom;
         cocos2d::CCSprite* tint_death_bg;
         GameObject* anticheat_obj = nullptr;
 
@@ -275,28 +277,41 @@ class $modify(PlayLayer) {
 	m_fields->labels_top_right    = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
 	m_fields->labels_bottom_left  = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
 	m_fields->labels_bottom_right = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
+	m_fields->labels_top          = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
+	m_fields->labels_bottom       = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
 
         m_fields->labels_top_left->    setID("labels_top_left"_spr);
         m_fields->labels_top_right->   setID("labels_top_right"_spr);
         m_fields->labels_bottom_left-> setID("labels_bottom_left"_spr);
         m_fields->labels_bottom_right->setID("labels_bottom_right"_spr);
+        m_fields->labels_top->         setID("labels_top"_spr);
+        m_fields->labels_bottom->      setID("labels_bottom"_spr);
 
-	for (size_t i = 0; i < 4; i++) {
+	for (size_t i = 0; i < 6; i++) {
 	    cocos2d::CCLabelBMFont* label_object =
 	        i == 0 ? m_fields->labels_top_left :
 	        i == 1 ? m_fields->labels_top_right :
 		i == 2 ? m_fields->labels_bottom_left :
-		    m_fields->labels_bottom_right;
+	        i == 3 ? m_fields->labels_bottom_right :
+		i == 4 ? m_fields->labels_bottom :
+		    m_fields->labels_top;
 	    label_object->setZOrder(999);
 	    label_object->setScale(labels::label_size);
             label_object->setOpacity(labels::label_opacity);
-            label_object->setAnchorPoint({1, 0});
+            if (i == 0) label_object->setAnchorPoint({0, 1});
+            if (i == 1) label_object->setAnchorPoint({1, 1});
+            if (i == 2) label_object->setAnchorPoint({0, 0});
+            if (i == 3) label_object->setAnchorPoint({1, 0});
+            if (i == 4) label_object->setAnchorPoint({0.5f, 0});
+            if (i == 5) label_object->setAnchorPoint({0.5f, 1});
 	}
 	
         addChild(m_fields->labels_top_left);
         addChild(m_fields->labels_top_right);
         addChild(m_fields->labels_bottom_left);
         addChild(m_fields->labels_bottom_right);
+        addChild(m_fields->labels_bottom);
+        addChild(m_fields->labels_top);
 
         m_fields->tint_death_bg = cocos2d::CCSprite::create("game_bg_13_001.png");
         m_fields->tint_death_bg->setPosition({wnd_size.width/2, wnd_size.height/2});
@@ -317,6 +332,9 @@ class $modify(PlayLayer) {
         if (!recorderAudio.is_recording) {
             recorderAudio.audio_name = level->m_levelName + ".wav";
         }
+
+        labels::attempts = 0;
+        labels::attempt_time = 0.f;
 
         return true;
     }
@@ -384,36 +402,40 @@ class $modify(PlayLayer) {
 	        cocos2d::CCLabelBMFont* label_object =
 	            i == 0 ? m_fields->labels_top_left :
 	            i == 1 ? m_fields->labels_top_right :
-	    	     i == 2 ? m_fields->labels_bottom_left :
-		        m_fields->labels_bottom_right;
+	    	    i == 2 ? m_fields->labels_bottom_left :
+	    	    i == 3 ? m_fields->labels_bottom_right :
+	    	    i == 4 ? m_fields->labels_bottom :
+		        m_fields->labels_top;
 	        label_object->setScale(labels::label_size);
-               label_object->setOpacity(labels::label_opacity);
-	     }
-            auto screenLeft = cocos2d::CCDirector::sharedDirector()->getScreenLeft();
-            auto screenTop = cocos2d::CCDirector::sharedDirector()->getScreenTop();
-            auto screenBottom = cocos2d::CCDirector::sharedDirector()->getScreenBottom();
-            auto screenRight = cocos2d::CCDirector::sharedDirector()->getScreenRight();
-
+                label_object->setOpacity(labels::label_opacity);
+	    }
+            
+            auto size = cocos2d::CCDirector::sharedDirector()->getWinSize();
+            
             m_fields->labels_top_left->    setCString(labels::get_labels(0).c_str());
             m_fields->labels_top_right->   setCString(labels::get_labels(1).c_str());
             m_fields->labels_bottom_left-> setCString(labels::get_labels(2).c_str());
             m_fields->labels_bottom_right->setCString(labels::get_labels(3).c_str());
-            auto size_tl = m_fields->labels_top_left->    getScaledContentSize();
-            auto size_tr = m_fields->labels_top_right->   getScaledContentSize();
-            auto size_bl = m_fields->labels_bottom_left-> getScaledContentSize();
-            auto size_br = m_fields->labels_bottom_right->getScaledContentSize();
+            m_fields->labels_bottom->      setCString(labels::get_labels(4).c_str());
+            m_fields->labels_top->         setCString(labels::get_labels(5).c_str());
 
             m_fields->labels_top_left->    setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentLeft);
-            m_fields->labels_top_left->    setPosition({screenLeft + size_tl.width + 5, screenTop - size_tl.height - 3});
+            m_fields->labels_top_left->    setPosition({labels::label_padding, size.height - labels::label_padding});
 	    
             m_fields->labels_bottom_left-> setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentLeft);
-            m_fields->labels_bottom_left-> setPosition({screenLeft + size_bl.width + 5, screenBottom + 3});
+            m_fields->labels_bottom_left-> setPosition({labels::label_padding, labels::label_padding});
 	    
             m_fields->labels_top_right->   setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentRight);
-            m_fields->labels_top_right->   setPosition({screenRight - 5, screenTop - size_tr.height - 3});
+            m_fields->labels_top_right->   setPosition({size.width - labels::label_padding, size.height - labels::label_padding});
 	    
             m_fields->labels_bottom_right->setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentRight);
-            m_fields->labels_bottom_right->setPosition({screenRight - 5, screenBottom + 3});
+            m_fields->labels_bottom_right->setPosition({size.width - labels::label_padding, labels::label_padding});
+	    
+            m_fields->labels_top->setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentCenter);
+            m_fields->labels_top->setPosition({size.width/2, size.height - labels::label_padding});
+	    
+            m_fields->labels_bottom->setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentCenter);
+            m_fields->labels_bottom->setPosition({size.width/2, labels::label_padding});
         }
 
         if (m_fields->tint_death_bg) {
@@ -549,6 +571,16 @@ class $modify(PlayLayer) {
                 this->runAction(newSequence);
             }
         }
+    }
+
+    void updateAttempts() {
+        PlayLayer::updateAttempts();
+        labels::attempts++;
+    }
+
+    void updateAttemptTime(float time) {
+        PlayLayer::updateAttemptTime(time);
+        labels::attempt_time += time;
     }
 
     void updateProgressbar() {
