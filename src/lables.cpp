@@ -29,6 +29,21 @@ const char* labels::label_types[COUNT_LABELS] = {
     "Custom Text"
 };
 
+const char* labels::label_slugs[COUNT_LABELS] = {
+    "time24",
+    "time12",
+    "noclip_accuracy",
+    "cps_counter",
+    "death_counter",
+    "attempt_counter",
+    "session_time",
+    "level_progress",
+    "level_info",
+    "best_run",
+    "re_meta",
+    "custom_text"
+};
+
 // i couldnt figure out where to put these so here they are
 int labels::attempts = 0;
 float labels::attempt_time = 0;

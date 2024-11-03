@@ -33,6 +33,7 @@ namespace labels {
     extern std::vector<Label> labels_top;
 
     extern const char* label_types[COUNT_LABELS];
+    extern const char* label_slugs[COUNT_LABELS];
 
     extern float label_size;
     extern int label_opacity;
