@@ -37,7 +37,7 @@ class Recorder {
         bool fade_in = false;
         float fade_in_start = 0;
         float fade_in_end = 0.5f;
-        
+
         bool fade_out = false;
 
         double delay;

@@ -273,12 +273,18 @@ class $modify(PlayLayer) {
 
         auto wnd_size = cocos2d::CCDirector::sharedDirector()->getWinSize();
 
+        labels::level_name = level->m_levelName;
+        labels::level_creator = level->m_creatorName;
+        if (reinterpret_cast<cocos2d::CCNode*>(m_player1)->getPositionX() == 0) labels::start_percent = 0;
+        else labels::start_percent = std::clamp(reinterpret_cast<cocos2d::CCNode*>(m_player1)->getPositionX() / m_levelLength * 100.f, 0.f, 100.f);
+        labels::best_percent = labels::start_percent;
+
         m_fields->labels_top_left     = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
-	m_fields->labels_top_right    = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
-	m_fields->labels_bottom_left  = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
-	m_fields->labels_bottom_right = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
-	m_fields->labels_top          = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
-	m_fields->labels_bottom       = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
+	 m_fields->labels_top_right    = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
+	 m_fields->labels_bottom_left  = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
+	 m_fields->labels_bottom_right = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
+	 m_fields->labels_top          = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
+	 m_fields->labels_bottom       = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
 
         m_fields->labels_top_left->    setID("labels_top_left"_spr);
         m_fields->labels_top_right->   setID("labels_top_right"_spr);
@@ -402,9 +408,9 @@ class $modify(PlayLayer) {
 	        cocos2d::CCLabelBMFont* label_object =
 	            i == 0 ? m_fields->labels_top_left :
 	            i == 1 ? m_fields->labels_top_right :
-	    	    i == 2 ? m_fields->labels_bottom_left :
-	    	    i == 3 ? m_fields->labels_bottom_right :
-	    	    i == 4 ? m_fields->labels_bottom :
+	    	     i == 2 ? m_fields->labels_bottom_left :
+	    	     i == 3 ? m_fields->labels_bottom_right :
+	    	     i == 4 ? m_fields->labels_bottom :
 		        m_fields->labels_top;
 	        label_object->setScale(labels::label_size);
                 label_object->setOpacity(labels::label_opacity);
@@ -466,11 +472,37 @@ class $modify(PlayLayer) {
             m_player1->m_waveTrail->setColor(color1);
             m_player2->m_waveTrail->setColor(color2);
         }
+
+        // https://github.com/EclipseMenu/EclipseMenu/blob/18489ba4b78e3698285215ae7550ad17ac5e57e1/src/utils.cpp#L59
+        // <3
+        if (m_level->m_timestamp > 0) {
+            labels::progress = static_cast<float>(m_gameState.m_levelTime);
+            labels::platformer = true;
+        } else {
+            labels::progress = std::clamp(reinterpret_cast<cocos2d::CCNode*>(m_player1)->getPositionX() / m_levelLength * 100.f, 0.f, 100.f);
+            labels::platformer = false;
+        }
+
+        labels::player1_x = m_player1->m_position.x;
+        labels::player1_y = m_player1->m_position.y;
+        labels::two_players = false;
+        if (m_gameState.m_isDualMode) {
+            labels::two_players = true;
+            labels::player2_x = m_player2->m_position.x;
+            labels::player2_y = m_player2->m_position.y;
+        }
     }
 
     void resetLevel() {
+        if (m_level->m_timestamp <= 0) {
+            float progress = std::clamp(reinterpret_cast<cocos2d::CCNode*>(m_player1)->getPositionX() / m_levelLength * 100.f, 0.f, 100.f);
+            if (labels::best_percent < progress) labels::best_percent = progress;
+        }
+        
         PlayLayer::resetLevel();
 
+        labels::progress = 0;
+        
         // geode::log::debug("[restart level] - curr {}; custom_curr {}", static_cast<unsigned>(m_gameState.m_currentProgress), static_cast<unsigned>(m_gameState.m_levelTime * 240));
 
         if (!m_isPracticeMode && !startPositions.empty()) {
@@ -609,6 +641,15 @@ class $modify(PlayLayer) {
         // geode::log::debug("[checkpoint removed] - curr {}", static_cast<unsigned>(m_gameState.m_currentProgress));
         if (!m_fields->checkpoints_p1.empty()) m_fields->checkpoints_p1.pop_back();
         if (!m_fields->checkpoints_p2.empty()) m_fields->checkpoints_p2.pop_back();
+    }
+};
+
+class $modify(PlayerObject) {
+    void flipGravity(bool p1, bool p2) {
+        PlayerObject::flipGravity(p1, p2);
+        labels::gravity_p1_flipped = p1;
+        labels::gravity_p2_flipped = p2;
+        // geode::log::debug("[gravity flip] p1: {} p2: {}", p1, p2);
     }
 };
 

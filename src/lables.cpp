@@ -1,4 +1,5 @@
 #include "labels.hpp"
+#include "replayEngine.hpp"
 
 std::vector<labels::Label> labels::labels_top_left = {};
 std::vector<labels::Label> labels::labels_top_right = {};
@@ -10,6 +11,8 @@ std::vector<labels::Label> labels::labels_top = {};
 float labels::label_size = 0.4f;
 int labels::label_opacity = 150;
 float labels::label_padding = 5.f;
+float labels::start_percent = 150;
+float labels::best_percent = 5.f;
 
 const char* labels::label_types[COUNT_LABELS] = {
     "Time (24h)",
@@ -19,16 +22,49 @@ const char* labels::label_types[COUNT_LABELS] = {
     "Death Counter",
     "Attempt Counter",
     "Session Time",
+    "Level Progress",
+    "Level Info",
+    "Best Run",
+    "Replay Engine Meta",
     "Custom Text"
 };
 
 // i couldnt figure out where to put these so here they are
 int labels::attempts = 0;
 float labels::attempt_time = 0;
+float labels::progress = 0;
+bool labels::platformer = false;
+std::string labels::level_name = {};
+std::string labels::level_creator = {};
+float labels::player1_x = 0;
+float labels::player1_y = 0;
+float labels::player2_x = 0;
+float labels::player2_y = 0;
+bool labels::gravity_p1_flipped = false;
+bool labels::gravity_p2_flipped = false;
+bool labels::two_players = false;
+
+std::string time_to_fmt_time(int hours, int minutes, int seconds) {
+    std::stringstream ss;
+    ss << std::setfill('0') << std::setw(2) << hours << ":" << std::setw(2) << minutes << ":" << std::setw(2) << seconds;
+    return ss.str();
+}
+
+std::string seconds_to_fmt_time(float seconds) {
+    int time = (int) seconds;
+    int minutes = seconds / 60;
+    int hour = minutes / 60;
+    return time_to_fmt_time(hour % 60, minutes % 60, time % 60);
+}
+
+std::string round_float(float value, int decimal_places) {
+    std::stringstream fmtFloat;
+    fmtFloat << std::fixed << std::setprecision(decimal_places) << value;
+    return fmtFloat.str();
+}
 
 std::string labels::get_label_string_repr(labels::Label const& label) {
     if (label.type == labels::LABEL_TIME12) {
-	std::stringstream ss;
         SYSTEMTIME localTime;
         GetLocalTime(&localTime);
 
@@ -37,24 +73,16 @@ std::string labels::get_label_string_repr(labels::Label const& label) {
         if (hour == 0) hour = 12;
         if (hour > 12) hour -= 12;
         
-        ss << std::setfill('0') << std::setw(2) << hour << ":" 
-        << std::setw(2) << localTime.wMinute << ":" << std::setw(2) << localTime.wSecond << " " << period;
-        return ss.str();
+        return time_to_fmt_time(hour, localTime.wMinute, localTime.wSecond) + " " + period;
 	
     } else if (label.type == labels::LABEL_TIME24) {
-	std::stringstream ss;
-       SYSTEMTIME localTime;
-       GetLocalTime(&localTime);
+        SYSTEMTIME localTime;
+        GetLocalTime(&localTime);
 	
-       ss << std::setfill('0') << std::setw(2) << localTime.wHour << ":" 
-       << std::setw(2) << localTime.wMinute << ":" << std::setw(2) << localTime.wSecond;
-       return ss.str();
+        return time_to_fmt_time(localTime.wHour, localTime.wMinute, localTime.wSecond);
 	
     } else if (label.type == labels::LABEL_NOCLIP_ACCURACY) {
-       std::stringstream formatedPercentage;
-       formatedPercentage << std::fixed << std::setprecision(2) << noclip_accuracy.getPercentage();
-
-       return formatedPercentage.str() + "%";
+       return round_float(noclip_accuracy.getPercentage(), 2) + "%";
 
     } else if (label.type == labels::LABEL_CPS_COUNTER) {
        cps_counter.update();
@@ -67,16 +95,41 @@ std::string labels::get_label_string_repr(labels::Label const& label) {
 	return "Attempt " + std::to_string(labels::attempts+1);
         
     } else if (label.type == labels::LABEL_ATTEMPT_TIME) {
-        std::stringstream ss;
-        int time = (int) labels::attempt_time;
-        int minutes = time / 60;
-        int hours = minutes / 60;
-        ss << std::setfill('0') << std::setw(2) << hours % 60 << ":" 
-        << std::setw(2) << minutes % 60 << ":" << std::setw(2) << time % 60;
-	 return "Session: " + ss.str();
+	 return "Session: " + seconds_to_fmt_time(labels::attempt_time);
+        
+    } else if (label.type == labels::LABEL_PROGRESS) {
+        if (labels::platformer) return seconds_to_fmt_time(labels::progress) + "." + std::to_string((int)((labels::progress - std::floor(labels::progress))*100.f));
+        else return round_float(labels::progress, 2) + "%";
+        
+    } else if (label.type == labels::LABEL_LEVEL_INFO) {
+        if (labels::level_creator.length() == 0) return labels::level_name;
+	 else return labels::level_name + " by " + labels::level_creator;
+        
+    } else if (label.type == labels::LABEL_BEST_RUN) {
+        if (labels::start_percent == labels::best_percent) return "Best Run: None"; 
+        if (labels::start_percent == 0) return "Best Run: " + round_float(labels::best_percent, 2) + "%";
+        return "Best Run: " + round_float(labels::start_percent, 2) + "-" + round_float(labels::best_percent, 2) + "%";
+        
+    } else if (label.type == labels::LABEL_RE_META) {
+        unsigned int frame = engine.get_frame();
+        std::string str = {};
+        str += "Frame: " + std::to_string(frame) + "\n";
+        if (labels::two_players) {
+            str += "P1 X: " + std::to_string(labels::player1_x) +
+                 "\nP1 Y: " + std::to_string(labels::player1_y) +
+                 "\nP1 G: " + (std::string) (labels::gravity_p1_flipped ? "Flipped" : "Normal") + "\n";
+            str += "P2 X: " + std::to_string(labels::player2_x) +
+                 "\nP2 Y: " + std::to_string(labels::player2_y) +
+                 "\nP2 G: " + (std::string) (labels::gravity_p2_flipped ? "Flipped" : "Normal");
+        } else {
+            str += "X: " + std::to_string(labels::player1_x) +
+                 "\nY: " + std::to_string(labels::player1_y) + "\n";
+            str += "G: " + (std::string) (labels::gravity_p1_flipped ? "Flipped" : "Normal");
+        }
+        return str;
         
     } else if (label.type == labels::LABEL_CUSTOM_TEXT) {
-	return label.text;
+	 return label.text;
         
     }
     return (std::string) "unreachable";
