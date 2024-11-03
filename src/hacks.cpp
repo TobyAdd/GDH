@@ -495,19 +495,25 @@ void hacks::save(const std::vector<window>& windows, const std::filesystem::path
     j["labels_t_r"] = json::array();
     j["labels_b_l"] = json::array();
     j["labels_b_r"] = json::array();
+    j["labels_b"] = json::array();
+    j["labels_t"] = json::array();
 
-    for (size_t i = 0; i < 4; i++) {
+    for (size_t i = 0; i < 6; i++) {
 	std::vector<labels::Label> label_vector =
             i == 0 ? labels::labels_top_left :
 	    i == 1 ? labels::labels_top_right :
 	    i == 2 ? labels::labels_bottom_left :
-		labels::labels_bottom_right;
+	    i == 3 ? labels::labels_bottom_right :
+	    i == 4 ? labels::labels_bottom :
+		labels::labels_top;
 		
 	json& json_array =
             i == 0 ? j["labels_t_l"] :
 	    i == 1 ? j["labels_t_r"] :
 	    i == 2 ? j["labels_b_l"] :
-		j["labels_b_r"];
+	    i == 3 ? j["labels_b_r"] :
+	    i == 4 ? j["labels_b"] :
+		j["labels_t"];
 		
 	for (auto& label : label_vector) {
 	    if (label.type == labels::LABEL_TIME24         ) json_array.push_back( {{"type", "time24"}}          ); 
@@ -522,6 +528,7 @@ void hacks::save(const std::vector<window>& windows, const std::filesystem::path
 
     j["label_size"] = labels::label_size;
     j["label_opacity"] = labels::label_opacity;
+    j["label_padding"] = labels::label_padding;
 
     j["draw_trail"] = hacks::draw_trail;
     j["trail_length"] = hacks::trail_length;
@@ -646,19 +653,25 @@ void hacks::load(const std::filesystem::path &filename, std::vector<window>& win
     labels::labels_top_right = {};
     labels::labels_bottom_left = {};
     labels::labels_bottom_right = {};
+    labels::labels_bottom = {};
+    labels::labels_top = {};
     
-    for (size_t i = 0; i < 4; i++) {
+    for (size_t i = 0; i < 6; i++) {
 	std::vector<labels::Label>& label_vector =
             i == 0 ? labels::labels_top_left :
 	    i == 1 ? labels::labels_top_right :
 	    i == 2 ? labels::labels_bottom_left :
-		labels::labels_bottom_right;
+	    i == 3 ? labels::labels_bottom_right :
+	    i == 4 ? labels::labels_bottom :
+		labels::labels_top;
 		
 	json& json_array =
             i == 0 ? j["labels_t_l"] :
 	    i == 1 ? j["labels_t_r"] :
 	    i == 2 ? j["labels_b_l"] :
-		j["labels_b_r"];
+	    i == 3 ? j["labels_b_r"] :
+	    i == 4 ? j["labels_b"] :
+		j["labels_t"];
 		
 	for (auto label : json_array) {
 	    std::string type = label.value("type", "custom_text");
@@ -681,6 +694,7 @@ void hacks::load(const std::filesystem::path &filename, std::vector<window>& win
     
     labels::label_size = j.value("label_size", 0.4f);
     labels::label_opacity = j.value("label_opacity", 150);
+    labels::label_padding = j.value("label_padding", 5.0f);
     
     hacks::draw_trail = j.value("draw_trail", false);
     hacks::trail_length = j.value("trail_length", 240);

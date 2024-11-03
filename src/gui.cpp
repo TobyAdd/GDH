@@ -87,7 +87,7 @@ void License() {
         ImVec2 center = ImGui::GetMainViewport()->GetCenter();
         ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));  
         gui::inited = true;
-    }    
+    }
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {20, 20});
     ImGui::Begin("Welcome", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
@@ -216,31 +216,21 @@ void gui::RenderMain() {
         else if (windowName == "Labels") {
             ImGui::DragInt("##Label Opacity", &labels::label_opacity, 10.f, 0, 255, "Label Opacity: %d");
             ImGui::DragFloat("##Label Size", &labels::label_size, 0.01f, 0.f, 1.f, "Label Size: %.2f");
+            ImGui::DragFloat("##Label Padding", &labels::label_padding, 1.f, 0.f, 50.f, "Label Padding: %.1fpx");
 
             ImGui::Separator();
-            const char* labels_positions[] = {"Top Left", "Top Right", "Bottom Left", "Bottom Right"};
-	     // ImGui::RadioButton("Top Left",     &selected_label_corner, 0); ImGui::SameLine();
-	     // ImGui::RadioButton("Top Right",    &selected_label_corner, 1);
-	     // ImGui::RadioButton("Bottom Left",  &selected_label_corner, 2); ImGui::SameLine();
-	     // ImGui::RadioButton("Bottom Right", &selected_label_corner, 3);
-            ImGui::Combo("##labelspos", &selected_label_corner, labels_positions, 4, 4);
-             
+            const char* labels_positions[] = {"Top Left", "Top Right", "Top", "Bottom Left", "Bottom Right", "Bottom"};
+            ImGui::Combo("##labelspos", &selected_label_corner, labels_positions, 6, 6);
+            
 	     std::vector<labels::Label>& label_vector =
-                 selected_label_corner == 0 ? labels::labels_top_left :
-                 selected_label_corner == 1 ? labels::labels_top_right :
-                 selected_label_corner == 2 ? labels::labels_bottom_left :
-                     labels::labels_bottom_right;
-
-	     const char *label_types[] = {
-		 "Time (24h)",
-		 "Time (12h)",
-		 "Noclip Accuracy",
-		 "CPS Counter",
-		 "Death Counter",
-		 "Custom Text"
-	     };
+                selected_label_corner == 0 ? labels::labels_top_left :
+                selected_label_corner == 1 ? labels::labels_top_right :
+                selected_label_corner == 2 ? labels::labels_top :
+                selected_label_corner == 3 ? labels::labels_bottom_left :
+                selected_label_corner == 4 ? labels::labels_bottom_right :
+                    labels::labels_bottom;
 	     
-            ImGui::Combo("##label type", &selected_label_type, label_types, labels::COUNT_LABELS, labels::COUNT_LABELS);
+            ImGui::Combo("##label type", &selected_label_type, labels::label_types, labels::COUNT_LABELS, labels::COUNT_LABELS);
 	     ImGui::SameLine();
 	     if (ImGui::Button("Add")) {
 		  labels::Label l = { (labels::LabelType) selected_label_type, selected_label_text };
@@ -248,8 +238,8 @@ void gui::RenderMain() {
 		  selected_label_text = "";
 	     }
 	     if (selected_label_type == labels::LABEL_CUSTOM_TEXT) {
-                 ImGui::InputText("##CustomText", &selected_label_text);
-                 ImGui::SameLine();
+                ImGui::InputText("##CustomText", &selected_label_text);
+                ImGui::SameLine();
 	     }
             ImGui::Text("(?)");
             ImGui::SetItemTooltip("To move items around drag'n'drop them.\nTo delete double click them.");
@@ -261,63 +251,61 @@ void gui::RenderMain() {
                 ImGui::TextDisabled("No labels in this corner");
             }
 	     for (size_t index = 0; index < label_vector.size(); index++) {
-		   labels::Label& item = label_vector[index];
-		  
-                 ImGui::PushID(index);
-                   
-                 ImGui::Selectable(label_types[item.type]);
+	 	  labels::Label& item = label_vector[index];
+		 
+                ImGui::PushID(index);
                  
-                 if (ImGui::GetMouseClickedCount(ImGuiMouseButton_Left) >= 2 && ImGui::IsItemHovered()) {
-		       label_vector.erase(std::next(label_vector.begin(), index));
-                 }
+                ImGui::Selectable(labels::label_types[item.type]);
                  
-                 if (ImGui::BeginDragDropSource()) {
-                     ImGui::Text("%s", label_types[item.type]);
-                     ImGui::SetDragDropPayload("LBLMOVE", &index, sizeof(size_t));
-                     ImGui::EndDragDropSource();
-                 }
+                if (ImGui::GetMouseClickedCount(ImGuiMouseButton_Left) >= 2 && ImGui::IsItemHovered()) {
+		      label_vector.erase(std::next(label_vector.begin(), index));
+                }
                  
-                 if (ImGui::BeginDragDropTarget()) {
-                     ImGuiDragDropFlags target_flags = 0;
-                     target_flags |= ImGuiDragDropFlags_AcceptNoDrawDefaultRect; // Don't display the yellow rectangle
-                     if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("LBLMOVE", target_flags)) {
-                         size_t move_from = *(size_t*)payload->Data;
-                         std::iter_swap(std::next(label_vector.begin(), move_from), std::next(label_vector.begin(), index));
-                     }
-                     ImGui::EndDragDropTarget();
-                 }
-                 if (item.type == labels::LABEL_CUSTOM_TEXT) { ImGui::InputText("##inptext", &item.text); }
+                if (ImGui::BeginDragDropSource()) {
+                    ImGui::Text("%s", labels::label_types[item.type]);
+                    ImGui::SetDragDropPayload("LBLMOVE", &index, sizeof(size_t));
+                    ImGui::EndDragDropSource();
+                }
                  
-		   ImGui::PopID();
-	       }
-              ImGui::EndChild();
-          }
-          else if (windowName == "GDH Settings") {
-              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-              ImGui::InputTextWithHint("##Search", "Search:", &search_text);
+                if (ImGui::BeginDragDropTarget()) {
+                    ImGuiDragDropFlags target_flags = 0;
+                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("LBLMOVE", target_flags)) {
+                        size_t move_from = *(size_t*)payload->Data;
+                        std::iter_swap(std::next(label_vector.begin(), move_from), std::next(label_vector.begin(), index));
+                    }
+                    ImGui::EndDragDropTarget();
+                }
+                if (item.type == labels::LABEL_CUSTOM_TEXT) { ImGui::InputText("##inptext", &item.text); }
+                 
+		  ImGui::PopID();
+	     }
+            ImGui::EndChild();
+        } else if (windowName == "GDH Settings") {
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            ImGui::InputTextWithHint("##Search", "Search:", &search_text);
 
-              if (ImGui::GetIO().MouseWheel != 0 && ImGui::IsItemActive())
-              ImGui::SetWindowFocus(NULL);
+            if (ImGui::GetIO().MouseWheel != 0 && ImGui::IsItemActive())
+            ImGui::SetWindowFocus(NULL);
 
               
-              const char* items[] = {"25%", "50%", "75%", "100%", "125%", "150%", "175%", "200%", "250%", "300%", "400%"};
-              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-              if (ImGui::Combo("##Menu scale", &gui::indexScale, items, IM_ARRAYSIZE(items))) {
-                  gui::scale = float(atof(items[gui::indexScale])) / 100.0f;    
-                  gui::needRescale = true;
-                  ImGuiCocos::get().reload();
-              }
+            const char* items[] = {"25%", "50%", "75%", "100%", "125%", "150%", "175%", "200%", "250%", "300%", "400%"};
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::Combo("##Menu scale", &gui::indexScale, items, IM_ARRAYSIZE(items))) {
+                gui::scale = float(atof(items[gui::indexScale])) / 100.0f;    
+                gui::needRescale = true;
+                ImGuiCocos::get().reload();
+            }
 
-              ImGui::Checkbox("Keybind Mode", &keybind_mode, gui::scale);
+            ImGui::Checkbox("Keybind Mode", &keybind_mode, gui::scale);
 
-              if (keybind_mode) {
-                  ImGui::SameLine();
-                  if (ImGui::Button("More", {ImGui::GetContentRegionAvail().x, NULL})) {
-                      ImGui::OpenPopup("Keybinds");
+            if (keybind_mode) {
+                ImGui::SameLine();
+                if (ImGui::Button("More", {ImGui::GetContentRegionAvail().x, NULL})) {
+                    ImGui::OpenPopup("Keybinds");
                 }
 
-                if (ImGui::BeginPopupModal("Keybinds", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-                    auto renderKeyButton = [&](const std::string& label, int& key) {
+              if (ImGui::BeginPopupModal("Keybinds", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+                  auto renderKeyButton = [&](const std::string& label, int& key) {
                         std::string keyStr = label + hacks::GetKeyName(key);
                         if (key == -1) {
                             keyStr = "Press any key...";
