@@ -724,6 +724,72 @@ void ReplayEngine::render() {
                         recorder.fps = 60;
                         recorder.bitrate = "250M";
                     }
+                    
+                    if (ImGui::Button("CPU x264"))
+                    {
+                        recorder.codec = "libx264";
+                        recorder.extra_args = "-pix_fmt yuv420p -preset ultrafast";
+                    }                    
+                    
+                    ImGui::SameLine();
+                    
+                    if (ImGui::Button("CPU x265"))
+                    {
+                        recorder.codec = "libx265";
+                        recorder.extra_args = "-pix_fmt yuv420p -preset ultrafast";
+                    }
+
+                    ImGui::SameLine();
+
+                    if (ImGui::Button("CPU AV1 Lossless"))
+                    {
+                        recorder.codec = "libsvtav1";
+                        recorder.extra_args = "-crf 0 -pix_fmt yuv420p -preset ultrafast";
+                    }
+
+                    if (ImGui::Button("NVIDIA x264"))
+                    {
+                        recorder.codec = "h264_nvenc";
+                        recorder.extra_args = "-pix_fmt yuv420p -preset p7";
+                    }
+
+                    ImGui::SameLine();
+
+                    if (ImGui::Button("NVIDIA x265"))
+                    {
+                        recorder.codec = "hevc_nvenc";
+                        recorder.extra_args = "-pix_fmt yuv420p -preset p7";
+                    }
+
+                    ImGui::SameLine();
+                    
+                    if (ImGui::Button("NVIDIA AV1"))
+                    {
+                        recorder.codec = "av1_nvenc";
+                        recorder.extra_args = "-pix_fmt yuv420p -preset p7";
+                    }
+                    
+                    if (ImGui::Button("AMD x264 Lossless"))
+                    {
+                        recorder.codec = "h264_amf";
+                        recorder.extra_args = "-pix_fmt yuv420p -rc cqp -qp_i 0 -qp_p 0 -qp_b 0";
+                    }
+
+                    ImGui::SameLine();
+
+                    if (ImGui::Button("AMD x265 Lossless"))
+                    {
+                        recorder.codec = "hevc_amf";
+                        recorder.extra_args = "-pix_fmt yuv420p -rc cqp -qp_i 0 -qp_p 0 -qp_b 0";
+                    }
+
+                    if (ImGui::Button("Color Fix"))
+                    {
+                        recorder.compile_vf_args();
+                        if (!recorder.vf_args.empty())
+                            recorder.vf_args += ",";
+                        recorder.vf_args += "scale=out_color_matrix=bt709";
+                    }
 
                     ImGui::Spacing();
 

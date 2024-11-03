@@ -213,74 +213,91 @@ void gui::RenderMain() {
         else if (windowName == "Replay Engine") {
             engine.render();
         }
-        else if (windowName == "Labels") {
+        else if (windowName == "Labels")
+        {
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             ImGui::DragInt("##Label Opacity", &labels::label_opacity, 10.f, 0, 255, "Label Opacity: %d");
+
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             ImGui::DragFloat("##Label Size", &labels::label_size, 0.01f, 0.f, 1.f, "Label Size: %.2f");
+
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             ImGui::DragFloat("##Label Padding", &labels::label_padding, 1.f, 0.f, 50.f, "Label Padding: %.1fpx");
 
             ImGui::Separator();
-            const char* labels_positions[] = {"Top Left", "Top Right", "Top", "Bottom Left", "Bottom Right", "Bottom"};
+            const char *labels_positions[] = {"Top Left", "Top Right", "Top", "Bottom Left", "Bottom Right", "Bottom"};
             ImGui::Combo("##labelspos", &selected_label_corner, labels_positions, 6, 6);
-            
-	     std::vector<labels::Label>& label_vector =
-                selected_label_corner == 0 ? labels::labels_top_left :
-                selected_label_corner == 1 ? labels::labels_top_right :
-                selected_label_corner == 2 ? labels::labels_top :
-                selected_label_corner == 3 ? labels::labels_bottom_left :
-                selected_label_corner == 4 ? labels::labels_bottom_right :
-                    labels::labels_bottom;
-	     
+
+            std::vector<labels::Label> &label_vector =
+                selected_label_corner == 0 ? labels::labels_top_left : selected_label_corner == 1 ? labels::labels_top_right
+                                                                : selected_label_corner == 2   ? labels::labels_top
+                                                                : selected_label_corner == 3   ? labels::labels_bottom_left
+                                                                : selected_label_corner == 4   ? labels::labels_bottom_right
+                                                                                                : labels::labels_bottom;
+
             ImGui::Combo("##label type", &selected_label_type, labels::label_types, labels::COUNT_LABELS, labels::COUNT_LABELS);
-	     ImGui::SameLine();
-	     if (ImGui::Button("Add")) {
-		  labels::Label l = { (labels::LabelType) selected_label_type, selected_label_text };
-		  label_vector.push_back(l);
-		  selected_label_text = "";
-	     }
-	     if (selected_label_type == labels::LABEL_CUSTOM_TEXT) {
+            ImGui::SameLine();
+            if (ImGui::Button("Add"))
+            {
+                labels::Label l = {(labels::LabelType)selected_label_type, selected_label_text};
+                label_vector.push_back(l);
+                selected_label_text = "";
+            }
+            if (selected_label_type == labels::LABEL_CUSTOM_TEXT)
+            {
                 ImGui::InputText("##CustomText", &selected_label_text);
                 ImGui::SameLine();
-	     }
+            }
             ImGui::Text("(?)");
             ImGui::SetItemTooltip("To move items around drag'n'drop them.\nTo delete double click them.");
 
-	     ImGui::Separator();
-	     ImGui::BeginChild("Labels");
+            ImGui::Separator();
+            ImGui::BeginChild("Labels");
             ImGui::Spacing();
-            if (label_vector.size() == 0) {
+            if (label_vector.size() == 0)
+            {
                 ImGui::TextDisabled("No labels in this corner");
             }
-	     for (size_t index = 0; index < label_vector.size(); index++) {
-	 	  labels::Label& item = label_vector[index];
-		 
+            for (size_t index = 0; index < label_vector.size(); index++)
+            {
+                labels::Label &item = label_vector[index];
+
                 ImGui::PushID(index);
-                 
+
                 ImGui::Selectable(labels::label_types[item.type]);
-                 
-                if (ImGui::GetMouseClickedCount(ImGuiMouseButton_Left) >= 2 && ImGui::IsItemHovered()) {
-		      label_vector.erase(std::next(label_vector.begin(), index));
+
+                if (ImGui::GetMouseClickedCount(ImGuiMouseButton_Left) >= 2 && ImGui::IsItemHovered())
+                {
+                    label_vector.erase(std::next(label_vector.begin(), index));
                 }
-                 
-                if (ImGui::BeginDragDropSource()) {
+
+                if (ImGui::BeginDragDropSource())
+                {
                     ImGui::Text("%s", labels::label_types[item.type]);
                     ImGui::SetDragDropPayload("LBLMOVE", &index, sizeof(size_t));
                     ImGui::EndDragDropSource();
                 }
-                 
-                if (ImGui::BeginDragDropTarget()) {
+
+                if (ImGui::BeginDragDropTarget())
+                {
                     ImGuiDragDropFlags target_flags = 0;
-                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("LBLMOVE", target_flags)) {
-                        size_t move_from = *(size_t*)payload->Data;
+                    if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("LBLMOVE", target_flags))
+                    {
+                        size_t move_from = *(size_t *)payload->Data;
                         std::iter_swap(std::next(label_vector.begin(), move_from), std::next(label_vector.begin(), index));
                     }
                     ImGui::EndDragDropTarget();
                 }
-                if (item.type == labels::LABEL_CUSTOM_TEXT) { ImGui::InputText("##inptext", &item.text); }
-                 
-		  ImGui::PopID();
-	     }
+                if (item.type == labels::LABEL_CUSTOM_TEXT)
+                {
+                    ImGui::InputText("##inptext", &item.text);
+                }
+
+                ImGui::PopID();
+            }
             ImGui::EndChild();
-        } else if (windowName == "GDH Settings") {
+        }
+        else if (windowName == "GDH Settings") {
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             ImGui::InputTextWithHint("##Search", "Search:", &search_text);
 
