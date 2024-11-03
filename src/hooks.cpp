@@ -408,7 +408,7 @@ class $modify(PlayLayer) {
 	    m_fields->labels_top_right &&
 	    m_fields->labels_bottom_left &&
 	    m_fields->labels_bottom_right) {
-	    for (size_t i = 0; i < 4; i++) {
+	    for (size_t i = 0; i < 6; i++) {
 	        cocos2d::CCLabelBMFont* label_object =
 	            i == 0 ? m_fields->labels_top_left :
 	            i == 1 ? m_fields->labels_top_right :
@@ -417,7 +417,7 @@ class $modify(PlayLayer) {
 	    	     i == 4 ? m_fields->labels_bottom :
 		        m_fields->labels_top;
 	        label_object->setScale(labels::label_size);
-                label_object->setOpacity(labels::label_opacity);
+                label_object->setOpacity((int)(labels::label_opacity*255));
 	    }
             
             auto size = cocos2d::CCDirector::sharedDirector()->getWinSize();
