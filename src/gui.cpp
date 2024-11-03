@@ -214,10 +214,11 @@ void gui::RenderMain() {
             engine.render();
         }
         else if (windowName == "Labels") {
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x/2);
+            ImGui::DragFloat("##Label Opacity", &labels::label_opacity, 0.01f, 0.f, 1.f, "Opacity: %.2f");
+            ImGui::SameLine();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            ImGui::DragFloat("##Label Opacity", &labels::label_opacity, 0.01f, 0.f, 1.f, "Label Opacity: %.2f");
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            ImGui::DragFloat("##Label Size", &labels::label_size, 0.01f, 0.f, 1.f, "Label Size: %.2f");
+            ImGui::DragFloat("##Label Size", &labels::label_size, 0.01f, 0.f, 1.f, "Size: %.2f");
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             ImGui::DragFloat("##Label Padding", &labels::label_padding, 1.f, 0.f, 50.f, "Label Padding: %.1fpx");
 

@@ -369,7 +369,7 @@ std::vector<window> hacks::windows = {
     {"Framerate", 440, 270, 210, 130},
     {"GDH Settings", 440, 410, 210, 130},
     {"Replay Engine", 660, 10, 300, 200},
-    {"Labels", 660, 220, 300, 280}
+    {"Labels", 660, 220, 300, 320}
 };
 
 void hacks::init() {
