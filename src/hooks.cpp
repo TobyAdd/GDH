@@ -486,11 +486,6 @@ class $modify(PlayLayer) {
             labels::progress = std::clamp(reinterpret_cast<cocos2d::CCNode*>(m_player1)->getPositionX() / m_levelLength * 100.f, 0.f, 100.f);
             labels::platformer = false;
         }
-        
-        if (m_level->m_timestamp <= 0) {
-            float progress = std::clamp(reinterpret_cast<cocos2d::CCNode*>(m_player1)->getPositionX() / m_levelLength * 100.f, 0.f, 100.f);
-            if (labels::best_percent < progress) labels::best_percent = progress;
-        }
 
         labels::player1_x = m_player1->m_position.x;
         labels::player1_y = m_player1->m_position.y;
@@ -503,6 +498,11 @@ class $modify(PlayLayer) {
     }
 
     void resetLevel() {
+        if (m_level->m_timestamp <= 0) {
+            float progress = std::clamp(reinterpret_cast<cocos2d::CCNode*>(m_player1)->getPositionX() / m_levelLength * 100.f, 0.f, 100.f);
+            if (labels::best_percent < progress) labels::best_percent = progress;
+        }
+        
         PlayLayer::resetLevel();
 
         labels::progress = 0;
