@@ -197,6 +197,10 @@ namespace startpos_switcher {
                 pl->resetCamera();
 
             pl->startMusic();
+                
+            if (reinterpret_cast<cocos2d::CCNode*>(pl->m_player1)->getPositionX() == 0) labels::start_percent = 0;
+            else labels::start_percent = std::clamp(reinterpret_cast<cocos2d::CCNode*>(pl->m_player1)->getPositionX() / pl->m_levelLength * 100.f, 0.f, 100.f);
+            labels::best_percent = labels::start_percent;
 
             return;
         }
@@ -404,7 +408,7 @@ class $modify(PlayLayer) {
 	    m_fields->labels_top_right &&
 	    m_fields->labels_bottom_left &&
 	    m_fields->labels_bottom_right) {
-	    for (size_t i = 0; i < 4; i++) {
+	    for (size_t i = 0; i < 6; i++) {
 	        cocos2d::CCLabelBMFont* label_object =
 	            i == 0 ? m_fields->labels_top_left :
 	            i == 1 ? m_fields->labels_top_right :
@@ -413,7 +417,7 @@ class $modify(PlayLayer) {
 	    	     i == 4 ? m_fields->labels_bottom :
 		        m_fields->labels_top;
 	        label_object->setScale(labels::label_size);
-                label_object->setOpacity(labels::label_opacity);
+                label_object->setOpacity((int)(labels::label_opacity*255));
 	    }
             
             auto size = cocos2d::CCDirector::sharedDirector()->getWinSize();
@@ -482,11 +486,6 @@ class $modify(PlayLayer) {
             labels::progress = std::clamp(reinterpret_cast<cocos2d::CCNode*>(m_player1)->getPositionX() / m_levelLength * 100.f, 0.f, 100.f);
             labels::platformer = false;
         }
-        
-        if (m_level->m_timestamp <= 0) {
-            float progress = std::clamp(reinterpret_cast<cocos2d::CCNode*>(m_player1)->getPositionX() / m_levelLength * 100.f, 0.f, 100.f);
-            if (labels::best_percent < progress) labels::best_percent = progress;
-        }
 
         labels::player1_x = m_player1->m_position.x;
         labels::player1_y = m_player1->m_position.y;
@@ -499,6 +498,11 @@ class $modify(PlayLayer) {
     }
 
     void resetLevel() {
+        if (m_level->m_timestamp <= 0) {
+            float progress = std::clamp(reinterpret_cast<cocos2d::CCNode*>(m_player1)->getPositionX() / m_levelLength * 100.f, 0.f, 100.f);
+            if (labels::best_percent < progress) labels::best_percent = progress;
+        }
+        
         PlayLayer::resetLevel();
 
         labels::progress = 0;

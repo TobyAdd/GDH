@@ -36,7 +36,7 @@ namespace labels {
     extern const char* label_slugs[COUNT_LABELS];
 
     extern float label_size;
-    extern int label_opacity;
+    extern float label_opacity;
     extern float label_padding;
 
     extern float start_percent;

@@ -13,14 +13,17 @@ public:
     std::vector<DWORD> clicks;
     int cps = 0;
     int highscore = 0;
+    int overall = 0;
 
     void reset() {
         cps = 0;
         highscore = 0;
+        overall = 0;
     }
     
     void recordClick() {
         DWORD millis = GetTickCount();
+        overall++;
         clicks.push_back(millis);
     }
 

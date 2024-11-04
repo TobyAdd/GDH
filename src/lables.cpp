@@ -9,7 +9,7 @@ std::vector<labels::Label> labels::labels_bottom = {};
 std::vector<labels::Label> labels::labels_top = {};
 
 float labels::label_size = 0.4f;
-int labels::label_opacity = 150;
+float labels::label_opacity = 0.5f;
 float labels::label_padding = 5.f;
 float labels::start_percent = 150;
 float labels::best_percent = 5.f;
@@ -101,7 +101,7 @@ std::string labels::get_label_string_repr(labels::Label const& label) {
 
     } else if (label.type == labels::LABEL_CPS_COUNTER) {
        cps_counter.update();
-       return std::to_string(cps_counter.cps) + "/" + std::to_string(cps_counter.highscore);
+       return std::to_string(cps_counter.cps) + "/" + std::to_string(cps_counter.overall) + "/" + std::to_string(cps_counter.highscore);
 	
     } else if (label.type == labels::LABEL_DEATH_COUNTER) {
 	return std::to_string(noclip_accuracy.deaths_full) + " Deaths";
