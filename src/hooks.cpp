@@ -479,13 +479,13 @@ class $modify(PlayLayer) {
 
         // https://github.com/EclipseMenu/EclipseMenu/blob/18489ba4b78e3698285215ae7550ad17ac5e57e1/src/utils.cpp#L59
         // <3
-        if (m_level->m_timestamp > 0) {
-            labels::progress = static_cast<float>(m_gameState.m_levelTime);
-            labels::platformer = true;
+        if (m_level->isPlatformer()) labels::progress = static_cast<float>(m_gameState.m_levelTime);
+        else if (m_level->m_timestamp > 0) {
+            labels::progress = static_cast<float>(m_gameState.m_levelTime * 240.f) / m_level->m_timestamp * 100.f;
         } else {
             labels::progress = std::clamp(reinterpret_cast<cocos2d::CCNode*>(m_player1)->getPositionX() / m_levelLength * 100.f, 0.f, 100.f);
-            labels::platformer = false;
         }
+        labels::platformer = m_level->isPlatformer();
 
         labels::player1_x = m_player1->m_position.x;
         labels::player1_y = m_player1->m_position.y;
@@ -498,8 +498,14 @@ class $modify(PlayLayer) {
     }
 
     void resetLevel() {
-        if (m_level->m_timestamp <= 0) {
-            float progress = std::clamp(reinterpret_cast<cocos2d::CCNode*>(m_player1)->getPositionX() / m_levelLength * 100.f, 0.f, 100.f);
+        if (!m_level->isPlatformer()) {
+            float progress;
+            
+            else if (m_level->m_timestamp > 0) {
+                progress = static_cast<float>(m_gameState.m_levelTime * 240.f) / m_level->m_timestamp * 100.f;
+            } else {
+                progress = std::clamp(reinterpret_cast<cocos2d::CCNode*>(m_player1)->getPositionX() / m_levelLength * 100.f, 0.f, 100.f);
+            }
             if (labels::best_percent < progress) labels::best_percent = progress;
         }
         
