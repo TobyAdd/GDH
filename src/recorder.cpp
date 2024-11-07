@@ -89,10 +89,14 @@ void RenderTexture::capture_frame(std::mutex& lock, std::vector<uint8_t>& data, 
 }
 
 void RenderTexture::end() {
-    texture->release();
+    if (texture)
+        texture->release();
 }
 
 void Recorder::start(std::string command) {
+    need_remove_black = false;
+    need_visible_lc = false;
+
     last_frame_time = extra_time = 0;
 
     after_end_extra_time = 0.f;
@@ -111,10 +115,11 @@ void Recorder::start(std::string command) {
             if (frame_has_data) {
                 const auto frame = current_frame;
                 frame_has_data = false;
-                lock.unlock();
-                process.m_stdin.write(frame.data(), frame.size());
-            } else lock.unlock();
+                process.m_stdin.write(frame.data(), frame.size());                
+            }
+            lock.unlock();
         }
+
         if (process.close()) {
             return;
         }
@@ -123,14 +128,22 @@ void Recorder::start(std::string command) {
 
 void Recorder::stop() {
     texture.end();
+
     is_recording = false;
     enabled = false;
     left_over = 0;
     imgui_popup::add_popup("Video recording stoped!");
     
-    if (PlayLayer::get() && fade_out) {
+    auto pl = PlayLayer::get();
+    
+    if (pl && fade_out) {
         need_remove_black = true;
     }
+
+    if (pl && hide_level_complete) {
+        need_visible_lc = true;
+    }
+    
 }
 
 void Recorder::render_frame() {

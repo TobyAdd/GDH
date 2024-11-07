@@ -107,7 +107,7 @@ std::string labels::get_label_string_repr(labels::Label const& label) {
 	return std::to_string(noclip_accuracy.deaths_full) + " Deaths";
         
     } else if (label.type == labels::LABEL_ATTEMPTS) {
-	return "Attempt " + std::to_string(labels::attempts+1);
+	return "Attempt " + std::to_string(labels::attempts);
         
     } else if (label.type == labels::LABEL_ATTEMPT_TIME) {
 	 return "Session: " + seconds_to_fmt_time(labels::attempt_time);

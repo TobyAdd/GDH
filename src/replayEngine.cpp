@@ -475,6 +475,7 @@ void ReplayEngine::render() {
 
             if (ImGui::BeginTabItem("Recorder (Beta)")) {
                 if (recorder.ffmpeg_installed) {
+                    auto pl = PlayLayer::get();
                     if (ImGui::Checkbox("Record##Recorder", &recorder.enabled, gui::scale)) {
                         ImVec2 displaySize = ImGui::GetIO().DisplaySize;
                         std::string window_size = aspectRatio(static_cast<int>(displaySize.x), static_cast<int>(displaySize.y));
@@ -488,6 +489,10 @@ void ReplayEngine::render() {
                             imgui_popup::add_popup(fmt::format("Aspect Ratio: {} != {}", window_size, recorder_size));
                             imgui_popup::add_popup(fmt::format("Window && Recorder Resolution: {}x{}, {}x{}", static_cast<int>(displaySize.x), static_cast<int>(displaySize.y), recorder.width, recorder.height));
                             imgui_popup::add_popup(fmt::format("Aspect ratio mismatch. Adjust resolution or resize the window"));
+                            recorder.enabled = false;
+                        }
+                        else if (pl && pl->m_hasCompletedLevel) {
+                            imgui_popup::add_popup("Restart level to start recording");
                             recorder.enabled = false;
                         }
                         else {
@@ -613,8 +618,9 @@ void ReplayEngine::render() {
                     }
 
                     ImGui::Checkbox("Fade out", &recorder.fade_out, gui::scale);
+                    ImGui::Text("Note: The length of the fade-out is calculated based on the value of \"Second to Render After\"");
 
-                    ImGui::Text("Note: The length of the fade-out is calculated based on the value of \"Second to Render After\" (WIP)");
+                    ImGui::Checkbox("Hide Level Complete", &recorder.hide_level_complete, gui::scale);
 
                     ImGui::Spacing();
 
@@ -626,7 +632,7 @@ void ReplayEngine::render() {
 
                     ImGui::Spacing();
 
-                    ImGui::Text("Presets");
+                    ImGui::Text("Presets (Thanks WarGack, ElPaan, midixd)");
 
                     ImGui::Separator();
 
@@ -742,7 +748,7 @@ void ReplayEngine::render() {
                     if (ImGui::Button("CPU AV1 Lossless"))
                     {
                         recorder.codec = "libsvtav1";
-                        recorder.extra_args = "-crf 0 -pix_fmt yuv420p -preset ultrafast";
+                        recorder.extra_args = "-crf 0 -pix_fmt yuv420p";
                     }
                     if (ImGui::Button("NVIDIA x264"))
                     {

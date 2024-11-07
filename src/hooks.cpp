@@ -659,32 +659,50 @@ class $modify(MyEndLevelLayer, EndLevelLayer) {
     };
 
     void pizdec(float) {
-        if (recorder.is_recording && recorder.fade_out) {
+        if (m_fields->black_bg && recorder.is_recording && recorder.fade_out) {
             int opacity = (recorder.after_end_extra_time >= (recorder.after_end_duration - 0.1f)) ? 255 : 255 * recorder.after_end_extra_time / (recorder.after_end_duration - 0.1f);
             m_fields->black_bg->setOpacity(opacity);
         }
-        else if (recorder.need_remove_black) {
+        else if (m_fields->black_bg && recorder.need_remove_black) {
             recorder.need_remove_black = false;
             m_fields->black_bg->setOpacity(0);
         }
+
+        if (recorder.need_visible_lc) {
+            setVisible(true);
+            recorder.need_visible_lc = false;
+        }
     }
 
-    void customSetup() {
-        EndLevelLayer::customSetup();
+    void showLayer(bool p0) {
+        EndLevelLayer::showLayer(p0);
+
+        auto pl = PlayLayer::get();
+        if (recorder.is_recording && recorder.hide_level_complete) {
+            setVisible(false);
+        }        
 
         if (recorder.is_recording && recorder.fade_out) {
             auto wnd_size = cocos2d::CCDirector::sharedDirector()->getWinSize();
+
             m_fields->black_bg = cocos2d::CCSprite::create("game_bg_13_001.png");
-            m_fields->black_bg->setPosition({wnd_size.width/2, wnd_size.height/2});
-            m_fields->black_bg->setScaleX(wnd_size.width);
-            m_fields->black_bg->setScaleY(wnd_size.height);
+            auto sprSize = m_fields->black_bg->getContentSize();
+            m_fields->black_bg->setPosition({wnd_size.width/2, wnd_size.height/2});            
+            m_fields->black_bg->setScaleX(wnd_size.width / sprSize.width * 2.f);
+            m_fields->black_bg->setScaleY(wnd_size.height / sprSize.height * 2.f);
             m_fields->black_bg->setColor({0, 0, 0});
             m_fields->black_bg->setOpacity(0);
             m_fields->black_bg->setZOrder(999);
-            addChild(m_fields->black_bg);
 
-            schedule(schedule_selector(MyEndLevelLayer::pizdec), 0.0f);
+            if (recorder.hide_level_complete) {
+                pl->addChild(m_fields->black_bg);;
+            }
+            else {
+                addChild(m_fields->black_bg);
+            }
         }
+
+        schedule(schedule_selector(MyEndLevelLayer::pizdec), 0.0f);
     }
 };
 

@@ -40,6 +40,8 @@ class Recorder {
 
         bool fade_out = false;
 
+        bool hide_level_complete = true;
+
         double delay;
 
         std::vector<uint8_t> current_frame;
@@ -62,6 +64,7 @@ class Recorder {
         void handle_recording(float dt);  
 
         bool need_remove_black = false;
+        bool need_visible_lc = false;
 
         bool ffmpeg_installed = false;
         bool advanced_mode = false;
