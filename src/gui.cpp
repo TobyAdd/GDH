@@ -214,15 +214,17 @@ void gui::RenderMain() {
             engine.render();
         }
         else if (windowName == "Labels") {
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x/2);
+            ImGui::DragFloat("##Label Opacity", &labels::label_opacity, 0.01f, 0.f, 1.f, "Opacity: %.2f");
+            ImGui::SameLine();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            ImGui::DragInt("##Label Opacity", &labels::label_opacity, 10.f, 0, 255, "Label Opacity: %d");
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            ImGui::DragFloat("##Label Size", &labels::label_size, 0.01f, 0.f, 1.f, "Label Size: %.2f");
+            ImGui::DragFloat("##Label Size", &labels::label_size, 0.01f, 0.f, 1.f, "Size: %.2f");
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             ImGui::DragFloat("##Label Padding", &labels::label_padding, 1.f, 0.f, 50.f, "Label Padding: %.1fpx");
 
             ImGui::Separator();
             const char *labels_positions[] = {"Top Left", "Top Right", "Top", "Bottom Left", "Bottom Right", "Bottom"};
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             ImGui::Combo("##labelspos", &selected_label_corner, labels_positions, 6, 6);
             
 	     std::vector<labels::Label>& label_vector =
@@ -234,27 +236,28 @@ void gui::RenderMain() {
                     labels::labels_bottom;
 	     
             ImGui::Combo("##label type", &selected_label_type, labels::label_types, labels::COUNT_LABELS, labels::COUNT_LABELS);
-	     ImGui::SameLine();
-	     if (ImGui::Button("Add")) {
-		  labels::Label l = { (labels::LabelType) selected_label_type, selected_label_text };
-		  label_vector.push_back(l);
-		  selected_label_text = "";
-	     }
-	     if (selected_label_type == labels::LABEL_CUSTOM_TEXT) {
+	    ImGui::SameLine();
+	    if (ImGui::Button("Add")) {
+		labels::Label l = { (labels::LabelType) selected_label_type, selected_label_text };
+		label_vector.push_back(l);
+		selected_label_text = "";
+	    }
+	    if (selected_label_type == labels::LABEL_CUSTOM_TEXT) {
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                 ImGui::InputText("##CustomText", &selected_label_text);
                 ImGui::SameLine();
-	     }
+	    }
             ImGui::Text("(?)");
             ImGui::SetItemTooltip("To move items around drag'n'drop them.\nTo delete double click them.");
 
-	     ImGui::Separator();
-	     ImGui::BeginChild("Labels");
+	    ImGui::Separator();
+	    ImGui::BeginChild("Labels");
             ImGui::Spacing();
             if (label_vector.size() == 0) {
                 ImGui::TextDisabled("No labels in this corner");
             }
-	     for (size_t index = 0; index < label_vector.size(); index++) {
-	 	  labels::Label& item = label_vector[index];
+	    for (size_t index = 0; index < label_vector.size(); index++) {
+	 	labels::Label& item = label_vector[index];
 		 
                 ImGui::PushID(index);
                  
@@ -278,10 +281,13 @@ void gui::RenderMain() {
                     }
                     ImGui::EndDragDropTarget();
                 }
-                if (item.type == labels::LABEL_CUSTOM_TEXT) { ImGui::InputText("##inptext", &item.text); }
+                if (item.type == labels::LABEL_CUSTOM_TEXT) {
+                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                    ImGui::InputText("##inptext", &item.text);
+                }
                  
-		  ImGui::PopID();
-	     }
+		ImGui::PopID();
+	    }
             ImGui::EndChild();
         } else if (windowName == "GDH Settings") {
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);

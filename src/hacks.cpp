@@ -369,7 +369,7 @@ std::vector<window> hacks::windows = {
     {"Framerate", 440, 270, 210, 130},
     {"GDH Settings", 440, 410, 210, 130},
     {"Replay Engine", 660, 10, 300, 200},
-    {"Labels", 660, 220, 300, 280}
+    {"Labels", 660, 220, 300, 320}
 };
 
 void hacks::init() {
@@ -684,7 +684,7 @@ void hacks::load(const std::filesystem::path &filename, std::vector<window>& win
     }
     
     labels::label_size = j.value("label_size", 0.4f);
-    labels::label_opacity = j.value("label_opacity", 150);
+    labels::label_opacity = j.value("label_opacity", 0.5f);
     labels::label_padding = j.value("label_padding", 5.0f);
     
     hacks::draw_trail = j.value("draw_trail", false);
