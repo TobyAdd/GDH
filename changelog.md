@@ -1,3 +1,8 @@
+# 4.8.0
+- Redesigned labels (thanks aciddev)
+- Improved Recorder that ensure less crashes
+- Added “Hide Complete Menu” for the recorder 
+
 # 4.7.8
 - fixed conflict between two engines
 - replay engine v2 macro playback in editor
