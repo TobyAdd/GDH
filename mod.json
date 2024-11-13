@@ -22,7 +22,9 @@
 		"universal",
 		"interface",
 		"utility",
-		"cheats"
+		"offline",
+		"enhancement",
+		"cheat"
 	],
 	"resources": {
 		"sprites": [
