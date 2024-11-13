@@ -100,6 +100,13 @@ namespace hacks {
     extern bool disable_render;
 
     extern bool no_death_effect;
+    
+    extern bool copy_hack;
+    extern bool level_edit;
+
+    extern bool no_shaders;
+    extern bool main_levels;
+    extern bool safe_mode;
 
     void update_framerate(float value);
 

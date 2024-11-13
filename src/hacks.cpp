@@ -66,6 +66,13 @@ bool hacks::disable_render = false;
 
 bool hacks::no_death_effect = false;
 
+bool hacks::level_edit = false;
+bool hacks::copy_hack = false;
+
+bool hacks::no_shaders = false;
+bool hacks::safe_mode = false;
+bool hacks::main_levels = false;
+
 std::vector<window> hacks::windows = {
     {"Core", 10, 10, 200, 200, 
         {
@@ -84,12 +91,7 @@ std::vector<window> hacks::windows = {
                 }
             },
             {"No Death Effect", "Upon death, the cube will not emit an exploding effect"},
-            {"Safe Mode", "Disables progress on levels",
-                {
-                    {"0f 85 ? ? ? ? 40 38 b7 ? ? ? ? 0f 85 ? ? ? ? 0f b6 97", "E9 B4 01 00 00 90"},
-                    {"0f 85 ? ? ? ? 80 bf ? ? ? ? ? 0f 85 ? ? ? ? e8", "E9 78 03 00 00 90"}
-                }
-            }
+            {"Safe Mode", "Disables progress on levels"}
         }
     },
     {"Bypass", 10, 220, 200, 250, 
@@ -138,8 +140,8 @@ std::vector<window> hacks::windows = {
                     {"7c ? e8 ? ? ? ? 48 8b d0", "90 90"},
                     {"0f 84 ? ? ? ? ff 15 ? ? ? ? 48 8b f8 ff 15 ? ? ? ? 48 89 b8", "90 90 90 90 90 90"},
                     {"0f 85 ? ? ? ? 48 8d 45 ? 48 89 45 ? 0f b7 05 ? ? ? ? 66 89 45 ? 0f b6 05 ? ? ? ? 88 45 ? 0f 57 c0 0f 11 45 ? 45 33 f6 4c 89 75 ? 48 c7 45 ? ? ? ? ? 41 8d 4e ? e8 ? ? ? ? 48 8b c8 48 89 45 ? 48 c7 45 ? ? ? ? ? 48 c7 45 ? ? ? ? ? 0f 28 05 ? ? ? ? 0f 11 00 0f 28 0d ? ? ? ? 0f 11 48 ? 0f 28 05 ? ? ? ? 0f 11 40 ? f2 0f 10 05", "E9 FE 02 00 00 90"},
-                    {"0f 85 ? ? ? ? 48 8d 45 ? 48 89 45 ? 0f b7 05 ? ? ? ? 66 89 45 ? 0f b6 05 ? ? ? ? 88 45 ? 0f 57 c0 0f 11 45 ? 45 33 f6 4c 89 75 ? 48 c7 45 ? ? ? ? ? 41 8d 4e ? e8 ? ? ? ? 48 8b c8 48 89 45 ? 48 c7 45 ? ? ? ? ? 48 c7 45 ? ? ? ? ? 0f 28 05 ? ? ? ? 0f 11 00 0f 28 0d ? ? ? ? 0f 11 48 ? 0f 28 05 ? ? ? ? 0f 11 40 ? 0f 28 0d ? ? ? ? 0f 11 48 ? 0f b7 05", "E9 C6 02 00 00 90"},
-                    {"0f 85 ? ? ? ? 48 8d 45 ? 48 89 45 ? 0f b7 05 ? ? ? ? 66 89 45 ? 0f b6 05 ? ? ? ? 88 45 ? 0f 57 c0 0f 11 45 ? 45 33 f6 4c 89 75 ? 48 c7 45 ? ? ? ? ? 41 8d 4e ? e8 ? ? ? ? 48 8b c8 48 89 45 ? 48 c7 45 ? ? ? ? ? 48 c7 45 ? ? ? ? ? 0f 28 05 ? ? ? ? 0f 11 00 0f 28 0d ? ? ? ? 0f 11 48 ? 0f 28 05 ? ? ? ? 0f 11 40 ? 0f 28 0d ? ? ? ? 0f 11 48 ? 0f 28 05", "E9 2E 05 00 00 90"},
+                    {"0f 85 ? ? ? ? 48 8d 45 ? 48 89 45 ? 0f b7 05 ? ? ? ? 66 89 45 ? 0f b6 05 ? ? ? ? 88 45 ? 0f 57 c0 0f 11 45 ? 45 33 f6 4c 89 75 ? 48 c7 45 ? ? ? ? ? 41 8d 4e ? e8 ? ? ? ? 48 8b c8 48 89 45 ? 48 c7 45 ? ? ? ? ? 48 c7 45 ? ? ? ? ? 0f 28 05 ? ? ? ? 0f 11 00 0f 28 0d ? ? ? ? 0f 11 48 ? 0f 28 05 ? ? ? ? 0f 11 40 ? 0f 28 0d ? ? ? ? 0f 11 48 ? 0f b7 05", "E9 C7 02 00 00 90"},
+                    {"0f 85 ? ? ? ? 48 8d 45 ? 48 89 45 ? 0f b7 05 ? ? ? ? 66 89 45 ? 0f b6 05 ? ? ? ? 88 45 ? 0f 57 c0 0f 11 45 ? 45 33 f6 4c 89 75 ? 48 c7 45 ? ? ? ? ? 41 8d 4e ? e8 ? ? ? ? 48 8b c8 48 89 45 ? 48 c7 45 ? ? ? ? ? 48 c7 45 ? ? ? ? ? 0f 28 05 ? ? ? ? 0f 11 00 0f 28 0d ? ? ? ? 0f 11 48 ? 0f 28 05 ? ? ? ? 0f 11 40 ? 0f 28 0d ? ? ? ? 0f 11 48 ? 0f 28 05", "E9 2F 05 00 00 90"},
                     {"0f 8c ? ? ? ? ff 15 ? ? ? ? 48 8b f8 ff 15", "90 90 90 90 90 90"},
                     {"0f 84 ? ? ? ? c6 05", "90 90 90 90 90 90"},
                     {"0f 8c ? ? ? ? 48 8b 0d ? ? ? ? 48 85 c9 75 ? b9 ? ? ? ? e8 ? ? ? ? 48 89 45 ? 48 8b c8 e8 ? ? ? ? 90 48 89 05 ? ? ? ? 48 8b 10 48 8b c8 ff 52 ? 48 8b 0d ? ? ? ? 45 33 c0", "90 90 90 90 90 90"},
@@ -181,14 +183,14 @@ std::vector<window> hacks::windows = {
                     {"f3 0f 10 05 ? ? ? ? ff 15 ? ? ? ? 48 89 44 24", "0F 57 C0 90 90 90 90 90"}
                 }
             },
-            {"Random Seed", "Changes the seed game so that the random trigger is not triggered randomly"},
+            // {"Random Seed", "Changes the seed game so that the random trigger is not triggered randomly"},
             {"Respawn Time", "Changes respawn time on death"},
             {"Restart Level", "Reload the level"},
             {"Practice Mode", "Enter practice mode"},
             {"Ignore ESC", "Prevents exiting the level"},
             {"Instant Complete", "Instant level completion"},
             {"Jump Hack", "Кemoves the barrier to jump gravity"},
-            {"Smart Startpos", "Restores correct gameplay without startpos settings"},
+            // {"Smart Startpos", "Restores correct gameplay without startpos settings"},
             {"Startpos Switcher", "The ability to switch between starting positions using the keys that you setted in keybinds"},
             {"Reset Camera", "When switching between starting positions, the camera may move, so this feature fixes that unpleasant switch"},
             {"RGB Icons", "LGBT icons, yes :3"},
@@ -244,12 +246,7 @@ std::vector<window> hacks::windows = {
                     {"74 ? 48 8b 8e ? ? ? ? 48 8b 01 f3 0f 10 0d ? ? ? ? ff 90 ? ? ? ? 48 8d 15", "EB"}
                 }
             },
-            {"No Shaders", "Disabling shaders in levels",
-                {
-                    {"ff 15 ? ? ? ? 48 8b 8b ? ? ? ? 48 8b 01 ff 90 ? ? ? ? 48 8b c8 ff 15 ? ? ? ? 48 8d 94 24", "90 90 90 90 90 90"},
-                    {"7a ? 0f 84 ? ? ? ? 48 89 9c 24", "E9 14 09 00 00 90 90 90"}
-                }
-            },
+            {"No Shaders", "Disabling shaders in levels"},
             {"No Particles", "Disables resuming the particle system",
                 {
                     {"40 53 48 83 ec ? 48 83 b9 ? ? ? ? ? 48 8b d9 0f 84 ? ? ? ? 83 b9", "C3", "libcocos2d.dll"},
@@ -317,11 +314,7 @@ std::vector<window> hacks::windows = {
     },
     {"Creator", 440, 10, 210, 250, 
         {
-            {"Copy Hack", "Copy any online level without a password",
-                {
-                    {"0f 8f ? ? ? ? 41 8b 85", "E9 F6 00 00 00 90"}
-                }
-            },
+            {"Copy Hack", "Copy any online level without a password"},
             {"Custom Object Bypass", "Removes the limit restricted to 1000 objects",
                 {
                     {"0f 84 ? ? ? ? ff 15 ? ? ? ? 3d", "E9 51 01 00 00 90"},
@@ -351,14 +344,7 @@ std::vector<window> hacks::windows = {
                     {"0f 82 ? ? ? ? 48 8b 8f ? ? ? ? 4c 89 74 24", "90 90 90 90 90 90"}
                 }
             },
-            {"Level Edit", "Edit any online level",
-                {
-                    {"0f 85 ? ? ? ? 48 8d 0d ? ? ? ? ff 15 ? ? ? ? 4c 8b f8 48 8b 38", "90 90 90 90 90 90"},
-                    {"4c 0f 44 c8", "49 89 C1 90"},
-                    {"0f 85 ? ? ? ? ff 15 ? ? ? ? 48 8b 10 48 8b c8 ff 52", "90 90 90 90 90 90"},
-                    {"0f 87 ? ? ? ? 48 63 c2 4c 8d 05 ? ? ? ? 41 8b 94 80 ? ? ? ? 49 03 d0 ff e2 e8", "E9 A8 01 00 00 90"}
-                }
-            },
+            {"Level Edit", "Edit any online level"},
             {"No (C) Mark", "Removes copyright on copied levels",
                 {
                     {"41 8b bd", "31 FF EB 0A"}
@@ -420,6 +406,11 @@ void hacks::init() {
                 else if (hck.name == "Show Hitboxes") { hacks::show_hitboxes = hck.enabled; }
                 else if (hck.name == "Random Seed") { hacks::random_seed_enabled = hck.enabled; }
                 else if (hck.name == "No Death Effect") { hacks::no_death_effect = hck.enabled; }
+                else if (hck.name == "Copy Hack") { hacks::copy_hack = hck.enabled; }
+                else if (hck.name == "Level Edit") { hacks::level_edit = hck.enabled; }
+                else if (hck.name == "Main Levels") { hacks::main_levels = hck.enabled; }
+                else if (hck.name == "No Shaders") { hacks::no_shaders = hck.enabled; }
+                else if (hck.name == "Safe Mode") { hacks::safe_mode = hck.enabled; }
                 else {
                     for (auto& opc : hck.opcodes) {
                         std::string bytesStr = hck.enabled ? opc.on : opc.off;
@@ -525,7 +516,7 @@ void hacks::save(const std::vector<window>& windows, const std::filesystem::path
     j["label_opacity"] = labels::label_opacity;
     j["label_padding"] = labels::label_padding;
 
-    j["draw_trail"] = hacks::draw_trail;
+    // j["draw_trail"] = hacks::draw_trail;
     j["trail_length"] = hacks::trail_length;
     j["show_hitboxes_on_death"] = hacks::show_hitboxes_on_death;
 
@@ -687,7 +678,7 @@ void hacks::load(const std::filesystem::path &filename, std::vector<window>& win
     labels::label_opacity = j.value("label_opacity", 0.5f);
     labels::label_padding = j.value("label_padding", 5.0f);
     
-    hacks::draw_trail = j.value("draw_trail", false);
+    // hacks::draw_trail = j.value("draw_trail", false);
     hacks::trail_length = j.value("trail_length", 240);
     hacks::show_hitboxes_on_death = j.value("show_hitboxes_on_death", false);
 

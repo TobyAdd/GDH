@@ -16,6 +16,12 @@
 #include <Geode/modify/EndLevelLayer.hpp>
 #include <Geode/modify/AchievementNotifier.hpp>
 #include <Geode/modify/PlayerObject.hpp>
+#include <Geode/modify/EditorPauseLayer.hpp>
+#include <Geode/modify/ShaderLayer.hpp>
+#include <Geode/modify/EditorUI.hpp>
+#include <Geode/modify/LevelTools.hpp>
+#include <Geode/modify/LevelPage.hpp>
+#include <Geode/modify/GJGameLevel.hpp>
 #include "speedhackAudio.hpp"
 #include "labels.hpp"
 #include "replayEngine.hpp"
@@ -349,6 +355,17 @@ class $modify(PlayLayer) {
         return true;
     }
 
+    void levelComplete() {
+        bool testmode = this->m_isTestMode;
+
+        if (hacks::safe_mode)
+            m_isTestMode = true;
+
+        PlayLayer::levelComplete();
+
+        m_isTestMode = testmode;
+    }
+
     void addObject(GameObject* obj) {
         PlayLayer::addObject(obj);
         switch (obj->m_objectID)
@@ -512,6 +529,9 @@ class $modify(PlayLayer) {
         
         PlayLayer::resetLevel();
 
+        if (hacks::safe_mode)
+            m_level->m_attempts = m_level->m_attempts - 1;
+
         labels::progress = 0;
         
         // geode::log::debug("[restart level] - curr {}; custom_curr {}", static_cast<unsigned>(m_gameState.m_currentProgress), static_cast<unsigned>(m_gameState.m_levelTime * 240));
@@ -581,6 +601,11 @@ class $modify(PlayLayer) {
         PlayLayer::playPlatformerEndAnimationToPos(pos, idk);
         if (engine.mode == state::record)
             engine.mode = state::disable;
+    }
+
+    void showNewBest(bool p0, int p1, int p2, bool p3, bool p4, bool p5) {
+        if (hacks::safe_mode) return;        
+        PlayLayer::showNewBest(p0, p1, p2, p3, p4, p5);
     }
 
     void destroyPlayer(PlayerObject* player, GameObject* obj) {
@@ -655,12 +680,30 @@ class $modify(PlayLayer) {
     }
 };
 
+class $modify(GJGameLevel) {
+    void savePercentage(int percent, bool isPracticeMode, int clicks, int attempts, bool isChkValid) {
+        if (hacks::safe_mode) return;
+        GJGameLevel::savePercentage(percent, isPracticeMode, clicks, attempts, isChkValid);
+    }
+};
+
 class $modify(PlayerObject) {
     void flipGravity(bool p1, bool p2) {
         PlayerObject::flipGravity(p1, p2);
         labels::gravity_p1_flipped = p1;
         labels::gravity_p2_flipped = p2;
         // geode::log::debug("[gravity flip] p1: {} p2: {}", p1, p2);
+    }
+
+    void playDeathEffect() {
+        if (hacks::no_death_effect) return;            
+        PlayerObject::playDeathEffect();
+    }
+
+    void incrementJumps() {
+        if (hacks::safe_mode) return;
+
+        PlayerObject::incrementJumps();
     }
 };
 
@@ -801,13 +844,6 @@ class $modify(GameManager) {
     }
 };
 
-class $modify(PlayerObject) {
-    void playDeathEffect() {
-        if (hacks::no_death_effect) return;            
-        PlayerObject::playDeathEffect();
-    }
-};
-
 class $modify(GameStatsManager) {
     bool isItemUnlocked(UnlockType p0, int p1) {
         if (GameStatsManager::isItemUnlocked(p0, p1))
@@ -825,6 +861,62 @@ class $modify(GameStatsManager) {
         return false;
     }
 };
+//EditorUI
+class $modify(EditorUI) {
+    void onSettings(cocos2d::CCObject* sender) {
+        auto levelType = LevelEditorLayer::get()->m_level->m_levelType;
+
+        if (hacks::level_edit)
+            LevelEditorLayer::get()->m_level->m_levelType = GJLevelType::Editor;
+        EditorUI::onSettings(sender);
+        LevelEditorLayer::get()->m_level->m_levelType = levelType;
+    }
+};
+
+class $modify(ShaderLayer) {
+    void performCalculations() {
+        if (hacks::no_shaders) {
+            m_state.m_usesShaders = false;
+            return;
+        }
+
+        ShaderLayer::performCalculations();
+    }
+};
+
+class $modify(LevelPage) {
+    void onPlay(cocos2d::CCObject* sender) {
+        auto coins = m_level->m_requiredCoins;
+
+        if (hacks::main_levels) m_level->m_requiredCoins = 0;
+
+        LevelPage::onPlay(sender);
+
+        m_level->m_requiredCoins = coins;
+    }
+};
+
+class $modify(EditorPauseLayer) {
+    bool init(LevelEditorLayer* p0) {
+        auto levelType = LevelEditorLayer::get()->m_level->m_levelType;
+
+        if (hacks::level_edit)
+            LevelEditorLayer::get()->m_level->m_levelType = GJLevelType::Editor;
+        auto ret = EditorPauseLayer::init(p0);
+        LevelEditorLayer::get()->m_level->m_levelType = levelType;
+
+        return ret;
+    }
+};
+
+class $modify(LevelTools) {
+    static bool verifyLevelIntegrity(gd::string p0, int p1) {
+        if (LevelTools::verifyLevelIntegrity(p0, p1))
+            return true;
+            
+        return hacks::level_edit;
+    }
+};
 
 class $modify(PauseLayer) {
     static void onModify(auto& self) {
@@ -837,7 +929,15 @@ class $modify(PauseLayer) {
     }
 
     void customSetup() {
+        auto levelType = PlayLayer::get()->m_level->m_levelType;
+
+        if (hacks::level_edit)
+            PlayLayer::get()->m_level->m_levelType = GJLevelType::Editor;
+
         PauseLayer::customSetup();
+
+        PlayLayer::get()->m_level->m_levelType = levelType;
+
         hooks::pauseLayer = this;
         if (hacks::hide_menu) {
             this->setVisible(false);
@@ -847,6 +947,17 @@ class $modify(PauseLayer) {
     void onResume(cocos2d::CCObject* sender) {
         PauseLayer::onResume(sender);
         hooks::pauseLayer = nullptr;
+    }
+
+    void onEdit(cocos2d::CCObject* sender) {
+        auto a = PlayLayer::get()->m_level->m_levelType;
+
+        if (hacks::level_edit)
+            PlayLayer::get()->m_level->m_levelType = GJLevelType::Editor;
+
+        PauseLayer::onEdit(sender);
+
+        PlayLayer::get()->m_level->m_levelType = a;
     }
 };
 
@@ -939,5 +1050,13 @@ class $modify(LevelInfoLayer) {
             m_songWidget->m_downloadBtn->activate();
 
         return true;
+    }
+
+    static LevelInfoLayer* create(GJGameLevel* level, bool challenge) {
+        if (hacks::copy_hack) {
+            level->m_password = 1;
+        }
+
+        return LevelInfoLayer::create(level, challenge);
     }
 };

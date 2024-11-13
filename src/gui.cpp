@@ -373,7 +373,12 @@ void gui::RenderMain() {
                         else if (hck.name == "RGB Icons") { hacks::rgb_icons = hck.enabled; }
                         else if (hck.name == "Wave Trail Size") { hacks::wave_trail = hck.enabled; }
                         else if (hck.name == "Random Seed") { hacks::random_seed_enabled = hck.enabled; }
+                        else if (hck.name == "Level Edit") { hacks::level_edit = hck.enabled; }
                         else if (hck.name == "No Death Effect") { hacks::no_death_effect = hck.enabled; }
+                        else if (hck.name == "Copy Hack") { hacks::copy_hack = hck.enabled; }
+                        else if (hck.name == "Main Levels") { hacks::main_levels = hck.enabled; }
+                        else if (hck.name == "No Shaders") { hacks::no_shaders = hck.enabled; }
+                        else if (hck.name == "Safe Mode") { hacks::safe_mode = hck.enabled; }
                         else if (hck.name == "Show Hitboxes") { 
                             hacks::show_hitboxes = hck.enabled;
                             auto pl = PlayLayer::get();
@@ -432,8 +437,10 @@ void gui::RenderMain() {
 
                 ImGui::PopStyleColor();
 
-                if (ImGui::IsItemHovered() && !hck.desc.empty())
+                if (ImGui::IsItemHovered() && !hck.desc.empty()) {
                     ImGui::SetTooltip("%s", hck.desc.c_str());
+                }
+                    
                 
                 if (hck.name == "RGB Icons") {
                     ImGui::SameLine();
@@ -478,7 +485,7 @@ void gui::RenderMain() {
                     }
 
                     if (ImGui::BeginPopupModal("Hitboxes Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-                        ImGui::Checkbox("Draw Trail", &hacks::draw_trail, gui::scale);
+                        // ImGui::Checkbox("Draw Trail", &hacks::draw_trail, gui::scale);
                         ImGui::DragInt("##trail_length", &hacks::trail_length, 1, 0, INT_MAX, "Trail Length: %i");
                         ImGui::Checkbox("Show Hitboxes on Death", &hacks::show_hitboxes_on_death);
                         if (ImGui::Button("Close", {ImGui::GetContentRegionAvail().x, NULL})) {
@@ -586,6 +593,11 @@ void gui::toggleKeybinds(int key) {
                 else if (hck.name == "Wave Trail Size") { hacks::wave_trail = hck.enabled; }
                 else if (hck.name == "Random Seed") { hacks::random_seed_enabled = hck.enabled; }
                 else if (hck.name == "No Death Effect") { hacks::no_death_effect = hck.enabled; }
+                else if (hck.name == "Level Edit") { hacks::level_edit = hck.enabled; }
+                else if (hck.name == "Copy Hack") { hacks::copy_hack = hck.enabled; }
+                else if (hck.name == "No Shaders") { hacks::no_shaders = hck.enabled; }
+                else if (hck.name == "Main Levels") { hacks::main_levels = hck.enabled; }
+                else if (hck.name == "Safe Mode") { hacks::safe_mode = hck.enabled; }
                 else if (hck.name == "Show Hitboxes") { 
                     hacks::show_hitboxes = hck.enabled;
                     auto pl = PlayLayer::get();

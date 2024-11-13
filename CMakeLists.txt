@@ -23,7 +23,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE libs)
 
 set(HAS_IMGUI ON)
 add_subdirectory(libs/imgui)
-CPMAddPackage("gh:matcool/gd-imgui-cocos#324dc5d")
+CPMAddPackage("gh:matcool/gd-imgui-cocos#fbd4103")
 target_link_libraries(${PROJECT_NAME} imgui-cocos imgui)
 
 setup_geode_mod(${PROJECT_NAME})
