@@ -1,30 +1,16 @@
-#include "includes.hpp"
+#include <Geode/Geode.hpp>
 #include <Geode/modify/MenuLayer.hpp>
 #include <Geode/modify/CCEGLView.hpp>
 #include <imgui-cocos.hpp>
-#include <imgui-theme.hpp>
-#include <font.hpp>
-#include "hacks.hpp"
 #include "gui.hpp"
-#include "hooks.hpp"
-#include "replayEngine.hpp"
-#include "recorder.hpp"
-
-void CheckDir(const std::filesystem::path &path)
-{
-    if (!std::filesystem::is_directory(path) || !std::filesystem::exists(path))
-    {
-        std::filesystem::create_directory(path);
-    }
-}
+#include "config.hpp"
+#include "hacks.hpp"
 
 $execute {
     ImGuiCocos::get().setForceLegacy(true);
-    CheckDir(hacks::folderMacroPath);
-    CheckDir(hacks::folderShowcasesPath);
-    hacks::load(hacks::fileDataPath, hacks::windows);
-    hacks::update_framerate(hacks::tps_enabled ? hacks::tps_value : 240.f);
-    hacks::init();
+	
+	auto& config = Config::get();
+    config.load(fileDataPath);
 }
 
 static bool inited = false;
@@ -34,29 +20,15 @@ class $modify(MenuLayer) {
 
         if (!inited) {
             inited = true;
-            ImGuiCocos::get().setup([] {
-                imgui_popup::messages.clear();
-                gui::Unload();
-                ApplyColor();
-                ApplyStyle(gui::scale);
-                ImGuiIO &io = ImGui::GetIO();
-                io.IniFilename = NULL;
-                io.Fonts->Clear();
-                io.Fonts->AddFontFromMemoryCompressedTTF(roboto_font_data, roboto_font_size, 18.f * gui::scale, nullptr, io.Fonts->GetGlyphRangesCyrillic());
-                io.Fonts->AddFontFromMemoryCompressedTTF(roboto_font_data, roboto_font_size, 32.f * gui::scale, nullptr, io.Fonts->GetGlyphRangesCyrillic());
-                io.Fonts->AddFontFromMemoryCompressedTTF(roboto_font_data, roboto_font_size, 20.f * gui::scale, nullptr, io.Fonts->GetGlyphRangesCyrillic());
-                io.Fonts->Build();
 
-                if (!gui::license_accepted) {
-                    imgui_popup::add_popup(gui::broken_save 
-                        ? "Looks like the save file was corrupted! GDH settings were reset to prevent a crash"
-                        : "GDH installed. Press Tab to open the GUI");
-                }
-                    
-                recorder.ffmpeg_installed = std::filesystem::exists("ffmpeg.exe");
+            auto& hacks = Hacks::get();
+            hacks.Init();
 
-            }).draw([] {
-                gui::RenderMain();
+			auto& gui = Gui::get();
+            ImGuiCocos::get().setup([&gui] {
+				gui.Init();
+            }).draw([&gui] {
+                gui.Render();
             });
         }
 
@@ -70,26 +42,11 @@ class $modify(cocos2d::CCEGLView) {
 
         if (inited) {
             if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-                if (!gui::change_keybind) {
-                    if (!ImGui::IsAnyItemActive()) {
-                        if (key == gui::menu_key) gui::Toggle();
-                        else if (key == hacks::speed_key) hacks::speed_enabled = !hacks::speed_enabled;
-                        else if (key == hacks::playback_key) {
-                            engine.mode = (engine.mode == state::play) ? state::disable : state::play;
-                        }
-
-                        startpos_switcher::handleKeyPress(key);  
-                        gui::toggleKeybinds(key);
-                    }
-                }
-                else {
-                    gui::change_keybind = false;
-                    if (key != GLFW_KEY_BACKSPACE)
-                        gui::keybind_key = key;
-                    else
-                        gui::keybind_key = 0;
-                }
-            }
-        }        
+				if (key == GLFW_KEY_TAB) {
+					auto& gui = Gui::get();
+					gui.Toggle();
+				}
+			}
+        }     
     }
 };

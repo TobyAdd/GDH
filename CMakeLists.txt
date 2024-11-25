@@ -6,8 +6,6 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 project(GDH VERSION 1.0.0)
 
-add_compile_definitions(UNICODE _UNICODE)
-
 file(GLOB_RECURSE SOURCES src/*.cpp)
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
@@ -23,7 +21,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE libs)
 
 set(HAS_IMGUI ON)
 add_subdirectory(libs/imgui)
-CPMAddPackage("gh:matcool/gd-imgui-cocos#fbd4103")
+CPMAddPackage("gh:matcool/gd-imgui-cocos#8973953")
 target_link_libraries(${PROJECT_NAME} imgui-cocos imgui)
 
 setup_geode_mod(${PROJECT_NAME})

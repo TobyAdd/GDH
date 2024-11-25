@@ -1,34 +1,15 @@
 {
-	"geode": "4.0.0-beta.1",
+	"geode": "4.0.1",
 	"gd": {
-		"win": "2.2074"
+		"win": "2.2074",
+		"android": "2.2074",
+		"mac": "2.2074",
+		"ios": "2.2074"
 	},
 	"id": "tobyadd.gdh",
 	"name": "GDH",
-	"version": "v4.9.0-beta.1",
+	"version": "v5.0.0",
 	"developer": "TobyAdd",
-	"description": "GDH is an open-source Geometry Dash mod menu that aims to improve the game's performance and add new features",
-	"early-load": true,
-	"links": {
-        "homepage": "https://tobyadd.github.io/GDH",
-        "source": "https://github.com/TobyAdd/GDH",
-        "community": "https://discord.gg/ahYEz4MAwP"
-    },
-	"issues": {
-		"info": "Report bugs on GitHub issues page",
-		"url": "https://github.com/TobyAdd/GDH/issues"
-	},
-	"tags": [
-		"universal",
-		"interface",
-		"utility",
-		"offline",
-		"enhancement",
-		"cheat"
-	],
-	"resources": {
-		"sprites": [
-			"res/screenshot.png"
-		]
-	}
+	"description": "",
+	"early-load": true
 }
