@@ -1,4 +1,3 @@
-#pragma once
 #include <Geode/modify/PlayLayer.hpp>
 #include <Geode/Modify/GameStatsManager.hpp>
 #include <Geode/Modify/PlayerObject.hpp>
