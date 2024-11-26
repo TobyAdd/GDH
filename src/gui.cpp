@@ -1,5 +1,4 @@
 #include "gui.hpp"
-#include <imgui-theme.hpp>
 #include <imgui/imgui_stdlib.h>
 #include <font.hpp>
 #include "config.hpp"
@@ -115,42 +114,32 @@ void Gui::Render() {
                 ImGuiCocos::get().reload();
             }
 
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 5.f * m_scale);
-            if (ImGuiH::CircularButton("V4_COLOR", 10.f * m_scale, ImColor(165, 255, 190))) {
-                ApplyColorV4();
-                m_color_index = 0;
-            } ImGui::SameLine();
+            for (int i = 0; i < themes.size(); ++i) {
+                const auto& theme = themes[i];
+                ImColor button_color(theme.color_bg.r, theme.color_bg.g, theme.color_bg.b);
+                
+                if (i == 0)
+                    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 5.f * m_scale);
+                
+                if (ImGuiH::CircularButton(((std::string)"COLOR_" + std::to_string(i)).c_str(), 10.f * m_scale, button_color)) {
+                    config.set<int>("gui_color_index", i);
+                    ApplyColor(theme);
+                }
 
-            if (ImGuiH::CircularButton("V3_COLOR", 10.f * m_scale, ImColor(164, 201, 254))) {
-                ApplyColorV3();
-                m_color_index = 1;
-            } ImGui::SameLine();
-
-            if (ImGuiH::CircularButton("COLOR_1", 10.f * m_scale, ImColor(255, 223, 186))) {
-                m_color_index = 2;
-                ImGui::GetStyle().Colors[ImGuiCol_Button] = ImColor(255, 223, 186);
-            } ImGui::SameLine();
-            
-            if (ImGuiH::CircularButton("COLOR_2", 10.f * m_scale, ImColor(255, 182, 193))) {
-                m_color_index = 3;
-                ImGui::GetStyle().Colors[ImGuiCol_Button] = ImColor(255, 182, 193);
-            } ImGui::SameLine();
-
-            if (ImGuiH::CircularButton("COLOR_3", 10.f * m_scale, ImColor(255, 255, 153))) {
-                m_color_index = 4;
-                ImGui::GetStyle().Colors[ImGuiCol_Button] = ImColor(255, 255, 153);
-            } ImGui::SameLine();
-            
-            if (ImGuiH::CircularButton("COLOR_4", 10.f * m_scale, ImColor(255, 255, 255))) {
-                m_color_index = 5;
-                ImGui::GetStyle().Colors[ImGuiCol_Button] = ImColor(255, 255, 255);
-            } ImGui::SameLine();
+                ImGui::SameLine();
+            }
 
             bool inverted = config.get("gui_inverted", false);
-            if (ImGuiH::CircularButton("COLOR_4", 10.f * m_scale, inverted ? ImColor(255, 255, 255) : ImColor(27, 27, 29), true, ImColor(64, 64, 64))) {
+            ImColor inverted_button_color = inverted ? ImColor(255, 255, 255) : ImColor(27, 27, 29);
+            ImColor inverted_button_hover_color = ImColor(64, 64, 64);
+
+            if (ImGuiH::CircularButton("TOGGLE_INVERT", 10.f * m_scale, inverted_button_color, true, inverted_button_hover_color)) {
                 config.set("gui_inverted", !inverted);
                 ApplyGuiColors(!inverted);
             }
+        }
+        else if (windowName == "Variables") {
+            ImGui::Button("ff");
         }
         else {
             for (auto& hck : win.hacks) {
@@ -186,9 +175,11 @@ void Gui::Render() {
 }
 
 void Gui::Init() {
+    auto &config = Config::get();
+
     stretchedWindows.clear();
-    ApplyColorV4();
-    ApplyGuiColors(false);
+    ApplyGuiColors(config.get("gui_inverted", false));
+    ApplyColor(themes[config.get<int>("gui_color_index", 0)]);
     ApplyStyle(m_scale);
     ImGuiIO &io = ImGui::GetIO();
     io.IniFilename = NULL;

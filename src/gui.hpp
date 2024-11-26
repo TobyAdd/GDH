@@ -1,18 +1,9 @@
 #pragma once
 #include <imgui-cocos.hpp>
 #include <imgui_internal.h>
+#include <imgui-theme.hpp>
+#include "config.hpp"
 #include <vector>
-
-struct RGB {
-    unsigned char r;
-    unsigned char g;
-    unsigned char b;
-};
-
-struct Theme {
-    RGB color_bg;
-    RGB color_circle;
-};
 
 class Gui {
 public:
@@ -28,17 +19,6 @@ public:
 
     float m_scale = 1.f;
     int m_index_scale = 7;
-
-    int m_color_index = 0;
-    std::vector<Theme> m_themes = {
-        {{165, 255, 190}, {0, 90, 5}},
-        {{164, 201, 254}, {0, 50, 87}},
-        {{255, 223, 186}, {80, 40, 0}},
-        {{255, 182, 193}, {139, 0, 70}},
-        {{255, 255, 153}, {64, 64, 0}},
-        {{255, 255, 255}, {80, 80, 80}}
-    };
-
 
     bool m_needRescale = true;
     int m_anim_durr = 100;
@@ -89,6 +69,8 @@ namespace ImGuiH {
     static bool Checkbox(const char* label, bool* v, float scale)
     {
         auto &gui = Gui::get();
+        auto &config = Config::get();
+
         ImVec2 buttonPosition = ImGui::GetCursorScreenPos();
         ImDrawList* drawList = ImGui::GetWindowDrawList();
 
@@ -111,8 +93,9 @@ namespace ImGuiH {
             float animationProgress = ImSaturate(imguiContext.LastActiveIdTimer / animationSpeed);
             interpolationFactor = *v ? animationProgress : 1.0f - animationProgress;
         }
-
-        auto theme = gui.m_themes[gui.m_color_index];
+        
+        int color_index = config.get<int>("gui_color_index", 0);
+        auto theme = themes[color_index];
 
         const ImU32 backgroundColor = ImGui::GetColorU32(ImLerp(ImGui::IsItemHovered() ? ImColor(81, 87, 94).Value : ImColor(67, 72, 78).Value, ImColor(theme.color_bg.r, theme.color_bg.g, theme.color_bg.b).Value, interpolationFactor));
         const ImVec2 buttonEndPosition(buttonPosition.x + buttonWidth, buttonPosition.y + buttonHeight);

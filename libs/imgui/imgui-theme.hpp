@@ -1,4 +1,28 @@
 #include <imgui.h>
+#include <vector>
+
+struct RGB {
+    unsigned char r;
+    unsigned char g;
+    unsigned char b;
+};
+
+struct Theme {
+    RGB color_bg;
+    RGB color_circle;
+    RGB color_hovered;
+    RGB color_active;
+};
+
+const std::vector<Theme> themes = {
+    {{165, 255, 190}, {0, 90, 5}, {105, 210, 160}, {85, 170, 130}},
+    {{164, 201, 254}, {0, 50, 87}, {147, 180, 228}, {131, 160, 203}},
+    {{255, 223, 186}, {80, 40, 0}, {255, 180, 140}, {255, 150, 120}},
+    {{255, 182, 193}, {139, 0, 70}, {255, 140, 170}, {255, 110, 130}},
+    {{255, 255, 153}, {64, 64, 0}, {255, 240, 100}, {255, 220, 80}},
+    {{255, 255, 255}, {80, 80, 80}, {230, 230, 230}, {210, 210, 210}} 
+};
+
 
 static void ApplyGuiColors(bool invert) {
     auto* colors = ImGui::GetStyle().Colors;
@@ -29,18 +53,12 @@ static void ApplyGuiColors(bool invert) {
     colors[ImGuiCol_TabActive] = invert ? invertColor(ImColor(88, 88, 90)) : ImColor(88, 88, 90).Value;
 }
 
-static void ApplyColorV4() {
+static void ApplyColor(const Theme& theme) {
     auto* colors = ImGui::GetStyle().Colors;
-    colors[ImGuiCol_Button] = ImColor(165, 255, 190);
-    colors[ImGuiCol_ButtonHovered] = ImColor(105, 210, 160);
-    colors[ImGuiCol_ButtonActive] = ImColor(85, 170, 130);
-}
-
-static void ApplyColorV3() {
-    auto* colors = ImGui::GetStyle().Colors;
-    colors[ImGuiCol_Button] = ImColor(164, 201, 254);
-    colors[ImGuiCol_ButtonHovered] = ImColor(147, 180, 228);
-    colors[ImGuiCol_ButtonActive] = ImColor(131, 160, 203);
+    
+    colors[ImGuiCol_Button] = ImColor(theme.color_bg.r, theme.color_bg.g, theme.color_bg.b);
+    colors[ImGuiCol_ButtonHovered] = ImColor(theme.color_hovered.r, theme.color_hovered.g, theme.color_hovered.b);
+    colors[ImGuiCol_ButtonActive] = ImColor(theme.color_active.r, theme.color_active.g, theme.color_active.b);
 }
 
 static void ApplyStyle(float scale) {
