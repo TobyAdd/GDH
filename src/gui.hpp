@@ -42,7 +42,7 @@ namespace ImGuiH {
         return std::string(str);
     }
 
-    static bool CircularButton(const char* id, float radius, ImColor color, bool border = false, ImColor border_color = ImColor(255, 255, 255, 255))
+    static bool CircularButton(const char* id, float radius, ImColor color, bool border = false, ImColor border_color = ImColor(255, 255, 255))
     {
         ImGui::PushID(id);
 

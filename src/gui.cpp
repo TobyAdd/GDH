@@ -114,14 +114,16 @@ void Gui::Render() {
                 ImGuiCocos::get().reload();
             }
 
+            int alpha = int(ImGui::GetStyle().Alpha * 255);
+
             for (int i = 0; i < themes.size(); ++i) {
                 const auto& theme = themes[i];
-                ImColor button_color(theme.color_bg.r, theme.color_bg.g, theme.color_bg.b);
+                ImColor button_color(theme.color_bg.r, theme.color_bg.g, theme.color_bg.b, alpha);
                 
                 if (i == 0)
                     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 5.f * m_scale);
                 
-                if (ImGuiH::CircularButton(((std::string)"COLOR_" + std::to_string(i)).c_str(), 10.f * m_scale, button_color)) {
+                if (ImGuiH::CircularButton(fmt::format("COLOR_{}", i).c_str(), 10.f * m_scale, button_color)) {
                     config.set<int>("gui_color_index", i);
                     ApplyColor(theme);
                 }
@@ -130,8 +132,8 @@ void Gui::Render() {
             }
 
             bool inverted = config.get("gui_inverted", false);
-            ImColor inverted_button_color = inverted ? ImColor(255, 255, 255) : ImColor(27, 27, 29);
-            ImColor inverted_button_hover_color = ImColor(64, 64, 64);
+            ImColor inverted_button_color = inverted ? ImColor(255, 255, 255) : ImColor(27, 27, 29, alpha);
+            ImColor inverted_button_hover_color = ImColor(64, 64, 64, alpha);
 
             if (ImGuiH::CircularButton("TOGGLE_INVERT", 10.f * m_scale, inverted_button_color, true, inverted_button_hover_color)) {
                 config.set("gui_inverted", !inverted);
