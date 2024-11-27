@@ -36,6 +36,7 @@ class $modify(MenuLayer) {
     }
 };
 
+#ifdef GEODE_IS_WINDOWS
 class $modify(cocos2d::CCEGLView) {
     void onGLFWKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
         CCEGLView::onGLFWKeyCallback(window, key, scancode, action, mods);
@@ -50,3 +51,4 @@ class $modify(cocos2d::CCEGLView) {
         }     
     }
 };
+#endif

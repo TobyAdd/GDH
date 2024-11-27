@@ -8,8 +8,11 @@ struct hack {
     std::string config;
     std::string game_var;
     
-    std::function<void(bool)> handlerFunc = [](bool) {};
+    std::function<void(bool)> handlerFunc = nullptr;
     void setHandler(std::function<void(bool)> func) { handlerFunc = func; }
+
+    std::function<void()> handlerCustomWindow = nullptr;
+    void setCustomWindowHandler(std::function<void()> func) { handlerCustomWindow = func; }
 
     int keybind = 0;
 };
@@ -49,6 +52,20 @@ private:
 
             if (it != window.hacks.end()) {
                 it->setHandler(handler);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool SetCustomWindowHandlerByConfig(const std::string& configName, std::function<void()> handler) {
+        for (auto& window : m_windows) {
+            auto it = std::find_if(window.hacks.begin(), window.hacks.end(), [&](const hack& h) {
+                return h.config == configName;
+            });
+
+            if (it != window.hacks.end()) {
+                it->setCustomWindowHandler(handler);
                 return true;
             }
         }

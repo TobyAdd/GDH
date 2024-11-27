@@ -4,6 +4,7 @@
 #include "config.hpp"
 #include <matjson.hpp>
 #include "hacks.hpp"
+#include "memory.hpp"
 
 std::chrono::steady_clock::time_point animationStartTime;
 bool isAnimating = false;
@@ -55,6 +56,17 @@ void Gui::animateAlpha()
 
 std::vector<std::string> stretchedWindows;
 void Gui::Render() {
+    #ifdef GEODE_IS_ANDROID
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1);
+    ImGui::Begin("toggle gui");
+    if (ImGui::Button("toggle")) {
+        Toggle();
+    }
+    ImGui::End();
+    ImGui::PopStyleVar();
+    #endif
+
+
     if (isAnimating) {
         animateAlpha();
     }
@@ -110,6 +122,8 @@ void Gui::Render() {
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             if (ImGui::Combo("##Menu scale", &m_index_scale, items, IM_ARRAYSIZE(items))) {
                 m_scale = float(atof(items[m_index_scale])) / 100.0f;    
+                config.set<float>("gui_scale", m_scale);
+                config.set<int>("gui_index_scale", m_index_scale);
                 m_needRescale = true;
                 ImGuiCocos::get().reload();
             }
@@ -140,8 +154,46 @@ void Gui::Render() {
                 ApplyGuiColors(!inverted);
             }
         }
-        else if (windowName == "Variables") {
-            ImGui::Button("ff");
+        else if (windowName == "Framerate") {
+            bool tps_enabled = config.get<bool>("tps_enabled", false);
+            float tps_value = config.get<float>("tps_value", 240.f);
+
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - (35 + 5) * m_scale);
+            if (ImGui::DragFloat("##tps_value", &tps_value, 1, 1, FLT_MAX, "%0.f TPS"))
+                config.set<float>("tps_value", tps_value);
+
+            ImGui::SameLine();
+            if (ImGuiH::Checkbox("##tps_enabled", &tps_enabled, m_scale))
+                config.set<bool>("tps_enabled", tps_enabled);
+            
+            bool speedhack_enabled = config.get<bool>("speedhack_enabled", false);
+            float speedhack_value = config.get<float>("speedhack_value", 1.f);
+
+            bool speedhackAudio_enabled = config.get<bool>("speedhackAudio_enabled", false);
+
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - (35 + 5) * m_scale);
+            if (ImGui::DragFloat("##speedhack_value", &speedhack_value, 0.01f, 0, FLT_MAX, "Speed: %.2fx")) 
+                config.set<float>("speedhack_value", speedhack_value);
+
+            ImGui::SameLine();
+            if (ImGuiH::Checkbox("##speedhack_enabled", &speedhack_enabled, m_scale))
+                config.set<bool>("speedhack_enabled", speedhack_enabled);
+
+            if (ImGuiH::Checkbox("Speedhack Audio", &speedhackAudio_enabled, m_scale))
+                config.set<bool>("speedhackAudio_enabled", speedhackAudio_enabled);
+        }
+        else if (windowName == "Variables") { 
+            static uintptr_t address = geode::base::get();
+            ImGui::Text("%s", fmt::format("{:x} ({:x})", address, address - geode::base::get()).c_str());
+
+            if (ImGui::Button("scan"))
+                address = memory::PatternScan(address+1, 0, "00 60 6A 48");
+
+            if (ImGui::Button("scan2"))
+                address = memory::PatternScan(address+1, 0, "80 67 6A 48");
+
+            if (ImGui::Button("reset"))
+                address = geode::base::get();
         }
         else {
             for (auto& hck : win.hacks) {
@@ -160,14 +212,30 @@ void Gui::Render() {
                     config.set(hck.config, enabled);
                     if (!hck.game_var.empty())
                         GameManager::get()->setGameVariable(hck.game_var.c_str(), enabled);
-                    hck.handlerFunc(enabled);
+                    if (hck.handlerFunc) hck.handlerFunc(enabled);
                 }
-                
-                ImGui::PopStyleColor();
 
                 if (ImGui::IsItemHovered() && !hck.desc.empty()) {
                     ImGui::SetTooltip("%s", hck.desc.c_str());
                 }
+
+                if (hck.handlerCustomWindow) {
+                    ImGui::SameLine();
+                    if (ImGui::ArrowButton(fmt::format("{} Settings", hck.name).c_str(), ImGuiDir_Right)) {
+                        ImGui::OpenPopup(fmt::format("{} Settings", hck.name).c_str());
+                    }
+
+                    if (ImGui::BeginPopupModal(fmt::format("{} Settings", hck.name).c_str(), NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+                        hck.handlerCustomWindow();
+
+                        if (ImGui::Button("Close", {400 * m_scale, NULL})) {
+                            ImGui::CloseCurrentPopup();
+                        }
+                        ImGui::EndPopup();
+                    }
+                }
+                
+                ImGui::PopStyleColor();
             }
         }
 
@@ -180,6 +248,10 @@ void Gui::Init() {
     auto &config = Config::get();
 
     stretchedWindows.clear();
+
+    m_scale = config.get<float>("gui_scale", 1.f);
+    m_index_scale = config.get<int>("gui_index_scale", 7);
+
     ApplyGuiColors(config.get("gui_inverted", false));
     ApplyColor(themes[config.get<int>("gui_color_index", 0)]);
     ApplyStyle(m_scale);
