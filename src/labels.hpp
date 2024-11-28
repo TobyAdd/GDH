@@ -48,6 +48,9 @@ class Labels {
         void move_down(int index);
         void swap(int index_0, int index_1);
 
+        void save();
+        void load();
+
     private:
         Labels() = default;
 };

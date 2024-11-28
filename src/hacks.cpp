@@ -1,6 +1,7 @@
 #include "hacks.hpp"
 #include "config.hpp"
 #include "gui.hpp"
+#include "labels.hpp"
 #include <imgui-cocos.hpp>
 
 void Hacks::Init() {

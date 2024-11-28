@@ -227,7 +227,7 @@ void Gui::Render() {
             if (ImGui::Button("+")) {
                 std::string text;
                 if (selected_label_type == label_types_count - 1) text = selected_label_text;
-                else if (selected_label_type == 0) text = "eto %hui";
+                else if (selected_label_type == 0) text = "eto {hui}";
                 
                 Label l((LabelCorner) (selected_label_corner+1), text);
                 Labels::get().add(l);

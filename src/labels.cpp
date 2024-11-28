@@ -8,7 +8,7 @@ Label::Label(LabelCorner _corner, std::string _format_text) {
 
 std::string Label::get_text() {
     std::string result = format_text;
-    result = replace_all(result, "%hui", "popa jopa hui");
+    result = replace_all(result, "{hui}", "popa jopa hui");
     return result;
 }
 
@@ -25,7 +25,7 @@ std::string Label::replace_all(std::string src, std::string replace, std::string
 std::string Labels::get_label_string(LabelCorner corner) {
     std::string result = "";
     
-    for (Label& l : Labels::get().labels) {
+    for (Label& l : labels) {
         if (l.corner != corner) continue;
         if (l.format_text.empty()) continue;
 
@@ -36,32 +36,38 @@ std::string Labels::get_label_string(LabelCorner corner) {
 }
 
 void Labels::add(Label label) {
-    Labels::get().labels.push_back(label);
+    labels.push_back(label);
 }
 
 void Labels::remove(int index) {
-    // aciddev_: why is .begin a thing why not just .erase(index)
-    //           i will never fully understand cpp...
-    Labels::get().labels.erase(std::next(Labels::get().labels.begin(), index));
+    labels.erase(labels.begin()+index);
 }
 
 void Labels::move_up(int index) {
     if (index <= 0) return;
-    if (index >= Labels::get().labels.size()) return;
+    if (index >= labels.size()) return;
 
-    std::iter_swap(std::next(Labels::get().labels.begin(), index), std::next(Labels::get().labels.begin(), index - 1));
+    std::iter_swap(std::next(labels.begin(), index), std::next(labels.begin(), index - 1));
 }
 
 void Labels::move_down(int index) {
     if (index < 0) return;
-    if (index >= Labels::get().labels.size()-1) return;
+    if (index >= labels.size()-1) return;
 
-    std::iter_swap(std::next(Labels::get().labels.begin(), index), std::next(Labels::get().labels.begin(), index + 1));
+    std::iter_swap(std::next(labels.begin(), index), std::next(labels.begin(), index + 1));
 }
 
 void Labels::swap(int index_0, int index_1) {
-    // if (!(0 >= index_0 && index_0 >= Labels::get().labels.size())) return;
-    // if (!(0 >= index_1 && index_1 >= Labels::get().labels.size())) return;
+    // if (!(0 >= index_0 && index_0 >= labels.size())) return;
+    // if (!(0 >= index_1 && index_1 >= labels.size())) return;
 
-    std::iter_swap(std::next(Labels::get().labels.begin(), index_0), std::next(Labels::get().labels.begin(), index_1));
+    std::iter_swap(std::next(labels.begin(), index_0), std::next(labels.begin(), index_1));
+}
+
+void Labels::save() {
+
+}
+
+void Labels::load() {
+    
 }
