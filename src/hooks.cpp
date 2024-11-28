@@ -27,6 +27,7 @@
 #include <Geode/modify/EditLevelLayer.hpp>
 #include <Geode/modify/GameObject.hpp>
 #include <Geode/modify/LevelEditorLayer.hpp>
+#include <Geode/modify/FMODAudioEngine.hpp>
 #include "hacks.hpp"
 #include "config.hpp"
 
@@ -71,6 +72,20 @@ class $modify(cocos2d::CCScheduler) {
             dt *= config.get<float>("speedhack_value", 1.f);
       
         return CCScheduler::update(dt);
+    }
+};
+
+class $modify(FMODAudioEngine) {
+    void update(float delta) {
+        auto &config = Config::get();
+
+        FMODAudioEngine::update(delta);
+        
+        FMOD::ChannelGroup* group;
+        float speed = config.get<bool>("speedhack_enabled", false) ? config.get<float>("speedhack_value", 1.f) : 1.f;
+        if (m_system->getMasterChannelGroup(&group) == FMOD_OK) {
+            group->setPitch(speed);
+        }
     }
 };
 

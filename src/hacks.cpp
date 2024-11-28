@@ -12,7 +12,7 @@ void Hacks::Init() {
                 {"Unlock Items", "The following elements will be unlocked:\n- Icons + Colors\n- Practice Music Sync\n- Music Unlocker", "unlock_items"}, // +
                 {"No Respawn Blink", "Upon respawning, the cube will not produce an unpleasant flicker", "no_respawn_blink"}, // +
                 {"No Death Effect", "Upon death, the cube will not emit an exploding effect", "no_death_effect"}, // +
-                {"No Transition Old", "Fast transition between scenes (legeacy)", "no_transition"}, // +
+                {"No Transition Old", "Fast transition between scenes (legacy)", "no_transition"}, // +
                 {"Safe Mode", "Disables progress on levels", "safe_mode"} // +
             }
         },
