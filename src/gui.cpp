@@ -5,12 +5,17 @@
 #include <matjson.hpp>
 #include "hacks.hpp"
 #include "memory.hpp"
+#include "labels.hpp"
 
 std::chrono::steady_clock::time_point animationStartTime;
 bool isAnimating = false;
 bool isFadingIn = false;
 
 std::string search_text;
+
+int selected_label_corner = 0;
+int selected_label_type = 0;
+std::string selected_label_text;
 
 void Gui::updateCursorState() {
     bool canShowInLevel = true;
@@ -194,6 +199,81 @@ void Gui::Render() {
 
             if (ImGui::Button("reset"))
                 address = geode::base::get();
+        }
+        else if (windowName == "Labels") {
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x/2);
+            if (ImGui::DragFloat("##Label Opacity", &Labels::get().opacity, 0.01f, 0.f, 1.f, "Opacity: %.2f")) config.set<float>("label-opacity", Labels::get().opacity);
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::DragFloat("##Label Size", &Labels::get().size, 0.01f, 0.f, 1.f, "Size: %.2f")) config.set<float>("label-size", Labels::get().size);
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::DragFloat("##Label Padding", &Labels::get().padding, 1.f, 0.f, 50.f, "Label Padding: %.1fpx")) config.set<float>("label-padding", Labels::get().padding);
+            
+            const char *labels_positions[] = {"Top Left", "Top Right", "Top", "Bottom Left", "Bottom Right", "Bottom"};
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            ImGui::Combo("##labelspos", &selected_label_corner, labels_positions, 6, 6);
+
+            const char *label_types[] = {
+                "Hui",
+                "Custom Text",
+            };
+            int label_types_count = sizeof(label_types)/sizeof(label_types[0]);
+            
+            ImGui::Combo("##labeladdtype", &selected_label_type, label_types, label_types_count);
+            if (selected_label_type == label_types_count - 1)
+                ImGui::InputText("##labelinput", &selected_label_text);
+
+            ImGui::SameLine();
+            if (ImGui::Button("+")) {
+                std::string text;
+                if (selected_label_type == label_types_count - 1) text = selected_label_text;
+                else if (selected_label_type == 0) text = "eto %hui";
+                
+                Label l((LabelCorner) (selected_label_corner+1), text);
+                Labels::get().add(l);
+            }
+            
+            ImGui::Separator();
+            ImGui::BeginChild("Labels");
+            ImGui::Spacing();
+
+            if (Labels::get().labels.size() == 0) {
+                ImGui::TextDisabled("No labels in this corner");
+            }
+            
+            for (size_t index = 0; index < Labels::get().labels.size(); index++) {
+                Label& item = Labels::get().labels[index];
+                
+                ImGui::PushID(index);
+
+                ImGui::Selectable("  =", false, 0, {20.f, 20.f});
+                ImGui::SameLine();
+                
+                if (ImGui::GetMouseClickedCount(ImGuiMouseButton_Left) >= 2 && ImGui::IsItemHovered()) {
+                    Labels::get().remove(index);
+                }
+                
+                if (ImGui::BeginDragDropSource()) {
+                    ImGui::TextUnformatted(item.format_text.c_str());
+                    ImGui::SetDragDropPayload("LBLMOVE", &index, sizeof(size_t));
+                    ImGui::EndDragDropSource();
+                }
+                
+                if (ImGui::BeginDragDropTarget()) {
+                    ImGuiDragDropFlags target_flags = 0;
+                    if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("LBLMOVE", target_flags)) {
+                        size_t move_from = *(size_t*)payload->Data;
+                        Labels::get().swap(move_from, index);
+                    }
+                    ImGui::EndDragDropTarget();
+                }
+
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                ImGui::InputText("##inptext", &item.format_text);
+                
+                ImGui::PopID();
+            }
+            ImGui::EndChild();
         }
         else {
             for (auto& hck : win.hacks) {

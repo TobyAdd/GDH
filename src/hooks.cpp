@@ -30,6 +30,7 @@
 #include <Geode/modify/FMODAudioEngine.hpp>
 #include "hacks.hpp"
 #include "config.hpp"
+#include "labels.hpp"
 
 std::vector<StartPosObject*> startPositions;
 int selectedStartpos = -1;
@@ -91,6 +92,13 @@ class $modify(FMODAudioEngine) {
 
 class $modify(PlayLayer) {
     struct Fields {
+        cocos2d::CCLabelBMFont* labels_top_left;
+        cocos2d::CCLabelBMFont* labels_top_right;
+        cocos2d::CCLabelBMFont* labels_top;
+        cocos2d::CCLabelBMFont* labels_bottom_left;
+        cocos2d::CCLabelBMFont* labels_bottom_right;
+        cocos2d::CCLabelBMFont* labels_bottom;
+        
         GameObject* anticheat_obj = nullptr;
         std::vector<GameObject*> coinsObjects;
         cocos2d::CCMenu* startposSwitcherUI;
@@ -106,7 +114,44 @@ class $modify(PlayLayer) {
         if (!PlayLayer::init(level, useReplay, dontCreateObjects)) return false;
 
         if (config.get<bool>("auto_practice_mode", false))
-            togglePracticeMode(true);
+        togglePracticeMode(true);
+        
+        m_fields->labels_top_left     = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
+        m_fields->labels_top_right    = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
+        m_fields->labels_bottom_left  = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
+        m_fields->labels_bottom_right = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
+        m_fields->labels_top          = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
+        m_fields->labels_bottom       = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
+        m_fields->labels_top_left->    setID("labels_top_left"_spr);
+        m_fields->labels_top_right->   setID("labels_top_right"_spr);
+        m_fields->labels_bottom_left-> setID("labels_bottom_left"_spr);
+        m_fields->labels_bottom_right->setID("labels_bottom_right"_spr);
+        m_fields->labels_top->         setID("labels_top"_spr);
+        m_fields->labels_bottom->      setID("labels_bottom"_spr);
+
+        for (size_t i = 0; i < 6; i++) {
+            cocos2d::CCLabelBMFont* label_object =
+                i == 0 ? m_fields->labels_top_left :
+                i == 1 ? m_fields->labels_top_right :
+                i == 2 ? m_fields->labels_bottom_left :
+                i == 3 ? m_fields->labels_bottom_right :
+                i == 4 ? m_fields->labels_bottom :
+                m_fields->labels_top;
+            label_object->setZOrder(999);
+            if (i == 0) label_object->setAnchorPoint({0, 1});
+            if (i == 1) label_object->setAnchorPoint({1, 1});
+            if (i == 2) label_object->setAnchorPoint({0, 0});
+            if (i == 3) label_object->setAnchorPoint({1, 0});
+            if (i == 4) label_object->setAnchorPoint({0.5f, 0});
+            if (i == 5) label_object->setAnchorPoint({0.5f, 1});
+        }
+        
+        addChild(m_fields->labels_top_left);
+        addChild(m_fields->labels_top_right);
+        addChild(m_fields->labels_bottom_left);
+        addChild(m_fields->labels_bottom_right);
+        addChild(m_fields->labels_bottom);
+        addChild(m_fields->labels_top);
 
         if (config.get<bool>("startpos_switcher", false) && !startPositions.empty()) {
             auto win_size = cocos2d::CCDirector::sharedDirector()->getWinSize();
@@ -159,6 +204,57 @@ class $modify(PlayLayer) {
             m_fields->startposSwitcherUI->setVisible(!practiceMode);
         }
         PlayLayer::togglePracticeMode(practiceMode);
+    }
+        
+    void postUpdate(float dt) {
+        PlayLayer::postUpdate(dt);
+
+        if (!(m_fields->labels_top_left &&
+              m_fields->labels_top_right &&
+              m_fields->labels_bottom_left &&
+              m_fields->labels_bottom_right &&
+              m_fields->labels_bottom &&
+              m_fields->labels_top)) return;
+
+            
+        for (size_t i = 0; i < 6; i++) {
+            cocos2d::CCLabelBMFont* label_object =
+                i == 0 ? m_fields->labels_top_left :
+                i == 1 ? m_fields->labels_top_right :
+                i == 2 ? m_fields->labels_bottom_left :
+                i == 3 ? m_fields->labels_bottom_right :
+                i == 4 ? m_fields->labels_bottom :
+                m_fields->labels_top;
+            label_object->setScale(Labels::get().size);
+            label_object->setOpacity((int)(Labels::get().opacity*255));
+        }
+        
+        auto size = cocos2d::CCDirector::sharedDirector()->getWinSize();
+        
+        m_fields->labels_top_left->    setCString(Labels::get().get_label_string(LabelCorner_TopLeft).c_str());
+        m_fields->labels_top_right->   setCString(Labels::get().get_label_string(LabelCorner_TopRight).c_str());
+        m_fields->labels_bottom_left-> setCString(Labels::get().get_label_string(LabelCorner_BottomLeft).c_str());
+        m_fields->labels_bottom_right->setCString(Labels::get().get_label_string(LabelCorner_BottomRight).c_str());
+        m_fields->labels_bottom->      setCString(Labels::get().get_label_string(LabelCorner_Bottom).c_str());
+        m_fields->labels_top->         setCString(Labels::get().get_label_string(LabelCorner_Top).c_str());
+        
+        m_fields->labels_top_left->    setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentLeft);
+        m_fields->labels_top_left->    setPosition({Labels::get().padding, size.height - Labels::get().padding});
+        
+        m_fields->labels_bottom_left-> setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentLeft);
+        m_fields->labels_bottom_left-> setPosition({Labels::get().padding, Labels::get().padding});
+        
+        m_fields->labels_top_right->   setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentRight);
+        m_fields->labels_top_right->   setPosition({size.width - Labels::get().padding, size.height - Labels::get().padding});
+        
+        m_fields->labels_bottom_right->setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentRight);
+        m_fields->labels_bottom_right->setPosition({size.width - Labels::get().padding, Labels::get().padding});
+        
+        m_fields->labels_top->setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentCenter);
+        m_fields->labels_top->setPosition({size.width/2, size.height - Labels::get().padding});
+        
+        m_fields->labels_bottom->setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentCenter);
+        m_fields->labels_bottom->setPosition({size.width/2, Labels::get().padding});
     }
 
     void addObject(GameObject* obj) {
