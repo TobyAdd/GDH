@@ -153,6 +153,11 @@ class $modify(PlayLayer) {
         addChild(m_fields->labels_bottom);
         addChild(m_fields->labels_top);
 
+        Labels::get().attempts = 1;
+        Labels::get().session_time = 0.f;
+        
+        Labels::get().platformer = m_level->isPlatformer();
+
         if (config.get<bool>("startpos_switcher", false) && !startPositions.empty()) {
             auto win_size = cocos2d::CCDirector::sharedDirector()->getWinSize();
 
@@ -269,6 +274,16 @@ class $modify(PlayLayer) {
         
         m_fields->labels_bottom->setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentCenter);
         m_fields->labels_bottom->setPosition({size.width/2, Labels::get().padding});
+
+        
+        // https://github.com/EclipseMenu/EclipseMenu/blob/18489ba4b78e3698285215ae7550ad17ac5e57e1/src/utils.cpp#L59
+        // <3
+        if (m_level->isPlatformer()) Labels::get().progress = static_cast<float>(m_gameState.m_levelTime);
+        else if (m_level->m_timestamp > 0) {
+            Labels::get().progress = static_cast<float>(m_gameState.m_levelTime * 240.f) / m_level->m_timestamp * 100.f;
+        } else {
+            Labels::get().progress = std::clamp(reinterpret_cast<cocos2d::CCNode*>(m_player1)->getPositionX() / m_levelLength * 100.f, 0.f, 100.f);
+        }
     }
 
     void addObject(GameObject* obj) {
@@ -337,6 +352,8 @@ class $modify(PlayLayer) {
 
         PlayLayer::resetLevel();
 
+        Labels::get().progress = 0;
+
         if (config.get<bool>("no_do_not_flip", false) && m_attemptLabel)
             m_attemptLabel->setScaleY(1);
 
@@ -378,6 +395,16 @@ class $modify(PlayLayer) {
     void showNewBest(bool p0, int p1, int p2, bool p3, bool p4, bool p5) {
         if (Config::get().get<bool>("no_new_best_popup", false)) return;        
         PlayLayer::showNewBest(p0, p1, p2, p3, p4, p5);
+    }
+    
+    void updateAttempts() {
+        PlayLayer::updateAttempts();
+        Labels::get().attempts++;
+    }
+
+    void updateAttemptTime(float time) {
+        PlayLayer::updateAttemptTime(time);
+        Labels::get().session_time += time;
     }
 
     void updateVisibility(float dt)  {   

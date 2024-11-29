@@ -23,6 +23,10 @@ class Label {
 
     private:
         std::string replace_all(std::string src, std::string replace, std::string replacement);
+        
+        std::string time_to_fmt_time(int hours, int minutes, int seconds);
+        std::string seconds_to_fmt_time(float seconds);
+        std::string round_float(float value, int decimal_places);
 };
 
 class Labels {
@@ -48,9 +52,31 @@ class Labels {
         void move_down(int index);
         void swap(int index_0, int index_1);
 
+        int attempts = 1;
+        float session_time = 0.f;
+        float progress = 0.f;
+        bool platformer = false;
+        
         void save();
         void load();
 
     private:
         Labels() = default;
+};
+
+class CpsCounter {
+    public:
+        static CpsCounter& get() {
+            static CpsCounter instance;
+            return instance;
+        }
+
+        CpsCounter& operator=(const CpsCounter&) = delete;
+        CpsCounter(const CpsCounter&) = delete;
+
+        std::vector<DWORD>
+        void click();
+        
+    private:
+        CpsCounter() = default;
 };
