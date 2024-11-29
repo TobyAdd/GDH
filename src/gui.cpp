@@ -293,24 +293,36 @@ void Gui::Render() {
         }
         else if (windowName == "Shortcuts") {
             if (ImGui::Button("Options", {ImGui::GetContentRegionAvail().x, NULL})) {
+                auto options_layer = OptionsLayer::create();
+                auto scene = cocos2d::CCScene::get();
 
+                if (options_layer && scene) {
+                    auto zOrder = scene->getHighestChildZ();
+                    scene->addChild(options_layer, zOrder + 1);
+                    options_layer->showLayer(false);
+                }
             }
+
             if (ImGui::Button("Reset Level", {ImGui::GetContentRegionAvail().x, NULL})) {
-                auto* pl = PlayLayer::get();
-                if (pl)
-                    pl->resetLevel();
+                auto pl = PlayLayer::get();
+                if (pl) pl->resetLevel();
             }
-            if (ImGui::Button("Practice Mode", {ImGui::GetContentRegionAvail().x, NULL})) {
-                auto* pl = PlayLayer::get();
-                if (pl)
-                    pl->togglePracticeMode(!pl->m_isPracticeMode);
-            }
-            if (ImGui::Button("Reset Volume", {ImGui::GetContentRegionAvail().x, NULL})) {
 
+            if (ImGui::Button("Practice Mode", {ImGui::GetContentRegionAvail().x, NULL})) {
+                auto pl = PlayLayer::get();
+                if (pl) pl->togglePracticeMode(!pl->m_isPracticeMode);
             }
+
+            if (ImGui::Button("Reset Volume", {ImGui::GetContentRegionAvail().x, NULL})) {
+                auto fmod_engine = FMODAudioEngine::sharedEngine();
+                fmod_engine->setBackgroundMusicVolume(0.5f);
+                fmod_engine->setEffectsVolume(0.5f);
+            }
+
             if (ImGui::Button("Uncomplete Level", {ImGui::GetContentRegionAvail().x, NULL})) {
 
             }
+
             if (ImGui::Button("Inject DLL", {ImGui::GetContentRegionAvail().x, NULL})) {
 
             }

@@ -43,8 +43,6 @@ void Hacks::Init() {
                 {"Force Dont Fade", "Disables effects when objects leave the viewable play area", "force_dont_fade"},
                 {"Random Seed", "Changes the seed game so that the random trigger is not triggered randomly", "random_seed"},
                 {"Respawn Time", "Changes respawn time on death", "respawn_time"},  // +
-                {"Restart Level", "Reload the level", "restart_level"},
-                {"Practice Mode", "Enter practice mode", "practice_mode"},
                 {"Ignore ESC", "Prevents exiting the level", "ignore_esc"},  // +
                 {"Instant Complete", "Instant level completion", "instant_complete"},  // +
                 {"Jump Hack", "Removes the barrier to jump gravity", "jump_hack"},  // +
@@ -99,7 +97,7 @@ void Hacks::Init() {
         {"Framerate", 450, 270, 220, 130},
         {"GDH Settings", 450, 410, 220, 130},
         {"Replay Engine", 680, 10, 300, 200},
-        {"Labels", 680, 230, 300, 320},
+        {"Labels", 680, 220, 300, 320},
         {"Variables", 10, 510, 200, 160},
         {"Shortcuts", 990, 10, 200, 240}
     };

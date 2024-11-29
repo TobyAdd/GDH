@@ -1,4 +1,6 @@
-
+#include <chrono>
+#include <iomanip>
+#include <sstream>
 #include "labels.hpp"
 
 Label::Label(LabelCorner _corner, std::string _format_text) {
@@ -7,14 +9,15 @@ Label::Label(LabelCorner _corner, std::string _format_text) {
 }
 
 std::string Label::get_text() {
-    SYSTEMTIME localTime;
-    GetLocalTime(&localTime);
+    auto now = std::chrono::system_clock::now();
+    std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
+    std::tm localTime = *std::localtime(&now_time_t);
 
-    int hour12 = localTime.wHour;
+    int hour12 = localTime.tm_hour;
     std::string period12 = (hour12 < 12) ? "AM" : "PM";
     if (hour12 == 0) hour12 = 12;
     if (hour12 > 12) hour12 -= 12;
-    
+
     std::string result = format_text;
 
     auto pl = PlayLayer::get();
@@ -23,8 +26,8 @@ std::string Label::get_text() {
 
     CpsCounter::get().update();
 
-    result = replace_all(result, "{time:12}", fmt::format("{} {}", time_to_fmt_time(hour12, localTime.wMinute, localTime.wSecond), period12));
-    result = replace_all(result, "{time:24}", time_to_fmt_time(localTime.wHour, localTime.wMinute, localTime.wSecond));
+    result = replace_all(result, "{time:12}", fmt::format("{} {}", time_to_fmt_time(hour12, localTime.tm_min, localTime.tm_sec), period12));
+    result = replace_all(result, "{time:24}", time_to_fmt_time(localTime.tm_hour, localTime.tm_min, localTime.tm_sec));
     result = replace_all(result, "{attempt}", std::to_string(Labels::get().attempts));
     result = replace_all(result, "{sessionTime}", seconds_to_fmt_time(Labels::get().session_time));
     result = replace_all(result, "{progress}", platformer ? seconds_to_fmt_time(percentage) : fmt::format("{}%", round_float(percentage, 2)));
@@ -57,8 +60,8 @@ std::string Label::time_to_fmt_time(int hours, int minutes, int seconds) {
 }
 
 std::string Label::seconds_to_fmt_time(float seconds) {
-    int time = (int) seconds;
-    int minutes = seconds / 60;
+    int time = static_cast<int>(seconds);
+    int minutes = time / 60;
     int hour = minutes / 60;
     return time_to_fmt_time(hour % 60, minutes % 60, time % 60);
 }
@@ -68,6 +71,7 @@ std::string Label::round_float(float value, int decimal_places) {
     fmtFloat << std::fixed << std::setprecision(decimal_places) << value;
     return fmtFloat.str();
 }
+
 
 std::string Labels::get_label_string(LabelCorner corner) {
     std::string result = "";

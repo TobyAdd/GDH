@@ -1,6 +1,8 @@
 #pragma once
 
 #include "config.hpp"
+#include <algorithm>
+#include <chrono>
 
 enum LabelCorner {
     LabelCorner_None = 0,
@@ -65,38 +67,48 @@ class Labels {
 };
 
 class CpsCounter {
-    public:
-        static CpsCounter& get() {
-            static CpsCounter instance;
-            return instance;
+public:
+    static CpsCounter& get() {
+        static CpsCounter instance;
+        return instance;
+    }
+
+    CpsCounter& operator=(const CpsCounter&) = delete;
+    CpsCounter(const CpsCounter&) = delete;
+
+    std::vector<std::chrono::steady_clock::time_point> clicks = {};
+    int cps = 0, highscore = 0, overall = 0;
+    
+    void reset() {
+        cps = 0;
+        highscore = 0;
+        overall = 0;
+        clicks.clear();
+    }
+    
+    void click() {
+        auto now = std::chrono::steady_clock::now();
+        overall++;
+        clicks.push_back(now);
+    }
+    
+    void update() {
+        auto now = std::chrono::steady_clock::now();
+        auto one_second_ago = now - std::chrono::seconds(1);
+
+        clicks.erase(std::remove_if(clicks.begin(), clicks.end(),
+                                    [one_second_ago](const auto& clickTime) {
+                                        return clickTime < one_second_ago;
+                                    }),
+                     clicks.end());
+
+        cps = clicks.size();
+
+        if (highscore < cps) {
+            highscore = cps;
         }
+    }
 
-        CpsCounter& operator=(const CpsCounter&) = delete;
-        CpsCounter(const CpsCounter&) = delete;
-
-        std::vector<DWORD> clicks = {};
-        int cps, highscore, overall;
-        
-        void reset() { cps = 0; highscore = 0; overall = 0; }
-        void click() {
-            DWORD millis = GetTickCount();
-            overall++;
-            clicks.push_back(millis);
-        }
-        void update() {
-            time_t currentTick = GetTickCount();
-
-            clicks.erase(std::remove_if(clicks.begin(), clicks.end(), [currentTick](DWORD tick) {
-                return currentTick - tick > 1000;
-            }), clicks.end());
-
-            cps = clicks.size();
-
-            if (highscore < cps) {
-                highscore = cps;
-            }
-        }
-        
-    private:
-        CpsCounter() = default;
+private:
+    CpsCounter() = default;
 };
