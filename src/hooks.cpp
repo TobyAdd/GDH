@@ -153,6 +153,9 @@ class $modify(PlayLayer) {
         addChild(m_fields->labels_bottom);
         addChild(m_fields->labels_top);
 
+        Labels::get().attempts = 1;
+        Labels::get().session_time = 0.f;
+
         if (config.get<bool>("startpos_switcher", false) && !startPositions.empty()) {
             auto win_size = cocos2d::CCDirector::sharedDirector()->getWinSize();
 
@@ -361,6 +364,8 @@ class $modify(PlayLayer) {
 
             PlayLayer::playEndAnimationToPos({0, 0});
         }
+
+        CpsCounter::get().reset();
     }
 
     void levelComplete() {
@@ -378,6 +383,16 @@ class $modify(PlayLayer) {
     void showNewBest(bool p0, int p1, int p2, bool p3, bool p4, bool p5) {
         if (Config::get().get<bool>("no_new_best_popup", false)) return;        
         PlayLayer::showNewBest(p0, p1, p2, p3, p4, p5);
+    }
+    
+    void updateAttempts() {
+        PlayLayer::updateAttempts();
+        Labels::get().attempts++;
+    }
+
+    void updateAttemptTime(float time) {
+        PlayLayer::updateAttemptTime(time);
+        Labels::get().session_time += time;
     }
 
     void updateVisibility(float dt)  {   
@@ -455,6 +470,11 @@ class $modify(GJBaseGameLayer) {
 
         GJBaseGameLayer::lightningFlash(from, to, color, lineWidth, duration, displacement, flash, opacity);
         gm->m_performanceMode = performanceMode;
+    }
+    
+    void handleButton(bool down, int button, bool isPlayer1) {
+        GJBaseGameLayer::handleButton(down, button, isPlayer1);
+        if (down) CpsCounter::get().click();
     }
 };
 

@@ -23,6 +23,10 @@ class Label {
 
     private:
         std::string replace_all(std::string src, std::string replace, std::string replacement);
+        
+        std::string time_to_fmt_time(int hours, int minutes, int seconds);
+        std::string seconds_to_fmt_time(float seconds);
+        std::string round_float(float value, int decimal_places);
 };
 
 class Labels {
@@ -48,9 +52,51 @@ class Labels {
         void move_down(int index);
         void swap(int index_0, int index_1);
 
+        int attempts = 1;
+        float session_time = 0.f;
+        float progress = 0.f;
+        bool platformer = false;
+        
         void save();
         void load();
 
     private:
         Labels() = default;
+};
+
+class CpsCounter {
+    public:
+        static CpsCounter& get() {
+            static CpsCounter instance;
+            return instance;
+        }
+
+        CpsCounter& operator=(const CpsCounter&) = delete;
+        CpsCounter(const CpsCounter&) = delete;
+
+        std::vector<DWORD> clicks = {};
+        int cps, highscore, overall;
+        
+        void reset() { cps = 0; highscore = 0; overall = 0; }
+        void click() {
+            DWORD millis = GetTickCount();
+            overall++;
+            clicks.push_back(millis);
+        }
+        void update() {
+            time_t currentTick = GetTickCount();
+
+            clicks.erase(std::remove_if(clicks.begin(), clicks.end(), [currentTick](DWORD tick) {
+                return currentTick - tick > 1000;
+            }), clicks.end());
+
+            cps = clicks.size();
+
+            if (highscore < cps) {
+                highscore = cps;
+            }
+        }
+        
+    private:
+        CpsCounter() = default;
 };

@@ -216,7 +216,13 @@ void Gui::Render() {
             ImGui::Combo("##labelspos", &selected_label_corner, labels_positions, 6, 6);
 
             const char *label_types[] = {
-                "Hui",
+                "Time (24H)",
+                "Time (12H)",
+                "Session Time",
+                "Level Progress",
+                "Attempt",
+                "CPS Counter",
+                "Level Info",
                 "Custom Text",
             };
             int label_types_count = sizeof(label_types)/sizeof(label_types[0]);
@@ -229,7 +235,13 @@ void Gui::Render() {
             if (ImGui::Button("+")) {
                 std::string text;
                 if (selected_label_type == label_types_count - 1) text = selected_label_text;
-                else if (selected_label_type == 0) text = "eto {hui}";
+                else if (selected_label_type == 0) text = "{time:24}";
+                else if (selected_label_type == 1) text = "{time:12}";
+                else if (selected_label_type == 2) text = "Session Time: {sessionTime}";
+                else if (selected_label_type == 3) text = "{progress}";
+                else if (selected_label_type == 4) text = "Attempt {attempt}";
+                else if (selected_label_type == 5) text = "{cps}/{cpsHigh}/{clicks}";
+                else if (selected_label_type == 6) text = "{levelName}{byLevelCreator} ({levelId})";
                 
                 Label l((LabelCorner) (selected_label_corner+1), text);
                 labels.add(l);
