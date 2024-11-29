@@ -65,9 +65,37 @@ void Labels::swap(int index_0, int index_1) {
 }
 
 void Labels::save() {
+    std::ofstream file(labelsDataPath);
+    if (!file.is_open()) {
+        return;
+    }
 
+    for (const auto& label : labels) {
+        file << label.format_text << "," << label.corner << "\n";
+    }
+    file.close();
 }
 
 void Labels::load() {
-    
+    std::ifstream file(labelsDataPath);
+    if (!file.is_open()) {
+        return;
+    }
+
+    labels.clear();
+
+    std::string line;
+    while (std::getline(file, line)) {
+        std::istringstream ss(line);
+        std::string formatText;
+        int cornerInt;
+
+        if (std::getline(ss, formatText, ',') && ss >> cornerInt) {
+            LabelCorner corner = static_cast<LabelCorner>(cornerInt);
+            Label l(corner, formatText);
+            labels.push_back(l);
+        }
+    }
+
+    file.close();
 }

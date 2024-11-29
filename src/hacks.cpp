@@ -205,6 +205,8 @@ void Hacks::Init() {
         }
     });
 
+    Labels::get().load();
+
     for (auto& win : m_windows) {
         win.orig_x = win.x;
         win.orig_y = win.y;
