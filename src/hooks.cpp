@@ -395,6 +395,14 @@ class $modify(PlayLayer) {
         Labels::get().session_time += time;
     }
 
+    void storeCheckpoint(CheckpointObject* obj) {
+        if (!Config::get().get("checkpoint_limit", false))
+            return PlayLayer::storeCheckpoint(obj);
+        
+        m_checkpointArray->addObject(obj);
+        PlayLayer::addToSection(obj->m_physicalCheckpointObject);
+    }
+
     void updateVisibility(float dt)  {   
         auto& config = Config::get();
 
@@ -792,6 +800,42 @@ class $modify(EditorUI) {
             LevelEditorLayer::get()->m_level->m_levelType = GJLevelType::Editor;
         EditorUI::onSettings(sender);
         LevelEditorLayer::get()->m_level->m_levelType = levelType;
+    }
+
+    void zoomIn(cocos2d::CCObject* sender) {
+        if (!Config::get().get("zoom_bypass", false))
+            return EditorUI::zoomIn(sender);
+
+        float scale = m_editorLayer->m_objectLayer->getScale();
+        EditorUI::updateZoom(scale + 0.1f);
+    }
+
+    // void zoomOut(cocos2d::CCObject* sender) {
+    //     if (!Config::get().get("zoom_bypass", false))
+    //         return EditorUI::zoomOut(sender);
+
+    //     float scale = m_editorLayer->m_objectLayer->getScale();
+    //     EditorUI::updateZoom(scale - 0.1f);
+    // }
+
+    void onNewCustomItem(CCObject* sender) {
+        if (!Config::get().get("custom_object_bypass", false))
+            return EditorUI::onNewCustomItem(sender);
+        
+        auto gm = GameManager::get();
+        if (gm) {
+            cocos2d::CCArray* objects;
+            if (m_selectedObjects->count()) {
+                objects = m_selectedObjects;
+            }
+            else {
+                objects = cocos2d::CCArray::create();
+                objects->addObject(m_selectedObject);
+            }
+            gm->addNewCustomObject(copyObjects(objects, false, false));
+            m_selectedObjectIndex = 0;
+            reloadCustomItems();
+        }
     }
 };
 

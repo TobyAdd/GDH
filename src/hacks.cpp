@@ -18,11 +18,11 @@ void Hacks::Init() {
             }
         },
         {"Bypass", 10, 250, 200, 250, 
-            {  
+            {
                 {"Text Length", "Removes the text input limit", "text_lenght"}, // +
-                {"Slider Limit", "Removes the limit on sliding beyond set limits", "slider_limit"},
-                {"Character Filter", "Lets you input any character in all text inputs", "char_filter"},  // +     
-                {"Checkpoint Limit", "Removes the limit that deletes previous checkpoints after the 50th checkpoint", "checkpoint_limit"},
+                {"Slider Limit", "Removes the limit on sliding beyond set limits", "slider_limit"}, // + 
+                {"Character Filter", "Lets you input any character in all text inputs", "char_filter"},  // +   
+                {"Checkpoint Limit", "Removes the limit that deletes previous checkpoints after the 50th checkpoint", "checkpoint_limit"}, // +   
                 {"Treasure Room", "Unlocks the Treasure Room", "treasure_room"}, // +    
                 {"Unlock Shops", "Unlocks all shops", "unlock_shops"}, // +  
                 {"Unlock Vaults", "Unlocks all Vaults and doors", "unlock_vaults"},
@@ -39,8 +39,8 @@ void Hacks::Init() {
                 {"Coins In Practice", "The ability to collect coins in practice", "coins_in_practice"},
                 {"Confirm Exit", "Warning before level exit", "confim_exit", "0167"},  // +  
                 {"Fast Chest Open", "Removes the delay for opening chests", "fast_chest_open"},
-                {"Force Dont Enter", "Disables effects when objects enter the viewable play area", "force_dont_enter"},
-                {"Force Dont Fade", "Disables effects when objects leave the viewable play area", "force_dont_fade"},
+                // {"Force Dont Enter", "Disables effects when objects enter the viewable play area", "force_dont_enter"},
+                // {"Force Dont Fade", "Disables effects when objects leave the viewable play area", "force_dont_fade"},
                 {"Random Seed", "Changes the seed game so that the random trigger is not triggered randomly", "random_seed"},
                 {"Respawn Time", "Changes respawn time on death", "respawn_time"},  // +
                 {"Ignore ESC", "Prevents exiting the level", "ignore_esc"},  // +
@@ -82,20 +82,21 @@ void Hacks::Init() {
                 {"Wave Trail On Death", "", "wave_trail_on_death"}   // +
             }
         },
-        {"Creator", 450, 10, 220, 250, 
+        {"Creator", 450, 10, 220, 280, 
             {
                 {"Copy Hack", "Copy any online level without a password", "copy_hack"},  // +
-                {"Custom Object Bypass", "Removes the limit restricted to 1000 objects", "custom_object_bypass"},
+                {"Custom Object Bypass", "Removes the limit restricted to 1000 objects", "custom_object_bypass"}, // +
                 {"Default Song Bypass", "Removes restrictions on secret official songs", "default_song_bypass"}, // +
                 {"Editor Extension", "Increases the editor length by a factor of 128", "editor_extension"}, // +
                 {"Verify Hack", "Publish a level without verification", "verify_hack"}, // +
                 {"Smooth Editor Trail", "Makes the wave smoother in the editor", "smooth_editor_trail"}, // +
                 {"Level Edit", "Edit any online level", "level_edit"}, // +
-                {"No (C) Mark", "Removes copyright on copied levels", "no_c_mark"} // +
+                {"No (C) Mark", "Removes copyright on copied levels", "no_c_mark"}, // +
+                {"Zoom Bypass", "", "zoom_bypass"} // +
             }
         },
-        {"Framerate", 450, 270, 220, 130},
-        {"GDH Settings", 450, 410, 220, 130},
+        {"Framerate", 450, 300, 220, 130},
+        {"GDH Settings", 450, 440, 220, 130},
         {"Replay Engine", 680, 10, 300, 200},
         {"Labels", 680, 220, 300, 320},
         {"Variables", 10, 510, 200, 160},
