@@ -89,7 +89,7 @@ void Hacks::Init() {
                 {"Copy Hack", "Copy any online level without a password", "copy_hack"},  // +
                 {"Custom Object Bypass", "Removes the limit restricted to 1000 objects", "custom_object_bypass"},
                 {"Default Song Bypass", "Removes restrictions on secret official songs", "default_song_bypass"}, // +
-                {"Editor Extension", "", "editor_extension"},
+                {"Editor Extension", "Increases the editor length by a factor of 128", "editor_extension"}, // +
                 {"Verify Hack", "Publish a level without verification", "verify_hack"}, // +
                 {"Smooth Editor Trail", "Makes the wave smoother in the editor", "smooth_editor_trail"}, // +
                 {"Level Edit", "Edit any online level", "level_edit"}, // +
@@ -100,7 +100,8 @@ void Hacks::Init() {
         {"GDH Settings", 450, 410, 220, 130},
         {"Replay Engine", 680, 10, 300, 200},
         {"Labels", 680, 230, 300, 320},
-        {"Variables", 10, 510, 200, 160}
+        {"Variables", 10, 510, 200, 160},
+        {"Shortcuts", 990, 10, 200, 240}
     };
 
     auto &config = Config::get();

@@ -209,6 +209,20 @@ class $modify(PlayLayer) {
     void postUpdate(float dt) {
         PlayLayer::postUpdate(dt);
 
+        m_isTestMode;
+        m_player1->m_position.x;
+        m_player1->m_position.y;
+        m_player1->getRotation();
+        m_player1->m_yVelocity;
+        m_player1->m_isUpsideDown; //gravity navernoe
+        m_player1->m_isDead;
+        getCurrentPercent();
+        m_level->m_levelID;
+        m_level->m_levelName;
+        m_level->m_creatorName;
+        m_level->m_attempts;
+        m_level->m_jumps;
+
         if (!(m_fields->labels_top_left &&
               m_fields->labels_top_right &&
               m_fields->labels_bottom_left &&

@@ -279,6 +279,38 @@ void Gui::Render() {
             }
             ImGui::EndChild();
         }
+        else if (windowName == "Shortcuts") {
+            if (ImGui::Button("Options", {ImGui::GetContentRegionAvail().x, NULL})) {
+
+            }
+            if (ImGui::Button("Reset Level", {ImGui::GetContentRegionAvail().x, NULL})) {
+                auto* pl = PlayLayer::get();
+                if (pl)
+                    pl->resetLevel();
+            }
+            if (ImGui::Button("Practice Mode", {ImGui::GetContentRegionAvail().x, NULL})) {
+                auto* pl = PlayLayer::get();
+                if (pl)
+                    pl->togglePracticeMode(!pl->m_isPracticeMode);
+            }
+            if (ImGui::Button("Reset Volume", {ImGui::GetContentRegionAvail().x, NULL})) {
+
+            }
+            if (ImGui::Button("Uncomplete Level", {ImGui::GetContentRegionAvail().x, NULL})) {
+
+            }
+            if (ImGui::Button("Inject DLL", {ImGui::GetContentRegionAvail().x, NULL})) {
+
+            }
+
+            if (ImGui::Button("Resources", {ImGui::GetContentRegionAvail().x/2, NULL})) {
+
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("AppData", {ImGui::GetContentRegionAvail().x, NULL})) {
+
+            }
+        }
         else {
             for (auto& hck : win.hacks) {
                 bool enabled = config.get(hck.config, false);
