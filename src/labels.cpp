@@ -86,14 +86,15 @@ void Labels::load() {
 
     std::string line;
     while (std::getline(file, line)) {
-        std::istringstream ss(line);
-        std::string formatText;
-        int cornerInt;
+        size_t lastCommaPos = line.find_last_of(',');
 
-        if (std::getline(ss, formatText, ',') && ss >> cornerInt) {
-            LabelCorner corner = static_cast<LabelCorner>(cornerInt);
-            Label l(corner, formatText);
-            labels.push_back(l);
+        if (lastCommaPos != std::string::npos && lastCommaPos + 1 < line.size()) {
+            std::string formatText = line.substr(0, lastCommaPos);
+            std::string cornerString = line.substr(lastCommaPos + 1);
+
+            LabelCorner corner = static_cast<LabelCorner>(std::stoi(cornerString));
+            Label newLabel(corner, formatText);
+            labels.push_back(newLabel);
         }
     }
 
