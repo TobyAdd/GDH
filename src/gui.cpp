@@ -221,6 +221,8 @@ void Gui::Render() {
                 "Session Time",
                 "Level Progress",
                 "Attempt",
+                "CPS Counter",
+                "Level Info",
                 "Custom Text",
             };
             int label_types_count = sizeof(label_types)/sizeof(label_types[0]);
@@ -238,6 +240,8 @@ void Gui::Render() {
                 else if (selected_label_type == 2) text = "Session Time: {sessionTime}";
                 else if (selected_label_type == 3) text = "{progress}";
                 else if (selected_label_type == 4) text = "Attempt {attempt}";
+                else if (selected_label_type == 5) text = "{cps}/{cpsHigh}/{clicks}";
+                else if (selected_label_type == 6) text = "{levelName}{byLevelCreator} ({levelId})";
                 
                 Label l((LabelCorner) (selected_label_corner+1), text);
                 labels.add(l);

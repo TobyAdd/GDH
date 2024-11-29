@@ -155,8 +155,6 @@ class $modify(PlayLayer) {
 
         Labels::get().attempts = 1;
         Labels::get().session_time = 0.f;
-        
-        Labels::get().platformer = m_level->isPlatformer();
 
         if (config.get<bool>("startpos_switcher", false) && !startPositions.empty()) {
             auto win_size = cocos2d::CCDirector::sharedDirector()->getWinSize();
@@ -274,16 +272,6 @@ class $modify(PlayLayer) {
         
         m_fields->labels_bottom->setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentCenter);
         m_fields->labels_bottom->setPosition({size.width/2, Labels::get().padding});
-
-        
-        // https://github.com/EclipseMenu/EclipseMenu/blob/18489ba4b78e3698285215ae7550ad17ac5e57e1/src/utils.cpp#L59
-        // <3
-        if (m_level->isPlatformer()) Labels::get().progress = static_cast<float>(m_gameState.m_levelTime);
-        else if (m_level->m_timestamp > 0) {
-            Labels::get().progress = static_cast<float>(m_gameState.m_levelTime * 240.f) / m_level->m_timestamp * 100.f;
-        } else {
-            Labels::get().progress = std::clamp(reinterpret_cast<cocos2d::CCNode*>(m_player1)->getPositionX() / m_levelLength * 100.f, 0.f, 100.f);
-        }
     }
 
     void addObject(GameObject* obj) {
@@ -352,8 +340,6 @@ class $modify(PlayLayer) {
 
         PlayLayer::resetLevel();
 
-        Labels::get().progress = 0;
-
         if (config.get<bool>("no_do_not_flip", false) && m_attemptLabel)
             m_attemptLabel->setScaleY(1);
 
@@ -378,6 +364,8 @@ class $modify(PlayLayer) {
 
             PlayLayer::playEndAnimationToPos({0, 0});
         }
+
+        CpsCounter::get().reset();
     }
 
     void levelComplete() {
@@ -482,6 +470,11 @@ class $modify(GJBaseGameLayer) {
 
         GJBaseGameLayer::lightningFlash(from, to, color, lineWidth, duration, displacement, flash, opacity);
         gm->m_performanceMode = performanceMode;
+    }
+    
+    void handleButton(bool down, int button, bool isPlayer1) {
+        GJBaseGameLayer::handleButton(down, button, isPlayer1);
+        if (down) CpsCounter::get().click();
     }
 };
 

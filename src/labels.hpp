@@ -74,8 +74,28 @@ class CpsCounter {
         CpsCounter& operator=(const CpsCounter&) = delete;
         CpsCounter(const CpsCounter&) = delete;
 
-        std::vector<DWORD>
-        void click();
+        std::vector<DWORD> clicks = {};
+        int cps, highscore, overall;
+        
+        void reset() { cps = 0; highscore = 0; overall = 0; }
+        void click() {
+            DWORD millis = GetTickCount();
+            overall++;
+            clicks.push_back(millis);
+        }
+        void update() {
+            time_t currentTick = GetTickCount();
+
+            clicks.erase(std::remove_if(clicks.begin(), clicks.end(), [currentTick](DWORD tick) {
+                return currentTick - tick > 1000;
+            }), clicks.end());
+
+            cps = clicks.size();
+
+            if (highscore < cps) {
+                highscore = cps;
+            }
+        }
         
     private:
         CpsCounter() = default;

@@ -17,11 +17,25 @@ std::string Label::get_text() {
     
     std::string result = format_text;
 
-    result = replace_all(result, "{time:12}", time_to_fmt_time(hour12, localTime.wMinute, localTime.wSecond) + " " + period12);
+    auto pl = PlayLayer::get();
+    bool platformer = pl->m_level->isPlatformer();
+    float percentage = platformer ? static_cast<float>(pl->m_gameState.m_levelTime) : pl->getCurrentPercent();
+
+    CpsCounter::get().update();
+
+    result = replace_all(result, "{time:12}", fmt::format("{} {}", time_to_fmt_time(hour12, localTime.wMinute, localTime.wSecond), period12));
     result = replace_all(result, "{time:24}", time_to_fmt_time(localTime.wHour, localTime.wMinute, localTime.wSecond));
     result = replace_all(result, "{attempt}", std::to_string(Labels::get().attempts));
     result = replace_all(result, "{sessionTime}", seconds_to_fmt_time(Labels::get().session_time));
-    result = replace_all(result, "{progress}", Labels::get().platformer ? seconds_to_fmt_time(Labels::get().progress) : round_float(Labels::get().progress, 2) + "%");
+    result = replace_all(result, "{progress}", platformer ? seconds_to_fmt_time(percentage) : fmt::format("{}%", round_float(percentage, 2)));
+    result = replace_all(result, "{clicks}", std::to_string(CpsCounter::get().overall));
+    result = replace_all(result, "{cps}", std::to_string(CpsCounter::get().cps));
+    result = replace_all(result, "{cpsHigh}", std::to_string(CpsCounter::get().highscore));
+    result = replace_all(result, "{levelName}", pl->m_level->m_levelName);
+    result = replace_all(result, "{levelCreator}", pl->m_level->m_creatorName);
+    result = replace_all(result, "{byLevelCreator}", pl->m_level->m_creatorName.empty() ? "" : fmt::format(" by {}", pl->m_level->m_creatorName));
+    result = replace_all(result, "{levelId}", std::to_string(pl->m_level->m_levelID));
+    result = replace_all(result, "{\\n}", "\n");
 
     return result;
 }
