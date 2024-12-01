@@ -60,7 +60,7 @@ std::string ReplayEngine::load(std::string name) {
     if (!m_inputFrames_p1.empty() || !m_inputFrames_p2.empty())
         return "Please clear replay before loading another";
 
-    std::ifstream file(folderMacroPath / std::string(name + ".re"), std::ios::binary);
+    std::ifstream file(folderMacroPath / std::string(name + ".re3"), std::ios::binary);
     if (!file)
         return "Replay doesn't exist";
 
@@ -87,7 +87,7 @@ std::string ReplayEngine::load(std::string name) {
     file.read(reinterpret_cast<char *>(&m_physicFrames_p1[0]), sizeof(replay_data) * p1_size);
     file.read(reinterpret_cast<char *>(&m_physicFrames_p2[0]), sizeof(replay_data) * p2_size);
     file.read(reinterpret_cast<char *>(&m_inputFrames_p1[0]), sizeof(replay_data2) * p1_input_size);
-    file.read(reinterpret_cast<char *>(&m_physicFrames_p2[0]), sizeof(replay_data2) * p2_input_size);
+    file.read(reinterpret_cast<char *>(&m_inputFrames_p2[0]), sizeof(replay_data2) * p2_input_size);
 
     file.close();
 
