@@ -31,6 +31,7 @@
 #include "hacks.hpp"
 #include "config.hpp"
 #include "labels.hpp"
+#include "replayEngine.hpp"
 
 std::vector<StartPosObject*> startPositions;
 int selectedStartpos = -1;
@@ -89,6 +90,9 @@ class $modify(FMODAudioEngine) {
         }
     }
 };
+
+float left_over = 0.f;
+bool disable_render = false;
 
 class $modify(PlayLayer) {
     struct Fields {
@@ -212,20 +216,6 @@ class $modify(PlayLayer) {
     void postUpdate(float dt) {
         PlayLayer::postUpdate(dt);
 
-        m_isTestMode;
-        m_player1->m_position.x;
-        m_player1->m_position.y;
-        m_player1->getRotation();
-        m_player1->m_yVelocity;
-        m_player1->m_isUpsideDown; //gravity navernoe
-        m_player1->m_isDead;
-        getCurrentPercent();
-        m_level->m_levelID;
-        m_level->m_levelName;
-        m_level->m_creatorName;
-        m_level->m_attempts;
-        m_level->m_jumps;
-
         if (!(m_fields->labels_top_left &&
               m_fields->labels_top_right &&
               m_fields->labels_bottom_left &&
@@ -321,24 +311,25 @@ class $modify(PlayLayer) {
         }
 
         if (config.get<bool>("respawn_time", false)) {
-            if (auto* respawnSequence = this->getActionByTag(0x10)) {
-                this->stopAction(respawnSequence);
+            if (auto* respawnSequence = getActionByTag(0x10)) {
+                stopAction(respawnSequence);
                 auto* newSequence = cocos2d::CCSequence::create(
                     cocos2d::CCDelayTime::create(config.get<float>("respawn_time_value", 1.f)),
                     cocos2d::CCCallFunc::create(this, callfunc_selector(PlayLayer::delayedResetLevel)),
                     nullptr
                 );
                 newSequence->setTag(0x10);
-                this->runAction(newSequence);
+                runAction(newSequence);
             }
         }
     }
-
     
     void resetLevel() {
         auto& config = Config::get();
+        auto& engine = ReplayEngine::get();
 
         PlayLayer::resetLevel();
+        engine.handle_reset(this);        
 
         if (config.get<bool>("no_do_not_flip", false) && m_attemptLabel)
             m_attemptLabel->setScaleY(1);
@@ -406,6 +397,9 @@ class $modify(PlayLayer) {
     void updateVisibility(float dt)  {   
         auto& config = Config::get();
 
+        if (config.get<bool>("tps_enabled", false) && disable_render)
+            return;
+
         if (!config.get<bool>("pulse_size", false) && config.get<bool>("no_pulse", false))
             m_audioEffectsLayer->m_notAudioScale = 0.5;
 
@@ -426,8 +420,15 @@ class $modify(GJBaseGameLayer) {
         (void) self.setHookPriority("GJBaseGameLayer::update", 0x99999);
     }
 
+    void handleButton(bool down, int button, bool isPlayer1) {
+        GJBaseGameLayer::handleButton(down, button, isPlayer1);   
+        ReplayEngine::get().handle_button(down, button, isPlayer1);
+        if (down) CpsCounter::get().click();
+    }
+
     void update(float dt) {
         auto& config = Config::get();
+        auto& engine = ReplayEngine::get();
 
         if (config.get<bool>("stop_triggers_on_death", false) && m_player1->m_isDead || m_player2->m_isDead)
             return;
@@ -435,7 +436,56 @@ class $modify(GJBaseGameLayer) {
         if (config.get<bool>("jump_hack", false))
             m_player1->m_isOnGround = true;
 
-        GJBaseGameLayer::update(dt);
+        if (!config.get<bool>("tps_enabled", false))
+            return GJBaseGameLayer::update(dt);
+
+        if (!config.get<bool>("tps_enabled", false)) {
+            GJBaseGameLayer::update(dt);
+            return;
+        }
+
+        float tps_value = config.get<float>("tps_value", 240.f);
+        float newdt = 1.f / tps_value;
+
+        left_over += dt;
+        unsigned times = static_cast<unsigned>(left_over / newdt);
+        left_over -= times * newdt;
+
+        auto start = std::chrono::high_resolution_clock::now();
+
+        for (unsigned i = 0; i < times; ++i) {
+            disable_render = (i != times - 1);
+            GJBaseGameLayer::update(newdt);
+            engine.handle_update(this);
+
+            if (std::chrono::high_resolution_clock::now() - start > std::chrono::milliseconds(33)) {
+                break;
+            }
+        }
+        disable_render = false;
+    }
+
+    float getModifiedDelta(float dt) {
+        auto& config = Config::get();
+        if (!config.get<bool>("tps_enabled", false))
+            return GJBaseGameLayer::getModifiedDelta(dt);
+
+        if ( m_resumeTimer > 0 )
+        {
+            cocos2d::CCDirector::sharedDirector();
+            --m_resumeTimer;
+            dt = 0.0;
+        }
+        
+        float fixed_dt = 1.f / config.get<float>("tps_value", 240.f);
+
+        auto timestep = std::min(m_gameState.m_timeWarp, 1.f) * fixed_dt;
+        auto total_dt = dt + m_extraDelta;
+        auto steps = std::round(total_dt / timestep);
+        auto new_dt = steps * timestep;
+        m_extraDelta = total_dt - new_dt;
+
+        return static_cast<float>(new_dt);
     }
 
     bool canBeActivatedByPlayer(PlayerObject *p0, EffectGameObject *p1) {
@@ -478,11 +528,6 @@ class $modify(GJBaseGameLayer) {
 
         GJBaseGameLayer::lightningFlash(from, to, color, lineWidth, duration, displacement, flash, opacity);
         gm->m_performanceMode = performanceMode;
-    }
-    
-    void handleButton(bool down, int button, bool isPlayer1) {
-        GJBaseGameLayer::handleButton(down, button, isPlayer1);
-        if (down) CpsCounter::get().click();
     }
 };
 
@@ -689,6 +734,7 @@ class $modify(PauseLayer) {
 
     void customSetup() {
         auto& hacks = Hacks::get();
+        auto& engine = ReplayEngine::get();
         auto& config = Config::get();
         auto levelType = PlayLayer::get()->m_level->m_levelType;
 
@@ -696,12 +742,13 @@ class $modify(PauseLayer) {
             PlayLayer::get()->m_level->m_levelType = GJLevelType::Editor;
 
         PauseLayer::customSetup();
+        engine.auto_button_release();
 
         PlayLayer::get()->m_level->m_levelType = levelType;
 
         hacks.pauseLayer = this;
         if (config.get<bool>("hide_pause_menu", false)) {
-            this->setVisible(false);
+            setVisible(false);
         }
     }
 

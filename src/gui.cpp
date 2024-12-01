@@ -6,6 +6,7 @@
 #include "hacks.hpp"
 #include "memory.hpp"
 #include "labels.hpp"
+#include "replayEngine.hpp"
 
 std::chrono::steady_clock::time_point animationStartTime;
 bool isAnimating = false;
@@ -187,6 +188,75 @@ void Gui::Render() {
 
             if (ImGuiH::Checkbox("Speedhack Audio", &speedhackAudio_enabled, m_scale))
                 config.set<bool>("speedhackAudio_enabled", speedhackAudio_enabled);
+        }
+        else if (windowName == "Replay Engine") {
+            auto& engine = ReplayEngine::get();
+            int mode_ = (int)engine.mode;
+
+            if (ImGui::RadioButton("Disable", &mode_, 0, m_scale))
+                engine.mode = state::disable;
+
+            ImGui::SameLine();
+
+            if (ImGui::RadioButton("Record", &mode_, 1, m_scale))
+            {
+                bool canRecord = config.get<bool>("tps_enabled", false);
+                
+                if (canRecord)
+                {
+                    if (engine.mode != state::record) {
+                        engine.clear();
+                    }
+                    engine.mode = state::record;
+                }
+                else
+                {
+                    engine.mode = state::disable;
+                }
+            }
+
+            
+            ImGui::SameLine();
+
+            if (ImGui::RadioButton("Play", &mode_, 2, m_scale)) {
+                bool canPlay = config.get<bool>("tps_enabled", false);
+                
+                if (canPlay) {
+                    engine.mode = state::play;
+                } else {
+                    engine.mode = state::disable;
+                }
+            }
+
+            ImGui::Separator();   
+
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 35 * m_scale);
+            ImGui::InputText("##replay_name", &engine.replay_name);
+
+            // ImGui::SameLine();
+
+            // if (ImGui::ArrowButton("##replay_select", ImGuiDir_Down)) {
+            //     openSelectReplay("Select Replay");
+            // }
+
+            if (ImGui::Button("Save", {ImGui::GetContentRegionAvail().x / 3, NULL})) {
+                engine.save(engine.replay_name);
+            }
+            ImGui::SameLine();
+
+            if (ImGui::Button("Load", {ImGui::GetContentRegionAvail().x / 2, NULL})) {
+                engine.load(engine.replay_name);
+            }
+            ImGui::SameLine();
+
+            if (ImGui::Button("Clear", {ImGui::GetContentRegionAvail().x, NULL})) {
+                engine.clear();
+            }
+
+            ImGui::Text("Replay Size: %zu", engine.get_actions_size());
+            ImGui::Text("Frame: %i", engine.get_frame());
+
+            ImGui::Separator();
         }
         else if (windowName == "Variables") { 
             static uintptr_t address = geode::base::get();
