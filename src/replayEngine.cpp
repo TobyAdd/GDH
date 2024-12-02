@@ -174,7 +174,7 @@ void ReplayEngine::handle_update(GJBaseGameLayer* self) {
     }
 }
 
-void ReplayEngine::handle_reset(GJBaseGameLayer* self) {
+void ReplayEngine::handle_reset() {
     if (mode == state::record) {
         int lastCheckpointFrame = get_frame();
         remove_actions(lastCheckpointFrame);

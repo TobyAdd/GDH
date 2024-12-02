@@ -93,6 +93,7 @@ class $modify(FMODAudioEngine) {
 
 float left_over = 0.f;
 bool disable_render = false;
+bool need_to_stop = false;
 
 class $modify(PlayLayer) {
     struct Fields {
@@ -329,7 +330,7 @@ class $modify(PlayLayer) {
         auto& engine = ReplayEngine::get();
 
         PlayLayer::resetLevel();
-        engine.handle_reset(this);        
+        engine.handle_reset();        
 
         if (config.get<bool>("no_do_not_flip", false) && m_attemptLabel)
             m_attemptLabel->setScaleY(1);
@@ -439,11 +440,6 @@ class $modify(GJBaseGameLayer) {
         if (!config.get<bool>("tps_enabled", false))
             return GJBaseGameLayer::update(dt);
 
-        if (!config.get<bool>("tps_enabled", false)) {
-            GJBaseGameLayer::update(dt);
-            return;
-        }
-
         float tps_value = config.get<float>("tps_value", 240.f);
         float newdt = 1.f / tps_value;
 
@@ -455,6 +451,12 @@ class $modify(GJBaseGameLayer) {
 
         for (unsigned i = 0; i < times; ++i) {
             disable_render = (i != times - 1);
+            
+            if (need_to_stop) {
+                need_to_stop = false;
+                break;
+            }
+
             GJBaseGameLayer::update(newdt);
             engine.handle_update(this);
 
@@ -1036,5 +1038,19 @@ class $modify(LevelEditorLayer) {
         if (Config::get().get<bool>("smooth_editor_trail", false))
             m_trailTimer = 0.1f;
         LevelEditorLayer::postUpdate(dt);
+    }
+
+    void onPlaytest() {
+        auto& engine = ReplayEngine::get();
+        LevelEditorLayer::onPlaytest();
+
+        if (engine.mode == state::play) {
+            engine.handle_reset();
+        }
+    }
+
+    void onStopPlaytest() {
+        need_to_stop = true;
+        LevelEditorLayer::onStopPlaytest();
     }
 };

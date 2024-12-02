@@ -51,7 +51,7 @@ public:
     std::string clear();
 
     void handle_update(GJBaseGameLayer* self);
-    void handle_reset(GJBaseGameLayer* self);
+    void handle_reset();
     void handle_button(bool down, int button, bool isPlayer1);
 
     void auto_button_release();
