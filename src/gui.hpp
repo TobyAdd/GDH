@@ -109,4 +109,52 @@ namespace ImGuiH {
 
         return buttonClicked;
     }
+    
+    static bool RadioButton2(const char* label, bool active, float scale)
+    {
+        auto &gui = Gui::get();
+        auto &config = Config::get();
+
+        ImVec2 buttonPosition = ImGui::GetCursorScreenPos();
+        ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+        float buttonWidth = 22.0f * scale;
+        float buttonHeight = 22.0f * scale;
+
+        ImGui::InvisibleButton(label, ImVec2(buttonWidth + ImGui::CalcTextSize(label).x + 4.f, buttonHeight));    
+
+        bool buttonClicked = false;
+        if (ImGui::IsItemClicked()) {
+            active = true;
+            buttonClicked = true;
+        }
+
+        float interpolationFactor = active ? 1.0f : 0.0f;
+        ImGuiContext& imguiContext = *GImGui;
+        float animationSpeed = 0.15f;
+        if (imguiContext.LastActiveId == imguiContext.CurrentWindow->GetID(label)) {
+            float animationProgress = ImSaturate(imguiContext.LastActiveIdTimer / animationSpeed);
+            interpolationFactor = active ? animationProgress : 1.0f - animationProgress;
+        }
+
+        int color_index = config.get<int>("gui_color_index", 0);
+        auto theme = themes[color_index];
+
+        const ImU32 backgroundColor = ImGui::GetColorU32(ImLerp(ImColor(67, 72, 78).Value, ImColor(theme.color_bg.r, theme.color_bg.g, theme.color_bg.b).Value, interpolationFactor));
+        const ImVec2 buttonEndPosition(buttonPosition.x + buttonWidth, buttonPosition.y + buttonHeight);
+        drawList->AddRectFilled(buttonPosition, buttonEndPosition, backgroundColor, buttonHeight * 0.5f);
+
+        const ImVec2 textPosition(buttonPosition.x + buttonWidth + 5.0f, buttonPosition.y + buttonHeight / 2.0f - ImGui::GetTextLineHeight() / 2.0f);
+        drawList->AddText(textPosition, ImGui::GetColorU32(ImGuiCol_Text), label);
+
+        return buttonClicked;
+    }
+
+    static bool RadioButton(const char* label, int* v, int v_button, float scale)
+    {
+        const bool pressed = RadioButton2(label, *v == v_button, scale);
+        if (pressed)
+            *v = v_button;
+        return pressed;
+    }
 }

@@ -1213,36 +1213,56 @@ bool ImGui::CheckboxFlags(const char* label, ImU64* flags, ImU64 flags_value)
 
 bool ImGui::RadioButton(const char* label, bool active, float scale)
 {
-    ImVec2 buttonPosition = ImGui::GetCursorScreenPos();
-    ImDrawList* drawList = ImGui::GetWindowDrawList();
+    ImGuiWindow* window = GetCurrentWindow();
+    if (window->SkipItems)
+        return false;
 
-    float buttonWidth = 22.0f * scale;
-    float buttonHeight = 22.0f * scale;
+    ImGuiContext& g = *GImGui;
+    const ImGuiStyle& style = g.Style;
+    const ImGuiID id = window->GetID(label);
+    const ImVec2 label_size = CalcTextSize(label, NULL, true);
 
-    ImGui::InvisibleButton(label, ImVec2(buttonWidth + ImGui::CalcTextSize(label).x + 4.f, buttonHeight));    
+    const float square_sz = GetFrameHeight();
+    const ImVec2 pos = window->DC.CursorPos;
+    const ImRect check_bb(pos, pos + ImVec2(square_sz, square_sz));
+    const ImRect total_bb(pos, pos + ImVec2(square_sz + (label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f), label_size.y + style.FramePadding.y * 2.0f));
+    ItemSize(total_bb, style.FramePadding.y);
+    if (!ItemAdd(total_bb, id))
+        return false;
 
-    bool buttonClicked = false;
-    if (ImGui::IsItemClicked()) {
-        active = true;
-        buttonClicked = true;
+    ImVec2 center = check_bb.GetCenter();
+    center.x = IM_ROUND(center.x);
+    center.y = IM_ROUND(center.y);
+    const float radius = (square_sz - 1.0f) * 0.5f;
+
+    bool hovered, held;
+    bool pressed = ButtonBehavior(total_bb, id, &hovered, &held);
+    if (pressed)
+        MarkItemEdited(id);
+
+    RenderNavHighlight(total_bb, id);
+    const int num_segment = window->DrawList->_CalcCircleAutoSegmentCount(radius);
+    window->DrawList->AddCircleFilled(center, radius, GetColorU32((held && hovered) ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg), num_segment);
+    if (active)
+    {
+        const float pad = ImMax(1.0f, IM_TRUNC(square_sz / 6.0f));
+        window->DrawList->AddCircleFilled(center, radius - pad, GetColorU32(ImGuiCol_CheckMark));
     }
 
-    float interpolationFactor = active ? 1.0f : 0.0f;
-    ImGuiContext& imguiContext = *GImGui;
-    float animationSpeed = 0.15f;
-    if (imguiContext.LastActiveId == imguiContext.CurrentWindow->GetID(label)) {
-        float animationProgress = ImSaturate(imguiContext.LastActiveIdTimer / animationSpeed);
-        interpolationFactor = active ? animationProgress : 1.0f - animationProgress;
+    if (style.FrameBorderSize > 0.0f)
+    {
+        window->DrawList->AddCircle(center + ImVec2(1, 1), radius, GetColorU32(ImGuiCol_BorderShadow), num_segment, style.FrameBorderSize);
+        window->DrawList->AddCircle(center, radius, GetColorU32(ImGuiCol_Border), num_segment, style.FrameBorderSize);
     }
 
-    const ImU32 backgroundColor = ImGui::GetColorU32(ImLerp(ImColor(67, 72, 78).Value, ImColor(165, 255, 190).Value, interpolationFactor));
-    const ImVec2 buttonEndPosition(buttonPosition.x + buttonWidth, buttonPosition.y + buttonHeight);
-    drawList->AddRectFilled(buttonPosition, buttonEndPosition, backgroundColor, buttonHeight * 0.5f);
+    ImVec2 label_pos = ImVec2(check_bb.Max.x + style.ItemInnerSpacing.x, check_bb.Min.y + style.FramePadding.y);
+    if (g.LogEnabled)
+        LogRenderedText(&label_pos, active ? "(x)" : "( )");
+    if (label_size.x > 0.0f)
+        RenderText(label_pos, label);
 
-    const ImVec2 textPosition(buttonPosition.x + buttonWidth + 5.0f, buttonPosition.y + buttonHeight / 2.0f - ImGui::GetTextLineHeight() / 2.0f);
-    drawList->AddText(textPosition, ImGui::GetColorU32(ImGuiCol_Text), label);
-
-    return buttonClicked;
+    IMGUI_TEST_ENGINE_ITEM_INFO(id, label, g.LastItemData.StatusFlags);
+    return pressed;
 }
 
 

@@ -160,6 +160,9 @@ void Gui::Render() {
                 config.set("gui_inverted", !inverted);
                 ApplyGuiColors(!inverted);
             }
+
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("Invert theme (beta)");
         }
         else if (windowName == "Framerate") {
             bool tps_enabled = config.get<bool>("tps_enabled", false);
@@ -219,12 +222,12 @@ void Gui::Render() {
                 
             int mode_ = (int)engine.mode;
 
-            if (ImGui::RadioButton("Disable", &mode_, 0, m_scale))
+            if (ImGuiH::RadioButton("Disable", &mode_, 0, m_scale))
                 engine.mode = state::disable;
 
             ImGui::SameLine();
 
-            if (ImGui::RadioButton("Record", &mode_, 1, m_scale))
+            if (ImGuiH::RadioButton("Record", &mode_, 1, m_scale))
             {
                 bool canRecord = config.get<bool>("tps_enabled", false);
                 
@@ -244,7 +247,7 @@ void Gui::Render() {
             
             ImGui::SameLine();
 
-            if (ImGui::RadioButton("Play", &mode_, 2, m_scale)) {
+            if (ImGuiH::RadioButton("Play", &mode_, 2, m_scale)) {
                 bool canPlay = config.get<bool>("tps_enabled", false);
                 
                 if (canPlay) {
