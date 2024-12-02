@@ -191,6 +191,32 @@ void Gui::Render() {
         }
         else if (windowName == "Replay Engine") {
             auto& engine = ReplayEngine::get();
+            static std::vector<std::filesystem::path> replay_list;
+
+            if (ImGui::BeginPopupModal("Select Replay", 0, ImGuiWindowFlags_NoResize)) {
+                ImGui::BeginChild("Select Replay##2", {400 * m_scale, 300 * m_scale});
+                for (int i = 0; i < (int)replay_list.size(); i++)
+                {
+                    if (ImGui::Button(replay_list[i].filename().replace_extension().string().c_str(), {ImGui::GetContentRegionAvail().x, NULL}))
+                    {
+                        engine.replay_name = replay_list[i].filename().replace_extension().string();
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
+                ImGui::EndChild();
+
+                #ifdef GEODE_IS_WINDOWS
+                if (ImGui::Button("Open Folder", {ImGui::GetContentRegionAvail().x, NULL})) {
+                    ShellExecuteW(nullptr, L"open", L"explorer", folderMacroPath.wstring().c_str(), nullptr, SW_SHOWDEFAULT);
+                }
+                #endif
+                
+                if (ImGui::Button("Close", {ImGui::GetContentRegionAvail().x, NULL})) {
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::EndPopup();
+            }
+                
             int mode_ = (int)engine.mode;
 
             if (ImGui::RadioButton("Disable", &mode_, 0, m_scale))
@@ -233,11 +259,18 @@ void Gui::Render() {
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 35 * m_scale);
             ImGui::InputText("##replay_name", &engine.replay_name);
 
-            // ImGui::SameLine();
+            ImGui::SameLine();
 
-            // if (ImGui::ArrowButton("##replay_select", ImGuiDir_Down)) {
-            //     openSelectReplay("Select Replay");
-            // }
+            if (ImGui::ArrowButton("##replay_select", ImGuiDir_Down)) {
+                replay_list.clear();
+                for (const auto &entry : std::filesystem::directory_iterator(folderMacroPath)) {
+                    std::string ext = entry.path().filename().extension().string();
+                    if (ext == ".re" || ext == ".re2" || ext == ".re3") {
+                        replay_list.push_back(entry);
+                    }
+                }
+                ImGui::OpenPopup("Select Replay");
+            }
 
             if (ImGui::Button("Save", {ImGui::GetContentRegionAvail().x / 3, NULL})) {
                 engine.save(engine.replay_name);
