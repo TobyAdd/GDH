@@ -39,6 +39,8 @@ public:
 
     PauseLayer* pauseLayer;
 
+    bool keybinds_mode = false;
+
     std::vector<window> m_windows;
     void Init();
 private:

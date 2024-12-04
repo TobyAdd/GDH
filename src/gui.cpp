@@ -66,7 +66,7 @@ void Gui::Render() {
     #ifdef GEODE_IS_ANDROID
     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1);
     ImGui::Begin("toggle gui");
-    if (ImGui::Button("toggle")) {
+    if (ImGuiH::Button("toggle")) {
         Toggle();
     }
     ImGui::End();
@@ -127,7 +127,7 @@ void Gui::Render() {
 
             const char* items[] = {"25%", "50%", "75%", "80%", "85%", "90%", "95%", "100%", "125%", "150%", "175%", "200%", "250%", "300%", "400%"};
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::Combo("##Menu scale", &m_index_scale, items, IM_ARRAYSIZE(items))) {
+            if (ImGuiH::Combo("##Menu scale", &m_index_scale, items, IM_ARRAYSIZE(items))) {
                 m_scale = float(atof(items[m_index_scale])) / 100.0f;    
                 config.set<float>("gui_scale", m_scale);
                 config.set<int>("gui_index_scale", m_index_scale);
@@ -163,6 +163,8 @@ void Gui::Render() {
 
             if (ImGui::IsItemHovered())
                 ImGui::SetTooltip("Invert theme (beta)");
+
+            ImGuiH::Checkbox("Keybinds Mode", &hacks.keybinds_mode, m_scale);
         }
         else if (windowName == "Framerate") {
             bool tps_enabled = config.get<bool>("tps_enabled", false);
@@ -192,6 +194,94 @@ void Gui::Render() {
             if (ImGuiH::Checkbox("Speedhack Audio", &speedhackAudio_enabled, m_scale))
                 config.set<bool>("speedhackAudio_enabled", speedhackAudio_enabled);
         }
+        else if (windowName == "Variables") {
+            static int type_index = 0;
+            static int player_index = 0;
+            static int creator_index = 0;
+            static std::string value;
+
+            const char* types[] = {"Creator", "Player"};
+            const char* player[] = {"Attempts", "Jumps", "Normal %", "Position X", "Position Y", "Practice %", "Song ID", "Speed"};
+            const char* creator[] = {"Object ID"};
+
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            ImGuiH::Combo("##TypeVars", &type_index, types, IM_ARRAYSIZE(types));
+
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (type_index == 0)
+                ImGuiH::Combo("##CreatorVars", &creator_index, creator, IM_ARRAYSIZE(creator));
+            else if (type_index == 1)
+                ImGuiH::Combo("##PlayerVars", &player_index, player, IM_ARRAYSIZE(player));
+
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            ImGui::InputText("##ValueVar", &value);
+
+            auto handleGetSetCreator = [&](bool isSet) {
+                auto EditorUI = EditorUI::get();
+                if (!EditorUI) return;
+
+                if (isSet) {
+                    EditorUI::get()->m_selectedObjectIndex = std::stoi(value);
+                } else {
+                    value = std::to_string(EditorUI::get()->m_selectedObjectIndex);
+                }
+            };
+
+            auto handleGetSetPlayer = [&](bool isSet) {
+                auto pl = PlayLayer::get();
+                if (!pl) return;
+
+                auto& level = *pl->m_level;
+                auto& player1 = *pl->m_player1;
+
+                switch (player_index) {
+                    case 0: // Attempts
+                        if (isSet) level.m_attempts = std::stoi(value);
+                        else value = std::to_string(level.m_attempts);
+                        break;
+                    case 1: // Jumps
+                        if (isSet) level.m_jumps = std::stoi(value);
+                        else value = std::to_string(level.m_jumps);
+                        break;
+                    case 2: // Normal %
+                        if (isSet) level.m_normalPercent = std::stoi(value);
+                        else value = std::to_string(level.m_normalPercent);
+                        break;
+                    case 3: // Position X
+                        if (isSet) player1.m_position.x = std::stof(value);
+                        else value = std::to_string(player1.m_position.x);
+                        break;
+                    case 4: // Position Y
+                        if (isSet) player1.m_position.y = std::stof(value);
+                        else value = std::to_string(player1.m_position.y);
+                        break;
+                    case 5: // Practice %
+                        if (isSet) level.m_practicePercent = std::stoi(value);
+                        else value = std::to_string(level.m_practicePercent);
+                        break;
+                    case 6: // Song ID
+                        if (isSet) level.m_songID = std::stoi(value);
+                        else value = std::to_string(level.m_songID);
+                        break;
+                    case 7: // Speed
+                        if (isSet) player1.m_playerSpeed = std::stof(value);
+                        else value = std::to_string(player1.m_playerSpeed);
+                        break;
+                }
+            };
+
+            if (ImGuiH::Button("Get", {ImGui::GetContentRegionAvail().x / 2, NULL})) {
+                if (type_index == 0) handleGetSetCreator(false); // Get Creator
+                else if (type_index == 1) handleGetSetPlayer(false); // Get Player
+            }
+
+            ImGui::SameLine();
+
+            if (ImGuiH::Button("Set", {ImGui::GetContentRegionAvail().x, NULL})) {
+                if (type_index == 0) handleGetSetCreator(true); // Set Creator
+                else if (type_index == 1) handleGetSetPlayer(true); // Set Player
+            }
+        }
         else if (windowName == "Replay Engine") {
             auto& engine = ReplayEngine::get();
             static std::vector<std::filesystem::path> replay_list;
@@ -200,7 +290,7 @@ void Gui::Render() {
                 ImGui::BeginChild("Select Replay##2", {400 * m_scale, 300 * m_scale});
                 for (int i = 0; i < (int)replay_list.size(); i++)
                 {
-                    if (ImGui::Button(replay_list[i].filename().replace_extension().string().c_str(), {ImGui::GetContentRegionAvail().x, NULL}))
+                    if (ImGuiH::Button(replay_list[i].filename().replace_extension().string().c_str(), {ImGui::GetContentRegionAvail().x, NULL}))
                     {
                         engine.replay_name = replay_list[i].filename().replace_extension().string();
                         ImGui::CloseCurrentPopup();
@@ -209,12 +299,12 @@ void Gui::Render() {
                 ImGui::EndChild();
 
                 #ifdef GEODE_IS_WINDOWS
-                if (ImGui::Button("Open Folder", {ImGui::GetContentRegionAvail().x, NULL})) {
+                if (ImGuiH::Button("Open Folder", {ImGui::GetContentRegionAvail().x, NULL})) {
                     ShellExecuteW(nullptr, L"open", L"explorer", folderMacroPath.wstring().c_str(), nullptr, SW_SHOWDEFAULT);
                 }
                 #endif
                 
-                if (ImGui::Button("Close", {ImGui::GetContentRegionAvail().x, NULL})) {
+                if (ImGuiH::Button("Close", {ImGui::GetContentRegionAvail().x, NULL})) {
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndPopup();
@@ -264,7 +354,7 @@ void Gui::Render() {
 
             ImGui::SameLine();
 
-            if (ImGui::ArrowButton("##replay_select", ImGuiDir_Down)) {
+            if (ImGuiH::ArrowButton("##replay_select", ImGuiDir_Down)) {
                 replay_list.clear();
                 for (const auto &entry : std::filesystem::directory_iterator(folderMacroPath)) {
                     std::string ext = entry.path().filename().extension().string();
@@ -275,17 +365,17 @@ void Gui::Render() {
                 ImGui::OpenPopup("Select Replay");
             }
 
-            if (ImGui::Button("Save", {ImGui::GetContentRegionAvail().x / 3, NULL})) {
+            if (ImGuiH::Button("Save", {ImGui::GetContentRegionAvail().x / 3, NULL})) {
                 engine.save(engine.replay_name);
             }
             ImGui::SameLine();
 
-            if (ImGui::Button("Load", {ImGui::GetContentRegionAvail().x / 2, NULL})) {
+            if (ImGuiH::Button("Load", {ImGui::GetContentRegionAvail().x / 2, NULL})) {
                 engine.load(engine.replay_name);
             }
             ImGui::SameLine();
 
-            if (ImGui::Button("Clear", {ImGui::GetContentRegionAvail().x, NULL})) {
+            if (ImGuiH::Button("Clear", {ImGui::GetContentRegionAvail().x, NULL})) {
                 engine.clear();
             }
 
@@ -298,13 +388,13 @@ void Gui::Render() {
             static uintptr_t address = geode::base::get();
             ImGui::Text("%s", fmt::format("{:x} ({:x})", address, address - geode::base::get()).c_str());
 
-            if (ImGui::Button("scan"))
+            if (ImGuiH::Button("scan"))
                 address = memory::PatternScan(address+1, 0, "00 60 6A 48");
 
-            if (ImGui::Button("scan2"))
+            if (ImGuiH::Button("scan2"))
                 address = memory::PatternScan(address+1, 0, "80 67 6A 48");
 
-            if (ImGui::Button("reset"))
+            if (ImGuiH::Button("reset"))
                 address = geode::base::get();
         }
         else if (windowName == "Labels") {
@@ -319,7 +409,7 @@ void Gui::Render() {
             
             const char *labels_positions[] = {"Top Left", "Top Right", "Top", "Bottom Left", "Bottom Right", "Bottom"};
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            ImGui::Combo("##labelspos", &selected_label_corner, labels_positions, 6, 6);
+            ImGuiH::Combo("##labelspos", &selected_label_corner, labels_positions, 6, 6);
 
             const char *label_types[] = {
                 "Time (24H)",
@@ -333,12 +423,12 @@ void Gui::Render() {
             };
             int label_types_count = sizeof(label_types)/sizeof(label_types[0]);
             
-            ImGui::Combo("##labeladdtype", &selected_label_type, label_types, label_types_count);
+            ImGuiH::Combo("##labeladdtype", &selected_label_type, label_types, label_types_count);
             if (selected_label_type == label_types_count - 1)
                 ImGui::InputText("##labelinput", &selected_label_text);
 
             ImGui::SameLine();
-            if (ImGui::Button("+")) {
+            if (ImGuiH::Button("+")) {
                 std::string text;
                 if (selected_label_type == label_types_count - 1) text = selected_label_text;
                 else if (selected_label_type == 0) text = "{time:24}";
@@ -398,7 +488,7 @@ void Gui::Render() {
             ImGui::EndChild();
         }
         else if (windowName == "Shortcuts") {
-            if (ImGui::Button("Options", {ImGui::GetContentRegionAvail().x, NULL})) {
+            if (ImGuiH::Button("Options", {ImGui::GetContentRegionAvail().x, NULL})) {
                 auto options_layer = OptionsLayer::create();
                 auto scene = cocos2d::CCScene::get();
 
@@ -409,35 +499,35 @@ void Gui::Render() {
                 }
             }
 
-            if (ImGui::Button("Reset Level", {ImGui::GetContentRegionAvail().x, NULL})) {
+            if (ImGuiH::Button("Reset Level", {ImGui::GetContentRegionAvail().x, NULL})) {
                 auto pl = PlayLayer::get();
                 if (pl) pl->resetLevel();
             }
 
-            if (ImGui::Button("Practice Mode", {ImGui::GetContentRegionAvail().x, NULL})) {
+            if (ImGuiH::Button("Practice Mode", {ImGui::GetContentRegionAvail().x, NULL})) {
                 auto pl = PlayLayer::get();
                 if (pl) pl->togglePracticeMode(!pl->m_isPracticeMode);
             }
 
-            if (ImGui::Button("Reset Volume", {ImGui::GetContentRegionAvail().x, NULL})) {
+            if (ImGuiH::Button("Reset Volume", {ImGui::GetContentRegionAvail().x, NULL})) {
                 auto fmod_engine = FMODAudioEngine::sharedEngine();
                 fmod_engine->setBackgroundMusicVolume(0.5f);
                 fmod_engine->setEffectsVolume(0.5f);
             }
 
-            if (ImGui::Button("Uncomplete Level", {ImGui::GetContentRegionAvail().x, NULL})) {
+            if (ImGuiH::Button("Uncomplete Level", {ImGui::GetContentRegionAvail().x, NULL})) {
 
             }
 
-            if (ImGui::Button("Inject DLL", {ImGui::GetContentRegionAvail().x, NULL})) {
+            if (ImGuiH::Button("Inject DLL", {ImGui::GetContentRegionAvail().x, NULL})) {
 
             }
 
-            if (ImGui::Button("Resources", {ImGui::GetContentRegionAvail().x/2, NULL})) {
+            if (ImGuiH::Button("Resources", {ImGui::GetContentRegionAvail().x/2, NULL})) {
 
             }
             ImGui::SameLine();
-            if (ImGui::Button("AppData", {ImGui::GetContentRegionAvail().x, NULL})) {
+            if (ImGuiH::Button("AppData", {ImGui::GetContentRegionAvail().x, NULL})) {
 
             }
         }
@@ -467,14 +557,14 @@ void Gui::Render() {
 
                 if (hck.handlerCustomWindow) {
                     ImGui::SameLine();
-                    if (ImGui::ArrowButton(fmt::format("{} Settings", hck.name).c_str(), ImGuiDir_Right)) {
+                    if (ImGuiH::ArrowButton(fmt::format("{} Settings", hck.name).c_str(), ImGuiDir_Right)) {
                         ImGui::OpenPopup(fmt::format("{} Settings", hck.name).c_str());
                     }
 
                     if (ImGui::BeginPopupModal(fmt::format("{} Settings", hck.name).c_str(), NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
                         hck.handlerCustomWindow();
 
-                        if (ImGui::Button("Close", {400 * m_scale, NULL})) {
+                        if (ImGuiH::Button("Close", {400 * m_scale, NULL})) {
                             ImGui::CloseCurrentPopup();
                         }
                         ImGui::EndPopup();

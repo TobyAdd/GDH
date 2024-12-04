@@ -93,6 +93,7 @@ class $modify(FMODAudioEngine) {
 
 float left_over = 0.f;
 bool disable_render = false;
+float real_dt = 0.f;
 bool need_to_stop = false;
 
 class $modify(PlayLayer) {
@@ -215,6 +216,11 @@ class $modify(PlayLayer) {
     }
         
     void postUpdate(float dt) {
+        auto& config = Config::get();
+
+        if (config.get("tps_enabled", false))
+            dt = real_dt;
+
         PlayLayer::postUpdate(dt);
 
         if (!(m_fields->labels_top_left &&
@@ -427,6 +433,32 @@ class $modify(GJBaseGameLayer) {
         if (down) CpsCounter::get().click();
     }
 
+    float getCustomDelta(float dt, float tps, bool applyExtraDelta = true) {
+        if (applyExtraDelta && m_resumeTimer > 0)
+        {
+            --m_resumeTimer;
+            dt = 0.0;
+        }
+        
+        float fixed_dt = 1.f / tps;
+
+        auto timestep = std::min(m_gameState.m_timeWarp, 1.f) * fixed_dt;
+        auto total_dt = dt + m_extraDelta;
+        auto steps = std::round(total_dt / timestep);
+        auto new_dt = steps * timestep;
+        if (applyExtraDelta) m_extraDelta = total_dt - new_dt;
+
+        return static_cast<float>(new_dt);
+    }
+
+    float getModifiedDelta(float dt) {
+        auto& config = Config::get();
+        if (!config.get<bool>("tps_enabled", false))
+            return GJBaseGameLayer::getModifiedDelta(dt);
+
+        return getCustomDelta(dt, config.get<float>("tps_value", 240.f));
+    }
+
     void update(float dt) {
         auto& config = Config::get();
         auto& engine = ReplayEngine::get();
@@ -439,6 +471,8 @@ class $modify(GJBaseGameLayer) {
 
         if (!config.get<bool>("tps_enabled", false))
             return GJBaseGameLayer::update(dt);
+
+        real_dt = getCustomDelta(dt, 240.f, false);
 
         float tps_value = config.get<float>("tps_value", 240.f);
         float newdt = 1.f / tps_value;
@@ -465,29 +499,6 @@ class $modify(GJBaseGameLayer) {
             }
         }
         disable_render = false;
-    }
-
-    float getModifiedDelta(float dt) {
-        auto& config = Config::get();
-        if (!config.get<bool>("tps_enabled", false))
-            return GJBaseGameLayer::getModifiedDelta(dt);
-
-        if ( m_resumeTimer > 0 )
-        {
-            cocos2d::CCDirector::sharedDirector();
-            --m_resumeTimer;
-            dt = 0.0;
-        }
-        
-        float fixed_dt = 1.f / config.get<float>("tps_value", 240.f);
-
-        auto timestep = std::min(m_gameState.m_timeWarp, 1.f) * fixed_dt;
-        auto total_dt = dt + m_extraDelta;
-        auto steps = std::round(total_dt / timestep);
-        auto new_dt = steps * timestep;
-        m_extraDelta = total_dt - new_dt;
-
-        return static_cast<float>(new_dt);
     }
 
     bool canBeActivatedByPlayer(PlayerObject *p0, EffectGameObject *p1) {

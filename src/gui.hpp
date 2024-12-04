@@ -157,4 +157,28 @@ namespace ImGuiH {
             *v = v_button;
         return pressed;
     }
+    
+    static bool Button(const char *label, const ImVec2 &size = ImVec2(0, 0))
+    {
+        ImGui::PushStyleColor(ImGuiCol_Text, Config::get().get("gui_inverted", false) ? ImGui::GetStyle().Colors[ImGuiCol_Text] : ImGui::GetStyle().Colors[ImGuiCol_WindowBg]);
+        auto ret = ImGui::Button(label, size);
+        ImGui::PopStyleColor();
+        return ret;
+    }
+
+    static bool ArrowButton(const char *str_id, ImGuiDir dir)
+    {
+        ImGui::PushStyleColor(ImGuiCol_Text, Config::get().get("gui_inverted", false) ? ImGui::GetStyle().Colors[ImGuiCol_Text] : ImGui::GetStyle().Colors[ImGuiCol_WindowBg]);
+        auto ret = ImGui::ArrowButton(str_id, dir);
+        ImGui::PopStyleColor();
+        return ret;
+    }
+
+    static bool Combo(const char *label, int *current_item, const char *const *items, int items_count, int popup_max_height_in_items = -1)
+    {
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, Config::get().get("gui_inverted", false) ? ImGui::GetStyle().Colors[ImGuiCol_Text] : ImGui::GetStyle().Colors[ImGuiCol_WindowBg]);
+        auto ret = ImGui::Combo(label, current_item, items, items_count, popup_max_height_in_items);
+        ImGui::PopStyleColor();
+        return ret;
+    }
 }
