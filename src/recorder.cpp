@@ -43,6 +43,7 @@ $execute {
 #endif
 
 void RenderTexture::begin() {   
+    #ifdef GEODE_IS_WINDOWS
     glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &oldFBO);
 
     texture = new cocos2d::CCTexture2D;
@@ -64,10 +65,12 @@ void RenderTexture::begin() {
     texture->autorelease();
 
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, oldRBO);
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, oldFBO);    
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, oldFBO);  
+    #endif  
 }
 
 void RenderTexture::capture_frame(std::mutex& lock, std::vector<uint8_t>& data, volatile bool& frame_has_data) {
+    #ifdef GEODE_IS_WINDOWS
     auto& recorder = Recorder::get();
     glViewport(0, 0, width, height);
 
@@ -89,6 +92,7 @@ void RenderTexture::capture_frame(std::mutex& lock, std::vector<uint8_t>& data, 
 
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, oldFBO);
     director->setViewport();
+    #endif 
 }
 
 void RenderTexture::end() {
