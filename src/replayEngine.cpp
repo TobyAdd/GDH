@@ -1,5 +1,6 @@
 #include "replayEngine.hpp"
 #include "config.hpp"
+#include "gui.hpp"
 
 unsigned ReplayEngine::get_frame() {
     auto &config = Config::get();

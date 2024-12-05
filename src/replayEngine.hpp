@@ -42,6 +42,8 @@ public:
     bool accuracy_fix = true;
     bool rotation_fix = false;
 
+    bool settings_openned = false;
+
     unsigned get_frame();
     void remove_actions(unsigned frame);
     size_t get_actions_size();
@@ -55,6 +57,8 @@ public:
     void handle_button(bool down, int button, bool isPlayer1);
 
     void auto_button_release();
+
+    void renderUI();
 private:
     ReplayEngine() = default;
 

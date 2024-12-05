@@ -28,10 +28,12 @@
 #include <Geode/modify/GameObject.hpp>
 #include <Geode/modify/LevelEditorLayer.hpp>
 #include <Geode/modify/FMODAudioEngine.hpp>
+#include <Geode/modify/EndLevelLayer.hpp>
 #include "hacks.hpp"
 #include "config.hpp"
 #include "labels.hpp"
 #include "replayEngine.hpp"
+#include "recorder.hpp"
 
 std::vector<StartPosObject*> startPositions;
 int selectedStartpos = -1;
@@ -66,14 +68,40 @@ void switchStartPos(int incBy, bool direction = true) {
     }
 }
 
+float left_over = 0.f;
+bool disable_render = false;
+bool need_to_stop = false;
+
 class $modify(cocos2d::CCScheduler) {
     void update(float dt) {
         auto &config = Config::get();
+        auto& recorder = Recorder::get();
 
         if (config.get<bool>("speedhack_enabled", false))
             dt *= config.get<float>("speedhack_value", 1.f);
-      
-        return CCScheduler::update(dt);
+
+        if (!config.get<bool>("tps_enabled", false))
+            return CCScheduler::update(dt);
+
+        float tps_value = config.get<float>("tps_value", 240.f);
+        float newdt = 1.f / tps_value;
+
+        left_over += dt;
+        unsigned times = static_cast<unsigned>(left_over / newdt);
+        left_over -= times * newdt;
+
+        auto start = std::chrono::high_resolution_clock::now();
+
+        for (unsigned i = 0; i < times; ++i) {
+            disable_render = recorder.is_recording ? false : (i != times - 1);
+            
+            CCScheduler::update(newdt);            
+
+            if (std::chrono::high_resolution_clock::now() - start > std::chrono::milliseconds(33)) {
+                break;
+            }
+        }
+        disable_render = false;
     }
 };
 
@@ -90,11 +118,6 @@ class $modify(FMODAudioEngine) {
         }
     }
 };
-
-float left_over = 0.f;
-bool disable_render = false;
-float real_dt = 0.f;
-bool need_to_stop = false;
 
 class $modify(PlayLayer) {
     struct Fields {
@@ -117,10 +140,20 @@ class $modify(PlayLayer) {
 
     bool init(GJGameLevel* level, bool useReplay, bool dontCreateObjects) {
         auto& config = Config::get();
+        auto& recorder = Recorder::get();
+        auto& recorderAudio = RecorderAudio::get();
         if (!PlayLayer::init(level, useReplay, dontCreateObjects)) return false;
 
         if (config.get<bool>("auto_practice_mode", false))
-        togglePracticeMode(true);
+            togglePracticeMode(true);
+
+        if (!recorder.is_recording) {
+            recorder.video_name = level->m_levelName + ".mp4";
+        }
+
+        if (!recorderAudio.is_recording) {
+            recorderAudio.audio_name = level->m_levelName + ".wav";
+        }
         
         m_fields->labels_top_left     = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
         m_fields->labels_top_right    = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
@@ -217,9 +250,6 @@ class $modify(PlayLayer) {
         
     void postUpdate(float dt) {
         auto& config = Config::get();
-
-        if (config.get("tps_enabled", false))
-            dt = real_dt;
 
         PlayLayer::postUpdate(dt);
 
@@ -334,9 +364,18 @@ class $modify(PlayLayer) {
     void resetLevel() {
         auto& config = Config::get();
         auto& engine = ReplayEngine::get();
+        auto& recorder = Recorder::get();
+        auto& recorderAudio = RecorderAudio::get();
 
         PlayLayer::resetLevel();
-        engine.handle_reset();        
+        engine.handle_reset();  
+
+        if (!m_isPracticeMode && !startPositions.empty()) {
+            recorder.delay = m_gameState.m_levelTime;
+        }
+        else if (startPositions.empty()) {
+            recorder.delay = 0;
+        }      
 
         if (config.get<bool>("no_do_not_flip", false) && m_attemptLabel)
             m_attemptLabel->setScaleY(1);
@@ -422,6 +461,63 @@ class $modify(PlayLayer) {
     }
 };
 
+class $modify(MyEndLevelLayer, EndLevelLayer) {
+    struct Fields {
+        cocos2d::CCSprite* black_bg;
+    };
+
+    void pizdec(float) {
+        auto& recorder = Recorder::get();
+        auto& recorderAudio = RecorderAudio::get();
+        if (m_fields->black_bg && recorder.is_recording && recorder.fade_out) {
+            int opacity = (recorder.after_end_extra_time >= (recorder.after_end_duration - 0.1f)) ? 255 : 255 * recorder.after_end_extra_time / (recorder.after_end_duration - 0.1f);
+            m_fields->black_bg->setOpacity(opacity);
+        }
+        else if (m_fields->black_bg && recorder.need_remove_black) {
+            recorder.need_remove_black = false;
+            m_fields->black_bg->setOpacity(0);
+        }
+
+        if (recorder.need_visible_lc) {
+            setVisible(true);
+            recorder.need_visible_lc = false;
+        }
+    }
+
+    void showLayer(bool p0) {
+        auto& recorder = Recorder::get();
+        auto& recorderAudio = RecorderAudio::get();
+        EndLevelLayer::showLayer(p0);
+
+        auto pl = PlayLayer::get();
+        if (recorder.is_recording && recorder.hide_level_complete) {
+            setVisible(false);
+        }        
+
+        if (recorder.is_recording && recorder.fade_out) {
+            auto wnd_size = cocos2d::CCDirector::sharedDirector()->getWinSize();
+
+            m_fields->black_bg = cocos2d::CCSprite::create("game_bg_13_001.png");
+            auto sprSize = m_fields->black_bg->getContentSize();
+            m_fields->black_bg->setPosition({wnd_size.width/2, wnd_size.height/2});            
+            m_fields->black_bg->setScaleX(wnd_size.width / sprSize.width * 2.f);
+            m_fields->black_bg->setScaleY(wnd_size.height / sprSize.height * 2.f);
+            m_fields->black_bg->setColor({0, 0, 0});
+            m_fields->black_bg->setOpacity(0);
+            m_fields->black_bg->setZOrder(999);
+
+            if (recorder.hide_level_complete) {
+                pl->addChild(m_fields->black_bg);;
+            }
+            else {
+                addChild(m_fields->black_bg);
+            }
+        }
+
+        schedule(schedule_selector(MyEndLevelLayer::pizdec), 0.0f);
+    }
+};
+
 class $modify(GJBaseGameLayer) {
     static void onModify(auto& self) {
         (void) self.setHookPriority("GJBaseGameLayer::update", 0x99999);
@@ -433,33 +529,32 @@ class $modify(GJBaseGameLayer) {
         if (down) CpsCounter::get().click();
     }
 
-    float getCustomDelta(float dt, float tps, bool applyExtraDelta = true) {
-        if (applyExtraDelta && m_resumeTimer > 0)
+    float getModifiedDelta(float dt) {
+        auto& config = Config::get();
+        if (!config.get<bool>("tps_enabled", false))
+            return GJBaseGameLayer::getModifiedDelta(dt);
+
+        if (m_resumeTimer > 0)
         {
             --m_resumeTimer;
             dt = 0.0;
         }
         
+        float tps = config.get<float>("tps_value", 240.f);
         float fixed_dt = 1.f / tps;
 
         auto timestep = std::min(m_gameState.m_timeWarp, 1.f) * fixed_dt;
         auto total_dt = dt + m_extraDelta;
         auto steps = std::round(total_dt / timestep);
         auto new_dt = steps * timestep;
-        if (applyExtraDelta) m_extraDelta = total_dt - new_dt;
+        m_extraDelta = total_dt - new_dt;
 
         return static_cast<float>(new_dt);
     }
 
-    float getModifiedDelta(float dt) {
-        auto& config = Config::get();
-        if (!config.get<bool>("tps_enabled", false))
-            return GJBaseGameLayer::getModifiedDelta(dt);
-
-        return getCustomDelta(dt, config.get<float>("tps_value", 240.f));
-    }
-
     void update(float dt) {
+        auto& recorder = Recorder::get();
+        auto& recorderAudio = RecorderAudio::get();
         auto& config = Config::get();
         auto& engine = ReplayEngine::get();
 
@@ -469,36 +564,11 @@ class $modify(GJBaseGameLayer) {
         if (config.get<bool>("jump_hack", false))
             m_player1->m_isOnGround = true;
 
-        if (!config.get<bool>("tps_enabled", false))
-            return GJBaseGameLayer::update(dt);
+        if (recorder.is_recording) recorder.handle_recording(dt);        
+        if (recorderAudio.is_recording) recorderAudio.handle_recording(dt);
 
-        real_dt = getCustomDelta(dt, 240.f, false);
-
-        float tps_value = config.get<float>("tps_value", 240.f);
-        float newdt = 1.f / tps_value;
-
-        left_over += dt;
-        unsigned times = static_cast<unsigned>(left_over / newdt);
-        left_over -= times * newdt;
-
-        auto start = std::chrono::high_resolution_clock::now();
-
-        for (unsigned i = 0; i < times; ++i) {
-            disable_render = (i != times - 1);
-            
-            if (need_to_stop) {
-                need_to_stop = false;
-                break;
-            }
-
-            GJBaseGameLayer::update(newdt);
-            engine.handle_update(this);
-
-            if (std::chrono::high_resolution_clock::now() - start > std::chrono::milliseconds(33)) {
-                break;
-            }
-        }
-        disable_render = false;
+        GJBaseGameLayer::update(dt);
+        engine.handle_update(this);
     }
 
     bool canBeActivatedByPlayer(PlayerObject *p0, EffectGameObject *p1) {
@@ -1058,10 +1128,5 @@ class $modify(LevelEditorLayer) {
         if (engine.mode == state::play) {
             engine.handle_reset();
         }
-    }
-
-    void onStopPlaytest() {
-        need_to_stop = true;
-        LevelEditorLayer::onStopPlaytest();
     }
 };

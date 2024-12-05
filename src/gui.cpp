@@ -7,6 +7,8 @@
 #include "memory.hpp"
 #include "labels.hpp"
 #include "replayEngine.hpp"
+#include "recorder.hpp"
+#include <numeric>
 
 std::chrono::steady_clock::time_point animationStartTime;
 bool isAnimating = false;
@@ -383,6 +385,365 @@ void Gui::Render() {
             ImGui::Text("Frame: %i", engine.get_frame());
 
             ImGui::Separator();
+
+            #ifdef GEODE_IS_WINDOWS
+            auto& recorder = Recorder::get();
+            auto& recorderAudio = RecorderAudio::get();
+
+            if (recorder.settings_openned) {
+                static bool first_time = true;
+                if (first_time) {
+                    first_time = false;
+                    ImGui::SetNextWindowSize({800 * m_scale, 520 * m_scale});
+                }                
+            }
+
+            if (ImGui::BeginPopupModal("Recorder", &recorder.settings_openned) && ImGui::BeginTabBar("Recorder Tabs")) {
+                if (ImGui::BeginTabItem("General")) {
+                    if (recorder.ffmpeg_installed) {
+                        auto aspectRatio = [](int width, int height) -> std::string {
+                            int divisor = std::gcd(width, height);
+                            int aspectWidth = width / divisor;
+                            int aspectHeight = height / divisor;
+
+                            return std::to_string(aspectWidth) + ":" + std::to_string(aspectHeight);
+                        };
+
+                        auto containsRussianLetters = [](const std::filesystem::path& p) -> bool {
+                            auto pathStr = p.u8string();
+                            for (char c : pathStr) {
+                                if ((unsigned char)c >= 0xD0 && (unsigned char)c <= 0xD1) {
+                                    return true;
+                                }
+                            }
+                            return false;
+                        };
+                        
+                        auto pl = PlayLayer::get();
+                        if (ImGuiH::Checkbox("Record##Recorder", &recorder.enabled, m_scale)) {
+                            ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+                            std::string window_size = aspectRatio(static_cast<int>(displaySize.x), static_cast<int>(displaySize.y));
+                            std::string recorder_size = aspectRatio(recorder.width, recorder.height);
+
+                            if (containsRussianLetters(recorder.folderShowcasesPath)) {
+                                recorder.enabled = false;
+                                geode::log::debug("Invalid path to the showcase folder. Please remove any Cyrillic characters");
+                            }
+                            else if (window_size != recorder_size) {
+                                geode::log::debug("Aspect Ratio: {} != {}", window_size, recorder_size);
+                                geode::log::debug("Window && Recorder Resolution: {}x{}, {}x{}", static_cast<int>(displaySize.x), static_cast<int>(displaySize.y), recorder.width, recorder.height);
+                                geode::log::debug("Aspect ratio mismatch. Adjust resolution or resize the window");
+                                recorder.enabled = false;
+                            }
+                            else if (pl && pl->m_hasCompletedLevel) {
+                                geode::log::debug("Restart level to start recording");
+                                recorder.enabled = false;
+                            }
+                            else {
+                                bool canRecord = config.get<bool>("tps_enabled", false);
+
+                                if (canRecord) {
+                                    if (recorder.enabled) {
+                                        if (!recorder.advanced_mode) {
+                                            recorder.full_cmd = recorder.compile_command();
+                                        }
+
+                                        recorder.start(recorder.full_cmd);
+                                    }                        
+                                    else 
+                                        recorder.stop();
+                                }
+                                else {
+                                    recorder.enabled = false;
+                                    // imgui_popup::add_popup((version_engine == 1) ? "Recorder FPS is valid and less than or equal to macro FPS" : "FPS values must be within the range 60 to 240");
+                                }
+                            }
+                        }
+
+                        ImGui::SameLine();
+
+                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                        ImGui::InputText("##videoname", &recorder.video_name);
+
+                        ImGuiH::Checkbox("Advanced Mode", &recorder.advanced_mode, m_scale);
+
+                        if (recorder.advanced_mode) {
+                            ImGui::SameLine();
+                            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                            ImGui::InputText("##full_args", &recorder.full_cmd);
+                            if (ImGuiH::Button("Compile")) {
+                                recorder.full_cmd = recorder.compile_command();
+                            }
+
+                            ImGui::SameLine();
+                            if (ImGuiH::Button("Copy to clipboard")) {
+                                ImGui::SetClipboardText(recorder.full_cmd.c_str());
+                            }
+
+                            ImGui::SameLine();
+                            if (ImGuiH::Button("Paste to from clipboard")) {
+                                recorder.full_cmd = (std::string)ImGui::GetClipboardText();
+                            }
+                        }
+
+                        ImGui::SameLine();
+
+                        ImGui::Spacing();
+
+                        ImGui::Text("Resolution:");
+                        ImGui::Separator();
+
+                        ImGui::PushItemWidth(45.f * m_scale);
+                        if (ImGui::InputInt("##width", &recorder.width, 0) && recorder.lock_aspect_ratio) {
+                            float aspect_ratio = 16.0f / 9.0f;
+                            recorder.height = static_cast<int>(recorder.width / aspect_ratio);
+                        }
+                        ImGui::SameLine(0, 5);
+
+                        ImGui::Text("x");
+                        ImGui::SameLine(0, 5);
+
+                        ImGui::PushItemWidth(45.f * m_scale);
+                        if (ImGui::InputInt("##height", &recorder.height, 0) && recorder.lock_aspect_ratio) {
+                            float aspect_ratio = 16.0f / 9.0f;
+                            recorder.width = static_cast<int>(recorder.height * aspect_ratio);
+                        }
+                        ImGui::SameLine(0, 5);
+
+                        ImGui::Text("@");
+                        ImGui::SameLine(0, 5);
+
+                        ImGui::PushItemWidth(35.f * m_scale);
+                        ImGui::InputInt("##fps", &recorder.fps, 0);
+
+                        ImGui::SameLine(0, 5);
+
+                        ImGuiH::Checkbox("Lock Aspect Ratio (16:9)", &recorder.lock_aspect_ratio, m_scale);
+
+                        ImGui::Spacing();
+
+                        ImGui::Text("Encoding Settings");
+                        ImGui::Separator(); 
+                        
+                        ImGui::PushItemWidth(50.f * m_scale);
+                        ImGui::InputText("Bitrate", &recorder.bitrate);
+
+                        ImGui::SameLine();
+
+                        ImGui::PushItemWidth(80.f * m_scale);
+                        ImGui::InputText("Codec", &recorder.codec);
+
+                        ImGui::PushItemWidth(300 * m_scale);
+                        ImGui::InputText("Extra Arguments", &recorder.extra_args);
+
+                        ImGui::PushItemWidth(300 * m_scale);
+                        ImGui::InputText("VF Args", &recorder.vf_args);
+
+                        if (ImGuiH::Checkbox("vflip", &recorder.vflip, m_scale)) {
+                            recorder.compile_vf_args();
+                        }
+
+                        if (ImGuiH::Checkbox("Fade in", &recorder.fade_in, m_scale)) {
+                            recorder.compile_vf_args();
+                        }
+
+                        ImGui::SameLine();
+
+                        ImGui::PushItemWidth(120 * m_scale);
+                        if (ImGui::DragFloat("##fade_in_start", &recorder.fade_in_start, 0.01f, 0, FLT_MAX, "Start: %.2fs")) {
+                            recorder.compile_vf_args();
+                        }
+
+                        ImGui::SameLine();
+                        
+                        ImGui::PushItemWidth(120 * m_scale);
+                        if (ImGui::DragFloat("##fade_in_end", &recorder.fade_in_end, 0.01f, 0, FLT_MAX, "End: %.2fs")) {
+                            recorder.compile_vf_args();
+                        }
+
+                        ImGuiH::Checkbox("Fade out", &recorder.fade_out, m_scale);
+                        ImGui::Text("Note: The length of the fade-out is calculated based on the value of \"Second to Render After\"");
+
+                        ImGuiH::Checkbox("Hide Level Complete", &recorder.hide_level_complete, m_scale);
+
+                        ImGui::Spacing();
+
+                        ImGui::Text("Level Settings");
+                        ImGui::Separator();
+
+                        ImGui::PushItemWidth(200 * m_scale);
+                        ImGui::InputFloat("Second to Render After", &recorder.after_end_duration, 1);
+
+                        ImGui::Spacing();
+
+                        ImGui::Text("Presets (Thanks WarGack, ElPaan, midixd)");
+
+                        ImGui::Separator();
+
+                        if (ImGuiH::Button("HD"))
+                        {
+                            recorder.width = 1280;
+                            recorder.height = 720;
+                            recorder.fps = 60;
+                            recorder.bitrate = "25M";
+                        }
+
+                        ImGui::SameLine();
+
+                        if (ImGuiH::Button("FULL HD"))
+                        {
+                            recorder.width = 1920;
+                            recorder.height = 1080;
+                            recorder.fps = 60;
+                            recorder.bitrate = "50M";
+                        }
+
+                        ImGui::SameLine();
+
+                        if (ImGuiH::Button("2K"))
+                        {
+                            recorder.width = 2560;
+                            recorder.height = 1440;
+                            recorder.fps = 60;
+                            recorder.bitrate = "70M";
+                        }
+
+                        ImGui::SameLine();
+
+                        if (ImGuiH::Button("4K"))
+                        {
+                            recorder.width = 3840;
+                            recorder.height = 2160;
+                            recorder.fps = 60;
+                            recorder.bitrate = "80M";
+                        }
+
+                        ImGui::SameLine();
+
+                        if (ImGuiH::Button("8K"))
+                        {
+                            recorder.width = 7680;
+                            recorder.height = 4320;
+                            recorder.fps = 60;
+                            recorder.bitrate = "250M";
+                        }
+                            
+                        if (ImGuiH::Button("CPU x264"))
+                        {
+                            recorder.codec = "libx264";
+                            recorder.extra_args = "-pix_fmt yuv420p -preset ultrafast";
+                        }                    
+                        
+                        ImGui::SameLine();
+                        
+                        if (ImGuiH::Button("CPU x265"))
+                        {
+                            recorder.codec = "libx265";
+                            recorder.extra_args = "-pix_fmt yuv420p -preset ultrafast";
+                        }
+                        ImGui::SameLine();
+                        if (ImGuiH::Button("CPU AV1 Lossless"))
+                        {
+                            recorder.codec = "libsvtav1";
+                            recorder.extra_args = "-crf 0 -pix_fmt yuv420p";
+                        }
+                        if (ImGuiH::Button("NVIDIA x264"))
+                        {
+                            recorder.codec = "h264_nvenc";
+                            recorder.extra_args = "-pix_fmt yuv420p -preset p7";
+                        }
+                        ImGui::SameLine();
+                        if (ImGuiH::Button("NVIDIA x265"))
+                        {
+                            recorder.codec = "hevc_nvenc";
+                            recorder.extra_args = "-pix_fmt yuv420p -preset p7";
+                        }
+                        ImGui::SameLine();
+                        
+                        if (ImGuiH::Button("NVIDIA AV1"))
+                        {
+                            recorder.codec = "av1_nvenc";
+                            recorder.extra_args = "-pix_fmt yuv420p -preset p7";
+                        }
+                        
+                        if (ImGuiH::Button("AMD x264 Lossless"))
+                        {
+                            recorder.codec = "h264_amf";
+                            recorder.extra_args = "-pix_fmt yuv420p -rc cqp -qp_i 0 -qp_p 0 -qp_b 0";
+                        }
+                        ImGui::SameLine();
+                        if (ImGuiH::Button("AMD x265 Lossless"))
+                        {
+                            recorder.codec = "hevc_amf";
+                            recorder.extra_args = "-pix_fmt yuv420p -rc cqp -qp_i 0 -qp_p 0 -qp_b 0";
+                        }
+                        if (ImGuiH::Button("Color Fix"))
+                        {
+                            recorder.compile_vf_args();
+                            if (!recorder.vf_args.empty())
+                                recorder.vf_args += ",";
+                            recorder.vf_args += "scale=out_color_matrix=bt709";
+                        }
+
+                        ImGui::Spacing();
+
+                        ImGui::Text("Folders");
+                        ImGui::Separator();
+
+                        if (ImGuiH::Button("Open Showcase Folder")) {
+                            geode::utils::file::openFolder(recorder.folderShowcasesPath);
+                        }
+
+                        // ImGui::SameLine();
+
+                        // if (ImGuiH::Button("Change folder")) {
+                        //     std::filesystem::path selectedPath = SelectFolder();
+                        //     if (!selectedPath.empty()) {
+                        //         hacks::folderShowcasesPath = selectedPath;
+                        //     }
+                        // }
+
+                        // ImGui::SameLine();
+
+                        // if (ImGuiH::Button("Reset Folder")) {
+                        //     hacks::folderShowcasesPath = hacks::folderPath / "Showcases";
+                        // }
+
+                        
+                        // ImGui::Text("Showcase Folder: %s", hacks::folderShowcasesPath.string().c_str());
+                    }
+                    else {
+                        ImGui::Text("Looks like FFmpeg is not installed, here are the instructions:");
+                        ImGui::Text("1. Download ffmpeg (archive)");
+                        ImGui::SameLine();
+                        if (ImGuiH::Button("Download")) {
+                            ShellExecuteA(0, "open", "https://github.com/AnimMouse/ffmpeg-autobuild/releases/latest", 0, 0, SW_SHOWNORMAL);
+                        }
+                        ImGui::Text("2. Extract from archive \"ffmpeg.exe\" file to Geometry Dash folder");
+                        ImGui::Text("3. Restart Geometry Dash");
+                        if (ImGuiH::Button("Bypass")) recorder.ffmpeg_installed = true;
+                    }
+                    ImGui::EndTabItem();
+                }	
+                
+                if (ImGui::BeginTabItem("Audio")) {
+                    ImGui::EndTabItem();
+                }
+                
+                if (ImGui::BeginTabItem("Merge")) {
+                    ImGui::EndTabItem();
+                }	
+                ImGui::EndTabBar();
+                ImGui::EndPopup();
+            }                            
+                            
+
+            if (ImGui::MenuItem("Recorder")) {
+                recorder.settings_openned = true;
+                recorder.ffmpeg_installed = std::filesystem::exists("ffmpeg.exe");
+                ImGui::OpenPopup("Recorder");
+            }
+            #endif
         }
         else if (windowName == "Variables") { 
             static uintptr_t address = geode::base::get();
