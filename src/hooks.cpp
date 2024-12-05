@@ -76,6 +76,7 @@ class $modify(cocos2d::CCScheduler) {
     void update(float dt) {
         auto &config = Config::get();
         auto& recorder = Recorder::get();
+        auto& recorderAudio = RecorderAudio::get();
 
         if (config.get<bool>("speedhack_enabled", false))
             dt *= config.get<float>("speedhack_value", 1.f);
@@ -93,7 +94,7 @@ class $modify(cocos2d::CCScheduler) {
         auto start = std::chrono::high_resolution_clock::now();
 
         for (unsigned i = 0; i < times; ++i) {
-            disable_render = recorder.is_recording ? false : (i != times - 1);
+            disable_render = recorderAudio.is_recording ? true : recorder.is_recording ? false : (i != times - 1);
             
             CCScheduler::update(newdt);            
 
@@ -456,6 +457,25 @@ class $modify(PlayLayer) {
         }
 
         PlayLayer::updateVisibility(dt);
+    }
+    
+    void pauseGame(bool paused) {
+        auto& recorderAudio = RecorderAudio::get();
+        if (recorderAudio.is_recording)
+            return;
+
+        PlayLayer::pauseGame(paused);
+    }
+
+    void startMusic() {
+        auto& recorderAudio = RecorderAudio::get();
+        PlayLayer::startMusic();
+        if (recorderAudio.enabled && recorderAudio.showcase_mode) {
+            if (recorderAudio.is_recording) {
+                recorderAudio.stop();
+            }
+            recorderAudio.start();
+        }
     }
 };
 

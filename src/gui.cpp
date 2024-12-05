@@ -9,6 +9,9 @@
 #include "replayEngine.hpp"
 #include "recorder.hpp"
 #include <numeric>
+#ifdef GEODE_IS_WINDOWS
+#include <subprocess.hpp>
+#endif
 
 std::chrono::steady_clock::time_point animationStartTime;
 bool isAnimating = false;
@@ -399,6 +402,16 @@ void Gui::Render() {
             }
 
             if (ImGui::BeginPopupModal("Recorder", &recorder.settings_openned) && ImGui::BeginTabBar("Recorder Tabs")) {
+                auto containsRussianLetters = [](const std::filesystem::path& p) -> bool {
+                    auto pathStr = p.u8string();
+                    for (char c : pathStr) {
+                        if ((unsigned char)c >= 0xD0 && (unsigned char)c <= 0xD1) {
+                            return true;
+                        }
+                    }
+                    return false;
+                };
+                
                 if (ImGui::BeginTabItem("General")) {
                     if (recorder.ffmpeg_installed) {
                         auto aspectRatio = [](int width, int height) -> std::string {
@@ -409,15 +422,6 @@ void Gui::Render() {
                             return std::to_string(aspectWidth) + ":" + std::to_string(aspectHeight);
                         };
 
-                        auto containsRussianLetters = [](const std::filesystem::path& p) -> bool {
-                            auto pathStr = p.u8string();
-                            for (char c : pathStr) {
-                                if ((unsigned char)c >= 0xD0 && (unsigned char)c <= 0xD1) {
-                                    return true;
-                                }
-                            }
-                            return false;
-                        };
                         
                         auto pl = PlayLayer::get();
                         if (ImGuiH::Checkbox("Record##Recorder", &recorder.enabled, m_scale)) {
@@ -727,10 +731,120 @@ void Gui::Render() {
                 }	
                 
                 if (ImGui::BeginTabItem("Audio")) {
+                    if (ImGui::Checkbox("Record Buffer", &recorderAudio.enabled, m_scale)) {
+                        if (containsRussianLetters(recorder.folderShowcasesPath)) {
+                            recorder.enabled = false;
+                            // imgui_popup::add_popup("Invalid path to the showcase folder. Please remove any Cyrillic characters");
+                        }
+                        else {
+                            if (!recorderAudio.showcase_mode) {
+                                if (recorderAudio.enabled)
+                                    recorderAudio.start();
+                                else 
+                                    recorderAudio.stop();
+                            }
+                        }
+                    }
+
+                    ImGui::Checkbox("Showcase Mode", &recorderAudio.showcase_mode, m_scale);
+
+                    if (recorderAudio.showcase_mode) {
+                        ImGui::Spacing();
+
+                        ImGui::Text("Level Settings");
+                        ImGui::Separator();
+
+                    
+                        ImGui::PushItemWidth(200 * m_scale);
+                        ImGui::InputFloat("Second to Render After##2", &recorderAudio.after_end_duration, 1);
+                    }
+
+                    ImGui::Spacing();
+
+                    ImGui::Text("Filename");
+                    ImGui::Separator();
+
+                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                    ImGui::InputText("##audio_filename", &recorderAudio.audio_name);
+
+                    ImGui::Spacing();
+
+                    ImGui::Text("Folders");
+                    ImGui::Separator();
+
+                    if (ImGuiH::Button("Open Showcase Folder")) {
+                        geode::utils::file::openFolder(recorder.folderShowcasesPath);
+                    }
                     ImGui::EndTabItem();
                 }
                 
                 if (ImGui::BeginTabItem("Merge")) {
+                    static bool shortest = true;
+                    static std::vector<std::filesystem::path> videos;
+                    static std::vector<std::filesystem::path> audios;
+                    static int index_videos = 0;
+                    static int index_audios = 0;
+
+                    ImGui::BeginChild("##VideoSelect", {NULL, 150 * m_scale}, true);
+                    for (size_t i = 0; i < videos.size(); i++) {
+                        bool is_selected = (index_videos == i);
+                        if (ImGui::Selectable(videos[i].filename().string().c_str(), is_selected)) {
+                            index_videos = i;
+                        }
+                    }
+                    ImGui::EndChild();
+
+                    ImGui::BeginChild("##AudioSelect", {NULL, 150 * m_scale}, true);
+                    for (size_t i = 0; i < audios.size(); i++) {
+                        bool is_selected = (index_audios == i);
+                        if (ImGui::Selectable(audios[i].filename().string().c_str(), is_selected)) {
+                            index_audios = i;
+                        }
+                    }
+                    ImGui::EndChild();
+
+                    if (ImGuiH::Button("Refresh", {ImGui::GetContentRegionAvail().x, NULL})) {
+                        videos.clear();
+                        audios.clear();
+                        for (const auto &entry : std::filesystem::directory_iterator(recorder.folderShowcasesPath)) {
+                            if (entry.path().extension() == ".mp4" || 
+                                entry.path().extension() == ".mkv" || 
+                                entry.path().extension() == ".avi" || 
+                                entry.path().extension() == ".mov" || 
+                                entry.path().extension() == ".flv" || 
+                                entry.path().extension() == ".wmv" || 
+                                entry.path().extension() == ".webm" || 
+                                entry.path().extension() == ".m4v" || 
+                                entry.path().extension() == ".mpeg") {
+                                
+                                videos.push_back(entry.path().string());
+                            }
+
+                            if (entry.path().extension() == ".wav") {
+                                audios.push_back(entry.path().string());
+                            }
+                        }
+                    }
+
+                    ImGui::Checkbox("Shortest", &shortest, m_scale);
+
+                    
+                    ImGui::SameLine();
+
+                    if (ImGuiH::Button("Merge", {ImGui::GetContentRegionAvail().x, NULL})) {
+                        if (videos.empty() || audios.empty()) {
+                            
+                        } else if (index_videos >= 0 && index_videos < (int)videos.size() && index_audios >= 0 && index_audios < (int)audios.size()) {
+                            std::string command2 = "ffmpeg.exe -y -i \"" + videos[index_videos].string() + "\" -i \"" + audios[index_audios].string() + "\" -map 0:v -map 1:a -c:v copy ";
+                            if (shortest) {
+                                command2 += "-shortest ";
+                            }
+                            std::filesystem::path video_rel(videos[index_videos]);
+                            command2 += fmt::format("\"{}\\audio_{}\"", recorder.folderShowcasesPath, video_rel.filename().string());
+                            geode::log::debug("{}", command2);
+                            auto process = subprocess::Popen(command2);
+                        }
+                    }
                     ImGui::EndTabItem();
                 }	
                 ImGui::EndTabBar();
