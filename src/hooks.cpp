@@ -147,13 +147,11 @@ class $modify(PlayLayer) {
         if (config.get<bool>("auto_practice_mode", false))
             togglePracticeMode(true);
 
-        if (!recorder.is_recording) {
-            recorder.video_name = level->m_levelName + ".mp4";
-        }
+        if (!recorder.is_recording)
+            recorder.video_name = fmt::format("{}.mp4", level->m_levelName);
 
-        if (!recorderAudio.is_recording) {
-            recorderAudio.audio_name = level->m_levelName + ".wav";
-        }
+        if (!recorderAudio.is_recording)
+            recorderAudio.audio_name = fmt::format("{}.wav", level->m_levelName);
         
         m_fields->labels_top_left     = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
         m_fields->labels_top_right    = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
