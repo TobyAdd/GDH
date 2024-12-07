@@ -34,6 +34,7 @@
 #include "labels.hpp"
 #include "replayEngine.hpp"
 #include "recorder.hpp"
+#include "hitboxNode.hpp"
 
 std::vector<StartPosObject*> startPositions;
 int selectedStartpos = -1;
@@ -70,7 +71,6 @@ void switchStartPos(int incBy, bool direction = true) {
 
 float left_over = 0.f;
 bool disable_render = false;
-bool need_to_stop = false;
 
 class $modify(cocos2d::CCScheduler) {
     void update(float dt) {
@@ -95,8 +95,8 @@ class $modify(cocos2d::CCScheduler) {
 
         for (unsigned i = 0; i < times; ++i) {
             disable_render = recorderAudio.is_recording ? true : recorder.is_recording ? false : (i != times - 1);
-            
-            CCScheduler::update(newdt);            
+
+            CCScheduler::update(newdt);        
 
             if (std::chrono::high_resolution_clock::now() - start > std::chrono::milliseconds(33)) {
                 break;
@@ -119,6 +119,8 @@ class $modify(FMODAudioEngine) {
         }
     }
 };
+
+HitboxNode* hitbox_node;
 
 class $modify(PlayLayer) {
     struct Fields {
@@ -144,6 +146,10 @@ class $modify(PlayLayer) {
         auto& recorder = Recorder::get();
         auto& recorderAudio = RecorderAudio::get();
         if (!PlayLayer::init(level, useReplay, dontCreateObjects)) return false;
+
+        hitbox_node = HitboxNode::create();
+        m_objectLayer->addChild(hitbox_node, 999);
+
 
         if (config.get<bool>("auto_practice_mode", false))
             togglePracticeMode(true);
@@ -587,6 +593,11 @@ class $modify(GJBaseGameLayer) {
 
         GJBaseGameLayer::update(dt);
         engine.handle_update(this);
+    }
+
+    void processCommands(float dt) {
+        GJBaseGameLayer::processCommands(dt);
+        hitbox_node->drawForPlayer(m_player1);
     }
 
     bool canBeActivatedByPlayer(PlayerObject *p0, EffectGameObject *p1) {
