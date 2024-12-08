@@ -29,15 +29,17 @@
 #include <Geode/modify/LevelEditorLayer.hpp>
 #include <Geode/modify/FMODAudioEngine.hpp>
 #include <Geode/modify/EndLevelLayer.hpp>
+#include <Geode/modify/CCDrawNode.hpp>
 #include "hacks.hpp"
 #include "config.hpp"
 #include "labels.hpp"
 #include "replayEngine.hpp"
 #include "recorder.hpp"
-#include "hitboxNode.hpp"
 
 std::vector<StartPosObject*> startPositions;
 int selectedStartpos = -1;
+
+std::deque<cocos2d::CCRect> playerTrail1, playerTrail2;
 
 void switchStartPos(int incBy, bool direction = true) {
     auto &config = Config::get();
@@ -120,7 +122,6 @@ class $modify(FMODAudioEngine) {
     }
 };
 
-HitboxNode* hitbox_node;
 
 class $modify(PlayLayer) {
     struct Fields {
@@ -138,6 +139,8 @@ class $modify(PlayLayer) {
         ~Fields() {
             startPositions.clear();
             selectedStartpos = -1;
+            playerTrail1.clear();
+            playerTrail2.clear();
         }
     };
 
@@ -146,10 +149,6 @@ class $modify(PlayLayer) {
         auto& recorder = Recorder::get();
         auto& recorderAudio = RecorderAudio::get();
         if (!PlayLayer::init(level, useReplay, dontCreateObjects)) return false;
-
-        hitbox_node = HitboxNode::create();
-        m_objectLayer->addChild(hitbox_node, 999);
-
 
         if (config.get<bool>("auto_practice_mode", false))
             togglePracticeMode(true);
@@ -407,6 +406,9 @@ class $modify(PlayLayer) {
             PlayLayer::playEndAnimationToPos({0, 0});
         }
 
+        playerTrail1.clear();
+        playerTrail2.clear();
+
         CpsCounter::get().reset();
     }
 
@@ -481,6 +483,18 @@ class $modify(PlayLayer) {
                 recorderAudio.stop();
             }
             recorderAudio.start();
+        }
+    }
+
+    void updateProgressbar() {
+        auto& config = Config::get();
+        PlayLayer::updateProgressbar();
+
+        if (config.get<bool>("show_hitboxes", false)) {
+            if (!(m_isPracticeMode && GameManager::get()->getGameVariable("0166")))
+                PlayLayer::updateDebugDraw();
+            
+            m_debugDrawNode->setVisible(true);
         }
     }
 };
@@ -592,12 +606,50 @@ class $modify(GJBaseGameLayer) {
         if (recorderAudio.is_recording) recorderAudio.handle_recording(dt);
 
         GJBaseGameLayer::update(dt);
+        
         engine.handle_update(this);
     }
 
-    void processCommands(float dt) {
-        GJBaseGameLayer::processCommands(dt);
-        hitbox_node->drawForPlayer(m_player1);
+    void updateDebugDraw() {
+        auto& config = Config::get();
+
+        GJBaseGameLayer::updateDebugDraw();
+
+        if (!config.get<bool>("show_hitboxes", false))
+            return;
+
+        auto& node = m_debugDrawNode;
+        auto generateVertices = [](const cocos2d::CCRect& rect) {
+            return std::vector<cocos2d::CCPoint>{
+                cocos2d::CCPoint(rect.getMinX(), rect.getMinY()),
+                cocos2d::CCPoint(rect.getMinX(), rect.getMaxY()),
+                cocos2d::CCPoint(rect.getMaxX(), rect.getMaxY()),
+                cocos2d::CCPoint(rect.getMaxX(), rect.getMinY())
+            };
+        };
+
+        std::vector<cocos2d::CCPoint> player1 = generateVertices(m_player1->getObjectRect());
+        node->drawPolygon(player1.data(), player1.size(), {0, 0, 0, 0}, 0.25f, {1.f, 1.f, 0.f, 1.0f});
+
+        if (m_gameState.m_isDualMode) {
+            std::vector<cocos2d::CCPoint> player2 = generateVertices(m_player2->getObjectRect());
+            node->drawPolygon(player2.data(), player2.size(), {0, 0, 0, 0}, 0.25f, {1.f, 1.f, 0.f, 1.0f});
+        }
+
+        if (m_anticheatSpike) {
+            std::vector<cocos2d::CCPoint> player2 = generateVertices(m_anticheatSpike->getObjectRect());
+            node->drawPolygon(player2.data(), player2.size(), {0, 0, 0, 0}, 0.25f, {1.f, 0.f, 0.f, 1.0f});
+        }
+
+        for (auto &hitbox: playerTrail1) {
+            std::vector<cocos2d::CCPoint> trail_p1 = generateVertices(hitbox);
+            node->drawPolygon(trail_p1.data(), trail_p1.size(), {0, 0, 0, 0}, 0.25f, {1.f, 1.f, 0.f, 1.0f});
+        }
+            
+        for (auto &hitbox: playerTrail2) {
+            std::vector<cocos2d::CCPoint> trail_p2 = generateVertices(hitbox);
+            node->drawPolygon(trail_p2.data(), trail_p2.size(), {0, 0, 0, 0}, 0.25f, {1.f, 1.f, 0.f, 1.0f});
+        }
     }
 
     bool canBeActivatedByPlayer(PlayerObject *p0, EffectGameObject *p1) {
@@ -640,6 +692,27 @@ class $modify(GJBaseGameLayer) {
 
         GJBaseGameLayer::lightningFlash(from, to, color, lineWidth, duration, displacement, flash, opacity);
         gm->m_performanceMode = performanceMode;
+    }
+
+    void processCommands(float dt) {
+        auto& config = Config::get();
+        GJBaseGameLayer::processCommands(dt);
+
+        if (config.get<bool>("show_hitboxes", false) && config.get<bool>("show_hitboxes::draw_trail", false)) {
+            if (!m_player1->m_isDead) {
+                playerTrail1.push_back(m_player1->getObjectRect());
+                playerTrail2.push_back(m_player2->getObjectRect());
+            }
+
+            auto pl = GameManager::sharedState()->getPlayLayer();
+            if (!pl) return;
+
+            auto maxLength = static_cast<size_t>(config.get<int>("show_hitboxes::trail_length", 240));
+            while (playerTrail1.size() > maxLength)
+                playerTrail1.pop_front();
+            while (playerTrail2.size() > maxLength)
+                playerTrail2.pop_front();
+        }
     }
 };
 
@@ -1154,8 +1227,38 @@ class $modify(LevelEditorLayer) {
         auto& engine = ReplayEngine::get();
         LevelEditorLayer::onPlaytest();
 
+        playerTrail1.clear();
+        playerTrail2.clear();
+
         if (engine.mode == state::play) {
             engine.handle_reset();
         }
+    }
+};
+
+class $modify(cocos2d::CCDrawNode) {
+    bool drawPolygon(cocos2d::CCPoint* vertex, unsigned int count, const cocos2d::ccColor4F& fillColor,
+                     float borderWidth, const cocos2d::ccColor4F& borderColor) {
+
+        auto& config = Config::get(); 
+
+        if (config.get<bool>("show_hitboxes", false)) {
+            borderWidth = abs(borderWidth);
+            borderWidth = config.get<float>("show_hitboxes::size", 0.25f);
+        }
+
+        return cocos2d::CCDrawNode::drawPolygon(vertex, count, fillColor, borderWidth, borderColor);
+    }
+
+    bool drawCircle(const cocos2d::CCPoint& position, float radius, const cocos2d::ccColor4F& color,
+                    float borderWidth, const cocos2d::ccColor4F& borderColor, unsigned int segments) {
+        
+        auto& config = Config::get(); 
+        if (config.get<bool>("show_hitboxes", false)) {
+            borderWidth = abs(borderWidth);
+            borderWidth = config.get<float>("show_hitboxes::size", 0.25f);
+        } 
+
+        return cocos2d::CCDrawNode::drawCircle(position, radius, color, borderWidth, borderColor, segments);
     }
 };

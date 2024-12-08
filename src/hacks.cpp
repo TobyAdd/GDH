@@ -200,9 +200,36 @@ void Hacks::Init() {
 
         bool reset_camera = config.get<bool>("startos_switcher::reset_camera", true);
 
-        if (ImGuiH::Checkbox("Reset Camera", &reset_camera, gui.m_scale)) {
+        if (ImGuiH::Checkbox("Reset Camera", &reset_camera, gui.m_scale))
             config.set<bool>("startos_switcher::reset_camera", reset_camera);
+    });
+
+    SetHandlerByConfig("show_hitboxes", [this](bool enabled) {
+        auto pl = PlayLayer::get();
+        if (pl && !enabled && !(pl->m_isPracticeMode && GameManager::get()->getGameVariable("0166"))) {
+            pl->m_debugDrawNode->setVisible(false);
         }
+    });
+
+    SetCustomWindowHandlerByConfig("show_hitboxes", [this, &config]() {
+        auto &gui = Gui::get();
+
+        bool draw_trail = config.get<bool>("show_hitboxes::draw_trail", false);
+        int trail_length = config.get<int>("show_hitboxes::trail_length", 240);
+        float size = config.get<float>("show_hitboxes::size", 0.25f);
+
+        if (ImGuiH::Checkbox("Draw Trail", &draw_trail, gui.m_scale))
+            config.set<bool>("show_hitboxes::draw_trail", draw_trail);
+
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (ImGui::DragInt("##show_hitboxes::trail_length", &trail_length, 1, 0, INT_MAX, "Trail Length: %i"))
+            config.set<int>("show_hitboxes::trail_length", trail_length);
+
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (ImGui::DragFloat("##show_hitboxes::size", &size, 0.01f, 0.f, FLT_MAX, "Size: %0.2f"))
+            config.set<float>("show_hitboxes::size", size);
+
+        ImGui::Text("Tip: Enable hitboxes in the editor by checking the \"Show\nHitboxes\" option in the Editor Pause menu");
     });
 
     Labels::get().load();

@@ -7,7 +7,7 @@
 #include "hacks.hpp"
 
 $execute {
-    ImGuiCocos::get().setForceLegacy(true);
+    // ImGuiCocos::get().setForceLegacy(true);
 	
 	auto& config = Config::get();
     config.load(fileDataPath);
