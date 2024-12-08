@@ -26,6 +26,7 @@
 #include <Geode/modify/MoreSearchLayer.hpp>
 #include <Geode/modify/EditLevelLayer.hpp>
 #include <Geode/modify/GameObject.hpp>
+#include <Geode/modify/AchievementNotifier.hpp>
 #include <Geode/modify/LevelEditorLayer.hpp>
 #include <Geode/modify/FMODAudioEngine.hpp>
 #include <Geode/modify/EndLevelLayer.hpp>
@@ -35,6 +36,7 @@
 #include "labels.hpp"
 #include "replayEngine.hpp"
 #include "recorder.hpp"
+#include "gui.hpp"
 
 std::vector<StartPosObject*> startPositions;
 int selectedStartpos = -1;
@@ -73,6 +75,8 @@ void switchStartPos(int incBy, bool direction = true) {
 
 float left_over = 0.f;
 bool disable_render = false;
+float old_dt = 0.0f;
+float real_dt = 0.0f;
 
 class $modify(cocos2d::CCScheduler) {
     void update(float dt) {
@@ -86,6 +90,8 @@ class $modify(cocos2d::CCScheduler) {
         if (!config.get<bool>("tps_enabled", false))
             return CCScheduler::update(dt);
 
+        old_dt = dt;
+
         float tps_value = config.get<float>("tps_value", 240.f);
         float newdt = 1.f / tps_value;
 
@@ -96,9 +102,11 @@ class $modify(cocos2d::CCScheduler) {
         auto start = std::chrono::high_resolution_clock::now();
 
         for (unsigned i = 0; i < times; ++i) {
-            disable_render = recorderAudio.is_recording ? true : recorder.is_recording ? false : (i != times - 1);
+            disable_render = recorderAudio.enabled ? true : recorder.is_recording ? false : (i != times - 1);
 
-            CCScheduler::update(newdt);        
+            if (recorder.is_recording) recorder.applyWinSize();
+            CCScheduler::update(newdt);      
+            if (recorder.is_recording) recorder.restoreWinSize();  
 
             if (std::chrono::high_resolution_clock::now() - start > std::chrono::milliseconds(33)) {
                 break;
@@ -254,6 +262,12 @@ class $modify(PlayLayer) {
         
     void postUpdate(float dt) {
         auto& config = Config::get();
+
+        if (disable_render)
+            return;
+
+        if (config.get<bool>("tps_enabled", false) && !Recorder::get().is_recording)
+            dt = real_dt;
 
         PlayLayer::postUpdate(dt);
 
@@ -450,9 +464,6 @@ class $modify(PlayLayer) {
     void updateVisibility(float dt)  {   
         auto& config = Config::get();
 
-        if (config.get<bool>("tps_enabled", false) && disable_render)
-            return;
-
         if (!config.get<bool>("pulse_size", false) && config.get<bool>("no_pulse", false))
             m_audioEffectsLayer->m_notAudioScale = 0.5;
 
@@ -469,8 +480,10 @@ class $modify(PlayLayer) {
     
     void pauseGame(bool paused) {
         auto& recorderAudio = RecorderAudio::get();
-        if (recorderAudio.is_recording)
+        if (recorderAudio.enabled) {
+            ImGuiH::Popup::get().add_popup("You can't pause because the audio is still recording");
             return;
+        }
 
         PlayLayer::pauseGame(paused);
     }
@@ -556,7 +569,7 @@ class $modify(MyEndLevelLayer, EndLevelLayer) {
     }
 };
 
-class $modify(GJBaseGameLayer) {
+class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
     static void onModify(auto& self) {
         (void) self.setHookPriority("GJBaseGameLayer::update", 0x99999);
     }
@@ -567,27 +580,30 @@ class $modify(GJBaseGameLayer) {
         if (down) CpsCounter::get().click();
     }
 
-    float getModifiedDelta(float dt) {
-        auto& config = Config::get();
-        if (!config.get<bool>("tps_enabled", false))
-            return GJBaseGameLayer::getModifiedDelta(dt);
-
-        if (m_resumeTimer > 0)
+    float getCustomDelta(float dt, float tps, bool applyExtraDelta = true) {
+        if (applyExtraDelta && m_resumeTimer > 0)
         {
             --m_resumeTimer;
             dt = 0.0;
         }
         
-        float tps = config.get<float>("tps_value", 240.f);
         float fixed_dt = 1.f / tps;
 
         auto timestep = std::min(m_gameState.m_timeWarp, 1.f) * fixed_dt;
         auto total_dt = dt + m_extraDelta;
         auto steps = std::round(total_dt / timestep);
         auto new_dt = steps * timestep;
-        m_extraDelta = total_dt - new_dt;
+        if (applyExtraDelta) m_extraDelta = total_dt - new_dt;
 
         return static_cast<float>(new_dt);
+    }
+
+    float getModifiedDelta(float dt) {
+        auto& config = Config::get();
+        if (!config.get<bool>("tps_enabled", false))
+            return GJBaseGameLayer::getModifiedDelta(dt);
+
+        return getCustomDelta(dt, config.get<float>("tps_value", 240.f));
     }
 
     void update(float dt) {
@@ -604,6 +620,8 @@ class $modify(GJBaseGameLayer) {
 
         if (recorder.is_recording) recorder.handle_recording(dt);        
         if (recorderAudio.is_recording) recorderAudio.handle_recording(dt);
+        
+        real_dt = getCustomDelta(old_dt, 240.f, false);
 
         GJBaseGameLayer::update(dt);
         
@@ -1260,5 +1278,13 @@ class $modify(cocos2d::CCDrawNode) {
         } 
 
         return cocos2d::CCDrawNode::drawCircle(position, radius, color, borderWidth, borderColor, segments);
+    }
+};
+
+class $modify(AchievementNotifier) {
+    void notifyAchievement(char const* title, char const* desc, char const* icon, bool quest) {
+        if (Recorder::get().is_recording || RecorderAudio::get().is_recording) return;
+        
+        AchievementNotifier::notifyAchievement(title, desc, icon, quest);
     }
 };

@@ -62,6 +62,10 @@ public:
 private:
     ReplayEngine() = default;
 
+    std::string load_v1(std::string name);
+    std::string load_v2(std::string name);
+    std::string load_v3(std::string name);
+
     std::vector<replay_data> m_physicFrames_p1;
     std::vector<replay_data> m_physicFrames_p2;
     size_t m_physicIndex_p1 = 0;

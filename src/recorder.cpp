@@ -19,29 +19,6 @@ class $modify(ShaderLayer)
 	}
 };
 
-intptr_t glViewportAddress = 0;
-    
-void glViewportHook(GLint a, GLint b, GLsizei c, GLsizei d) {
-    auto& recorder = Recorder::get();
-    if (recorder.is_recording && recorder.playlayer_visiting && recorder.shader_visiting) {
-        ImVec2 displaySize = ImGui::GetIO().DisplaySize;
-        // geode::log::debug("upscaling shader? {}x{} = {}x{} ({})", c, d, static_cast<int>(displaySize.x), static_cast<int>(displaySize.y), (c == static_cast<int>(displaySize.x) && d == static_cast<int>(displaySize.y)));
-        if (c != 2608 && d != 2608 && c != 1304 && d != 1304 && c != 652 && d != 652 && c == static_cast<int>(displaySize.x) && d == static_cast<int>(displaySize.y)) {
-            c = recorder.width;
-            d = recorder.height;
-        }
-    }
-
-    reinterpret_cast<void(__stdcall *)(GLint, GLint, GLsizei, GLsizei)>(glViewportAddress)(a, b, c, d);
-}
-
-#ifdef GEODE_IS_WINDOWS
-$execute {
-    glViewportAddress = geode::addresser::getNonVirtual(glViewport);
-    auto result = geode::Mod::get()->hook(reinterpret_cast<void *>(glViewportAddress), &glViewportHook, "glViewport");
-}
-#endif
-
 void RenderTexture::begin() {   
     #ifdef GEODE_IS_WINDOWS
     glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &oldFBO);
@@ -100,6 +77,26 @@ void RenderTexture::end() {
         texture->release();
 }
 
+void Recorder::applyWinSize() {
+    if (newDesignResolution.width != 0 && newDesignResolution.height != 0) {    
+        cocos2d::CCDirector::get()->m_obWinSizeInPoints = newDesignResolution;        
+        auto view = cocos2d::CCEGLView::get();
+        view->setDesignResolutionSize(newDesignResolution.width, newDesignResolution.height, ResolutionPolicy::kResolutionExactFit);
+        view->m_fScaleX = newScreenScale.width;
+        view->m_fScaleY = newScreenScale.height;
+    }
+}
+
+void Recorder::restoreWinSize() {
+    if (oldDesignResolution.width != 0 && oldDesignResolution.height != 0) {
+        cocos2d::CCDirector::get()->m_obWinSizeInPoints = oldDesignResolution;
+        auto view = cocos2d::CCEGLView::get();
+        view->setDesignResolutionSize(oldDesignResolution.width, oldDesignResolution.height, ResolutionPolicy::kResolutionExactFit);
+        view->m_fScaleX = originalScreenScale.width;
+        view->m_fScaleY = originalScreenScale.height;
+    }
+}
+
 void Recorder::start(std::string command) {
     #ifdef GEODE_IS_WINDOWS
     need_remove_black = false;
@@ -108,6 +105,18 @@ void Recorder::start(std::string command) {
     last_frame_time = extra_time = 0;
 
     after_end_extra_time = 0.f;
+
+    auto view = cocos2d::CCEGLView::get();
+    
+    oldDesignResolution = view->getDesignResolutionSize();
+    float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
+    newDesignResolution = cocos2d::CCSize(roundf(320.f * aspectRatio), 320.f);
+
+    originalScreenScale = cocos2d::CCSize(view->m_fScaleX, view->m_fScaleY);
+    newScreenScale = cocos2d::CCSize(static_cast<float>(width) / newDesignResolution.width, static_cast<float>(height) / newDesignResolution.height);
+
+    if (oldDesignResolution != newDesignResolution)
+        applyWinSize();
 
     frame_has_data = false;
     current_frame.resize(width * height * 3, 0);
@@ -137,6 +146,8 @@ void Recorder::start(std::string command) {
 
 void Recorder::stop() {
     texture.end();
+
+    ImGuiH::Popup::get().add_popup("Video recording stoped!");
 
     is_recording = false;
     enabled = false;
@@ -248,7 +259,7 @@ void RecorderAudio::stop() {
     fmod_engine->setBackgroundMusicVolume(old_volume_music);
     fmod_engine->setEffectsVolume(old_volume_sfx);
 
-    // imgui_popup::add_popup("Audio recording stoped!");
+    ImGuiH::Popup::get().add_popup("Audio recording stoped!");
 
     if (std::filesystem::exists("fmodoutput.wav")) {
         try {

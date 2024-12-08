@@ -31,6 +31,9 @@ size_t ReplayEngine::get_actions_size() {
 std::string ReplayEngine::save(std::string name) {
     auto& config = Config::get();
 
+    if (m_inputFrames_p1.empty() && m_inputFrames_p2.empty())
+        return "Replay doesn't have actions";
+
     std::ofstream file(folderMacroPath / std::string(name + ".re3"), std::ios::binary);    
 
     float tps_value = config.get("tps_value", 240.f);
@@ -55,16 +58,89 @@ std::string ReplayEngine::save(std::string name) {
     return "Replay saved";
 }
 
-std::string ReplayEngine::load(std::string name) {
+std::string ReplayEngine::load_v1(std::string name) {
     auto& config = Config::get();
-
-    if (!m_inputFrames_p1.empty() || !m_inputFrames_p2.empty())
-        return "Please clear replay before loading another";
-
-    std::ifstream file(folderMacroPath / std::string(name + ".re3"), std::ios::binary);
+    std::ifstream file(folderMacroPath / std::string(name), std::ios::binary);
     if (!file)
         return "Replay doesn't exist";
 
+    float tps_value;
+    file.read(reinterpret_cast<char *>(&tps_value), sizeof(tps_value));
+    config.set<float>("tps_value", tps_value);
+
+    unsigned replay_size = 0;
+    unsigned replay2_size = 0;
+
+    file.read(reinterpret_cast<char *>(&replay_size), sizeof(replay_size));
+    file.read(reinterpret_cast<char *>(&replay2_size), sizeof(replay2_size));
+
+    std::vector<replay_data> replay;
+    std::vector<replay_data2> replay2;
+
+    replay.resize(replay_size);
+    replay2.resize(replay2_size);
+
+    file.read(reinterpret_cast<char *>(&replay[0]), sizeof(replay_data) * replay_size);
+    file.read(reinterpret_cast<char *>(&replay2[0]), sizeof(replay_data2) * replay2_size);
+
+    file.close();
+
+    for (auto& item : replay) {
+        if (item.player)
+            m_physicFrames_p1.push_back({item.frame, item.x, item.y, item.rotation, item.y_accel, item.player});
+        else
+            m_physicFrames_p2.push_back({item.frame, item.x, item.y, item.rotation, item.y_accel, item.player});
+    }
+
+    for (auto& item : replay2) {
+        if (item.isPlayer1)
+            m_inputFrames_p1.push_back({item.frame, item.down, item.button, item.isPlayer1});
+        else
+            m_inputFrames_p2.push_back({item.frame, item.down, item.button, item.isPlayer1});
+    }
+    return "Replay loaded";
+}
+
+std::string ReplayEngine::load_v2(std::string name) {
+    auto& config = Config::get();
+    std::ifstream file(folderMacroPath / std::string(name), std::ios::binary);
+    if (!file)
+        return "Replay doesn't exist";
+
+    const std::string expected_header = "RE2";
+    char file_header[4] = {0};
+
+    file.read(file_header, expected_header.size());
+
+    if (std::string(file_header) != expected_header)
+        return "Invalid replay format";
+
+    config.set<float>("tps_value", 240.f);
+
+    unsigned replay2_size = 0;
+    file.read(reinterpret_cast<char *>(&replay2_size), sizeof(replay2_size));
+
+    std::vector<replay_data2> replay2;
+    replay2.resize(replay2_size);
+    file.read(reinterpret_cast<char *>(&replay2[0]), sizeof(replay_data2) * replay2_size);
+
+    file.close();
+
+    for (auto& item : replay2) {
+        if (item.isPlayer1)
+            m_inputFrames_p1.push_back({item.frame-1, item.down, item.button, item.isPlayer1});
+        else
+            m_inputFrames_p2.push_back({item.frame-1, item.down, item.button, item.isPlayer1});
+    }
+    return "Replay loaded";
+}
+
+std::string ReplayEngine::load_v3(std::string name) {
+    auto& config = Config::get();
+    std::ifstream file(folderMacroPath / std::string(name + ".re3"), std::ios::binary);
+    if (!file) {
+        return "Replay doesn't exist";
+    }
 
     float tps_value;
     file.read(reinterpret_cast<char *>(&tps_value), sizeof(tps_value));
@@ -93,6 +169,36 @@ std::string ReplayEngine::load(std::string name) {
     file.close();
 
     return "Replay loaded";
+}
+
+#include <string>
+
+std::string ReplayEngine::load(std::string name) {
+    auto& config = Config::get();
+
+    if (!m_inputFrames_p1.empty() || !m_inputFrames_p2.empty())
+        return "Please clear replay before loading another";
+
+    if (name.size() >= 4 && name.substr(name.size() - 3) == ".re") {
+        std::string result = load_v1(name);
+        if (result == "Replay loaded") {
+            return "Replay loaded (v1 -> v3)";
+        }
+    } 
+    else if (name.size() >= 5 && name.substr(name.size() - 4) == ".re2") {
+        std::string result = load_v2(name);
+        if (result == "Replay loaded") {
+            return "Replay loaded (v2 -> v3)";
+        }
+    } 
+    else {
+        std::string result = load_v3(name);
+        if (result == "Replay loaded") {
+            return result;
+        }
+    }
+
+    return "Failed to load replay";
 }
 
 std::string ReplayEngine::clear() {
@@ -151,15 +257,14 @@ void ReplayEngine::handle_update(GJBaseGameLayer* self) {
 
             while (m_physicIndex_p2 < m_physicFrames_p2.size() && frame >= m_physicFrames_p2[m_physicIndex_p2].frame)
             {
-                self->m_player1->m_position.x = m_physicFrames_p2[m_physicIndex_p2].x;
-                self->m_player1->m_position.y = m_physicFrames_p2[m_physicIndex_p2].y;
+                self->m_player2->m_position.x = m_physicFrames_p2[m_physicIndex_p2].x;
+                self->m_player2->m_position.y = m_physicFrames_p2[m_physicIndex_p2].y;
                 if (rotation_fix)
-                    self->m_player1->setRotation(m_physicFrames_p2[m_physicIndex_p2].rotation);
-                self->m_player1->m_yVelocity = m_physicFrames_p2[m_physicIndex_p2].y_accel;
+                    self->m_player2->setRotation(m_physicFrames_p2[m_physicIndex_p2].rotation);
+                self->m_player2->m_yVelocity = m_physicFrames_p2[m_physicIndex_p2].y_accel;
                 m_physicIndex_p2++;
             }
         }
-
 
         while (m_inputIndex_p1 < m_inputFrames_p1.size() && frame >= m_inputFrames_p1[m_inputIndex_p1].frame)
         {

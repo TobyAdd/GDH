@@ -24,7 +24,7 @@ public:
     Recorder& operator=(const Recorder&) = delete;
     Recorder(const Recorder&) = delete;
 
-    std::filesystem::path folderShowcasesPath = folderPath / "Showcases";
+    std::filesystem::path folderShowcasesPath = Config::get().get<std::filesystem::path>("showcases_path", folderPath / "Showcases");
     std::string video_name = "video.mp4";
 
     bool settings_openned = false;
@@ -83,8 +83,16 @@ public:
     void compile_vf_args();
 
     bool sync_audio = false;
+
+    void applyWinSize();
+    void restoreWinSize();
 private:
     Recorder() = default;
+
+    cocos2d::CCSize oldDesignResolution;
+    cocos2d::CCSize newDesignResolution;
+    cocos2d::CCSize originalScreenScale;
+    cocos2d::CCSize newScreenScale;
 };
 
 class RecorderAudio {

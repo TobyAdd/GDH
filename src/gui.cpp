@@ -8,7 +8,6 @@
 #include "labels.hpp"
 #include "replayEngine.hpp"
 #include "recorder.hpp"
-#include <numeric>
 #ifdef GEODE_IS_WINDOWS
 #include <subprocess.hpp>
 #endif
@@ -68,15 +67,18 @@ void Gui::animateAlpha()
 
 std::vector<std::string> stretchedWindows;
 void Gui::Render() {
-    #ifdef GEODE_IS_ANDROID
+    
     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1);
+    #ifdef GEODE_IS_ANDROID
     ImGui::Begin("toggle gui");
     if (ImGuiH::Button("toggle")) {
         Toggle();
     }
     ImGui::End();
-    ImGui::PopStyleVar();
     #endif
+    ImGuiH::Popup::get().render();
+    ImGui::PopStyleVar();
+    
 
 
     if (isAnimating) {
@@ -295,9 +297,13 @@ void Gui::Render() {
                 ImGui::BeginChild("Select Replay##2", {400 * m_scale, 300 * m_scale});
                 for (int i = 0; i < (int)replay_list.size(); i++)
                 {
-                    if (ImGuiH::Button(replay_list[i].filename().replace_extension().string().c_str(), {ImGui::GetContentRegionAvail().x, NULL}))
+                    if (ImGuiH::Button(replay_list[i].filename().string().c_str(), {ImGui::GetContentRegionAvail().x, NULL}))
                     {
-                        engine.replay_name = replay_list[i].filename().replace_extension().string();
+                        std::string extension = replay_list[i].filename().extension().string();
+                        if (extension != ".re" && extension != ".re2")
+                            engine.replay_name = replay_list[i].filename().replace_extension().string();
+                        else
+                            engine.replay_name = replay_list[i].filename().string();
                         ImGui::CloseCurrentPopup();
                     }
                 }
@@ -305,7 +311,7 @@ void Gui::Render() {
 
                 #ifdef GEODE_IS_WINDOWS
                 if (ImGuiH::Button("Open Folder", {ImGui::GetContentRegionAvail().x, NULL})) {
-                    ShellExecuteW(nullptr, L"open", L"explorer", folderMacroPath.wstring().c_str(), nullptr, SW_SHOWDEFAULT);
+                    geode::utils::file::openFolder(folderMacroPath);
                 }
                 #endif
                 
@@ -336,6 +342,7 @@ void Gui::Render() {
                 else
                 {
                     engine.mode = state::disable;
+                    ImGuiH::Popup::get().add_popup("Enable TPS Bypass to record the replay");
                 }
             }
 
@@ -349,6 +356,7 @@ void Gui::Render() {
                     engine.mode = state::play;
                 } else {
                     engine.mode = state::disable;
+                    ImGuiH::Popup::get().add_popup("Enable TPS Bypass to playback the replay");
                 }
             }
 
@@ -371,17 +379,18 @@ void Gui::Render() {
             }
 
             if (ImGuiH::Button("Save", {ImGui::GetContentRegionAvail().x / 3, NULL})) {
-                engine.save(engine.replay_name);
+                ImGuiH::Popup::get().add_popup(engine.save(engine.replay_name));
             }
             ImGui::SameLine();
 
             if (ImGuiH::Button("Load", {ImGui::GetContentRegionAvail().x / 2, NULL})) {
-                engine.load(engine.replay_name);
+                ImGuiH::Popup::get().add_popup(engine.load(engine.replay_name));
             }
             ImGui::SameLine();
 
             if (ImGuiH::Button("Clear", {ImGui::GetContentRegionAvail().x, NULL})) {
                 engine.clear();
+                ImGuiH::Popup::get().add_popup("Replay has been cleared");
             }
 
             ImGui::Text("Replay Size: %zu", engine.get_actions_size());
@@ -413,38 +422,21 @@ void Gui::Render() {
                 };
                 
                 if (ImGui::BeginTabItem("General")) {
-                    if (recorder.ffmpeg_installed) {
-                        auto aspectRatio = [](int width, int height) -> std::string {
-                            int divisor = std::gcd(width, height);
-                            int aspectWidth = width / divisor;
-                            int aspectHeight = height / divisor;
-
-                            return std::to_string(aspectWidth) + ":" + std::to_string(aspectHeight);
-                        };
-
-                        
+                    if (recorder.ffmpeg_installed) {                        
                         auto pl = PlayLayer::get();
                         if (ImGuiH::Checkbox("Record##Recorder", &recorder.enabled, m_scale)) {
                             ImVec2 displaySize = ImGui::GetIO().DisplaySize;
-                            std::string window_size = aspectRatio(static_cast<int>(displaySize.x), static_cast<int>(displaySize.y));
-                            std::string recorder_size = aspectRatio(recorder.width, recorder.height);
 
                             if (containsRussianLetters(recorder.folderShowcasesPath)) {
                                 recorder.enabled = false;
-                                geode::log::debug("Invalid path to the showcase folder. Please remove any Cyrillic characters");
-                            }
-                            else if (window_size != recorder_size) {
-                                geode::log::debug("Aspect Ratio: {} != {}", window_size, recorder_size);
-                                geode::log::debug("Window && Recorder Resolution: {}x{}, {}x{}", static_cast<int>(displaySize.x), static_cast<int>(displaySize.y), recorder.width, recorder.height);
-                                geode::log::debug("Aspect ratio mismatch. Adjust resolution or resize the window");
-                                recorder.enabled = false;
+                                ImGuiH::Popup::get().add_popup("Invalid path to the showcase folder. Please remove any Cyrillic characters");
                             }
                             else if (pl && pl->m_hasCompletedLevel) {
-                                geode::log::debug("Restart level to start recording");
+                                ImGuiH::Popup::get().add_popup("Restart level to start recording");
                                 recorder.enabled = false;
                             }
                             else {
-                                bool canRecord = config.get<bool>("tps_enabled", false);
+                                bool canRecord = (config.get<bool>("tps_enabled", false) && recorder.fps <= config.get<float>("tps_value", 240.f));
 
                                 if (canRecord) {
                                     if (recorder.enabled) {
@@ -459,7 +451,7 @@ void Gui::Render() {
                                 }
                                 else {
                                     recorder.enabled = false;
-                                    // imgui_popup::add_popup((version_engine == 1) ? "Recorder FPS is valid and less than or equal to macro FPS" : "FPS values must be within the range 60 to 240");
+                                    ImGuiH::Popup::get().add_popup("Recorder FPS is valid and less than or equal to macro FPS");
                                 }
                             }
                         }
@@ -698,23 +690,25 @@ void Gui::Render() {
                             geode::utils::file::openFolder(recorder.folderShowcasesPath);
                         }
 
-                        // ImGui::SameLine();
+                        ImGui::SameLine();
 
-                        // if (ImGuiH::Button("Change folder")) {
-                        //     std::filesystem::path selectedPath = SelectFolder();
-                        //     if (!selectedPath.empty()) {
-                        //         hacks::folderShowcasesPath = selectedPath;
-                        //     }
-                        // }
+                        if (ImGuiH::Button("Change folder")) {                           
+                            auto result = geode::utils::file::pick(geode::utils::file::PickMode::OpenFolder, {std::nullopt, {}});
+                            if (result.isFinished() && !result.getFinishedValue()->isErr()) {
+                                recorder.folderShowcasesPath = result.getFinishedValue()->unwrap();
+                                config.set<std::filesystem::path>("showcases_path", recorder.folderShowcasesPath);
+                            }
+                        }
 
-                        // ImGui::SameLine();
+                        ImGui::SameLine();
 
-                        // if (ImGuiH::Button("Reset Folder")) {
-                        //     hacks::folderShowcasesPath = hacks::folderPath / "Showcases";
-                        // }
+                        if (ImGuiH::Button("Reset Folder")) {
+                            recorder.folderShowcasesPath = folderPath / "Showcases";
+                            config.set<std::filesystem::path>("showcases_path", recorder.folderShowcasesPath);
+                        }
 
                         
-                        // ImGui::Text("Showcase Folder: %s", hacks::folderShowcasesPath.string().c_str());
+                        ImGui::Text("Showcase Folder: %s", recorder.folderShowcasesPath.string().c_str());
                     }
                     else {
                         ImGui::Text("Looks like FFmpeg is not installed, here are the instructions:");
@@ -734,7 +728,7 @@ void Gui::Render() {
                     if (ImGui::Checkbox("Record Buffer", &recorderAudio.enabled, m_scale)) {
                         if (containsRussianLetters(recorder.folderShowcasesPath)) {
                             recorder.enabled = false;
-                            // imgui_popup::add_popup("Invalid path to the showcase folder. Please remove any Cyrillic characters");
+                            ImGuiH::Popup::get().add_popup("Invalid path to the showcase folder. Please remove any Cyrillic characters");
                         }
                         else {
                             if (!recorderAudio.showcase_mode) {
@@ -1059,6 +1053,7 @@ void Gui::Init() {
     auto &config = Config::get();
 
     stretchedWindows.clear();
+    ImGuiH::Popup::get().messages.clear();
 
     m_scale = config.get<float>("gui_scale", 1.f);
     m_index_scale = config.get<int>("gui_index_scale", 7);
