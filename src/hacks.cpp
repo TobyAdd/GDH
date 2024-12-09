@@ -50,9 +50,9 @@ void Hacks::Init() {
                 {"Smart Startpos", "Restores correct gameplay without startpos settings", "smart_startpos"},
                 {"Startpos Switcher", "The ability to switch between starting positions using the keys that you setted in keybinds", "startpos_switcher"}, // +
                 {"RGB Icons", "LGBT icons, yes :3", "rgb_icons"},
-                {"Solid Wave Trail", "Disables wave blending", "solid_wave_trail"},
+                {"Solid Wave Trail", "Disables wave blending", "solid_wave_trail"}, // +
                 {"Show Triggers", "Displaying triggers on the PlayLayer", "show_triggers"},
-                {"Show Hitboxes", "Visualizes hitbox levels", "show_hitboxes"},
+                {"Show Hitboxes", "Visualizes hitbox levels", "show_hitboxes"}, // +
                 {"Show Total Attempts", "", "show_total_attempts"},   // +
                 {"Stop triggers on death", "Stops move/rotation triggers on death so you can see what killed you", "stop_triggers_on_death"},   // +
                 {"All Modes Platformer", "Removes the limit on all modes in the platformer", "all_modes_platformer"},
@@ -79,7 +79,7 @@ void Hacks::Init() {
                 {"No Trail", "Removes the trail located near the player", "no_trail"},  // +
                 {"Always Trail", "Displays the trail near the player at any location", "always_trail"},  // +
                 {"Wave Trail Size", "Resizes the wave trail", "wave_trail_size"},   // +
-                {"Wave Trail On Death", "", "wave_trail_on_death"}   // +
+                {"No Wave Trail Fade", "", "wave_trail_on_death"}   // +
             }
         },
         {"Creator", 450, 10, 220, 280, 

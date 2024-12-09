@@ -478,15 +478,21 @@ class $modify(PlayLayer) {
     void updateVisibility(float dt)  {   
         auto& config = Config::get();
 
-        if (!config.get<bool>("pulse_size", false) && config.get<bool>("no_pulse", false))
-            m_audioEffectsLayer->m_notAudioScale = 0.5;
+        if (!config.get<bool>("pulse_size", false) && config.get<bool>("no_pulse", false)) {
+            m_audioEffectsLayer->m_notAudioScale = 0.5f;
+            FMODAudioEngine::get()->m_pulse1 = 0.5f;
+        }            
 
         if (config.get<bool>("pulse_size", false)) {
             float value = config.get<float>("pulse_size_value", 0.5f);
-            if (config.get<bool>("pulse_multiply", false))
+            if (config.get<bool>("pulse_multiply", false)) {
                 m_audioEffectsLayer->m_notAudioScale *= value;
-            else
+                FMODAudioEngine::get()->m_pulse1 *= value;
+            }                
+            else {
                 m_audioEffectsLayer->m_notAudioScale = value;
+                FMODAudioEngine::get()->m_pulse1 = value;
+            }
         }
 
         PlayLayer::updateVisibility(dt);
@@ -810,6 +816,24 @@ class $modify(PlayerObject) {
     void fadeOutStreak2(float p0) {
         if (!Config::get().get<bool>("wave_trail_on_death", false))
             PlayerObject::fadeOutStreak2(p0);
+    }
+
+    void setupStreak() {
+        auto& config = Config::get();
+        auto gm = GameManager::get();
+
+        bool gv0096 = m_gv0096;
+        auto playerColor = gm->m_playerColor;
+
+        if (config.get<bool>("solid_wave_trail", false)) {
+            gv0096 = false;
+            gm->m_playerColor = 15;
+        }
+
+        PlayerObject::setupStreak();
+
+        m_gv0096 = gv0096;
+        gm->m_playerColor = playerColor;
     }
 };
 
@@ -1280,7 +1304,7 @@ class $modify(cocos2d::CCDrawNode) {
                      float borderWidth, const cocos2d::ccColor4F& borderColor) {
 
         auto& config = Config::get(); 
-        
+
         cocos2d::ccColor4F fillColor2;
         fillColor2 = {borderColor.r, borderColor.g, borderColor.b, static_cast<GLfloat>(config.get<float>("show_hitboxes::fill_color_alpha", 0.2f))};
 
