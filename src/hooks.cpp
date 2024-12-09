@@ -651,6 +651,13 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
             return;
 
         auto& node = m_debugDrawNode;
+
+        auto pl = GameManager::sharedState()->getPlayLayer();
+        if (config.get<bool>("show_hitboxes::on_death", false) && pl && !pl->m_player1->m_isDead) {
+            node->clear();
+            return;
+        }            
+        
         auto generateVertices = [](const cocos2d::CCRect& rect) {
             return std::vector<cocos2d::CCPoint>{
                 cocos2d::CCPoint(rect.getMinX(), rect.getMinY()),
@@ -1273,25 +1280,32 @@ class $modify(cocos2d::CCDrawNode) {
                      float borderWidth, const cocos2d::ccColor4F& borderColor) {
 
         auto& config = Config::get(); 
+        
+        cocos2d::ccColor4F fillColor2;
+        fillColor2 = {borderColor.r, borderColor.g, borderColor.b, static_cast<GLfloat>(config.get<float>("show_hitboxes::fill_color_alpha", 0.2f))};
 
         if (config.get<bool>("show_hitboxes", false)) {
             borderWidth = abs(borderWidth);
             borderWidth = config.get<float>("show_hitboxes::size", 0.25f);
         }
 
-        return cocos2d::CCDrawNode::drawPolygon(vertex, count, fillColor, borderWidth, borderColor);
+        return cocos2d::CCDrawNode::drawPolygon(vertex, count, config.get<bool>("show_hitboxes::fill_color", false) ? fillColor2 : fillColor, borderWidth, borderColor);
     }
 
     bool drawCircle(const cocos2d::CCPoint& position, float radius, const cocos2d::ccColor4F& color,
                     float borderWidth, const cocos2d::ccColor4F& borderColor, unsigned int segments) {
         
         auto& config = Config::get(); 
+
+        cocos2d::ccColor4F color2;
+        color2 = {borderColor.r, borderColor.g, borderColor.b, static_cast<GLfloat>(config.get<float>("show_hitboxes::fill_color_alpha", 0.2f))};
+
         if (config.get<bool>("show_hitboxes", false)) {
             borderWidth = abs(borderWidth);
             borderWidth = config.get<float>("show_hitboxes::size", 0.25f);
         } 
 
-        return cocos2d::CCDrawNode::drawCircle(position, radius, color, borderWidth, borderColor, segments);
+        return cocos2d::CCDrawNode::drawCircle(position, radius, config.get<bool>("show_hitboxes::fill_color", false) ? color2 : color, borderWidth, borderColor, segments);
     }
 };
 

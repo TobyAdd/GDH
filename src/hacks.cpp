@@ -215,8 +215,23 @@ void Hacks::Init() {
         auto &gui = Gui::get();
 
         bool draw_trail = config.get<bool>("show_hitboxes::draw_trail", false);
+        bool show_hitboxes_on_death = config.get<bool>("show_hitboxes::on_death", false);
+
+        bool fill_color = config.get<bool>("show_hitboxes::fill_color", false);
+        float fill_color_alpha = config.get<float>("show_hitboxes::fill_color_alpha", 0.2f);
+
         int trail_length = config.get<int>("show_hitboxes::trail_length", 240);
         float size = config.get<float>("show_hitboxes::size", 0.25f);
+
+        if (ImGuiH::Checkbox("Fill Color", &fill_color, gui.m_scale))
+            config.set<bool>("show_hitboxes::fill_color", fill_color);
+
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (ImGui::DragFloat("##show_hitboxes::fill_color_alpha", &fill_color_alpha, 0.01f, 0.f, 1, "Fill Color Alpha: %0.2f"))
+            config.set<float>("show_hitboxes::fill_color_alpha", fill_color_alpha);
+
+        if (ImGuiH::Checkbox("Show Hitboxes on Death", &show_hitboxes_on_death, gui.m_scale))
+            config.set<bool>("show_hitboxes::on_death", show_hitboxes_on_death);
 
         if (ImGuiH::Checkbox("Draw Trail", &draw_trail, gui.m_scale))
             config.set<bool>("show_hitboxes::draw_trail", draw_trail);
