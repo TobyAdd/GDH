@@ -927,7 +927,7 @@ void Gui::Render() {
                 
                 ImGui::PushID(index);
 
-                ImGui::Selectable("  =", false, 0, {20.f, 20.f});
+                ImGui::Selectable("  =", false, 0, {20.f * m_scale, 20.f * m_scale});
                 ImGui::SameLine();
                 
                 if (ImGui::GetMouseClickedCount(ImGuiMouseButton_Left) >= 2 && ImGui::IsItemHovered()) {

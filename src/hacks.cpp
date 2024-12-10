@@ -313,7 +313,7 @@ void Hacks::Init() {
         for (int i = 0; i < colors.colors.size(); ++i) {
             ImGui::PushID(i);
 
-            ImGui::Selectable("  =", false, ImGuiSelectableFlags_DontClosePopups, {20.f, 20.f});
+            ImGui::Selectable("  =", false, ImGuiSelectableFlags_DontClosePopups, {20.f * gui.m_scale, 20.f * gui.m_scale});
             ImGui::SameLine();
 
             if (ImGui::IsItemHovered() && ImGui::GetMouseClickedCount(ImGuiMouseButton_Left) == 2) {
