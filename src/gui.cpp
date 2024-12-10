@@ -8,6 +8,7 @@
 #include "labels.hpp"
 #include "replayEngine.hpp"
 #include "recorder.hpp"
+#include "utils.hpp"
 #ifdef GEODE_IS_WINDOWS
 #include <subprocess.hpp>
 #endif
@@ -279,15 +280,17 @@ void Gui::Render() {
             };
 
             if (ImGuiH::Button("Get", {ImGui::GetContentRegionAvail().x / 2, NULL})) {
-                if (type_index == 0) handleGetSetCreator(false); // Get Creator
-                else if (type_index == 1) handleGetSetPlayer(false); // Get Player
+                if (type_index == 0) handleGetSetCreator(false);
+                else if (type_index == 1) handleGetSetPlayer(false);
             }
 
             ImGui::SameLine();
 
             if (ImGuiH::Button("Set", {ImGui::GetContentRegionAvail().x, NULL})) {
-                if (type_index == 0) handleGetSetCreator(true); // Set Creator
-                else if (type_index == 1) handleGetSetPlayer(true); // Set Player
+                if (utils::isNumeric(value)) {
+                    if (type_index == 0) handleGetSetCreator(true);
+                    else if (type_index == 1) handleGetSetPlayer(true);
+                }
             }
         }
         else if (windowName == "Replay Engine") {
@@ -853,19 +856,6 @@ void Gui::Render() {
                 ImGui::OpenPopup("Recorder");
             }
             #endif
-        }
-        else if (windowName == "Variables") { 
-            static uintptr_t address = geode::base::get();
-            ImGui::Text("%s", fmt::format("{:x} ({:x})", address, address - geode::base::get()).c_str());
-
-            if (ImGuiH::Button("scan"))
-                address = memory::PatternScan(address+1, 0, "00 60 6A 48");
-
-            if (ImGuiH::Button("scan2"))
-                address = memory::PatternScan(address+1, 0, "80 67 6A 48");
-
-            if (ImGuiH::Button("reset"))
-                address = geode::base::get();
         }
         else if (windowName == "Labels") {
             auto &labels = Labels::get();
