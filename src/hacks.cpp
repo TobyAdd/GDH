@@ -2,6 +2,7 @@
 #include "config.hpp"
 #include "gui.hpp"
 #include "labels.hpp"
+#include "recorder.hpp"
 #include <imgui-cocos.hpp>
 
 void Hacks::Init() {
@@ -49,7 +50,7 @@ void Hacks::Init() {
                 {"Show Percentage", "Show percentages in level progress", "show_percentage", "0040"},  // +
                 {"Smart Startpos", "Restores correct gameplay without startpos settings", "smart_startpos"},
                 {"Startpos Switcher", "The ability to switch between starting positions using the keys that you setted in keybinds", "startpos_switcher"}, // +
-                {"RGB Icons", "LGBT icons, yes :3", "rgb_icons"},
+                {"RGB Icons", "LGBT icons, yes :3", "rgb_icons"}, // +
                 {"Solid Wave Trail", "Disables wave blending", "solid_wave_trail"}, // +
                 {"Show Triggers", "Displaying triggers on the PlayLayer", "show_triggers"},
                 {"Show Hitboxes", "Visualizes hitbox levels", "show_hitboxes"}, // +
@@ -247,7 +248,113 @@ void Hacks::Init() {
         ImGui::Text("Tip: Enable hitboxes in the editor by checking the \"Show\nHitboxes\" option in the Editor Pause menu");
     });
 
+    SetCustomWindowHandlerByConfig("rgb_icons", [this, &config]() {
+        auto &gui = Gui::get();
+        auto &colors = RGBIcons::get();
+
+        float size = config.get<float>("rgb_icons::speed", 0.25f);
+
+        bool player_p1 = config.get<bool>("rgb_icons::player_p1", true);
+        bool player_p2 = config.get<bool>("rgb_icons::player_p2", true);
+        bool wave_trail_p1 = config.get<bool>("rgb_icons::wave_trail_p1", true);
+        bool wave_trail_p2 = config.get<bool>("rgb_icons::wave_trail_p2", true);
+
+        if (ImGuiH::Checkbox("Player 1", &player_p1, gui.m_scale))
+            config.set<bool>("rgb_icons::player_p1", player_p1);
+
+        ImGui::SameLine();
+
+        if (ImGuiH::Checkbox("Player 2", &player_p2, gui.m_scale))
+            config.set<bool>("rgb_icons::player_p2", player_p2);
+
+        if (ImGuiH::Checkbox("Wave Trail P1", &wave_trail_p1, gui.m_scale))
+            config.set<bool>("rgb_icons::wave_trail_p1", wave_trail_p1);
+
+        ImGui::SameLine();
+
+        if (ImGuiH::Checkbox("Wave Trail P2", &wave_trail_p2, gui.m_scale))
+            config.set<bool>("rgb_icons::wave_trail_p2", wave_trail_p2);
+
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (ImGui::DragFloat("##rgb_icons::speed", &size, 0.01f, 0.f, FLT_MAX, "Speed: %0.2f"))
+            config.set<float>("rgb_icons::speed", size);
+
+        ImGui::Separator();
+
+        if (ImGuiH::Button("Add Color", {ImGui::GetContentRegionAvail().x / 3, NULL})) {
+            colors.colors.push_back({0, 0, 0});
+        }
+        
+        ImGui::SameLine();
+        if (ImGuiH::Button("Rainbow Colors", {ImGui::GetContentRegionAvail().x / 2, NULL})) {
+            std::vector<cocos2d::ccColor3B> rainbowColors = {
+                cocos2d::ccColor3B(255, 0, 0),
+                cocos2d::ccColor3B(255, 127, 0),
+                cocos2d::ccColor3B(255, 255, 0),
+                cocos2d::ccColor3B(0, 255, 0),
+                cocos2d::ccColor3B(0, 191, 255),
+                cocos2d::ccColor3B(0, 0, 255),
+                cocos2d::ccColor3B(139, 0, 255)
+            };
+
+            for (const auto& color : rainbowColors) {
+                colors.colors.push_back(color);
+            }
+        }
+
+        ImGui::SameLine();
+        if (ImGuiH::Button("Clear", {ImGui::GetContentRegionAvail().x, NULL})) {
+            colors.colors.clear();
+        }
+
+        if (colors.colors.empty())
+            ImGui::TextDisabled("No colors is here");
+
+        for (int i = 0; i < colors.colors.size(); ++i) {
+            ImGui::PushID(i);
+
+            ImGui::Selectable("  =", false, ImGuiSelectableFlags_DontClosePopups, {20.f, 20.f});
+            ImGui::SameLine();
+
+            if (ImGui::IsItemHovered() && ImGui::GetMouseClickedCount(ImGuiMouseButton_Left) == 2) {
+                colors.colors.erase(colors.colors.begin() + i);
+            }
+
+            if (ImGui::BeginDragDropSource()) {
+                ImGui::TextUnformatted(fmt::format("Color {}", i).c_str());
+                ImGui::SetDragDropPayload("LBLMOVE", &i, sizeof(size_t));
+                ImGui::EndDragDropSource();
+            }
+
+            if (ImGui::BeginDragDropTarget()) {
+                if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("LBLMOVE")) {
+                    if (payload->DataSize == sizeof(size_t)) {
+                        size_t move_from = *(size_t*)payload->Data;
+                        if (i != move_from) {
+                            std::iter_swap(colors.colors.begin() + move_from, colors.colors.begin() + i);
+                        }
+                    }
+                }
+                ImGui::EndDragDropTarget();
+            }
+
+            float color[3] = { colors.colors[i].r / 255.0f, colors.colors[i].g / 255.0f, colors.colors[i].b / 255.0f };
+            if (ImGui::ColorEdit3(fmt::format("Color {}", i).c_str(), color)) {
+                colors.colors[i] = cocos2d::ccColor3B(
+                    static_cast<GLubyte>(color[0] * 255),
+                    static_cast<GLubyte>(color[1] * 255),
+                    static_cast<GLubyte>(color[2] * 255)
+                );
+            }
+
+            ImGui::PopID();
+        }
+    });
+
+    Recorder::get().folderShowcasesPath = Config::get().get<std::filesystem::path>("showcases_path", folderPath / "Showcases");
+
     Labels::get().load();
+    RGBIcons::get().load();
 
     for (auto& win : m_windows) {
         win.orig_x = win.x;

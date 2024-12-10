@@ -9,6 +9,7 @@ static const auto folderPath = geode::Mod::get()->getSaveDir();
 static const auto folderMacroPath = folderPath / "Macros";
 static const auto fileDataPath = folderPath / "config2.json";
 static const auto labelsDataPath = folderPath / "labels.txt";
+static const auto colorsDataPath = folderPath / "colors.txt";
 
 class Config {
 public:

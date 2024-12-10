@@ -54,6 +54,7 @@ void Gui::animateAlpha()
             m_show = !m_show;
             Config::get().save(fileDataPath);
             Labels::get().save();
+            RGBIcons::get().save();
             updateCursorState();
         }
 
@@ -916,9 +917,8 @@ void Gui::Render() {
             ImGui::BeginChild("Labels");
             ImGui::Spacing();
 
-            if (labels.labels.size() == 0) {
+            if (labels.labels.empty())
                 ImGui::TextDisabled("No labels in this corner");
-            }
             
             for (size_t index = 0; index < labels.labels.size(); index++) {
                 Label& item = labels.labels[index];

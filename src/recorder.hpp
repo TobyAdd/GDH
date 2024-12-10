@@ -24,7 +24,7 @@ public:
     Recorder& operator=(const Recorder&) = delete;
     Recorder(const Recorder&) = delete;
 
-    std::filesystem::path folderShowcasesPath = Config::get().get<std::filesystem::path>("showcases_path", folderPath / "Showcases");
+    std::filesystem::path folderShowcasesPath = folderPath / "Showcases";
     std::string video_name = "video.mp4";
 
     bool settings_openned = false;

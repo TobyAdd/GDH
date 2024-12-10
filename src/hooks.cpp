@@ -75,8 +75,10 @@ void switchStartPos(int incBy, bool direction = true) {
 
 float left_over = 0.f;
 bool disable_render = false;
-float old_dt = 0.0f;
-float real_dt = 0.0f;
+float old_dt = 0.f;
+float real_dt = 0.f;
+
+float color_dt = 0.f;
 
 class $modify(cocos2d::CCScheduler) {
     void update(float dt) {
@@ -149,6 +151,7 @@ class $modify(PlayLayer) {
             selectedStartpos = -1;
             playerTrail1.clear();
             playerTrail2.clear();
+            color_dt = 0.f;
         }
     };
 
@@ -644,8 +647,28 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
         real_dt = getCustomDelta(old_dt, 240.f, false);
 
         GJBaseGameLayer::update(dt);
-        
+
         engine.handle_update(this);
+        if (config.get<bool>("rgb_icons", false)) {
+            color_dt += dt * config.get<float>("rgb_icons::speed", 0.25f);
+
+            auto& rgb_colors = RGBIcons::get();
+            auto color1 = rgb_colors.interpolateColor(color_dt);
+            auto color2 = rgb_colors.interpolateColor(color_dt, true);
+
+            bool player_p1 = config.get<bool>("rgb_icons::player_p1", true);
+            bool player_p2 = config.get<bool>("rgb_icons::player_p2", true);
+            bool wave_trail_p1 = config.get<bool>("rgb_icons::wave_trail_p1", true);
+            bool wave_trail_p2 = config.get<bool>("rgb_icons::wave_trail_p2", true);
+
+            if (player_p1 && m_player1) m_player1->setColor(color1);
+            if (player_p1 && m_player1) m_player1->setSecondColor(color2);
+            if (wave_trail_p1 && m_player1->m_waveTrail) m_player1->m_waveTrail->setColor(color1);
+
+            if (player_p2 && m_player2) m_player2->setColor(color2);
+            if (player_p2 && m_player2) m_player2->setSecondColor(color1);
+            if (wave_trail_p1 && m_player2->m_waveTrail) m_player2->m_waveTrail->setColor(color2);
+        }
     }
 
     void updateDebugDraw() {

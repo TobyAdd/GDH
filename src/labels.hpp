@@ -112,3 +112,77 @@ public:
 private:
     CpsCounter() = default;
 };
+
+class RGBIcons {
+public:
+    static RGBIcons& get() {
+        static RGBIcons instance;
+        return instance;
+    }
+
+    RGBIcons& operator=(const RGBIcons&) = delete;
+    RGBIcons(const RGBIcons&) = delete;
+
+    std::vector<cocos2d::ccColor3B> colors;
+
+    cocos2d::ccColor3B interpolateColor(float dt, bool inverse = false) {
+        std::vector<cocos2d::ccColor3B> _colors = colors;
+
+        if (_colors.empty())
+            return cocos2d::ccColor3B(0, 0, 0);
+
+        if (inverse)
+            std::reverse(_colors.begin(), _colors.end());
+
+        size_t num_colors = _colors.size();
+
+        dt = fmod(dt, 1.0f);
+
+        float scaledDt = dt * (num_colors);
+
+        size_t index1 = static_cast<size_t>(scaledDt);
+        size_t index2 = (index1 + 1) % num_colors;
+
+        float blend = scaledDt - index1;
+
+        cocos2d::ccColor3B color1 = _colors[index1];
+        cocos2d::ccColor3B color2 = _colors[index2];
+
+        uint8_t r = static_cast<uint8_t>(color1.r + (color2.r - color1.r) * blend);
+        uint8_t g = static_cast<uint8_t>(color1.g + (color2.g - color1.g) * blend);
+        uint8_t b = static_cast<uint8_t>(color1.b + (color2.b - color1.b) * blend);
+
+        return cocos2d::ccColor3B(r, g, b);
+    }
+
+    void save() {
+        std::ofstream outFile(colorsDataPath);
+
+        if (outFile.is_open()) {
+            for (const auto& color : colors) {
+                outFile << static_cast<int>(color.r) << " "
+                        << static_cast<int>(color.g) << " "
+                        << static_cast<int>(color.b) << "\n";
+            }
+            outFile.close();
+        }
+    }
+
+    void load() {
+        std::ifstream inFile(colorsDataPath);
+
+        if (inFile.is_open()) {
+            std::string line;
+            while (std::getline(inFile, line)) {
+                std::stringstream ss(line);
+                int r, g, b;
+                if (ss >> r >> g >> b) {
+                    colors.push_back(cocos2d::ccColor3B(r, g, b));
+                }
+            }
+            inFile.close();
+        }
+    }
+private:
+    RGBIcons() = default;
+};
