@@ -130,6 +130,13 @@ class $modify(FMODAudioEngine) {
             group->setPitch(speed);
         }
     }
+
+    void playMusic(gd::string path, bool shouldLoop, float fadeInTime, int channel) {
+        // if (path == "menuLoop.mp3") {
+        //     path = "StereoMadness.mp3";
+        // }
+        FMODAudioEngine::playMusic(path, shouldLoop, fadeInTime, channel);
+    }
 };
 
 
@@ -468,7 +475,10 @@ class $modify(PlayLayer) {
 
     void updateAttemptTime(float time) {
         PlayLayer::updateAttemptTime(time);
-        Labels::get().session_time += time;
+        float speed = Config::get().get<float>("speedhack_value", 1.f);
+
+        if (speed != 0.f)
+            Labels::get().session_time += time / speed;
     }
 
     void storeCheckpoint(CheckpointObject* obj) {

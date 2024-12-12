@@ -58,41 +58,9 @@ std::vector<int> object_ids = {
     1612,
 
     3608, // spawn particle trigger
-
-    // shader triggers
-    2904,
-    2905,
-    2907,
-    2909,
-    2910,
-    2911,
-    2912,
-    2913,
-    2914,
-    2915,
-    2916,
-    2917,
-    2919,
-    2920,
-    2921,
-    2922,
-    2923,
-    2924
 };
 
 class $modify(PlayLayer) {    
-    bool init(GJGameLevel* level, bool useReplay, bool dontCreateObjects) {
-        if (!PlayLayer::init(level, useReplay, dontCreateObjects)) return false;
-
-        // idk why it doesn't moves when creating custom default ground lol
-        if (m_groundLayer) m_groundLayer->setPositionY(91);
-
-        // i don't understand what color of ground layer 2 is, so fuck it
-        if (m_groundLayer2) m_groundLayer2->setVisible(false);
-        
-        return true;
-    }
-
     void addObject(GameObject* obj) {
         if (!Config::get().get("layout_mode", false))
             return PlayLayer::addObject(obj);
@@ -100,17 +68,8 @@ class $modify(PlayLayer) {
         bool dontAdd = false;
 
         bool containsID = std::find(object_ids.begin(), object_ids.end(), obj->m_objectID) != object_ids.end();      
-        if (obj->m_objectType == GameObjectType::Decoration || obj->m_isNoTouch || containsID)
+        if (containsID)
             dontAdd = true;
-
-        if (obj->m_objectID == 3092 || obj->m_objectID == 749 || obj->m_objectID == 44)
-            dontAdd = false;
-
-        if (obj->m_groups && m_levelSettings->m_spawnGroup != 0 && obj->m_groupCount > 0)
-        {
-            if (std::find(obj->m_groups->begin(), obj->m_groups->end(), m_levelSettings->m_spawnGroup) != obj->m_groups->end())
-                dontAdd = false;
-        }
 
         if (!dontAdd) {
             obj->m_activeMainColorID = -1;
@@ -126,12 +85,14 @@ class $modify(PlayLayer) {
 };
 
 class $modify(GameObject) {
-    //robtop uses this object for teleportation in "Dash" level, so removing it breaks the level
     void setOpacity(unsigned char p0) {
-        if (Config::get().get("layout_mode", false) && m_objectID == 3092) 
+        if (Config::get().get("layout_mode", false) && m_objectType == GameObjectType::Decoration && m_objectID != 38 && m_objectID != 44 && m_objectID != 47 &&
+            m_objectID != 13 && m_objectID != 660 && m_objectID != 745 && m_objectID != 10 && m_objectID != 2064 && m_objectID != 749 && m_objectID != 747)
+        {
             return GameObject::setOpacity(0);
-
-        GameObject::setOpacity(p0);
+        }
+        
+        GameObject::setOpacity(p0);        
     }
 };
 
@@ -145,36 +106,10 @@ class $modify(GJBaseGameLayer) {
                 color = {0, 102, 255};
             else if (colorID == 1002) // line
                 color = {255, 255, 255};
-            else if (colorID == 1013 || colorID == 1014) // middle ground but it's been removed LOL
+            else if (colorID == 1013 || colorID == 1014) // middle ground
                 color = {40, 125, 255};
         }
 
         GJBaseGameLayer::updateColor(color, fadeTime, colorID, blending, opacity, copyHSV, colorIDToCopy, copyOpacity, callerObject, unk1, unk2);
-    }
-
-    void createBackground(int p0)
-    {
-        if (Config::get().get("layout_mode", false)) {
-            p0 = 0;
-        }
-
-        GJBaseGameLayer::createBackground(p0);
-    }
-
-    void createGroundLayer(int p0, int p1)
-    {
-        if (Config::get().get("layout_mode", false)) {
-            p0 = 0;
-            p1 = 1;
-        }
-
-        GJBaseGameLayer::createGroundLayer(p0, p1);
-    }
-
-    void createMiddleground(int p0) {
-        if (Config::get().get("layout_mode", false))
-            p0 = 0;
-
-        GJBaseGameLayer::createMiddleground(p0);
     }
 };
