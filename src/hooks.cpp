@@ -378,7 +378,18 @@ class $modify(PlayLayer) {
         auto& recorder = Recorder::get();
         auto& recorderAudio = RecorderAudio::get();
 
+        // auto unk3188 = m_unk3188;
+        // auto replayRandSeed = m_replayRandSeed;
+
+        // m_unk3188 = true;
+        // m_replayRandSeed = 228;
+
         PlayLayer::resetLevel();
+
+        // m_unk3188 = unk3188;
+        // m_replayRandSeed = replayRandSeed;
+
+
         engine.handle_reset();  
 
         if (!m_isPracticeMode && !startPositions.empty()) {

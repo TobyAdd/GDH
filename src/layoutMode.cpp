@@ -120,9 +120,6 @@ class $modify(PlayLayer) {
             obj->setOpacity(255);
             obj->setVisible(true);
 
-            if (obj->m_objectID == 3092)
-                obj->setOpacity(0);
-
             PlayLayer::addObject(obj);
         }            
     }
