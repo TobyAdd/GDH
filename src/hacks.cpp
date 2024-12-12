@@ -64,6 +64,7 @@ void Hacks::Init() {
                 {"No Camera Move", "Disables camera movement via trigger", "no_camera_move"},  // +
                 {"No Camera Zoom", "Disables camera zooming via trigger", "no_camera_zoom"},  // +
                 {"No \"Do Not\" Flip", "Accurate display of attempts with the \"Do not\" function enabled, without flips", "no_do_not_flip"}, // +
+                {"No Effect Circle", "Removes effect circles from orb, portal and pad activations", "no_orb_ring"}, // +
                 {"No Shaders", "Disabling shaders in levels", "no_shaders"},  // +
                 {"No Particles", "Disables resuming the particle system", "no_particles"}, // +
                 {"No Short Numbers", "All numbers are displayed in full\n(For example, \"1.5M\" becomes \"1500000\")", "no_short_numbers"}, // +

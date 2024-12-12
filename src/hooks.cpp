@@ -31,6 +31,7 @@
 #include <Geode/modify/FMODAudioEngine.hpp>
 #include <Geode/modify/EndLevelLayer.hpp>
 #include <Geode/modify/CCDrawNode.hpp>
+#include <Geode/modify/CCCircleWave.hpp>
 #include "hacks.hpp"
 #include "config.hpp"
 #include "labels.hpp"
@@ -1381,5 +1382,14 @@ class $modify(AchievementNotifier) {
         if (Recorder::get().is_recording || RecorderAudio::get().is_recording) return;
         
         AchievementNotifier::notifyAchievement(title, desc, icon, quest);
+    }
+};
+
+class $modify(CCCircleWave) {
+    void draw()
+    {
+        auto& config = Config::get(); 
+        if (!config.get<bool>("no_orb_ring", false))
+            CCCircleWave::draw();
     }
 };
