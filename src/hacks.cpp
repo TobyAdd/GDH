@@ -47,6 +47,7 @@ void Hacks::Init() {
                 {"Ignore ESC", "Prevents exiting the level", "ignore_esc"},  // +
                 {"Instant Complete", "Instant level completion", "instant_complete"},  // +
                 {"Jump Hack", "Removes the barrier to jump gravity", "jump_hack"},  // +
+                {"Layout Mode", "Removes all decoration and colour from levels", "layout_mode"},  // +
                 {"Show Percentage", "Show percentages in level progress", "show_percentage", "0040"},  // +
                 {"Smart Startpos", "Restores correct gameplay without startpos settings", "smart_startpos"},
                 {"Startpos Switcher", "The ability to switch between starting positions using the keys that you setted in keybinds", "startpos_switcher"}, // +
@@ -125,6 +126,18 @@ void Hacks::Init() {
             if (patch1) (void) patch1->disable();
             if (patch2) (void) patch1->disable();
             if (patch3) (void) patch1->disable();
+        }        
+    });
+
+    // robtop calls m_isHide in GameObject::objectFromVector, which you can't even get access
+    SetHandlerByConfig("layout_mode", [this](bool enabled) {
+        static auto result1 = geode::Mod::get()->patch((void*)(geode::base::get() + 0x19AEE3), {0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90});
+        static auto patch1 = result1.isErr() ? nullptr : result1.unwrap();
+
+        if (enabled) {
+            if (patch1) (void) patch1->enable();
+        } else {
+            if (patch1) (void) patch1->disable();
         }        
     });
 

@@ -329,16 +329,6 @@ class $modify(PlayLayer) {
             obj->m_hasNoGlow = true;
         }
 
-        if (config.get<bool>("force_dont_enter", false)) {
-            // geode::log::debug("force_dont_enter {}", obj->m_isDontEnter);
-            obj->m_isDontEnter = true;
-        }
-
-        if (config.get<bool>("force_dont_fade", false)) {
-            // geode::log::debug("force_dont_fade {}", obj->m_isDontFade);
-            obj->m_isDontFade = true;
-        }
-
         PlayLayer::addObject(obj);
 
         if (obj->m_objectID == 1329 || obj->m_objectID == 142) {
