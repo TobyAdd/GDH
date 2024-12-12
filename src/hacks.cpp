@@ -39,10 +39,8 @@ void Hacks::Init() {
                 {"Allow Low Volume", "Removes the limit on minimum volume percentage", "allow_low_volume"},  // +
                 {"Coins In Practice", "The ability to collect coins in practice", "coins_in_practice"},
                 {"Confirm Exit", "Warning before level exit", "confim_exit", "0167"},  // +  
-                {"Fast Chest Open", "Removes the delay for opening chests", "fast_chest_open"},
-                // {"Force Dont Enter", "Disables effects when objects enter the viewable play area", "force_dont_enter"},
-                // {"Force Dont Fade", "Disables effects when objects leave the viewable play area", "force_dont_fade"},
-                {"Random Seed", "Changes the seed game so that the random trigger is not triggered randomly", "random_seed"},
+                {"Fast Chest Open", "Removes the delay for opening chests", "fast_chest_open"}, 
+                // {"Random Seed", "Changes the seed game so that the random trigger is not triggered randomly", "random_seed"},
                 {"Respawn Time", "Changes respawn time on death", "respawn_time"},  // +
                 {"Ignore ESC", "Prevents exiting the level", "ignore_esc"},  // +
                 {"Instant Complete", "Instant level completion", "instant_complete"},  // +
@@ -75,6 +73,7 @@ void Hacks::Init() {
                 {"No New Best Popup", "Disable the new best popup", "no_new_best_popup"}, // +
                 {"No Portal Lighting", "Disables lightning when entering mini/large portal", "no_portal_lighting"},
                 {"No Pulse", "Disables pulsation of falls, orbs, etc", "no_pulse"}, // +
+                {"Pause On Complete", "Lets you pouse during the level complete animation", "pause_during_complete"}, // +
                 {"Pulse Size", "Changes pulsation of falls, orbs, etc", "pulse_size"}, // +
                 {"No Robot Fire", "Hides robot boost fire", "no_robot_fire"}, // +
                 {"No Spider Dash", "Disables spider dash trail when teleporting", "no_spider_dash"}, // +
@@ -98,7 +97,7 @@ void Hacks::Init() {
             }
         },
         {"Framerate", 450, 300, 220, 130},
-        {"GDH Settings", 450, 440, 220, 150},
+        {"GDH Settings", 450, 440, 220, 180},
         {"Replay Engine", 680, 10, 300, 200},
         {"Labels", 680, 220, 300, 320},
         {"Variables", 10, 510, 200, 160},
@@ -260,6 +259,15 @@ void Hacks::Init() {
 
         ImGui::Text("Tip: Enable hitboxes in the editor by checking the \"Show\nHitboxes\" option in the Editor Pause menu");
     });
+
+    // SetCustomWindowHandlerByConfig("random_seed", [this, &config]() {
+    //     auto &gui = Gui::get();
+
+    //     int random_seed_value = config.get<int>("random_seed_value", 1337);
+    //     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+    //     if (ImGui::DragInt("##random_seed_value", &random_seed_value, 1, 1, INT_MAX, "Seed: %i"))
+    //         config.set<int>("random_seed_value", random_seed_value);
+    // });
 
     SetCustomWindowHandlerByConfig("rgb_icons", [this, &config]() {
         auto &gui = Gui::get();

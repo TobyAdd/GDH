@@ -21,7 +21,6 @@ public:
     int m_index_scale = 7;
 
     bool m_needRescale = true;
-    int m_anim_durr = 100;
 
     void Render();
     void Init();

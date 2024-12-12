@@ -44,7 +44,7 @@ void Gui::animateAlpha()
     std::chrono::duration<float> diff = currentTime - animationStartTime;
     float elapsed = diff.count();
 
-    float time = m_anim_durr / 1000.0f;
+    float time = Config::get().get<int>("gui_anim_durr", 100) / 1000.0f;
     if (elapsed >= time)
     {
         style.Alpha = isFadingIn ? 1.0f : 0.0f;
@@ -174,6 +174,29 @@ void Gui::Render() {
                 ImGui::SetTooltip("Invert theme (beta)");
 
             ImGuiH::Checkbox("Keybinds Mode", &hacks.keybinds_mode, m_scale);
+
+            if (ImGuiH::Button("More Settings", {ImGui::GetContentRegionAvail().x, 0})) {
+                ImGui::OpenPopup("GDH More Settings");
+            }
+
+            if (ImGui::BeginPopupModal("GDH More Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+                int anim_durr = config.get<int>("gui_anim_durr", 100);
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (ImGui::DragInt("##gui_anim_durr", &anim_durr, 1, 0, 10000, "Transition Time: %ims")) {
+                    config.set<int>("gui_anim_durr", anim_durr);
+                }
+
+                if (ImGuiH::Button("Sort Windows", {ImGui::GetContentRegionAvail().x, NULL}))
+                    stretchedWindows.clear();
+
+                
+
+                if (ImGuiH::Button("Close", {400 * m_scale, 0})) {
+                    ImGui::CloseCurrentPopup();
+                }
+
+                ImGui::EndPopup();
+            }
         }
         else if (windowName == "Framerate") {
             bool tps_enabled = config.get<bool>("tps_enabled", false);
@@ -1023,9 +1046,9 @@ void Gui::Render() {
                     if (ImGui::BeginPopupModal(fmt::format("{} Settings", hck.name).c_str(), NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
                         hck.handlerCustomWindow();
 
-                        if (ImGuiH::Button("Close", {400 * m_scale, NULL})) {
+                        if (ImGuiH::Button("Close", {400 * m_scale, NULL}))
                             ImGui::CloseCurrentPopup();
-                        }
+
                         ImGui::EndPopup();
                     }
                 }

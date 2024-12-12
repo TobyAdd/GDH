@@ -388,8 +388,10 @@ class $modify(PlayLayer) {
         // auto unk3188 = m_unk3188;
         // auto replayRandSeed = m_replayRandSeed;
 
-        // m_unk3188 = true;
-        // m_replayRandSeed = 228;
+        // if (config.get<bool>("random_seed", false)) {
+        //     m_unk3188 = true;
+        //     m_replayRandSeed = config.get<int>("random_seed_value", 1337);
+        // }
 
         PlayLayer::resetLevel();
 
@@ -513,13 +515,20 @@ class $modify(PlayLayer) {
     }
     
     void pauseGame(bool paused) {
+        auto& config = Config::get();
         auto& recorderAudio = RecorderAudio::get();
         if (recorderAudio.enabled) {
             ImGuiH::Popup::get().add_popup("You can't pause because the audio is still recording");
             return;
         }
 
+        bool levelEndAnimationStarted = m_levelEndAnimationStarted;
+        if (config.get<bool>("pause_during_complete", false))
+            m_levelEndAnimationStarted = false;
+
         PlayLayer::pauseGame(paused);
+
+        m_levelEndAnimationStarted = levelEndAnimationStarted;
     }
 
     void startMusic() {
