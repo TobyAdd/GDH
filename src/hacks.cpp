@@ -3,6 +3,7 @@
 #include "gui.hpp"
 #include "labels.hpp"
 #include "recorder.hpp"
+#include "replayEngine.hpp"
 #include <imgui-cocos.hpp>
 
 void Hacks::Init() {
@@ -37,7 +38,7 @@ void Hacks::Init() {
                 {"Auto Practice Mode", "Auto-enables practice mode", "auto_practice_mode"}, // +
                 {"Auto Song Download", "Automatic downloading of song when you enter an online level", "auto_song_download"},  // +
                 {"Allow Low Volume", "Removes the limit on minimum volume percentage", "allow_low_volume"},  // +
-                {"Coins In Practice", "The ability to collect coins in practice", "coins_in_practice"},
+                {"Coins In Practice", "The ability to collect coins in practice", "coins_in_practice"},  // +
                 {"Confirm Exit", "Warning before level exit", "confim_exit", "0167"},  // +  
                 {"Fast Chest Open", "Removes the delay for opening chests", "fast_chest_open"}, 
                 // {"Random Seed", "Changes the seed game so that the random trigger is not triggered randomly", "random_seed"},
@@ -51,9 +52,9 @@ void Hacks::Init() {
                 {"Startpos Switcher", "The ability to switch between starting positions using the keys that you setted in keybinds", "startpos_switcher"}, // +
                 {"RGB Icons", "LGBT icons, yes :3", "rgb_icons"}, // +
                 {"Solid Wave Trail", "Disables wave blending", "solid_wave_trail"}, // +
-                {"Show Triggers", "Displaying triggers on the PlayLayer", "show_triggers"},
                 {"Show Hitboxes", "Visualizes hitbox levels", "show_hitboxes"}, // +
-                {"Show Total Attempts", "", "show_total_attempts"},   // +
+                {"Show Total Attempts", "", "show_total_attempts"},  // +
+                {"Straight Fly Bot", "", "straight_fly_bot"},  // +
                 {"Stop triggers on death", "Stops move/rotation triggers on death so you can see what killed you", "stop_triggers_on_death"},   // +
                 {"All Modes Platformer", "Removes the limit on all modes in the platformer", "all_modes_platformer"},
                 {"Force Platformer", "Enables platformer mode in all levels", "force_platformer"},
@@ -64,7 +65,7 @@ void Hacks::Init() {
                 {"No Camera Move", "Disables camera movement via trigger", "no_camera_move"},  // +
                 {"No Camera Zoom", "Disables camera zooming via trigger", "no_camera_zoom"},  // +
                 {"No \"Do Not\" Flip", "Accurate display of attempts with the \"Do not\" function enabled, without flips", "no_do_not_flip"}, // +
-                {"No Effect Circle", "Removes effect circles from orb, portal and pad activations", "no_orb_ring"}, // +
+                {"No Effect Circles", "Removes effect circles from orb, portal and pad activations", "no_orb_ring"}, // +
                 {"No Shaders", "Disabling shaders in levels", "no_shaders"},  // +
                 {"No Particles", "Disables resuming the particle system", "no_particles"}, // +
                 {"No Short Numbers", "All numbers are displayed in full\n(For example, \"1.5M\" becomes \"1500000\")", "no_short_numbers"}, // +
@@ -72,7 +73,7 @@ void Hacks::Init() {
                 {"No Glow", "Disables glow on objects", "no_glow"}, // +
                 {"No Mirror", "Disables level mirroring", "no_mirror_portal"}, // +
                 {"No New Best Popup", "Disable the new best popup", "no_new_best_popup"}, // +
-                {"No Portal Lighting", "Disables lightning when entering mini/large portal", "no_portal_lighting"},
+                {"No Portal Lighting", "Disables lightning when entering mini/large portal", "no_portal_lighting"}, // +
                 {"No Pulse", "Disables pulsation of falls, orbs, etc", "no_pulse"}, // +
                 {"Pause On Complete", "Lets you pouse during the level complete animation", "pause_during_complete"}, // +
                 {"Pulse Size", "Changes pulsation of falls, orbs, etc", "pulse_size"}, // +
@@ -84,12 +85,13 @@ void Hacks::Init() {
                 {"No Wave Trail Fade", "", "wave_trail_on_death"}   // +
             }
         },
-        {"Creator", 450, 10, 220, 280, 
+        {"Creator", 450, 10, 220, 310, 
             {
                 {"Copy Hack", "Copy any online level without a password", "copy_hack"},  // +
                 {"Custom Object Bypass", "Removes the limit restricted to 1000 objects", "custom_object_bypass"}, // +
                 {"Default Song Bypass", "Removes restrictions on secret official songs", "default_song_bypass"}, // +
                 {"Editor Extension", "Increases the editor length by a factor of 128", "editor_extension"}, // +
+                {"Hide UI", "Hides the editor Ul while building", "hide_ui"}, // +
                 {"Verify Hack", "Publish a level without verification", "verify_hack"}, // +
                 {"Smooth Editor Trail", "Makes the wave smoother in the editor", "smooth_editor_trail"}, // +
                 {"Level Edit", "Edit any online level", "level_edit"}, // +
@@ -97,8 +99,8 @@ void Hacks::Init() {
                 {"Zoom Bypass", "", "zoom_bypass"} // +
             }
         },
-        {"Framerate", 450, 300, 220, 130},
-        {"GDH Settings", 450, 440, 220, 180},
+        {"Framerate", 450, 330, 220, 130},
+        {"GDH Settings", 450, 470, 220, 180},
         {"Replay Engine", 680, 10, 300, 200},
         {"Labels", 680, 220, 300, 320},
         {"Variables", 10, 510, 200, 160},
@@ -176,6 +178,26 @@ void Hacks::Init() {
         auto pl = PlayLayer::get();
         if (pl && pl->m_isPaused && pauseLayer != nullptr)
             pauseLayer->setVisible(!enabled);
+    });
+
+    SetHandlerByConfig("hide_ui", [this](bool enabled) {
+        auto ui = EditorUI::get();
+        if (ui)
+            ui->setVisible(!enabled);
+    });
+    
+    SetHandlerByConfig("straight_fly_bot", [this](bool enabled) {
+        auto& straightFly = StraightFly::get();
+        straightFly.start(GJBaseGameLayer::get());
+    });
+
+    SetCustomWindowHandlerByConfig("straight_fly_bot", [this, &config]() {
+        auto &gui = Gui::get();
+        auto& straightFly = StraightFly::get();
+
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        ImGui::DragFloat("##StraightFlyAcc", &straightFly.accuracy, 0.1f, 0.f, 100.f, "Y Accuracy: %.1f");
+        ImGui::Text("Note: Straight Fly Bot works only on first player");
     });
 
     SetCustomWindowHandlerByConfig("wave_trail_size", [this, &config]() {

@@ -76,3 +76,25 @@ private:
     size_t m_inputIndex_p1 = 0;
     size_t m_inputIndex_p2 = 0;
 };
+
+class StraightFly
+{
+public:
+    static StraightFly& get() {
+        static StraightFly instance;
+        return instance;
+    }
+
+    StraightFly& operator=(const StraightFly&) = delete;
+    StraightFly(const StraightFly&) = delete;
+
+    float accuracy = 40.f;
+
+    void handle_straightfly(GJBaseGameLayer *self);
+    void start(GJBaseGameLayer *self);
+
+private:
+    StraightFly() = default;
+
+    float start_y = 0.0f;
+};

@@ -322,3 +322,39 @@ void ReplayEngine::auto_button_release() {
             handle_button(false, m_inputFrames_p2.back().button, m_inputFrames_p2.back().isPlayer1);
     }
 }
+
+void StraightFly::handle_straightfly(GJBaseGameLayer *self)
+{
+    if (!Config::get().get<bool>("straight_fly_bot", false))
+        return;
+
+    float y = self->m_player1->m_position.y;
+    double accel = self->m_player1->m_yVelocity;
+    bool holding = self->m_player1->m_jumpBuffered;
+
+    if (start_y == 0)
+    {
+        start(self);
+    }
+
+    if (self->m_player1->m_isUpsideDown)
+    {
+        float delta_y = y - start_y;
+        y = start_y - delta_y;
+        accel *= -1;
+    }
+
+    if (accel < 0 && y < start_y - accel - accuracy / 100 && !holding)
+    {
+        self->handleButton(true, 1, true);
+    }
+    else if (accel > 0 && y > start_y - accel + accuracy / 100 && holding)
+    {
+        self->handleButton(false, 1, true);
+    }
+}
+
+void StraightFly::start(GJBaseGameLayer *self)
+{
+    start_y = self ? self->m_player1->m_position.y : 0.0f;
+}

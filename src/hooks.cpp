@@ -613,7 +613,7 @@ class $modify(MyEndLevelLayer, EndLevelLayer) {
     }
 };
 
-class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
+class $modify(GJBaseGameLayer) {
     static void onModify(auto& self) {
         (void) self.setHookPriority("GJBaseGameLayer::update", 0x99999);
     }
@@ -670,6 +670,8 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
         GJBaseGameLayer::update(dt);
 
         engine.handle_update(this);
+        StraightFly::get().handle_straightfly(this);
+
         if (config.get<bool>("rgb_icons", false)) {
             color_dt += dt * config.get<float>("rgb_icons::speed", 0.25f);
 
@@ -802,6 +804,29 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
             while (playerTrail2.size() > maxLength)
                 playerTrail2.pop_front();
         }
+    }
+
+    void collisionCheckObjects(PlayerObject* player, gd::vector<GameObject*>* objects, int objectCount, float dt) {
+        auto& config = Config::get();
+        if (config.get<bool>("coins_in_practice", true) && m_isPracticeMode) {
+            for (int i = 0; i < objectCount; i++) {
+                auto* obj = objects->at(i);
+                if (obj && geode::prelude::typeinfo_cast<EffectGameObject*>(obj)) {                
+                    if (obj->m_objectType != GameObjectType::SecretCoin && obj->m_objectType != GameObjectType::UserCoin)
+                        continue;
+
+                    if (obj->getOpacity() == 0)
+                        continue;
+
+                    if (!player->getObjectRect().intersectsRect(obj->getObjectRect()))
+                        continue;
+
+                    GJBaseGameLayer::destroyObject(obj);
+                    GJBaseGameLayer::gameEventTriggered(GJGameEvent::UserCoin, 0, 0);
+                }
+            }
+        }
+        GJBaseGameLayer::collisionCheckObjects(player, objects, objectCount, dt);
     }
 };
 

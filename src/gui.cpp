@@ -317,396 +317,485 @@ void Gui::Render() {
             }
         }
         else if (windowName == "Replay Engine") {
-            auto& engine = ReplayEngine::get();
-            static std::vector<std::filesystem::path> replay_list;
+            static geode::Mod* cbfMod = geode::Loader::get()->getLoadedMod("syzzi.click_between_frames");
+            static bool hasCBF = cbfMod != nullptr && cbfMod->isEnabled();
 
-            if (ImGui::BeginPopupModal("Select Replay", 0, ImGuiWindowFlags_NoResize)) {
-                ImGui::BeginChild("Select Replay##2", {400 * m_scale, 300 * m_scale});
-                for (int i = 0; i < (int)replay_list.size(); i++)
-                {
-                    if (ImGuiH::Button(replay_list[i].filename().string().c_str(), {ImGui::GetContentRegionAvail().x, NULL}))
+            if (hasCBF && !cbfMod->getSettingValue<bool>("soft-toggle")) {
+                ImGui::PushStyleColor(ImGuiCol_Text, ImColor(255, 128, 128).Value);
+                ImGui::TextWrapped("Click Between Frames mod is enabled, turn it off to use Replay Engine");
+                ImGui::PopStyleColor();
+            }
+            else {
+                auto& engine = ReplayEngine::get();
+                static std::vector<std::filesystem::path> replay_list;
+
+                if (ImGui::BeginPopupModal("Select Replay", 0, ImGuiWindowFlags_NoResize)) {
+                    ImGui::BeginChild("Select Replay##2", {400 * m_scale, 300 * m_scale});
+                    for (int i = 0; i < (int)replay_list.size(); i++)
                     {
-                        std::string extension = replay_list[i].filename().extension().string();
-                        if (extension != ".re" && extension != ".re2")
-                            engine.replay_name = replay_list[i].filename().replace_extension().string();
-                        else
-                            engine.replay_name = replay_list[i].filename().string();
-                        ImGui::CloseCurrentPopup();
-                    }
-                }
-                ImGui::EndChild();
-
-                #ifdef GEODE_IS_WINDOWS
-                if (ImGuiH::Button("Open Folder", {ImGui::GetContentRegionAvail().x, NULL})) {
-                    geode::utils::file::openFolder(folderMacroPath);
-                }
-                #endif
-                
-                if (ImGuiH::Button("Close", {ImGui::GetContentRegionAvail().x, NULL})) {
-                    ImGui::CloseCurrentPopup();
-                }
-                ImGui::EndPopup();
-            }
-                
-            int mode_ = (int)engine.mode;
-
-            if (ImGuiH::RadioButton("Disable", &mode_, 0, m_scale))
-                engine.mode = state::disable;
-
-            ImGui::SameLine();
-
-            if (ImGuiH::RadioButton("Record", &mode_, 1, m_scale))
-            {
-                bool canRecord = config.get<bool>("tps_enabled", false);
-                
-                if (canRecord)
-                {
-                    if (engine.mode != state::record) {
-                        engine.clear();
-                    }
-                    engine.mode = state::record;
-                }
-                else
-                {
-                    engine.mode = state::disable;
-                    ImGuiH::Popup::get().add_popup("Enable TPS Bypass to record the replay");
-                }
-            }
-
-            
-            ImGui::SameLine();
-
-            if (ImGuiH::RadioButton("Play", &mode_, 2, m_scale)) {
-                bool canPlay = config.get<bool>("tps_enabled", false);
-                
-                if (canPlay) {
-                    engine.mode = state::play;
-                } else {
-                    engine.mode = state::disable;
-                    ImGuiH::Popup::get().add_popup("Enable TPS Bypass to playback the replay");
-                }
-            }
-
-            ImGui::Separator();   
-
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 35 * m_scale);
-            ImGui::InputText("##replay_name", &engine.replay_name);
-
-            ImGui::SameLine();
-
-            if (ImGuiH::ArrowButton("##replay_select", ImGuiDir_Down)) {
-                replay_list.clear();
-                for (const auto &entry : std::filesystem::directory_iterator(folderMacroPath)) {
-                    std::string ext = entry.path().filename().extension().string();
-                    if (ext == ".re" || ext == ".re2" || ext == ".re3") {
-                        replay_list.push_back(entry);
-                    }
-                }
-                ImGui::OpenPopup("Select Replay");
-            }
-
-            if (ImGuiH::Button("Save", {ImGui::GetContentRegionAvail().x / 3, NULL})) {
-                ImGuiH::Popup::get().add_popup(engine.save(engine.replay_name));
-            }
-            ImGui::SameLine();
-
-            if (ImGuiH::Button("Load", {ImGui::GetContentRegionAvail().x / 2, NULL})) {
-                ImGuiH::Popup::get().add_popup(engine.load(engine.replay_name));
-            }
-            ImGui::SameLine();
-
-            if (ImGuiH::Button("Clear", {ImGui::GetContentRegionAvail().x, NULL})) {
-                engine.clear();
-                ImGuiH::Popup::get().add_popup("Replay has been cleared");
-            }
-
-            ImGui::Text("Replay Size: %zu", engine.get_actions_size());
-            ImGui::Text("Frame: %i", engine.get_frame());
-
-            ImGui::Separator();
-
-            #ifdef GEODE_IS_WINDOWS
-            auto& recorder = Recorder::get();
-            auto& recorderAudio = RecorderAudio::get();
-
-            if (recorder.settings_openned) {
-                static bool first_time = true;
-                if (first_time) {
-                    first_time = false;
-                    ImGui::SetNextWindowSize({800 * m_scale, 520 * m_scale});
-                }                
-            }
-
-            if (ImGui::BeginPopupModal("Recorder", &recorder.settings_openned) && ImGui::BeginTabBar("Recorder Tabs")) {
-                auto containsRussianLetters = [](const std::filesystem::path& p) -> bool {
-                    auto pathStr = p.u8string();
-                    for (char c : pathStr) {
-                        if ((unsigned char)c >= 0xD0 && (unsigned char)c <= 0xD1) {
-                            return true;
+                        if (ImGuiH::Button(replay_list[i].filename().string().c_str(), {ImGui::GetContentRegionAvail().x, NULL}))
+                        {
+                            std::string extension = replay_list[i].filename().extension().string();
+                            if (extension != ".re" && extension != ".re2")
+                                engine.replay_name = replay_list[i].filename().replace_extension().string();
+                            else
+                                engine.replay_name = replay_list[i].filename().string();
+                            ImGui::CloseCurrentPopup();
                         }
                     }
-                    return false;
-                };
-                
-                if (ImGui::BeginTabItem("General")) {
-                    if (recorder.ffmpeg_installed) {                        
-                        auto pl = PlayLayer::get();
-                        if (ImGuiH::Checkbox("Record##Recorder", &recorder.enabled, m_scale)) {
-                            ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+                    ImGui::EndChild();
 
+                    #ifdef GEODE_IS_WINDOWS
+                    if (ImGuiH::Button("Open Folder", {ImGui::GetContentRegionAvail().x, NULL})) {
+                        geode::utils::file::openFolder(folderMacroPath);
+                    }
+                    #endif
+                    
+                    if (ImGuiH::Button("Close", {ImGui::GetContentRegionAvail().x, NULL})) {
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::EndPopup();
+                }
+                    
+                int mode_ = (int)engine.mode;
+
+                if (ImGuiH::RadioButton("Disable", &mode_, 0, m_scale))
+                    engine.mode = state::disable;
+
+                ImGui::SameLine();
+
+                if (ImGuiH::RadioButton("Record", &mode_, 1, m_scale))
+                {
+                    bool canRecord = config.get<bool>("tps_enabled", false);
+                    
+                    if (canRecord)
+                    {
+                        if (engine.mode != state::record) {
+                            engine.clear();
+                        }
+                        engine.mode = state::record;
+                    }
+                    else
+                    {
+                        engine.mode = state::disable;
+                        ImGuiH::Popup::get().add_popup("Enable TPS Bypass to record the replay");
+                    }
+                }
+
+                
+                ImGui::SameLine();
+
+                if (ImGuiH::RadioButton("Play", &mode_, 2, m_scale)) {
+                    bool canPlay = config.get<bool>("tps_enabled", false);
+                    
+                    if (canPlay) {
+                        engine.mode = state::play;
+                    } else {
+                        engine.mode = state::disable;
+                        ImGuiH::Popup::get().add_popup("Enable TPS Bypass to playback the replay");
+                    }
+                }
+
+                ImGui::Separator();   
+
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 35 * m_scale);
+                ImGui::InputText("##replay_name", &engine.replay_name);
+
+                ImGui::SameLine();
+
+                if (ImGuiH::ArrowButton("##replay_select", ImGuiDir_Down)) {
+                    replay_list.clear();
+                    for (const auto &entry : std::filesystem::directory_iterator(folderMacroPath)) {
+                        std::string ext = entry.path().filename().extension().string();
+                        if (ext == ".re" || ext == ".re2" || ext == ".re3") {
+                            replay_list.push_back(entry);
+                        }
+                    }
+                    ImGui::OpenPopup("Select Replay");
+                }
+
+                if (ImGuiH::Button("Save", {ImGui::GetContentRegionAvail().x / 3, NULL})) {
+                    ImGuiH::Popup::get().add_popup(engine.save(engine.replay_name));
+                }
+                ImGui::SameLine();
+
+                if (ImGuiH::Button("Load", {ImGui::GetContentRegionAvail().x / 2, NULL})) {
+                    ImGuiH::Popup::get().add_popup(engine.load(engine.replay_name));
+                }
+                ImGui::SameLine();
+
+                if (ImGuiH::Button("Clear", {ImGui::GetContentRegionAvail().x, NULL})) {
+                    engine.clear();
+                    ImGuiH::Popup::get().add_popup("Replay has been cleared");
+                }
+
+                ImGui::Text("Replay Size: %zu", engine.get_actions_size());
+                ImGui::Text("Frame: %i", engine.get_frame());
+
+                ImGui::Separator();
+
+                #ifdef GEODE_IS_WINDOWS
+                auto& recorder = Recorder::get();
+                auto& recorderAudio = RecorderAudio::get();
+
+                if (recorder.settings_openned) {
+                    static bool first_time = true;
+                    if (first_time) {
+                        first_time = false;
+                        ImGui::SetNextWindowSize({800 * m_scale, 520 * m_scale});
+                    }                
+                }
+
+                if (ImGui::BeginPopupModal("Recorder", &recorder.settings_openned) && ImGui::BeginTabBar("Recorder Tabs")) {
+                    auto containsRussianLetters = [](const std::filesystem::path& p) -> bool {
+                        auto pathStr = p.u8string();
+                        for (char c : pathStr) {
+                            if ((unsigned char)c >= 0xD0 && (unsigned char)c <= 0xD1) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    };
+                    
+                    if (ImGui::BeginTabItem("General")) {
+                        if (recorder.ffmpeg_installed) {                        
+                            auto pl = PlayLayer::get();
+                            if (ImGuiH::Checkbox("Record##Recorder", &recorder.enabled, m_scale)) {
+                                ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+
+                                if (containsRussianLetters(recorder.folderShowcasesPath)) {
+                                    recorder.enabled = false;
+                                    ImGuiH::Popup::get().add_popup("Invalid path to the showcase folder. Please remove any Cyrillic characters");
+                                }
+                                else if (pl && pl->m_hasCompletedLevel) {
+                                    ImGuiH::Popup::get().add_popup("Restart level to start recording");
+                                    recorder.enabled = false;
+                                }
+                                else {
+                                    bool canRecord = (config.get<bool>("tps_enabled", false) && recorder.fps <= config.get<float>("tps_value", 240.f));
+
+                                    if (canRecord) {
+                                        if (recorder.enabled) {
+                                            if (!recorder.advanced_mode) {
+                                                recorder.full_cmd = recorder.compile_command();
+                                            }
+
+                                            recorder.start(recorder.full_cmd);
+                                        }                        
+                                        else 
+                                            recorder.stop();
+                                    }
+                                    else {
+                                        recorder.enabled = false;
+                                        ImGuiH::Popup::get().add_popup("Recorder FPS is valid and less than or equal to macro FPS");
+                                    }
+                                }
+                            }
+
+                            ImGui::SameLine();
+
+                            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                            ImGui::InputText("##videoname", &recorder.video_name);
+
+                            ImGuiH::Checkbox("Advanced Mode", &recorder.advanced_mode, m_scale);
+
+                            if (recorder.advanced_mode) {
+                                ImGui::SameLine();
+                                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                                ImGui::InputText("##full_args", &recorder.full_cmd);
+                                if (ImGuiH::Button("Compile")) {
+                                    recorder.full_cmd = recorder.compile_command();
+                                }
+
+                                ImGui::SameLine();
+                                if (ImGuiH::Button("Copy to clipboard")) {
+                                    ImGui::SetClipboardText(recorder.full_cmd.c_str());
+                                }
+
+                                ImGui::SameLine();
+                                if (ImGuiH::Button("Paste to from clipboard")) {
+                                    recorder.full_cmd = (std::string)ImGui::GetClipboardText();
+                                }
+                            }
+
+                            ImGui::SameLine();
+
+                            ImGui::Spacing();
+
+                            ImGui::Text("Resolution:");
+                            ImGui::Separator();
+
+                            ImGui::PushItemWidth(45.f * m_scale);
+                            if (ImGui::InputInt("##width", &recorder.width, 0) && recorder.lock_aspect_ratio) {
+                                float aspect_ratio = 16.0f / 9.0f;
+                                recorder.height = static_cast<int>(recorder.width / aspect_ratio);
+                            }
+                            ImGui::SameLine(0, 5);
+
+                            ImGui::Text("x");
+                            ImGui::SameLine(0, 5);
+
+                            ImGui::PushItemWidth(45.f * m_scale);
+                            if (ImGui::InputInt("##height", &recorder.height, 0) && recorder.lock_aspect_ratio) {
+                                float aspect_ratio = 16.0f / 9.0f;
+                                recorder.width = static_cast<int>(recorder.height * aspect_ratio);
+                            }
+                            ImGui::SameLine(0, 5);
+
+                            ImGui::Text("@");
+                            ImGui::SameLine(0, 5);
+
+                            ImGui::PushItemWidth(35.f * m_scale);
+                            ImGui::InputInt("##fps", &recorder.fps, 0);
+
+                            ImGui::SameLine(0, 5);
+
+                            ImGuiH::Checkbox("Lock Aspect Ratio (16:9)", &recorder.lock_aspect_ratio, m_scale);
+
+                            ImGui::Spacing();
+
+                            ImGui::Text("Encoding Settings");
+                            ImGui::Separator(); 
+                            
+                            ImGui::PushItemWidth(50.f * m_scale);
+                            ImGui::InputText("Bitrate", &recorder.bitrate);
+
+                            ImGui::SameLine();
+
+                            ImGui::PushItemWidth(80.f * m_scale);
+                            ImGui::InputText("Codec", &recorder.codec);
+
+                            ImGui::PushItemWidth(300 * m_scale);
+                            ImGui::InputText("Extra Arguments", &recorder.extra_args);
+
+                            ImGui::PushItemWidth(300 * m_scale);
+                            ImGui::InputText("VF Args", &recorder.vf_args);
+
+                            if (ImGuiH::Checkbox("vflip", &recorder.vflip, m_scale)) {
+                                recorder.compile_vf_args();
+                            }
+
+                            if (ImGuiH::Checkbox("Fade in", &recorder.fade_in, m_scale)) {
+                                recorder.compile_vf_args();
+                            }
+
+                            ImGui::SameLine();
+
+                            ImGui::PushItemWidth(120 * m_scale);
+                            if (ImGui::DragFloat("##fade_in_start", &recorder.fade_in_start, 0.01f, 0, FLT_MAX, "Start: %.2fs")) {
+                                recorder.compile_vf_args();
+                            }
+
+                            ImGui::SameLine();
+                            
+                            ImGui::PushItemWidth(120 * m_scale);
+                            if (ImGui::DragFloat("##fade_in_end", &recorder.fade_in_end, 0.01f, 0, FLT_MAX, "End: %.2fs")) {
+                                recorder.compile_vf_args();
+                            }
+
+                            ImGuiH::Checkbox("Fade out", &recorder.fade_out, m_scale);
+                            ImGui::Text("Note: The length of the fade-out is calculated based on the value of \"Second to Render After\"");
+
+                            ImGuiH::Checkbox("Hide Level Complete", &recorder.hide_level_complete, m_scale);
+
+                            ImGui::Spacing();
+
+                            ImGui::Text("Level Settings");
+                            ImGui::Separator();
+
+                            ImGui::PushItemWidth(200 * m_scale);
+                            ImGui::InputFloat("Second to Render After", &recorder.after_end_duration, 1);
+
+                            ImGui::Spacing();
+
+                            ImGui::Text("Presets (Thanks WarGack, ElPaan, midixd)");
+
+                            ImGui::Separator();
+
+                            if (ImGuiH::Button("HD"))
+                            {
+                                recorder.width = 1280;
+                                recorder.height = 720;
+                                recorder.fps = 60;
+                                recorder.bitrate = "25M";
+                            }
+
+                            ImGui::SameLine();
+
+                            if (ImGuiH::Button("FULL HD"))
+                            {
+                                recorder.width = 1920;
+                                recorder.height = 1080;
+                                recorder.fps = 60;
+                                recorder.bitrate = "50M";
+                            }
+
+                            ImGui::SameLine();
+
+                            if (ImGuiH::Button("2K"))
+                            {
+                                recorder.width = 2560;
+                                recorder.height = 1440;
+                                recorder.fps = 60;
+                                recorder.bitrate = "70M";
+                            }
+
+                            ImGui::SameLine();
+
+                            if (ImGuiH::Button("4K"))
+                            {
+                                recorder.width = 3840;
+                                recorder.height = 2160;
+                                recorder.fps = 60;
+                                recorder.bitrate = "80M";
+                            }
+
+                            ImGui::SameLine();
+
+                            if (ImGuiH::Button("8K"))
+                            {
+                                recorder.width = 7680;
+                                recorder.height = 4320;
+                                recorder.fps = 60;
+                                recorder.bitrate = "250M";
+                            }
+                                
+                            if (ImGuiH::Button("CPU x264"))
+                            {
+                                recorder.codec = "libx264";
+                                recorder.extra_args = "-pix_fmt yuv420p -preset ultrafast";
+                            }                    
+                            
+                            ImGui::SameLine();
+                            
+                            if (ImGuiH::Button("CPU x265"))
+                            {
+                                recorder.codec = "libx265";
+                                recorder.extra_args = "-pix_fmt yuv420p -preset ultrafast";
+                            }
+                            ImGui::SameLine();
+                            if (ImGuiH::Button("CPU AV1 Lossless"))
+                            {
+                                recorder.codec = "libsvtav1";
+                                recorder.extra_args = "-crf 0 -pix_fmt yuv420p";
+                            }
+                            if (ImGuiH::Button("NVIDIA x264"))
+                            {
+                                recorder.codec = "h264_nvenc";
+                                recorder.extra_args = "-pix_fmt yuv420p -preset p7";
+                            }
+                            ImGui::SameLine();
+                            if (ImGuiH::Button("NVIDIA x265"))
+                            {
+                                recorder.codec = "hevc_nvenc";
+                                recorder.extra_args = "-pix_fmt yuv420p -preset p7";
+                            }
+                            ImGui::SameLine();
+                            
+                            if (ImGuiH::Button("NVIDIA AV1"))
+                            {
+                                recorder.codec = "av1_nvenc";
+                                recorder.extra_args = "-pix_fmt yuv420p -preset p7";
+                            }
+                            
+                            if (ImGuiH::Button("AMD x264 Lossless"))
+                            {
+                                recorder.codec = "h264_amf";
+                                recorder.extra_args = "-pix_fmt yuv420p -rc cqp -qp_i 0 -qp_p 0 -qp_b 0";
+                            }
+                            ImGui::SameLine();
+                            if (ImGuiH::Button("AMD x265 Lossless"))
+                            {
+                                recorder.codec = "hevc_amf";
+                                recorder.extra_args = "-pix_fmt yuv420p -rc cqp -qp_i 0 -qp_p 0 -qp_b 0";
+                            }
+                            if (ImGuiH::Button("Color Fix"))
+                            {
+                                recorder.compile_vf_args();
+                                if (!recorder.vf_args.empty())
+                                    recorder.vf_args += ",";
+                                recorder.vf_args += "scale=out_color_matrix=bt709";
+                            }
+
+                            ImGui::Spacing();
+
+                            ImGui::Text("Folders");
+                            ImGui::Separator();
+
+                            if (ImGuiH::Button("Open Showcase Folder")) {
+                                geode::utils::file::openFolder(recorder.folderShowcasesPath);
+                            }
+
+                            ImGui::SameLine();
+
+                            if (ImGuiH::Button("Change folder")) {                           
+                                auto result = geode::utils::file::pick(geode::utils::file::PickMode::OpenFolder, {std::nullopt, {}});
+                                if (result.isFinished() && !result.getFinishedValue()->isErr()) {
+                                    recorder.folderShowcasesPath = result.getFinishedValue()->unwrap();
+                                    config.set<std::filesystem::path>("showcases_path", recorder.folderShowcasesPath);
+                                }
+                            }
+
+                            ImGui::SameLine();
+
+                            if (ImGuiH::Button("Reset Folder")) {
+                                recorder.folderShowcasesPath = folderPath / "Showcases";
+                                config.set<std::filesystem::path>("showcases_path", recorder.folderShowcasesPath);
+                            }
+
+                            
+                            ImGui::Text("Showcase Folder: %s", recorder.folderShowcasesPath.string().c_str());
+                        }
+                        else {
+                            ImGui::Text("Looks like FFmpeg is not installed, here are the instructions:");
+                            ImGui::Text("1. Download ffmpeg (archive)");
+                            ImGui::SameLine();
+                            if (ImGuiH::Button("Download")) {
+                                ShellExecuteA(0, "open", "https://github.com/AnimMouse/ffmpeg-autobuild/releases/latest", 0, 0, SW_SHOWNORMAL);
+                            }
+                            ImGui::Text("2. Extract from archive \"ffmpeg.exe\" file to Geometry Dash folder");
+                            ImGui::Text("3. Restart Geometry Dash");
+                            if (ImGuiH::Button("Bypass")) recorder.ffmpeg_installed = true;
+                        }
+                        ImGui::EndTabItem();
+                    }	
+                    
+                    if (ImGui::BeginTabItem("Audio")) {
+                        if (ImGui::Checkbox("Record Buffer", &recorderAudio.enabled, m_scale)) {
                             if (containsRussianLetters(recorder.folderShowcasesPath)) {
                                 recorder.enabled = false;
                                 ImGuiH::Popup::get().add_popup("Invalid path to the showcase folder. Please remove any Cyrillic characters");
                             }
-                            else if (pl && pl->m_hasCompletedLevel) {
-                                ImGuiH::Popup::get().add_popup("Restart level to start recording");
-                                recorder.enabled = false;
-                            }
                             else {
-                                bool canRecord = (config.get<bool>("tps_enabled", false) && recorder.fps <= config.get<float>("tps_value", 240.f));
-
-                                if (canRecord) {
-                                    if (recorder.enabled) {
-                                        if (!recorder.advanced_mode) {
-                                            recorder.full_cmd = recorder.compile_command();
-                                        }
-
-                                        recorder.start(recorder.full_cmd);
-                                    }                        
+                                if (!recorderAudio.showcase_mode) {
+                                    if (recorderAudio.enabled)
+                                        recorderAudio.start();
                                     else 
-                                        recorder.stop();
-                                }
-                                else {
-                                    recorder.enabled = false;
-                                    ImGuiH::Popup::get().add_popup("Recorder FPS is valid and less than or equal to macro FPS");
+                                        recorderAudio.stop();
                                 }
                             }
                         }
 
-                        ImGui::SameLine();
+                        ImGui::Checkbox("Showcase Mode", &recorderAudio.showcase_mode, m_scale);
+
+                        if (recorderAudio.showcase_mode) {
+                            ImGui::Spacing();
+
+                            ImGui::Text("Level Settings");
+                            ImGui::Separator();
+
+                        
+                            ImGui::PushItemWidth(200 * m_scale);
+                            ImGui::InputFloat("Second to Render After##2", &recorderAudio.after_end_duration, 1);
+                        }
+
+                        ImGui::Spacing();
+
+                        ImGui::Text("Filename");
+                        ImGui::Separator();
 
                         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                        ImGui::InputText("##videoname", &recorder.video_name);
-
-                        ImGuiH::Checkbox("Advanced Mode", &recorder.advanced_mode, m_scale);
-
-                        if (recorder.advanced_mode) {
-                            ImGui::SameLine();
-                            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                            ImGui::InputText("##full_args", &recorder.full_cmd);
-                            if (ImGuiH::Button("Compile")) {
-                                recorder.full_cmd = recorder.compile_command();
-                            }
-
-                            ImGui::SameLine();
-                            if (ImGuiH::Button("Copy to clipboard")) {
-                                ImGui::SetClipboardText(recorder.full_cmd.c_str());
-                            }
-
-                            ImGui::SameLine();
-                            if (ImGuiH::Button("Paste to from clipboard")) {
-                                recorder.full_cmd = (std::string)ImGui::GetClipboardText();
-                            }
-                        }
-
-                        ImGui::SameLine();
-
-                        ImGui::Spacing();
-
-                        ImGui::Text("Resolution:");
-                        ImGui::Separator();
-
-                        ImGui::PushItemWidth(45.f * m_scale);
-                        if (ImGui::InputInt("##width", &recorder.width, 0) && recorder.lock_aspect_ratio) {
-                            float aspect_ratio = 16.0f / 9.0f;
-                            recorder.height = static_cast<int>(recorder.width / aspect_ratio);
-                        }
-                        ImGui::SameLine(0, 5);
-
-                        ImGui::Text("x");
-                        ImGui::SameLine(0, 5);
-
-                        ImGui::PushItemWidth(45.f * m_scale);
-                        if (ImGui::InputInt("##height", &recorder.height, 0) && recorder.lock_aspect_ratio) {
-                            float aspect_ratio = 16.0f / 9.0f;
-                            recorder.width = static_cast<int>(recorder.height * aspect_ratio);
-                        }
-                        ImGui::SameLine(0, 5);
-
-                        ImGui::Text("@");
-                        ImGui::SameLine(0, 5);
-
-                        ImGui::PushItemWidth(35.f * m_scale);
-                        ImGui::InputInt("##fps", &recorder.fps, 0);
-
-                        ImGui::SameLine(0, 5);
-
-                        ImGuiH::Checkbox("Lock Aspect Ratio (16:9)", &recorder.lock_aspect_ratio, m_scale);
-
-                        ImGui::Spacing();
-
-                        ImGui::Text("Encoding Settings");
-                        ImGui::Separator(); 
-                        
-                        ImGui::PushItemWidth(50.f * m_scale);
-                        ImGui::InputText("Bitrate", &recorder.bitrate);
-
-                        ImGui::SameLine();
-
-                        ImGui::PushItemWidth(80.f * m_scale);
-                        ImGui::InputText("Codec", &recorder.codec);
-
-                        ImGui::PushItemWidth(300 * m_scale);
-                        ImGui::InputText("Extra Arguments", &recorder.extra_args);
-
-                        ImGui::PushItemWidth(300 * m_scale);
-                        ImGui::InputText("VF Args", &recorder.vf_args);
-
-                        if (ImGuiH::Checkbox("vflip", &recorder.vflip, m_scale)) {
-                            recorder.compile_vf_args();
-                        }
-
-                        if (ImGuiH::Checkbox("Fade in", &recorder.fade_in, m_scale)) {
-                            recorder.compile_vf_args();
-                        }
-
-                        ImGui::SameLine();
-
-                        ImGui::PushItemWidth(120 * m_scale);
-                        if (ImGui::DragFloat("##fade_in_start", &recorder.fade_in_start, 0.01f, 0, FLT_MAX, "Start: %.2fs")) {
-                            recorder.compile_vf_args();
-                        }
-
-                        ImGui::SameLine();
-                        
-                        ImGui::PushItemWidth(120 * m_scale);
-                        if (ImGui::DragFloat("##fade_in_end", &recorder.fade_in_end, 0.01f, 0, FLT_MAX, "End: %.2fs")) {
-                            recorder.compile_vf_args();
-                        }
-
-                        ImGuiH::Checkbox("Fade out", &recorder.fade_out, m_scale);
-                        ImGui::Text("Note: The length of the fade-out is calculated based on the value of \"Second to Render After\"");
-
-                        ImGuiH::Checkbox("Hide Level Complete", &recorder.hide_level_complete, m_scale);
-
-                        ImGui::Spacing();
-
-                        ImGui::Text("Level Settings");
-                        ImGui::Separator();
-
-                        ImGui::PushItemWidth(200 * m_scale);
-                        ImGui::InputFloat("Second to Render After", &recorder.after_end_duration, 1);
-
-                        ImGui::Spacing();
-
-                        ImGui::Text("Presets (Thanks WarGack, ElPaan, midixd)");
-
-                        ImGui::Separator();
-
-                        if (ImGuiH::Button("HD"))
-                        {
-                            recorder.width = 1280;
-                            recorder.height = 720;
-                            recorder.fps = 60;
-                            recorder.bitrate = "25M";
-                        }
-
-                        ImGui::SameLine();
-
-                        if (ImGuiH::Button("FULL HD"))
-                        {
-                            recorder.width = 1920;
-                            recorder.height = 1080;
-                            recorder.fps = 60;
-                            recorder.bitrate = "50M";
-                        }
-
-                        ImGui::SameLine();
-
-                        if (ImGuiH::Button("2K"))
-                        {
-                            recorder.width = 2560;
-                            recorder.height = 1440;
-                            recorder.fps = 60;
-                            recorder.bitrate = "70M";
-                        }
-
-                        ImGui::SameLine();
-
-                        if (ImGuiH::Button("4K"))
-                        {
-                            recorder.width = 3840;
-                            recorder.height = 2160;
-                            recorder.fps = 60;
-                            recorder.bitrate = "80M";
-                        }
-
-                        ImGui::SameLine();
-
-                        if (ImGuiH::Button("8K"))
-                        {
-                            recorder.width = 7680;
-                            recorder.height = 4320;
-                            recorder.fps = 60;
-                            recorder.bitrate = "250M";
-                        }
-                            
-                        if (ImGuiH::Button("CPU x264"))
-                        {
-                            recorder.codec = "libx264";
-                            recorder.extra_args = "-pix_fmt yuv420p -preset ultrafast";
-                        }                    
-                        
-                        ImGui::SameLine();
-                        
-                        if (ImGuiH::Button("CPU x265"))
-                        {
-                            recorder.codec = "libx265";
-                            recorder.extra_args = "-pix_fmt yuv420p -preset ultrafast";
-                        }
-                        ImGui::SameLine();
-                        if (ImGuiH::Button("CPU AV1 Lossless"))
-                        {
-                            recorder.codec = "libsvtav1";
-                            recorder.extra_args = "-crf 0 -pix_fmt yuv420p";
-                        }
-                        if (ImGuiH::Button("NVIDIA x264"))
-                        {
-                            recorder.codec = "h264_nvenc";
-                            recorder.extra_args = "-pix_fmt yuv420p -preset p7";
-                        }
-                        ImGui::SameLine();
-                        if (ImGuiH::Button("NVIDIA x265"))
-                        {
-                            recorder.codec = "hevc_nvenc";
-                            recorder.extra_args = "-pix_fmt yuv420p -preset p7";
-                        }
-                        ImGui::SameLine();
-                        
-                        if (ImGuiH::Button("NVIDIA AV1"))
-                        {
-                            recorder.codec = "av1_nvenc";
-                            recorder.extra_args = "-pix_fmt yuv420p -preset p7";
-                        }
-                        
-                        if (ImGuiH::Button("AMD x264 Lossless"))
-                        {
-                            recorder.codec = "h264_amf";
-                            recorder.extra_args = "-pix_fmt yuv420p -rc cqp -qp_i 0 -qp_p 0 -qp_b 0";
-                        }
-                        ImGui::SameLine();
-                        if (ImGuiH::Button("AMD x265 Lossless"))
-                        {
-                            recorder.codec = "hevc_amf";
-                            recorder.extra_args = "-pix_fmt yuv420p -rc cqp -qp_i 0 -qp_p 0 -qp_b 0";
-                        }
-                        if (ImGuiH::Button("Color Fix"))
-                        {
-                            recorder.compile_vf_args();
-                            if (!recorder.vf_args.empty())
-                                recorder.vf_args += ",";
-                            recorder.vf_args += "scale=out_color_matrix=bt709";
-                        }
+                        ImGui::InputText("##audio_filename", &recorderAudio.audio_name);
 
                         ImGui::Spacing();
 
@@ -716,169 +805,90 @@ void Gui::Render() {
                         if (ImGuiH::Button("Open Showcase Folder")) {
                             geode::utils::file::openFolder(recorder.folderShowcasesPath);
                         }
+                        ImGui::EndTabItem();
+                    }
+                    
+                    if (ImGui::BeginTabItem("Merge")) {
+                        static bool shortest = true;
+                        static std::vector<std::filesystem::path> videos;
+                        static std::vector<std::filesystem::path> audios;
+                        static int index_videos = 0;
+                        static int index_audios = 0;
 
-                        ImGui::SameLine();
+                        ImGui::BeginChild("##VideoSelect", {NULL, 150 * m_scale}, true);
+                        for (size_t i = 0; i < videos.size(); i++) {
+                            bool is_selected = (index_videos == i);
+                            if (ImGui::Selectable(videos[i].filename().string().c_str(), is_selected)) {
+                                index_videos = i;
+                            }
+                        }
+                        ImGui::EndChild();
 
-                        if (ImGuiH::Button("Change folder")) {                           
-                            auto result = geode::utils::file::pick(geode::utils::file::PickMode::OpenFolder, {std::nullopt, {}});
-                            if (result.isFinished() && !result.getFinishedValue()->isErr()) {
-                                recorder.folderShowcasesPath = result.getFinishedValue()->unwrap();
-                                config.set<std::filesystem::path>("showcases_path", recorder.folderShowcasesPath);
+                        ImGui::BeginChild("##AudioSelect", {NULL, 150 * m_scale}, true);
+                        for (size_t i = 0; i < audios.size(); i++) {
+                            bool is_selected = (index_audios == i);
+                            if (ImGui::Selectable(audios[i].filename().string().c_str(), is_selected)) {
+                                index_audios = i;
+                            }
+                        }
+                        ImGui::EndChild();
+
+                        if (ImGuiH::Button("Refresh", {ImGui::GetContentRegionAvail().x, NULL})) {
+                            videos.clear();
+                            audios.clear();
+                            for (const auto &entry : std::filesystem::directory_iterator(recorder.folderShowcasesPath)) {
+                                if (entry.path().extension() == ".mp4" || 
+                                    entry.path().extension() == ".mkv" || 
+                                    entry.path().extension() == ".avi" || 
+                                    entry.path().extension() == ".mov" || 
+                                    entry.path().extension() == ".flv" || 
+                                    entry.path().extension() == ".wmv" || 
+                                    entry.path().extension() == ".webm" || 
+                                    entry.path().extension() == ".m4v" || 
+                                    entry.path().extension() == ".mpeg") {
+                                    
+                                    videos.push_back(entry.path().string());
+                                }
+
+                                if (entry.path().extension() == ".wav") {
+                                    audios.push_back(entry.path().string());
+                                }
                             }
                         }
 
-                        ImGui::SameLine();
-
-                        if (ImGuiH::Button("Reset Folder")) {
-                            recorder.folderShowcasesPath = folderPath / "Showcases";
-                            config.set<std::filesystem::path>("showcases_path", recorder.folderShowcasesPath);
-                        }
+                        ImGui::Checkbox("Shortest", &shortest, m_scale);
 
                         
-                        ImGui::Text("Showcase Folder: %s", recorder.folderShowcasesPath.string().c_str());
-                    }
-                    else {
-                        ImGui::Text("Looks like FFmpeg is not installed, here are the instructions:");
-                        ImGui::Text("1. Download ffmpeg (archive)");
                         ImGui::SameLine();
-                        if (ImGuiH::Button("Download")) {
-                            ShellExecuteA(0, "open", "https://github.com/AnimMouse/ffmpeg-autobuild/releases/latest", 0, 0, SW_SHOWNORMAL);
-                        }
-                        ImGui::Text("2. Extract from archive \"ffmpeg.exe\" file to Geometry Dash folder");
-                        ImGui::Text("3. Restart Geometry Dash");
-                        if (ImGuiH::Button("Bypass")) recorder.ffmpeg_installed = true;
-                    }
-                    ImGui::EndTabItem();
-                }	
-                
-                if (ImGui::BeginTabItem("Audio")) {
-                    if (ImGui::Checkbox("Record Buffer", &recorderAudio.enabled, m_scale)) {
-                        if (containsRussianLetters(recorder.folderShowcasesPath)) {
-                            recorder.enabled = false;
-                            ImGuiH::Popup::get().add_popup("Invalid path to the showcase folder. Please remove any Cyrillic characters");
-                        }
-                        else {
-                            if (!recorderAudio.showcase_mode) {
-                                if (recorderAudio.enabled)
-                                    recorderAudio.start();
-                                else 
-                                    recorderAudio.stop();
-                            }
-                        }
-                    }
 
-                    ImGui::Checkbox("Showcase Mode", &recorderAudio.showcase_mode, m_scale);
-
-                    if (recorderAudio.showcase_mode) {
-                        ImGui::Spacing();
-
-                        ImGui::Text("Level Settings");
-                        ImGui::Separator();
-
-                    
-                        ImGui::PushItemWidth(200 * m_scale);
-                        ImGui::InputFloat("Second to Render After##2", &recorderAudio.after_end_duration, 1);
-                    }
-
-                    ImGui::Spacing();
-
-                    ImGui::Text("Filename");
-                    ImGui::Separator();
-
-                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                    ImGui::InputText("##audio_filename", &recorderAudio.audio_name);
-
-                    ImGui::Spacing();
-
-                    ImGui::Text("Folders");
-                    ImGui::Separator();
-
-                    if (ImGuiH::Button("Open Showcase Folder")) {
-                        geode::utils::file::openFolder(recorder.folderShowcasesPath);
-                    }
-                    ImGui::EndTabItem();
-                }
-                
-                if (ImGui::BeginTabItem("Merge")) {
-                    static bool shortest = true;
-                    static std::vector<std::filesystem::path> videos;
-                    static std::vector<std::filesystem::path> audios;
-                    static int index_videos = 0;
-                    static int index_audios = 0;
-
-                    ImGui::BeginChild("##VideoSelect", {NULL, 150 * m_scale}, true);
-                    for (size_t i = 0; i < videos.size(); i++) {
-                        bool is_selected = (index_videos == i);
-                        if (ImGui::Selectable(videos[i].filename().string().c_str(), is_selected)) {
-                            index_videos = i;
-                        }
-                    }
-                    ImGui::EndChild();
-
-                    ImGui::BeginChild("##AudioSelect", {NULL, 150 * m_scale}, true);
-                    for (size_t i = 0; i < audios.size(); i++) {
-                        bool is_selected = (index_audios == i);
-                        if (ImGui::Selectable(audios[i].filename().string().c_str(), is_selected)) {
-                            index_audios = i;
-                        }
-                    }
-                    ImGui::EndChild();
-
-                    if (ImGuiH::Button("Refresh", {ImGui::GetContentRegionAvail().x, NULL})) {
-                        videos.clear();
-                        audios.clear();
-                        for (const auto &entry : std::filesystem::directory_iterator(recorder.folderShowcasesPath)) {
-                            if (entry.path().extension() == ".mp4" || 
-                                entry.path().extension() == ".mkv" || 
-                                entry.path().extension() == ".avi" || 
-                                entry.path().extension() == ".mov" || 
-                                entry.path().extension() == ".flv" || 
-                                entry.path().extension() == ".wmv" || 
-                                entry.path().extension() == ".webm" || 
-                                entry.path().extension() == ".m4v" || 
-                                entry.path().extension() == ".mpeg") {
+                        if (ImGuiH::Button("Merge", {ImGui::GetContentRegionAvail().x, NULL})) {
+                            if (videos.empty() || audios.empty()) {
                                 
-                                videos.push_back(entry.path().string());
-                            }
-
-                            if (entry.path().extension() == ".wav") {
-                                audios.push_back(entry.path().string());
+                            } else if (index_videos >= 0 && index_videos < (int)videos.size() && index_audios >= 0 && index_audios < (int)audios.size()) {
+                                std::string command2 = "ffmpeg.exe -y -i \"" + videos[index_videos].string() + "\" -i \"" + audios[index_audios].string() + "\" -map 0:v -map 1:a -c:v copy ";
+                                if (shortest) {
+                                    command2 += "-shortest ";
+                                }
+                                std::filesystem::path video_rel(videos[index_videos]);
+                                command2 += fmt::format("\"{}\\audio_{}\"", recorder.folderShowcasesPath, video_rel.filename().string());
+                                geode::log::debug("{}", command2);
+                                auto process = subprocess::Popen(command2);
                             }
                         }
-                    }
+                        ImGui::EndTabItem();
+                    }	
+                    ImGui::EndTabBar();
+                    ImGui::EndPopup();
+                }                            
+                                
 
-                    ImGui::Checkbox("Shortest", &shortest, m_scale);
-
-                    
-                    ImGui::SameLine();
-
-                    if (ImGuiH::Button("Merge", {ImGui::GetContentRegionAvail().x, NULL})) {
-                        if (videos.empty() || audios.empty()) {
-                            
-                        } else if (index_videos >= 0 && index_videos < (int)videos.size() && index_audios >= 0 && index_audios < (int)audios.size()) {
-                            std::string command2 = "ffmpeg.exe -y -i \"" + videos[index_videos].string() + "\" -i \"" + audios[index_audios].string() + "\" -map 0:v -map 1:a -c:v copy ";
-                            if (shortest) {
-                                command2 += "-shortest ";
-                            }
-                            std::filesystem::path video_rel(videos[index_videos]);
-                            command2 += fmt::format("\"{}\\audio_{}\"", recorder.folderShowcasesPath, video_rel.filename().string());
-                            geode::log::debug("{}", command2);
-                            auto process = subprocess::Popen(command2);
-                        }
-                    }
-                    ImGui::EndTabItem();
-                }	
-                ImGui::EndTabBar();
-                ImGui::EndPopup();
-            }                            
-                            
-
-            if (ImGui::MenuItem("Recorder")) {
-                recorder.settings_openned = true;
-                recorder.ffmpeg_installed = std::filesystem::exists("ffmpeg.exe");
-                ImGui::OpenPopup("Recorder");
-            }
-            #endif
+                if (ImGui::MenuItem("Recorder")) {
+                    recorder.settings_openned = true;
+                    recorder.ffmpeg_installed = std::filesystem::exists("ffmpeg.exe");
+                    ImGui::OpenPopup("Recorder");
+                }
+                #endif
+            }           
         }
         else if (windowName == "Labels") {
             auto &labels = Labels::get();
@@ -998,19 +1008,38 @@ void Gui::Render() {
             }
 
             if (ImGuiH::Button("Uncomplete Level", {ImGui::GetContentRegionAvail().x, NULL})) {
-
+                ImGuiH::Popup::get().add_popup("unimplemented");
             }
 
             if (ImGuiH::Button("Inject DLL", {ImGui::GetContentRegionAvail().x, NULL})) {
+                #ifdef GEODE_IS_WINDOWS
+                geode::utils::file::FilePickOptions::Filter filter = {
+                    .description = "Dynamic Link Library",
+                    .files = { "*.dll"}
+                };
 
+                auto result = geode::utils::file::pick(geode::utils::file::PickMode::OpenFile, {std::nullopt, {filter}});
+                if (result.isFinished() && !result.getFinishedValue()->isErr()) {
+                    std::filesystem::path path = result.getFinishedValue()->unwrap();
+                    HMODULE hModule = LoadLibraryW(path.wstring().c_str());
+                    if (hModule) {
+                        ImGuiH::Popup::get().add_popup("Injected successfully");
+                    }
+                    else {
+                        ImGuiH::Popup::get().add_popup("Failed to inject");
+                    }
+                }
+                #endif
             }
 
             if (ImGuiH::Button("Resources", {ImGui::GetContentRegionAvail().x/2, NULL})) {
-
+                auto path = cocos2d::CCFileUtils::get()->getWritablePath2();
+                geode::utils::file::openFolder(path);
             }
             ImGui::SameLine();
             if (ImGuiH::Button("AppData", {ImGui::GetContentRegionAvail().x, NULL})) {
-
+                auto path = geode::dirs::getSaveDir();
+                geode::utils::file::openFolder(path);
             }
         }
         else {
