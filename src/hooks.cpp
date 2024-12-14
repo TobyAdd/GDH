@@ -105,19 +105,26 @@ class $modify(cocos2d::CCScheduler) {
         auto start = std::chrono::high_resolution_clock::now();
 
         for (unsigned i = 0; i < times; ++i) {
-            disable_render = recorderAudio.enabled ? true : recorder.is_recording ? false : (i != times - 1);
+            bool is_last_frame = (i == times - 1);
+            bool is_timeout = (std::chrono::high_resolution_clock::now() - start > std::chrono::milliseconds(33));
+
+            disable_render = !(recorderAudio.enabled || recorder.is_recording) && !is_last_frame && !is_timeout;
 
             if (recorder.is_recording) recorder.applyWinSize();
-            CCScheduler::update(newdt);      
-            if (recorder.is_recording) recorder.restoreWinSize();  
 
-            if (std::chrono::high_resolution_clock::now() - start > std::chrono::milliseconds(33)) {
+            CCScheduler::update(newdt);
+
+            if (recorder.is_recording) recorder.restoreWinSize();
+
+            if (is_timeout) {
                 break;
             }
         }
+
         disable_render = false;
     }
 };
+
 
 class $modify(FMODAudioEngine) {
     void update(float delta) {
@@ -619,7 +626,7 @@ class $modify(GJBaseGameLayer) {
     }
 
     void handleButton(bool down, int button, bool isPlayer1) {
-        GJBaseGameLayer::handleButton(down, button, isPlayer1);   
+        GJBaseGameLayer::handleButton(down, button, isPlayer1);
         ReplayEngine::get().handle_button(down, button, isPlayer1);
         if (down) CpsCounter::get().click();
     }
@@ -669,8 +676,8 @@ class $modify(GJBaseGameLayer) {
 
         GJBaseGameLayer::update(dt);
 
-        engine.handle_update(this);
         StraightFly::get().handle_straightfly(this);
+        engine.handle_update(this);
 
         if (config.get<bool>("rgb_icons", false)) {
             color_dt += dt * config.get<float>("rgb_icons::speed", 0.25f);
@@ -684,13 +691,18 @@ class $modify(GJBaseGameLayer) {
             bool wave_trail_p1 = config.get<bool>("rgb_icons::wave_trail_p1", true);
             bool wave_trail_p2 = config.get<bool>("rgb_icons::wave_trail_p2", true);
 
-            if (player_p1 && m_player1) m_player1->setColor(color1);
-            if (player_p1 && m_player1) m_player1->setSecondColor(color2);
+            if (player_p1 && m_player1) {
+                m_player1->setColor(color1);
+                m_player1->setSecondColor(color2);
+            }
             if (wave_trail_p1 && m_player1->m_waveTrail) m_player1->m_waveTrail->setColor(color1);
 
-            if (player_p2 && m_player2) m_player2->setColor(color2);
-            if (player_p2 && m_player2) m_player2->setSecondColor(color1);
-            if (wave_trail_p1 && m_player2->m_waveTrail) m_player2->m_waveTrail->setColor(color2);
+            if (player_p2 && m_player2) {
+                m_player2->setColor(color2);
+                m_player2->setSecondColor(color1);
+            }
+
+            if (wave_trail_p2 && m_player2->m_waveTrail) m_player2->m_waveTrail->setColor(color2);
         }
     }
 

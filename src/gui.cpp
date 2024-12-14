@@ -1033,7 +1033,7 @@ void Gui::Render() {
             }
 
             if (ImGuiH::Button("Resources", {ImGui::GetContentRegionAvail().x/2, NULL})) {
-                auto path = cocos2d::CCFileUtils::get()->getWritablePath2();
+                std::string path = cocos2d::CCFileUtils::get()->getWritablePath2();
                 geode::utils::file::openFolder(path);
             }
             ImGui::SameLine();

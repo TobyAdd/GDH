@@ -145,9 +145,7 @@ void Recorder::start(std::string command) {
 }
 
 void Recorder::stop() {
-    texture.end();
-
-    ImGuiH::Popup::get().add_popup("Video recording stoped!");
+    texture.end();    
 
     is_recording = false;
     enabled = false;
@@ -161,6 +159,10 @@ void Recorder::stop() {
     if (pl && hide_level_complete) {
         need_visible_lc = true;
     }
+
+    restoreWinSize();
+
+    ImGuiH::Popup::get().add_popup("Video recording stoped!");
     
 }
 
