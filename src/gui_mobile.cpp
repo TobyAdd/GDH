@@ -4,8 +4,6 @@
 
 using namespace geode::prelude;
 
-std::array<std::string, 6> tabs = {"Core", "Player", "Creator", "Labels", "Replay", "About"};
-
 HacksTab* HacksTab::create() {
     auto ret = new HacksTab();
     if (ret->init()) {
@@ -68,6 +66,22 @@ bool HacksLayer::setup() {
     background->setContentSize({325.f, 210.f});
     m_mainLayer->addChild(background);
 
+    auto arrow = CCSprite::createWithSpriteFrameName("GJ_arrow_01_001.png");
+    auto left_arrowClick = CCMenuItemExt::createSpriteExtra(arrow, [this](CCMenuItemSpriteExtra* sender) {
+       
+    });
+    left_arrowClick->setPosition({-20, 125});
+    m_buttonMenu->addChild(left_arrowClick);
+
+    auto arrowFlip = CCSprite::createWithSpriteFrameName("GJ_arrow_01_001.png");
+    arrowFlip->setFlipX(true);
+    auto right_arrowClick = CCMenuItemExt::createSpriteExtra(arrowFlip, [this](CCMenuItemSpriteExtra* sender) {
+       
+    });
+    
+    right_arrowClick->setPosition({480, 125});
+    m_buttonMenu->addChild(right_arrowClick);
+
     int i = 0;
     float tabPositionY = 205.f;
     for (auto& win : hacks.m_windows) {
@@ -75,10 +89,10 @@ bool HacksLayer::setup() {
             continue;
 
         auto button = ButtonSprite::create(win.name.c_str(), 90, true, "Roboto.fnt"_spr, (i == 0) ? "GDH_button_02.png"_spr : "GDH_button_01.png"_spr, 30.f, 0.7f);
-        auto buttonClick = CCMenuItemExt::createSpriteExtra(button, [this](CCMenuItemSpriteExtra* sender) {
+        auto buttonClick = CCMenuItemExt::createSpriteExtra(button, [this, &hacks](CCMenuItemSpriteExtra* sender) {
             index = sender->getTag();
 
-            for (int i = 0; i < tabs.size(); i++) {
+            for (int i = 0; i < hacks.m_windows.size() - 4; i++) {
                 auto* btn = m_buttonMenu->getChildByTag(i);
                 auto* child = btn->getChildren()->objectAtIndex(0);
                 if (auto* btnSprite = typeinfo_cast<ButtonSprite*>(child)) {
@@ -93,22 +107,37 @@ bool HacksLayer::setup() {
         tabPositionY -= 35;
         i++;
 
+        if (i != 1)
+            continue;
+
+        int tabIndex = 0;
         unsigned hacks_count = static_cast<int>(win.hacks.size()/8);
         for (auto& hck : win.hacks) {
-            auto exampleTab = HacksTab::create();
-            exampleTab->addToggle(hck.name.c_str(), config.get<bool>(hck.config, false), [&config, &hck](bool enabled) {
-                config.set(hck.config, enabled);
-                if (!hck.game_var.empty())
-                    GameManager::get()->setGameVariable(hck.game_var.c_str(), enabled);
-                if (hck.handlerFunc) hck.handlerFunc(enabled);
-            });
+            auto tab = HacksTab::create();
+            tab->setVisible(tabIndex == 0);
+            m_mainLayer->addChild(tab);
+
+            int hackIndex = 0;
+            for (auto& hck : win.hacks) {
+                tab->addToggle(hck.name.c_str(), config.get<bool>(hck.config, false), [&config, &hck](bool enabled) {
+                    config.set(hck.config, enabled);
+                    if (!hck.game_var.empty())
+                        GameManager::get()->setGameVariable(hck.game_var.c_str(), enabled);
+                    if (hck.handlerFunc) hck.handlerFunc(enabled);
+                });
+                hackIndex++;
+
+                if (hackIndex % 8 == 0) {
+                    tab = HacksTab::create();
+                    tab->setVisible(false);
+                    m_mainLayer->addChild(tab);
+                    tabIndex++;
+                }
+            }
+            tabIndex++;
             
         }
-    }    
-
-    auto exampleTab = HacksTab::create();
-    exampleTab->addToggle("No Respawn Blink", false, [&config](bool enabled) { });
-    m_mainLayer->addChild(exampleTab);
+    }
 
     return true;
 }
