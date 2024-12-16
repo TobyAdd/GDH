@@ -74,54 +74,69 @@ void switchStartPos(int incBy, bool direction = true) {
     }
 }
 
-float left_over = 0.f;
-bool disable_render = false;
-float old_dt = 0.f;
-float real_dt = 0.f;
 
 float color_dt = 0.f;
 
+// unsigned ticks = 0;
+
+// class $modify(cocos2d::CCScheduler) {
+//     void update(float dt) {
+//         auto& config = Config::get();
+//         auto& recorder = Recorder::get();
+//         auto& recorderAudio = RecorderAudio::get();
+
+//         if (config.get<bool>("speedhack_enabled", false)) {
+//             dt *= config.get<float>("speedhack_value", 1.f);
+//         }
+
+//         if (!config.get<bool>("tps_enabled", false)) {
+//             CCScheduler::update(dt);
+//             return;
+//         }
+
+//         float tps_value = config.get<float>("tps_value", 240.f);
+//         float new_dt = 1.f / tps_value;
+
+//         if (ticks == 0) {
+//             ticks = static_cast<unsigned>(dt / new_dt);
+//         }
+
+//         auto startTime = std::chrono::high_resolution_clock::now();
+
+//         for (; ticks > 0; --ticks) {
+//             if (recorder.is_recording) recorder.applyWinSize();
+//             CCScheduler::update(new_dt);
+//             if (recorder.is_recording) recorder.restoreWinSize();
+//         }
+//     }
+// };
+
+float left_over = 0.f;
+
 class $modify(cocos2d::CCScheduler) {
     void update(float dt) {
-        auto &config = Config::get();
-        auto& recorder = Recorder::get();
-        auto& recorderAudio = RecorderAudio::get();
-
+        auto& config = Config::get();
         if (config.get<bool>("speedhack_enabled", false))
             dt *= config.get<float>("speedhack_value", 1.f);
 
         if (!config.get<bool>("tps_enabled", false))
             return CCScheduler::update(dt);
-
-        old_dt = dt;
-
+        
         float tps_value = config.get<float>("tps_value", 240.f);
-        float newdt = 1.f / tps_value;
-
-        left_over += dt;
-        unsigned times = static_cast<unsigned>(left_over / newdt);
-        left_over -= times * newdt;
-
+        float new_dt = 1.f / tps_value;
+    
+        unsigned times = static_cast<int>((dt + left_over) / new_dt);  
         auto start = std::chrono::high_resolution_clock::now();
+        using namespace std::literals;
 
         for (unsigned i = 0; i < times; ++i) {
-            bool is_last_frame = (i == times - 1);
-            bool is_timeout = (std::chrono::high_resolution_clock::now() - start > std::chrono::milliseconds(33));
-
-            disable_render = !(recorderAudio.enabled || recorder.is_recording) && !is_last_frame && !is_timeout;
-
-            if (recorder.is_recording) recorder.applyWinSize();
-
-            CCScheduler::update(newdt);
-
-            if (recorder.is_recording) recorder.restoreWinSize();
-
-            if (is_timeout) {
+            CCScheduler::update(new_dt);
+            if (std::chrono::high_resolution_clock::now() - start > 33.333ms) {            
+                times = i + 1;
                 break;
             }
         }
-
-        disable_render = false;
+        left_over += dt - new_dt * times; 
     }
 };
 
@@ -280,12 +295,6 @@ class $modify(PlayLayer) {
         
     void postUpdate(float dt) {
         auto& config = Config::get();
-
-        if (disable_render)
-            return;
-
-        if (config.get<bool>("tps_enabled", false) && !Recorder::get().is_recording)
-            dt = real_dt;
 
         PlayLayer::postUpdate(dt);
 
@@ -671,8 +680,6 @@ class $modify(GJBaseGameLayer) {
 
         if (recorder.is_recording) recorder.handle_recording(dt);        
         if (recorderAudio.is_recording) recorderAudio.handle_recording(dt);
-        
-        real_dt = getCustomDelta(old_dt, 240.f, false);
 
         GJBaseGameLayer::update(dt);
 
