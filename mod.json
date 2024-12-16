@@ -10,6 +10,20 @@
 	"name": "GDH",
 	"version": "v5.0.0",
 	"developer": "TobyAdd",
-	"description": "",
-	"early-load": true
+	"description": "GDH is an open-source Geometry Dash mod menu that aims to improve the game's performance and add new features",
+	"early-load": true,
+	"resources": {
+		"sprites": [
+			"res/GDH_square.png",
+			"res/GDH_closeBtn.png",
+			"res/GDH_button_01.png",
+			"res/GDH_button_02.png"
+		],
+		"fonts": {
+            "Roboto": {
+                "path": "res/Roboto-Regular.ttf",
+                "size": 80
+            }
+        }
+	}
 }

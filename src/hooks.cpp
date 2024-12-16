@@ -74,57 +74,27 @@ void switchStartPos(int incBy, bool direction = true) {
     }
 }
 
-
 float color_dt = 0.f;
-
-// unsigned ticks = 0;
-
-// class $modify(cocos2d::CCScheduler) {
-//     void update(float dt) {
-//         auto& config = Config::get();
-//         auto& recorder = Recorder::get();
-//         auto& recorderAudio = RecorderAudio::get();
-
-//         if (config.get<bool>("speedhack_enabled", false)) {
-//             dt *= config.get<float>("speedhack_value", 1.f);
-//         }
-
-//         if (!config.get<bool>("tps_enabled", false)) {
-//             CCScheduler::update(dt);
-//             return;
-//         }
-
-//         float tps_value = config.get<float>("tps_value", 240.f);
-//         float new_dt = 1.f / tps_value;
-
-//         if (ticks == 0) {
-//             ticks = static_cast<unsigned>(dt / new_dt);
-//         }
-
-//         auto startTime = std::chrono::high_resolution_clock::now();
-
-//         for (; ticks > 0; --ticks) {
-//             if (recorder.is_recording) recorder.applyWinSize();
-//             CCScheduler::update(new_dt);
-//             if (recorder.is_recording) recorder.restoreWinSize();
-//         }
-//     }
-// };
-
 float left_over = 0.f;
 
 class $modify(cocos2d::CCScheduler) {
     void update(float dt) {
-        auto& config = Config::get();
+        auto &config = Config::get();
+        auto& recorder = Recorder::get();
+        auto& recorderAudio = RecorderAudio::get();
+
         if (config.get<bool>("speedhack_enabled", false))
             dt *= config.get<float>("speedhack_value", 1.f);
 
         if (!config.get<bool>("tps_enabled", false))
             return CCScheduler::update(dt);
-        
-        float tps_value = config.get<float>("tps_value", 240.f);
+
+        float tps_value = config.get<float>("tps_value", 60.f);
         float new_dt = 1.f / tps_value;
-    
+
+        if (!config.get<bool>("tps::real_time", false))
+            return CCScheduler::update(new_dt);
+
         unsigned times = static_cast<int>((dt + left_over) / new_dt);  
         auto start = std::chrono::high_resolution_clock::now();
         using namespace std::literals;
@@ -663,14 +633,14 @@ class $modify(GJBaseGameLayer) {
         if (!config.get<bool>("tps_enabled", false))
             return GJBaseGameLayer::getModifiedDelta(dt);
 
-        return getCustomDelta(dt, config.get<float>("tps_value", 240.f));
+        return getCustomDelta(dt, config.get<float>("tps_value", 60.f));
     }
 
     void update(float dt) {
+        auto& engine = ReplayEngine::get();
         auto& recorder = Recorder::get();
         auto& recorderAudio = RecorderAudio::get();
         auto& config = Config::get();
-        auto& engine = ReplayEngine::get();
 
         if (config.get<bool>("stop_triggers_on_death", false) && m_player1->m_isDead || m_player2->m_isDead)
             return;
@@ -680,7 +650,7 @@ class $modify(GJBaseGameLayer) {
 
         if (recorder.is_recording) recorder.handle_recording(dt);        
         if (recorderAudio.is_recording) recorderAudio.handle_recording(dt);
-
+    
         GJBaseGameLayer::update(dt);
 
         StraightFly::get().handle_straightfly(this);

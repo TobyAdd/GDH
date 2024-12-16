@@ -81,8 +81,6 @@ void Gui::Render() {
     ImGuiH::Popup::get().render();
     ImGui::PopStyleVar();
     
-
-
     if (isAnimating) {
         animateAlpha();
     }
@@ -189,8 +187,6 @@ void Gui::Render() {
                 if (ImGuiH::Button("Sort Windows", {ImGui::GetContentRegionAvail().x, NULL}))
                     stretchedWindows.clear();
 
-                
-
                 if (ImGuiH::Button("Close", {400 * m_scale, 0})) {
                     ImGui::CloseCurrentPopup();
                 }
@@ -200,7 +196,7 @@ void Gui::Render() {
         }
         else if (windowName == "Framerate") {
             bool tps_enabled = config.get<bool>("tps_enabled", false);
-            float tps_value = config.get<float>("tps_value", 240.f);
+            float tps_value = config.get<float>("tps_value", 60.f);;
 
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - (35 + 5) * m_scale);
             if (ImGui::DragFloat("##tps_value", &tps_value, 1, 1, FLT_MAX, "%0.f TPS"))
@@ -209,6 +205,9 @@ void Gui::Render() {
             ImGui::SameLine();
             if (ImGuiH::Checkbox("##tps_enabled", &tps_enabled, m_scale))
                 config.set<bool>("tps_enabled", tps_enabled);
+
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("Multiplies the number of ticks per second, used mainly for botting\n(not recommended for normal use as it ruins the game's performance)");
             
             bool speedhack_enabled = config.get<bool>("speedhack_enabled", false);
             float speedhack_value = config.get<float>("speedhack_value", 1.f);
@@ -225,6 +224,22 @@ void Gui::Render() {
 
             if (ImGuiH::Checkbox("Speedhack Audio", &speedhackAudio_enabled, m_scale))
                 config.set<bool>("speedhackAudio_enabled", speedhackAudio_enabled);
+
+            ImGui::SameLine();
+
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10.f * m_scale);
+            if (ImGuiH::ArrowButton("##more_tps_settings", ImGuiDir_Down)) {
+                ImGui::OpenPopup("More TPS Settings");
+            }
+
+            if (ImGui::BeginPopup("More TPS Settings")) {
+                bool tps_real_time = config.get<bool>("tps::real_time", true);
+                if (ImGuiH::Checkbox("Real Time", &tps_real_time, m_scale)) 
+                    config.set<bool>("tps::real_time", tps_real_time);
+
+                if (ImGui::IsItemHovered())
+                    ImGui::SetTooltip("Allows real-time update of multiplied ticks (may cause lags)");
+            }
         }
         else if (windowName == "Variables") {
             static int type_index = 0;
@@ -472,7 +487,7 @@ void Gui::Render() {
                                     recorder.enabled = false;
                                 }
                                 else {
-                                    bool canRecord = (config.get<bool>("tps_enabled", false) && recorder.fps <= config.get<float>("tps_value", 240.f));
+                                    bool canRecord = (config.get<bool>("tps_enabled", false) && recorder.fps <= config.get<float>("tps_value", 60.f));
 
                                     if (canRecord) {
                                         if (recorder.enabled) {
