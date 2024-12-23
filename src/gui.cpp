@@ -776,7 +776,7 @@ void Gui::Render() {
                     }	
                     
                     if (ImGui::BeginTabItem("Audio")) {
-                        if (ImGui::Checkbox("Record Buffer", &recorderAudio.enabled, m_scale)) {
+                        if (ImGuiH::Checkbox("Record Buffer", &recorderAudio.enabled, m_scale)) {
                             if (containsRussianLetters(recorder.folderShowcasesPath)) {
                                 recorder.enabled = false;
                                 ImGuiH::Popup::get().add_popup("Invalid path to the showcase folder. Please remove any Cyrillic characters");
@@ -791,7 +791,7 @@ void Gui::Render() {
                             }
                         }
 
-                        ImGui::Checkbox("Showcase Mode", &recorderAudio.showcase_mode, m_scale);
+                        ImGuiH::Checkbox("Showcase Mode", &recorderAudio.showcase_mode, m_scale);
 
                         if (recorderAudio.showcase_mode) {
                             ImGui::Spacing();
@@ -871,7 +871,7 @@ void Gui::Render() {
                             }
                         }
 
-                        ImGui::Checkbox("Shortest", &shortest, m_scale);
+                        ImGuiH::Checkbox("Shortest", &shortest, m_scale);
 
                         
                         ImGui::SameLine();
