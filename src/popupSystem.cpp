@@ -37,6 +37,21 @@ void popupSystem::AddText(std::string text, float scale, float y_space) {
     currentY -= y_space;
 }
 
+void popupSystem::AddIntInput(std::string hint, int value, std::function<void(int)> callback, float y_space) {
+    auto input = TextInput::create(285, hint, "chatFont.fnt");
+    input->setPosition({150.f, currentY});
+    input->setString(fmt::format("{}", value));
+    input->setFilter("1234567890");
+    input->setCallback([callback](const std::string& text) {
+        if (utilsH::isNumeric(text))
+            callback(std::stoi(text));
+    });
+
+    m_mainLayer->addChild(input);
+
+    currentY -= y_space;
+}
+
 void popupSystem::AddFloatInput(std::string hint, float value, std::function<void(float)> callback, float y_space) {
     auto input = TextInput::create(285, hint, "chatFont.fnt");
     input->setPosition({150.f, currentY});
@@ -53,9 +68,8 @@ void popupSystem::AddFloatInput(std::string hint, float value, std::function<voi
 }
 
 void popupSystem::AddToggle(std::string text, bool value, std::function<void(bool)> callback, float y_space) {
-    CCMenuItemToggler* toggler;
-    toggler = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [this, callback, toggler](CCMenuItemToggler* sender) {
-        callback(!toggler->isOn());
+    CCMenuItemToggler* toggler = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [this, callback](CCMenuItemToggler* sender) {
+        callback(!sender->isOn());
     });
 
     toggler->setPosition({ 10, 0 });

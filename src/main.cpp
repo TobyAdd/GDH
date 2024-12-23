@@ -54,7 +54,7 @@ class $modify(MyMenuLayer, MenuLayer) {
         }
         
 
-        #ifdef GEODE_IS_ANDROID
+        // #ifdef GEODE_IS_ANDROID
         auto myButton = CCMenuItemSpriteExtra::create(
 			cocos2d::CCSprite::createWithSpriteFrameName("GJ_likeBtn_001.png"),
 			this,
@@ -66,7 +66,7 @@ class $modify(MyMenuLayer, MenuLayer) {
 		myButton->setID("hacks-button"_spr);
 
 		menu->updateLayout();
-        #endif
+        // #endif
 
         return true;
     }

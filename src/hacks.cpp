@@ -192,6 +192,13 @@ void Hacks::Init() {
         straightFly.start(GJBaseGameLayer::get());
     });
 
+     SetHandlerByConfig("show_hitboxes", [this](bool enabled) {
+        auto pl = PlayLayer::get();
+        if (pl && !enabled && !(pl->m_isPracticeMode && GameManager::get()->getGameVariable("0166"))) {
+            pl->m_debugDrawNode->setVisible(false);
+        }
+    });
+
     SetCustomWindowHandlerByConfig("straight_fly_bot", [this, &config]() { // +
         auto& straightFly = StraightFly::get();
         #ifdef GEODE_IS_WINDOWS 
@@ -215,7 +222,7 @@ void Hacks::Init() {
 
     });
 
-    SetCustomWindowHandlerByConfig("wave_trail_size", [this, &config]() {
+    SetCustomWindowHandlerByConfig("wave_trail_size", [this, &config]() { // +
         float value = config.get<float>("wave_trail_size_value", 1.f);
         #ifdef GEODE_IS_WINDOWS 
 
@@ -235,7 +242,7 @@ void Hacks::Init() {
         #endif
     });
 
-    SetCustomWindowHandlerByConfig("respawn_time", [this, &config]() {
+    SetCustomWindowHandlerByConfig("respawn_time", [this, &config]() {  // +
         float value = config.get<float>("respawn_time_value", 1.f);
 
         #ifdef GEODE_IS_WINDOWS 
@@ -255,7 +262,7 @@ void Hacks::Init() {
         #endif
     });
 
-    SetCustomWindowHandlerByConfig("pulse_size", [this, &config]() {
+    SetCustomWindowHandlerByConfig("pulse_size", [this, &config]() {  // +
         float value = config.get<float>("pulse_size_value", 0.5f);
         bool multiply = config.get<bool>("pulse_multiply", false);
 
@@ -272,9 +279,9 @@ void Hacks::Init() {
         #elif defined(GEODE_IS_ANDROID64) 
 
         auto popup = popupSystem::create();
-        popup->AddToggle("Multiply pulsation", multiply, [this, &config, multiply](bool value) 
+        popup->AddToggle("Multiply pulsation", multiply, [this, &config](bool enabled) 
         {
-            config.set<bool>("pulse_multiply", multiply);
+            config.set<bool>("pulse_multiply", enabled);
         });
 
         popup->AddText("Pulse Size:");
@@ -288,28 +295,26 @@ void Hacks::Init() {
         #endif
     });
 
-    SetCustomWindowHandlerByConfig("startpos_switcher", [this, &config]() {
-        #ifdef GEODE_IS_WINDOWS 
-        auto &gui = Gui::get();
-
+    SetCustomWindowHandlerByConfig("startpos_switcher", [this, &config]() {  // +
         bool reset_camera = config.get<bool>("startos_switcher::reset_camera", true);
+
+        #ifdef GEODE_IS_WINDOWS 
+        auto &gui = Gui::get();       
 
         if (ImGuiH::Checkbox("Reset Camera", &reset_camera, gui.m_scale))
             config.set<bool>("startos_switcher::reset_camera", reset_camera);
+        #elif defined(GEODE_IS_ANDROID64) 
+
+        auto popup = popupSystem::create();
+        popup->AddToggle("Reset Camera", reset_camera, [this, &config](bool enabled) 
+        {
+            config.set<bool>("startos_switcher::reset_camera", enabled);
+        });
+        popup->show();
         #endif
     });
 
-    SetHandlerByConfig("show_hitboxes", [this](bool enabled) {
-        auto pl = PlayLayer::get();
-        if (pl && !enabled && !(pl->m_isPracticeMode && GameManager::get()->getGameVariable("0166"))) {
-            pl->m_debugDrawNode->setVisible(false);
-        }
-    });
-
-    SetCustomWindowHandlerByConfig("show_hitboxes", [this, &config]() {
-        #ifdef GEODE_IS_WINDOWS 
-        auto &gui = Gui::get();
-
+    SetCustomWindowHandlerByConfig("show_hitboxes", [this, &config]() {  // +
         bool draw_trail = config.get<bool>("show_hitboxes::draw_trail", false);
         bool show_hitboxes_on_death = config.get<bool>("show_hitboxes::on_death", false);
 
@@ -318,6 +323,9 @@ void Hacks::Init() {
 
         int trail_length = config.get<int>("show_hitboxes::trail_length", 240);
         float size = config.get<float>("show_hitboxes::size", 0.25f);
+
+        #ifdef GEODE_IS_WINDOWS 
+        auto &gui = Gui::get();
 
         if (ImGuiH::Checkbox("Fill Color", &fill_color, gui.m_scale))
             config.set<bool>("show_hitboxes::fill_color", fill_color);
@@ -341,6 +349,38 @@ void Hacks::Init() {
             config.set<float>("show_hitboxes::size", size);
 
         ImGui::Text("Tip: Enable hitboxes in the editor by checking the \"Show\nHitboxes\" option in the Editor Pause menu");
+        #elif defined(GEODE_IS_ANDROID64) 
+
+        auto popup = popupSystem::create();
+        popup->AddToggle("Fill Color", fill_color, [this, &config](bool enabled) 
+        {
+            config.set<bool>("fill_color", enabled);
+        });
+
+        popup->AddToggle("Show Hitboxes on Death", show_hitboxes_on_death, [this, &config](bool enabled) 
+        {
+            config.set<bool>("show_hitboxes::on_death", enabled);
+        });
+
+        popup->AddToggle("Draw Trail", draw_trail, [this, &config](bool enabled) 
+        {
+            config.set<bool>("show_hitboxes::draw_trail", enabled);
+        }, 20.f);
+
+        popup->AddText("Trail Length:", 0.35f, 20.f);
+
+        popup->AddIntInput("Trail Length", trail_length, [this, &config](float value) 
+        {
+            config.set("show_hitboxes::trail_length", value);
+        }, 25.f);
+
+        popup->AddText("Hitbox Size:", 0.35f, 20.f);
+
+        popup->AddFloatInput("Hitbox Size", size, [this, &config](float value) 
+        {
+            config.set("show_hitboxes::size", value);
+        });
+        popup->show();
         #endif
     });
 
@@ -455,6 +495,8 @@ void Hacks::Init() {
 
             ImGui::PopID();
         }
+        #elif defined(GEODE_IS_ANDROID64) 
+        FLAlertLayer::create("Info", "interface is not implemented, sorry :(", "OK")->show();        
         #endif
     });
 
