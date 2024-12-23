@@ -14,9 +14,8 @@ HacksTab* HacksTab::create() {
     return nullptr;
 }
 
-void HacksTab::addToggle(const std::string& text, const std::string& desc, bool enabled, const std::function<void(bool)>& callback) {
+void HacksTab::addToggle(const std::string& text, const std::string& desc, bool enabled, const std::function<void(bool)>& callback, std::function<void()> handlerCustomWindow) {
     auto toggle = CCMenuItemToggler::createWithStandardSprites(this, menu_selector(HacksTab::onToggle), 0.75f);
-    // y_lastToggle = 195 - (m_togglerCallbacks.size() * 25);
 
     toggle->setPosition({ 15, 10 });
     toggle->toggle(enabled);
@@ -39,6 +38,16 @@ void HacksTab::addToggle(const std::string& text, const std::string& desc, bool 
         });
         descClick->setPosition(label->getPositionX() + label->getScaledContentWidth() + 5.f, label->getScaledContentHeight());
         hack->addChild(descClick);
+    }
+
+    if (handlerCustomWindow != nullptr) {
+        auto moreSettingsSprite = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
+        moreSettingsSprite->setScale(0.5f);
+        auto moreSettingsSpriteClick = CCMenuItemExt::createSpriteExtra(moreSettingsSprite, [this, handlerCustomWindow](CCMenuItemSpriteExtra* sender) {
+            handlerCustomWindow();
+        });
+        moreSettingsSpriteClick->setPosition(label->getPositionX() + label->getScaledContentWidth() + 25.f, label->getPositionY());
+        hack->addChild(moreSettingsSpriteClick);
     }
 
     m_scrollLayer->m_contentLayer->addChild(hack);
@@ -83,8 +92,7 @@ bool HacksLayer::setup() {
     auto& config = Config::get();
     auto& hacks = Hacks::get();
 
-    this->setTitle("GDH");
-    this->m_title->setFntFile("Roboto.fnt"_spr);
+    this->setTitle("GDH", "Roboto.fnt"_spr);
 
     auto closeBtnSprite = CCSprite::create("GDH_closeBtn.png"_spr);
     m_closeBtn->setSprite(closeBtnSprite);
@@ -92,6 +100,7 @@ bool HacksLayer::setup() {
     auto background = extension::CCScale9Sprite::create("square02_small.png");
     background->setPosition({290.f, 115.f});
     background->setContentSize({325.f, 210.f});
+    background->setOpacity(100);
     m_mainLayer->addChild(background);
 
     int i = 0;
@@ -122,7 +131,7 @@ bool HacksLayer::setup() {
                 if (!hck.game_var.empty())
                     GameManager::get()->setGameVariable(hck.game_var.c_str(), enabled);
                 if (hck.handlerFunc) hck.handlerFunc(enabled);
-            });          
+            }, hck.handlerCustomWindow);          
         }
 
         tab->m_scrollLayer->m_contentLayer->updateLayout();

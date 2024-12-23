@@ -36,7 +36,7 @@ class $modify(MyMenuLayer, MenuLayer) {
     bool init() {
         if (!MenuLayer::init()) return false;
 
-        // #ifdef GEODE_IS_WINDOWS
+        #ifdef GEODE_IS_WINDOWS
         if (!inited) {
             inited = true;
 
@@ -50,7 +50,7 @@ class $modify(MyMenuLayer, MenuLayer) {
                 gui.Render();
             });
         }
-        // #endif
+        #endif
 
         // #ifdef GEODE_IS_ANDROID
         auto myButton = CCMenuItemSpriteExtra::create(

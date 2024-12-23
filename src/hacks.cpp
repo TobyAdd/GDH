@@ -5,6 +5,7 @@
 #include "recorder.hpp"
 #include "replayEngine.hpp"
 #include <imgui-cocos.hpp>
+#include "popupSystem.hpp"
 
 void Hacks::Init() {
     m_windows = {
@@ -192,31 +193,41 @@ void Hacks::Init() {
     });
 
     SetCustomWindowHandlerByConfig("straight_fly_bot", [this, &config]() {
-        auto &gui = Gui::get();
-        auto& straightFly = StraightFly::get();
+        // #ifdef GEODE_IS_WINDOWS 
+        // auto &gui = Gui::get();
+        // auto& straightFly = StraightFly::get();
 
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        ImGui::DragFloat("##StraightFlyAcc", &straightFly.accuracy, 0.1f, 0.f, 100.f, "Y Accuracy: %.1f");
-        ImGui::Text("Note: Straight Fly Bot works only on first player");
+        // ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        // ImGui::DragFloat("##StraightFlyAcc", &straightFly.accuracy, 0.1f, 0.f, 100.f, "Y Accuracy: %.1f");
+        // ImGui::Text("Note: Straight Fly Bot works only on first player");
+        // #elif defined(GEODE_IS_ANDROID64) 
+        auto popup = PopupSystem::create();
+        popup->show();
+        // #endif
     });
 
     SetCustomWindowHandlerByConfig("wave_trail_size", [this, &config]() {
+        #ifdef GEODE_IS_WINDOWS 
         float value = config.get<float>("wave_trail_size_value", 1.f);
 
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         if (ImGui::DragFloat("##waveTrailSize", &value, 0.01f, 0.0f, FLT_MAX, "Wave Trail Size: %.2f")) 
             config.set("wave_trail_size_value", value);
+        #endif
     });
 
     SetCustomWindowHandlerByConfig("respawn_time", [this, &config]() {
+        #ifdef GEODE_IS_WINDOWS 
         float value = config.get<float>("respawn_time_value", 1.f);
 
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         if (ImGui::DragFloat("##respawn_time_value", &value, 0.01f, 0.0f, FLT_MAX, "Respawn Time: %.2f")) 
             config.set("respawn_time_value", value);
+        #endif
     });
 
     SetCustomWindowHandlerByConfig("pulse_size", [this, &config]() {
+        #ifdef GEODE_IS_WINDOWS 
         auto &gui = Gui::get();
 
         float value = config.get<float>("pulse_size_value", 0.5f);
@@ -229,15 +240,18 @@ void Hacks::Init() {
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         if (ImGui::DragFloat("##pulse_size_value", &value, 0.01f, 0.0f, FLT_MAX, "Pulse Size: %.2f")) 
             config.set("pulse_size_value", value);
+        #endif
     });
 
     SetCustomWindowHandlerByConfig("startpos_switcher", [this, &config]() {
+        #ifdef GEODE_IS_WINDOWS 
         auto &gui = Gui::get();
 
         bool reset_camera = config.get<bool>("startos_switcher::reset_camera", true);
 
         if (ImGuiH::Checkbox("Reset Camera", &reset_camera, gui.m_scale))
             config.set<bool>("startos_switcher::reset_camera", reset_camera);
+        #endif
     });
 
     SetHandlerByConfig("show_hitboxes", [this](bool enabled) {
@@ -248,6 +262,7 @@ void Hacks::Init() {
     });
 
     SetCustomWindowHandlerByConfig("show_hitboxes", [this, &config]() {
+        #ifdef GEODE_IS_WINDOWS 
         auto &gui = Gui::get();
 
         bool draw_trail = config.get<bool>("show_hitboxes::draw_trail", false);
@@ -281,6 +296,7 @@ void Hacks::Init() {
             config.set<float>("show_hitboxes::size", size);
 
         ImGui::Text("Tip: Enable hitboxes in the editor by checking the \"Show\nHitboxes\" option in the Editor Pause menu");
+        #endif
     });
 
     // SetCustomWindowHandlerByConfig("random_seed", [this, &config]() {
@@ -293,6 +309,7 @@ void Hacks::Init() {
     // });
 
     SetCustomWindowHandlerByConfig("rgb_icons", [this, &config]() {
+        #ifdef GEODE_IS_WINDOWS 
         auto &gui = Gui::get();
         auto &colors = RGBIcons::get();
 
@@ -393,6 +410,7 @@ void Hacks::Init() {
 
             ImGui::PopID();
         }
+        #endif
     });
 
     Recorder::get().folderShowcasesPath = Config::get().get<std::filesystem::path>("showcases_path", folderPath / "Showcases");

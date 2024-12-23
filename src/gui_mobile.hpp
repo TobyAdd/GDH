@@ -4,7 +4,7 @@
 class HacksTab : public cocos2d::CCMenu {
 public:
     static HacksTab* create();
-    void addToggle(const std::string& text, const std::string& desc, bool enabled, const std::function<void(bool)>& callback);
+    void addToggle(const std::string& text, const std::string& desc, bool enabled, const std::function<void(bool)>& callback, std::function<void()> handlerCustomWindow = nullptr);
     float x_lastToggle;
     float y_lastToggle;
 
