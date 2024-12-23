@@ -1,6 +1,7 @@
 #include "gui_mobile.hpp"
 #include "config.hpp"
 #include "hacks.hpp"
+#include "labels.hpp"
 
 using namespace geode::prelude;
 
@@ -178,5 +179,8 @@ HacksLayer* HacksLayer::create() {
 }
 
 void HacksLayer::onExit() {
+    Config::get().save(fileDataPath);
+    Labels::get().save();
+    RGBIcons::get().save();
     geode::Popup<>::onExit();
 }

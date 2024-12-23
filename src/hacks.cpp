@@ -192,46 +192,75 @@ void Hacks::Init() {
         straightFly.start(GJBaseGameLayer::get());
     });
 
-    SetCustomWindowHandlerByConfig("straight_fly_bot", [this, &config]() {
-        // #ifdef GEODE_IS_WINDOWS 
-        // auto &gui = Gui::get();
-        // auto& straightFly = StraightFly::get();
+    SetCustomWindowHandlerByConfig("straight_fly_bot", [this, &config]() { // +
+        auto& straightFly = StraightFly::get();
+        #ifdef GEODE_IS_WINDOWS 
+        auto &gui = Gui::get();
 
-        // ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        // ImGui::DragFloat("##StraightFlyAcc", &straightFly.accuracy, 0.1f, 0.f, 100.f, "Y Accuracy: %.1f");
-        // ImGui::Text("Note: Straight Fly Bot works only on first player");
-        // #elif defined(GEODE_IS_ANDROID64) 
-        auto popup = PopupSystem::create();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        ImGui::DragFloat("##StraightFlyAcc", &straightFly.accuracy, 0.1f, 0.f, 100.f, "Y Accuracy: %.1f");
+        ImGui::Text("Note: Straight Fly Bot works only on first player");
+        #elif defined(GEODE_IS_ANDROID64) 
+        auto popup = popupSystem::create();
+        popup->AddText("Y Accuracy:");
+        popup->AddFloatInput("Y Accuracy", straightFly.accuracy, [this, &straightFly](float value) 
+        {
+            straightFly.accuracy = value;
+        },
+        35.f);
+
+        popup->AddText("Note: Straight Fly Bot works only\non first player", 0.45f);
         popup->show();
-        // #endif
+        #endif
+
     });
 
     SetCustomWindowHandlerByConfig("wave_trail_size", [this, &config]() {
-        #ifdef GEODE_IS_WINDOWS 
         float value = config.get<float>("wave_trail_size_value", 1.f);
+        #ifdef GEODE_IS_WINDOWS 
 
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         if (ImGui::DragFloat("##waveTrailSize", &value, 0.01f, 0.0f, FLT_MAX, "Wave Trail Size: %.2f")) 
             config.set("wave_trail_size_value", value);
+        #elif defined(GEODE_IS_ANDROID64) 
+
+        auto popup = popupSystem::create();
+        popup->AddText("Wave Trail Size:");
+        popup->AddFloatInput("Wave Trail Size", value, [this, &config](float value) 
+        {
+            config.set("wave_trail_size_value", value);
+        },
+        35.f);
+        popup->show();
         #endif
     });
 
     SetCustomWindowHandlerByConfig("respawn_time", [this, &config]() {
-        #ifdef GEODE_IS_WINDOWS 
         float value = config.get<float>("respawn_time_value", 1.f);
 
+        #ifdef GEODE_IS_WINDOWS 
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         if (ImGui::DragFloat("##respawn_time_value", &value, 0.01f, 0.0f, FLT_MAX, "Respawn Time: %.2f")) 
             config.set("respawn_time_value", value);
+        #elif defined(GEODE_IS_ANDROID64) 
+
+        auto popup = popupSystem::create();
+        popup->AddText("Respawn Time:");
+        popup->AddFloatInput("Respawn Time", value, [this, &config](float value) 
+        {
+            config.set("respawn_time_value", value);
+        },
+        35.f);
+        popup->show();
         #endif
     });
 
     SetCustomWindowHandlerByConfig("pulse_size", [this, &config]() {
-        #ifdef GEODE_IS_WINDOWS 
-        auto &gui = Gui::get();
-
         float value = config.get<float>("pulse_size_value", 0.5f);
         bool multiply = config.get<bool>("pulse_multiply", false);
+
+        #ifdef GEODE_IS_WINDOWS 
+        auto &gui = Gui::get();
 
         if (ImGuiH::Checkbox("Multiply pulsation", &multiply, gui.m_scale)) {
             config.set<bool>("pulse_multiply", multiply);
@@ -240,6 +269,22 @@ void Hacks::Init() {
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         if (ImGui::DragFloat("##pulse_size_value", &value, 0.01f, 0.0f, FLT_MAX, "Pulse Size: %.2f")) 
             config.set("pulse_size_value", value);
+        #elif defined(GEODE_IS_ANDROID64) 
+
+        auto popup = popupSystem::create();
+        popup->AddToggle("Multiply pulsation", multiply, [this, &config, multiply](bool value) 
+        {
+            config.set<bool>("pulse_multiply", multiply);
+        });
+
+        popup->AddText("Pulse Size:");
+
+        popup->AddFloatInput("Pulse Size", value, [this, &config](float value) 
+        {
+            config.set("pulse_size_value", value);
+        },
+        35.f);
+        popup->show();
         #endif
     });
 

@@ -1,6 +1,9 @@
 #include "utils.hpp"
+bool utilsH::isNumeric(const std::string& str) {
+    if (str.empty()) {
+        return false;
+    }
 
-bool utils::isNumeric(const std::string& str) {
     bool hasDot = false;
     bool hasMinus = false;
 
@@ -22,5 +25,5 @@ bool utils::isNumeric(const std::string& str) {
         }
     }
 
-    return !str.empty();
+    return !(hasMinus && str.size() == 1) && !(hasDot && str.size() == 1);
 }

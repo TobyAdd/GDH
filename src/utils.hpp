@@ -2,6 +2,6 @@
 #include <string>
 #include <cctype>
 
-namespace utils {
+namespace utilsH {
     bool isNumeric(const std::string& str);
 }

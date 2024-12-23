@@ -71,13 +71,6 @@ std::vector<std::string> stretchedWindows;
 void Gui::Render() {
     
     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1);
-    #ifdef GEODE_IS_ANDROID
-    ImGui::Begin("toggle gui");
-    if (ImGuiH::Button("toggle")) {
-        Toggle();
-    }
-    ImGui::End();
-    #endif
     ImGuiH::Popup::get().render();
     ImGui::PopStyleVar();
     
@@ -325,7 +318,7 @@ void Gui::Render() {
             ImGui::SameLine();
 
             if (ImGuiH::Button("Set", {ImGui::GetContentRegionAvail().x, NULL})) {
-                if (utils::isNumeric(value)) {
+                if (utilsH::isNumeric(value)) {
                     if (type_index == 0) handleGetSetCreator(true);
                     else if (type_index == 1) handleGetSetPlayer(true);
                 }

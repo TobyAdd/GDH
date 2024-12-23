@@ -1,12 +1,15 @@
 #pragma once
 #include <Geode/Geode.hpp>
 
-class PopupSystem : public geode::Popup<> {
+class popupSystem : public geode::Popup<> {
+private:
+    float currentY = 160.f;
 public:
-    float y_lastToggle;
-
+    static popupSystem* create(); 
     bool setup();
-
-    static PopupSystem* create(); 
     void onExit();
+
+    void AddText(std::string text, float scale = 0.5f, float y_space = 25.f);
+    void AddFloatInput(std::string hint, float value, std::function<void(float)> callback, float y_space = 35.f);
+    void AddToggle(std::string text, bool value, std::function<void(bool)> callback, float y_space = 35.f);
 };
