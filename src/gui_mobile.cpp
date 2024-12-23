@@ -14,20 +14,34 @@ HacksTab* HacksTab::create() {
     return nullptr;
 }
 
-void HacksTab::addToggle(const std::string& text, bool enabled, const std::function<void(bool)>& callback) {
+void HacksTab::addToggle(const std::string& text, const std::string& desc, bool enabled, const std::function<void(bool)>& callback) {
     auto toggle = CCMenuItemToggler::createWithStandardSprites(this, menu_selector(HacksTab::onToggle), 0.75f);
-    y_lastToggle = 195 - (m_togglerCallbacks.size() * 25);
+    // y_lastToggle = 195 - (m_togglerCallbacks.size() * 25);
 
-    toggle->setPosition({ 15, y_lastToggle });
+    toggle->setPosition({ 15, 10 });
     toggle->toggle(enabled);
 
     auto label = CCLabelBMFont::create(text.c_str(), "bigFont.fnt");
     label->setAnchorPoint({0.f, 0.5f});
     label->setScale(0.5f);
-    label->setPosition({ toggle->getPositionX() + 15.f, y_lastToggle });
+    label->setPosition({ toggle->getPositionX() + 15.f, 10 });
 
-    m_scrollLayer->m_contentLayer->addChild(toggle);
-    m_scrollLayer->m_contentLayer->addChild(label);
+    auto hack = CCMenu::create();
+    hack->setContentSize({325, 25});
+    hack->addChild(toggle);
+    hack->addChild(label);
+
+    if (!desc.empty()) {
+        auto descSprite = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
+        descSprite->setScale(0.4f);
+        auto descClick = CCMenuItemExt::createSpriteExtra(descSprite, [this, desc](CCMenuItemSpriteExtra* sender) {
+            FLAlertLayer::create("Desc", desc, "OK")->show();
+        });
+        descClick->setPosition(label->getPositionX() + label->getScaledContentWidth() + 5.f, label->getScaledContentHeight());
+        hack->addChild(descClick);
+    }
+
+    m_scrollLayer->m_contentLayer->addChild(hack);
 
     m_togglerCallbacks[toggle] = callback;
 }
@@ -89,6 +103,7 @@ bool HacksLayer::setup() {
 
         auto button = ButtonSprite::create(win.name.c_str(), 90, true, "Roboto.fnt"_spr, 
             (i == m_index) ? "GDH_button_02.png"_spr : "GDH_button_01.png"_spr, 30.f, 0.7f);
+
         auto buttonClick = CCMenuItemExt::createSpriteExtra(button, [this, i](CCMenuItemSpriteExtra* sender) {
             switchTab(i);
         });
@@ -102,7 +117,7 @@ bool HacksLayer::setup() {
         m_mainLayer->addChild(tab);
 
         for (auto& hck : win.hacks) {
-            tab->addToggle(hck.name.c_str(), config.get<bool>(hck.config, false), [&config, &hck](bool enabled) {
+            tab->addToggle(hck.name, hck.desc, config.get<bool>(hck.config, false), [&config, &hck](bool enabled) {
                 config.set(hck.config, enabled);
                 if (!hck.game_var.empty())
                     GameManager::get()->setGameVariable(hck.game_var.c_str(), enabled);
@@ -110,7 +125,6 @@ bool HacksLayer::setup() {
             });          
         }
 
-        tab->m_scrollLayer->m_contentLayer->setContentHeight(35 * win.hacks.size() + 5);
         tab->m_scrollLayer->m_contentLayer->updateLayout();
         tab->m_scrollLayer->moveToTop();
 
