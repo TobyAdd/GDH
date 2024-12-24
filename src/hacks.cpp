@@ -121,6 +121,7 @@ void Hacks::Init() {
 
     #ifdef GEODE_IS_ANDROID
     SetCustomWindowHandlerByConfig("tps_enabled", [this, &config]() { // +
+        bool tps_real_time = config.get<bool>("tps::real_time", true);
         float tps_value = config.get<float>("tps_value", 60.f);
         auto popup = popupSystem::create();
         popup->AddText("TPS Value:");
@@ -130,6 +131,13 @@ void Hacks::Init() {
                 config.set<float>("tps_value", value);
         },
         35.f);
+
+        popup->AddToggle("Real Time", tps_real_time, [this, &config](bool enabled) 
+        {
+            config.set<bool>("tps::real_time", enabled);
+        });
+
+
         popup->show();
     });
 
@@ -182,6 +190,13 @@ void Hacks::Init() {
     });
 
     #endif
+
+    SetHandlerByConfig("rgb_icons", [this](bool enabled) {
+        auto& colors = RGBIcons::get();
+        if (enabled && colors.colors.empty()) 
+            for (const auto& color : colors.rainbowColors)
+                colors.colors.push_back(color);
+    });
 
     SetHandlerByConfig("editor_extension", [this](bool enabled) {
         uintptr_t address1; //Pattern: 00 60 6A 48 (2x)
@@ -470,17 +485,7 @@ void Hacks::Init() {
         
         ImGui::SameLine();
         if (ImGuiH::Button("Rainbow Colors", {ImGui::GetContentRegionAvail().x / 2, NULL})) {
-            std::vector<cocos2d::ccColor3B> rainbowColors = {
-                cocos2d::ccColor3B(255, 0, 0),
-                cocos2d::ccColor3B(255, 127, 0),
-                cocos2d::ccColor3B(255, 255, 0),
-                cocos2d::ccColor3B(0, 255, 0),
-                cocos2d::ccColor3B(0, 191, 255),
-                cocos2d::ccColor3B(0, 0, 255),
-                cocos2d::ccColor3B(139, 0, 255)
-            };
-
-            for (const auto& color : rainbowColors) {
+            for (const auto& color : colors.rainbowColors) {
                 colors.colors.push_back(color);
             }
         }

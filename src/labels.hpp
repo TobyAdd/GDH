@@ -123,7 +123,9 @@ public:
     RGBIcons& operator=(const RGBIcons&) = delete;
     RGBIcons(const RGBIcons&) = delete;
 
-    std::vector<cocos2d::ccColor3B> colors = {
+    std::vector<cocos2d::ccColor3B> colors;
+
+    std::vector<cocos2d::ccColor3B> rainbowColors = {
         cocos2d::ccColor3B(255, 0, 0),
         cocos2d::ccColor3B(255, 127, 0),
         cocos2d::ccColor3B(255, 255, 0),
@@ -131,7 +133,7 @@ public:
         cocos2d::ccColor3B(0, 191, 255),
         cocos2d::ccColor3B(0, 0, 255),
         cocos2d::ccColor3B(139, 0, 255)
-    };;
+    };
 
     cocos2d::ccColor3B interpolateColor(float dt, bool inverse = false) {
         std::vector<cocos2d::ccColor3B> _colors = colors;

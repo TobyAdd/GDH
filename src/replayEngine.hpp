@@ -36,6 +36,8 @@ public:
     ReplayEngine& operator=(const ReplayEngine&) = delete;
     ReplayEngine(const ReplayEngine&) = delete;
 
+    bool engine_v2 = false;
+
     state mode = state::disable;
     std::string replay_name;
 

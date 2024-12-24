@@ -7,21 +7,23 @@ unsigned ReplayEngine::get_frame() {
 
     auto gjbgl = GJBaseGameLayer::get();
     if (gjbgl)
-        return static_cast<unsigned>(gjbgl->m_gameState.m_levelTime * config.get<float>("tps_value", 240.f));
+        return static_cast<unsigned>(gjbgl->m_gameState.m_levelTime * (engine_v2 ? 240.f : config.get<float>("tps_value", 240.f)));
     return 0;
 }
 
 void ReplayEngine::remove_actions(unsigned frame) {
+    auto check_inputs = [&](replay_data2 &action) -> bool { return action.frame >= frame; };
+    m_inputFrames_p1.erase(remove_if(m_inputFrames_p1.begin(), m_inputFrames_p1.end(), check_inputs), m_inputFrames_p1.end());
+    m_inputFrames_p2.erase(remove_if(m_inputFrames_p2.begin(), m_inputFrames_p2.end(), check_inputs), m_inputFrames_p2.end());
+
+    if (engine_v2) return;
+
     auto check_physics = [&](replay_data &action) -> bool
     {
         return action.frame > frame;
     };
     m_physicFrames_p1.erase(remove_if(m_physicFrames_p1.begin(), m_physicFrames_p1.end(), check_physics), m_physicFrames_p1.end());
     m_physicFrames_p2.erase(remove_if(m_physicFrames_p1.begin(), m_physicFrames_p1.end(), check_physics), m_physicFrames_p1.end());
-
-    auto check_inputs = [&](replay_data2 &action) -> bool { return action.frame >= frame; };
-    m_inputFrames_p1.erase(remove_if(m_inputFrames_p1.begin(), m_inputFrames_p1.end(), check_inputs), m_inputFrames_p1.end());
-    m_inputFrames_p2.erase(remove_if(m_inputFrames_p2.begin(), m_inputFrames_p2.end(), check_inputs), m_inputFrames_p2.end());
 }
 
 size_t ReplayEngine::get_actions_size() {
@@ -214,6 +216,7 @@ void ReplayEngine::handle_update(GJBaseGameLayer* self) {
     unsigned frame = get_frame();
 
     if (mode == state::record) {
+        if (!engine_v2) {
             bool frameExist_p1 = std::find_if(m_physicFrames_p1.begin(), m_physicFrames_p1.end(), [&](const auto &data)
                                     { return data.frame == frame; }) != m_physicFrames_p1.end();
 
@@ -242,9 +245,10 @@ void ReplayEngine::handle_update(GJBaseGameLayer* self) {
                     self->m_player2->m_yVelocity,
                     false //second player
                 });
+        }
     }
     else if (mode == state::play) {
-        if (accuracy_fix) {
+        if (accuracy_fix && !engine_v2) {
             while (m_physicIndex_p1 < m_physicFrames_p1.size() && frame >= m_physicFrames_p1[m_physicIndex_p1].frame)
             {
                 self->m_player1->m_position.x = m_physicFrames_p1[m_physicIndex_p1].x;

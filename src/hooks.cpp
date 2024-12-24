@@ -661,7 +661,9 @@ class $modify(GJBaseGameLayer) {
         GJBaseGameLayer::update(dt);
 
         StraightFly::get().handle_straightfly(this);
-        engine.handle_update(this);
+
+        if (!engine.engine_v2)
+            engine.handle_update(this);
 
         if (config.get<bool>("rgb_icons", false)) {
             color_dt += dt * config.get<float>("rgb_icons::speed", 0.25f);
@@ -783,7 +785,12 @@ class $modify(GJBaseGameLayer) {
 
     void processCommands(float dt) {
         auto& config = Config::get();
+        auto& engine = ReplayEngine::get();
+        
         GJBaseGameLayer::processCommands(dt);
+        
+        if (engine.engine_v2)
+            engine.handle_update(this);
 
         if (config.get<bool>("show_hitboxes", false) && config.get<bool>("show_hitboxes::draw_trail", false)) {
             if (!m_player1->m_isDead) {

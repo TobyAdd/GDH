@@ -374,7 +374,7 @@ void Gui::Render() {
 
                 if (ImGuiH::RadioButton("Record", &mode_, 1, m_scale))
                 {
-                    bool canRecord = config.get<bool>("tps_enabled", false);
+                    bool canRecord = (!engine.engine_v2 && config.get<bool>("tps_enabled", false)) || (engine.engine_v2 && !config.get<bool>("tps_enabled", false));
                     
                     if (canRecord)
                     {
@@ -386,7 +386,7 @@ void Gui::Render() {
                     else
                     {
                         engine.mode = state::disable;
-                        ImGuiH::Popup::get().add_popup("Enable TPS Bypass to record the replay");
+                        ImGuiH::Popup::get().add_popup(engine.engine_v2 ? "Disable TPS Bypass to record the replay" : "Enable TPS Bypass to record the replay");
                     }
                 }
 
@@ -394,13 +394,13 @@ void Gui::Render() {
                 ImGui::SameLine();
 
                 if (ImGuiH::RadioButton("Play", &mode_, 2, m_scale)) {
-                    bool canPlay = config.get<bool>("tps_enabled", false);
+                    bool canPlay = (!engine.engine_v2 && config.get<bool>("tps_enabled", false)) || (engine.engine_v2 && !config.get<bool>("tps_enabled", false));
                     
                     if (canPlay) {
                         engine.mode = state::play;
                     } else {
                         engine.mode = state::disable;
-                        ImGuiH::Popup::get().add_popup("Enable TPS Bypass to playback the replay");
+                        ImGuiH::Popup::get().add_popup(engine.engine_v2 ? "Disable TPS Bypass to playback the replay" : "Enable TPS Bypass to playback the replay");
                     }
                 }
 
@@ -883,6 +883,11 @@ void Gui::Render() {
                                 auto process = subprocess::Popen(command2);
                             }
                         }
+                        ImGui::EndTabItem();
+                    }	
+
+                    if (ImGui::BeginTabItem("RE Settings")) {
+                        ImGuiH::Checkbox("Engine v2", &engine.engine_v2, m_scale);
                         ImGui::EndTabItem();
                     }	
                     ImGui::EndTabBar();
