@@ -92,15 +92,22 @@ class $modify(cocos2d::CCScheduler) {
         float tps_value = config.get<float>("tps_value", 60.f);
         float new_dt = 1.f / tps_value;
 
-        if (!config.get<bool>("tps::real_time", false))
-            return CCScheduler::update(new_dt);
+        if (!config.get<bool>("tps::real_time", false)) {
+            if (recorder.is_recording) recorder.applyWinSize();
+            CCScheduler::update(new_dt);
+            if (recorder.is_recording) recorder.restoreWinSize();
+            return;
+        }
+             
 
         unsigned times = static_cast<int>((dt + left_over) / new_dt);  
         auto start = std::chrono::high_resolution_clock::now();
         using namespace std::literals;
 
         for (unsigned i = 0; i < times; ++i) {
+            if (recorder.is_recording) recorder.applyWinSize();
             CCScheduler::update(new_dt);
+            if (recorder.is_recording) recorder.restoreWinSize();
             if (std::chrono::high_resolution_clock::now() - start > 33.333ms) {            
                 times = i + 1;
                 break;
@@ -1300,7 +1307,7 @@ class $modify(SongSelectNode) {
 class $modify(MoreSearchLayer) {
     void audioPrevious(cocos2d::CCObject* sender) {
         if (!Config::get().get<bool>("default_song_bypass", false))
-            return audioPrevious(sender);
+            return MoreSearchLayer::audioPrevious(sender);
 
         int song = std::max(1, GameLevelManager::get()->getIntForKey("song_filter"));
         MoreSearchLayer::selectSong(--song);
@@ -1308,7 +1315,7 @@ class $modify(MoreSearchLayer) {
 
     void audioNext(cocos2d::CCObject* sender) {
         if (!Config::get().get<bool>("default_song_bypass", false))
-            return audioNext(sender);
+            return MoreSearchLayer::audioNext(sender);
 
         int song = std::max(1, GameLevelManager::get()->getIntForKey("song_filter"));
         MoreSearchLayer::selectSong(++song);
@@ -1316,7 +1323,7 @@ class $modify(MoreSearchLayer) {
 
     void selectSong(int songID) {
         if (!Config::get().get<bool>("default_song_bypass", false))
-            return selectSong(songID);
+            return MoreSearchLayer::selectSong(songID);
 
         GameLevelManager::get()->setIntForKey(songID, "song_filter");
         updateAudioLabel();

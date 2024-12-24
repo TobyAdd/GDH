@@ -14,10 +14,7 @@
 	"early-load": true,
 	"resources": {
 		"sprites": [
-			"res/GDH_square.png",
-			"res/GDH_closeBtn.png",
-			"res/GDH_button_01.png",
-			"res/GDH_button_02.png"
+			"res/*.png"
 		],
 		"fonts": {
             "Roboto": {

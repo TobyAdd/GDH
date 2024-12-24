@@ -11,13 +11,22 @@ void Hacks::Init() {
     m_windows = {
         {"Core", 10, 10, 200, 230, 
             {
+                #ifdef GEODE_IS_WINDOWS
                 {"Free Window Resize", "Allows free window resizing", "free_win_resize"}, // +
+                #endif
                 {"Noclip", "The player will be invincible to obstacles", "noclip"}, // +
                 {"Unlock Items", "The following elements will be unlocked:\n- Icons + Colors\n- Practice Music Sync\n- Music Unlocker", "unlock_items"}, // +
                 {"No Respawn Blink", "Upon respawning, the cube will not produce an unpleasant flicker", "no_respawn_blink"}, // +
                 {"No Death Effect", "Upon death, the cube will not emit an exploding effect", "no_death_effect"}, // +
                 {"No Transition Old", "Fast transition between scenes (legacy)", "no_transition"}, // +
-                {"Safe Mode", "Disables progress on levels", "safe_mode"} // +
+                {"Safe Mode", "Disables progress on levels", "safe_mode"}
+                #ifdef GEODE_IS_ANDROID
+                , // +
+                {"TPS", "", "tps_enabled"}, // +
+                {"Speedhack", "", "speedhack_enabled"}, // +
+                {"Speedhack Audio", "", "speedhackAudio_enabled"}, // +
+                {"Invisible UI Button", "Hides the button that opens the menu", "invisible_ui_button"}, // +
+                #endif
             }
         },
         {"Bypass", 10, 250, 200, 250, 
@@ -109,6 +118,34 @@ void Hacks::Init() {
     };
 
     auto &config = Config::get();
+
+    #ifdef GEODE_IS_ANDROID
+    SetCustomWindowHandlerByConfig("tps_enabled", [this, &config]() { // +
+        float tps_value = config.get<float>("tps_value", 60.f);
+        auto popup = popupSystem::create();
+        popup->AddText("TPS Value:");
+        popup->AddFloatInput("TPS Value", tps_value, [this, &config](float value) 
+        {
+            if (value > 1.f)
+                config.set<float>("tps_value", value);
+        },
+        35.f);
+        popup->show();
+    });
+
+    SetCustomWindowHandlerByConfig("speedhack_enabled", [this, &config]() { // +
+        float speedhack_value = config.get<float>("speedhack_value", 1.f);
+        auto popup = popupSystem::create();
+        popup->AddText("Speedhack Value:");
+        popup->AddFloatInput("Speedhack Value", speedhack_value, [this, &config](float value) 
+        {
+            if (value > 0.005f)
+                config.set<float>("speedhack_value", value);
+        },
+        35.f);
+        popup->show();
+    });
+    #endif
 
     #ifdef GEODE_IS_WINDOWS
     SetHandlerByConfig("free_win_resize", [this](bool enabled) {
