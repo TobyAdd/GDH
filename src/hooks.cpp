@@ -718,11 +718,11 @@ class $modify(GJBaseGameLayer) {
         };
 
         std::vector<cocos2d::CCPoint> player1 = generateVertices(m_player1->getObjectRect());
-        node->drawPolygon(player1.data(), player1.size(), {0, 0, 0, 0}, 0.25f, {1.f, 1.f, 0.f, 1.0f});
+        node->drawPolygon(player1.data(), player1.size(), {0, 0, 0, 0}, 0.25f, {1.f, 1.f, 0.f, 0.75f});
 
         if (m_gameState.m_isDualMode) {
             std::vector<cocos2d::CCPoint> player2 = generateVertices(m_player2->getObjectRect());
-            node->drawPolygon(player2.data(), player2.size(), {0, 0, 0, 0}, 0.25f, {1.f, 1.f, 0.f, 1.0f});
+            node->drawPolygon(player2.data(), player2.size(), {0, 0, 0, 0}, 0.25f, {1.f, 1.f, 0.f, 0.75f});
         }
 
         if (m_anticheatSpike) {
