@@ -38,6 +38,8 @@ std::string Label::get_text() {
     result = replace_all(result, "{levelCreator}", pl->m_level->m_creatorName);
     result = replace_all(result, "{byLevelCreator}", pl->m_level->m_creatorName.empty() ? "" : fmt::format(" by {}", pl->m_level->m_creatorName));
     result = replace_all(result, "{levelId}", std::to_string(pl->m_level->m_levelID));
+    result = replace_all(result, "{noclipAccuracy}", fmt::format("{}%", round_float(NoclipAccuracy::get().getPercentage(), 2)));
+    result = replace_all(result, "{deaths}", std::to_string(NoclipAccuracy::get().deaths_full));
     result = replace_all(result, "{\\n}", "\n");
 
     return result;

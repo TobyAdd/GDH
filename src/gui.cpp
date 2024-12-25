@@ -926,6 +926,8 @@ void Gui::Render() {
                 "Attempt",
                 "CPS Counter",
                 "Level Info",
+                "Noclip Accuracy",
+                "Death Counter",
                 "Custom Text",
             };
             int label_types_count = sizeof(label_types)/sizeof(label_types[0]);
@@ -945,6 +947,8 @@ void Gui::Render() {
                 else if (selected_label_type == 4) text = "Attempt {attempt}";
                 else if (selected_label_type == 5) text = "{cps}/{cpsHigh}/{clicks}";
                 else if (selected_label_type == 6) text = "{levelName}{byLevelCreator} ({levelId})";
+                else if (selected_label_type == 7) text = "{noclipAccuracy}";
+                else if (selected_label_type == 8) text = "{deaths} Deaths";
                 
                 Label l((LabelCorner) (selected_label_corner+1), text);
                 labels.add(l);

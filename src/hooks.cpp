@@ -359,6 +359,8 @@ class $modify(PlayLayer) {
             m_isTestMode = testmode;
         }
 
+        NoclipAccuracy::get().handle_death();
+
         if (config.get<bool>("respawn_time", false)) {
             if (auto* respawnSequence = getActionByTag(0x10)) {
                 stopAction(respawnSequence);
@@ -431,6 +433,7 @@ class $modify(PlayLayer) {
         playerTrail2.clear();
 
         CpsCounter::get().reset();
+        NoclipAccuracy::get().handle_reset(this);
     }
 
     void levelComplete() {
@@ -664,6 +667,8 @@ class $modify(GJBaseGameLayer) {
 
         if (!engine.engine_v2)
             engine.handle_update(this);
+
+        NoclipAccuracy::get().handle_update(this, dt);
 
         if (config.get<bool>("rgb_icons", false)) {
             color_dt += dt * config.get<float>("rgb_icons::speed", 0.25f);
