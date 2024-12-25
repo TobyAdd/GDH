@@ -177,18 +177,6 @@ void Hacks::Init() {
         }        
     });
 
-    // robtop calls m_isHide in GameObject::objectFromVector, which you can't even get access
-    SetHandlerByConfig("layout_mode", [this](bool enabled) {
-        static auto result1 = geode::Mod::get()->patch((void*)(geode::base::get() + 0x19AEE3), {0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90});
-        static auto patch1 = result1.isErr() ? nullptr : result1.unwrap();
-
-        if (enabled) {
-            if (patch1) (void) patch1->enable();
-        } else {
-            if (patch1) (void) patch1->disable();
-        }        
-    });
-
     #endif
 
     SetHandlerByConfig("rgb_icons", [this](bool enabled) {
