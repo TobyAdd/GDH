@@ -121,7 +121,7 @@ void Hacks::Init() {
     auto &config = Config::get();
 
     #ifdef GEODE_IS_ANDROID
-    SetCustomWindowHandlerByConfig("tps_enabled", [this, &config]() { // +
+    SetCustomWindowHandlerByConfig("tps_enabled", [this, &config]() {
         bool tps_real_time = config.get<bool>("tps::real_time", true);
         float tps_value = config.get<float>("tps_value", 60.f);
         auto popup = popupSystem::create();
@@ -142,7 +142,7 @@ void Hacks::Init() {
         popup->show();
     });
 
-    SetCustomWindowHandlerByConfig("speedhack_enabled", [this, &config]() { // +
+    SetCustomWindowHandlerByConfig("speedhack_enabled", [this, &config]() {
         float speedhack_value = config.get<float>("speedhack_value", 1.f);
         auto popup = popupSystem::create();
         popup->AddText("Speedhack Value:");
@@ -240,7 +240,7 @@ void Hacks::Init() {
         }
     });
 
-    SetCustomWindowHandlerByConfig("straight_fly_bot", [this, &config]() { // +
+    SetCustomWindowHandlerByConfig("straight_fly_bot", [this, &config]() {
         auto& straightFly = StraightFly::get();
         #ifdef GEODE_IS_WINDOWS 
         auto &gui = Gui::get();
@@ -263,7 +263,7 @@ void Hacks::Init() {
 
     });
 
-    SetCustomWindowHandlerByConfig("wave_trail_size", [this, &config]() { // +
+    SetCustomWindowHandlerByConfig("wave_trail_size", [this, &config]() {
         float value = config.get<float>("wave_trail_size_value", 1.f);
         #ifdef GEODE_IS_WINDOWS 
 
@@ -283,7 +283,7 @@ void Hacks::Init() {
         #endif
     });
 
-    SetCustomWindowHandlerByConfig("respawn_time", [this, &config]() {  // +
+    SetCustomWindowHandlerByConfig("respawn_time", [this, &config]() {
         float value = config.get<float>("respawn_time_value", 1.f);
 
         #ifdef GEODE_IS_WINDOWS 
@@ -303,7 +303,7 @@ void Hacks::Init() {
         #endif
     });
 
-    SetCustomWindowHandlerByConfig("pulse_size", [this, &config]() {  // +
+    SetCustomWindowHandlerByConfig("pulse_size", [this, &config]() {
         float value = config.get<float>("pulse_size_value", 0.5f);
         bool multiply = config.get<bool>("pulse_multiply", false);
 
@@ -336,7 +336,7 @@ void Hacks::Init() {
         #endif
     });
 
-    SetCustomWindowHandlerByConfig("startpos_switcher", [this, &config]() {  // +
+    SetCustomWindowHandlerByConfig("startpos_switcher", [this, &config]() {
         bool reset_camera = config.get<bool>("startos_switcher::reset_camera", true);
 
         #ifdef GEODE_IS_WINDOWS 
@@ -355,7 +355,7 @@ void Hacks::Init() {
         #endif
     });
 
-    SetCustomWindowHandlerByConfig("show_hitboxes", [this, &config]() {  // +
+    SetCustomWindowHandlerByConfig("show_hitboxes", [this, &config]() {
         bool draw_trail = config.get<bool>("show_hitboxes::draw_trail", false);
         bool show_hitboxes_on_death = config.get<bool>("show_hitboxes::on_death", false);
 

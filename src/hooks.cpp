@@ -164,12 +164,16 @@ class $modify(PlayLayer) {
 
     bool init(GJGameLevel* level, bool useReplay, bool dontCreateObjects) {
         auto& config = Config::get();
+        auto& engine = ReplayEngine::get();
         auto& recorder = Recorder::get();
         auto& recorderAudio = RecorderAudio::get();
         if (!PlayLayer::init(level, useReplay, dontCreateObjects)) return false;
 
         if (config.get<bool>("auto_practice_mode", false))
             togglePracticeMode(true);
+
+        if (engine.mode == state::disable)
+            engine.replay_name = fmt::format("{}", level->m_levelName);
 
         if (!recorder.is_recording)
             recorder.video_name = fmt::format("{}.mp4", level->m_levelName);

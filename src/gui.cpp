@@ -455,7 +455,7 @@ void Gui::Render() {
                     }                
                 }
 
-                if (ImGui::BeginPopupModal("Recorder", &recorder.settings_openned) && ImGui::BeginTabBar("Recorder Tabs")) {
+                if (ImGui::BeginPopupModal("Replay Engine More Settings", &recorder.settings_openned) && ImGui::BeginTabBar("Engine Tabs")) {
                     auto containsRussianLetters = [](const std::filesystem::path& p) -> bool {
                         auto pathStr = p.u8string();
                         for (char c : pathStr) {
@@ -466,7 +466,19 @@ void Gui::Render() {
                         return false;
                     };
                     
-                    if (ImGui::BeginTabItem("General")) {
+                        if (ImGui::BeginTabItem("Settings")) {
+                        ImGuiH::Checkbox("Engine v2", &engine.engine_v2, m_scale);
+
+                        if (!engine.engine_v2) {
+                            ImGuiH::Checkbox("Accuracy Fix", &engine.accuracy_fix, m_scale);
+                            ImGui::SameLine();
+                            ImGuiH::Checkbox("Rotation Fix", &engine.rotation_fix, m_scale);
+                        }
+
+                        ImGui::EndTabItem();
+                    }	
+
+                    if (ImGui::BeginTabItem("Recorder")) {
                         if (recorder.ffmpeg_installed) {                        
                             auto pl = PlayLayer::get();
                             if (ImGuiH::Checkbox("Record##Recorder", &recorder.enabled, m_scale)) {
@@ -688,13 +700,13 @@ void Gui::Render() {
                                 recorder.codec = "libsvtav1";
                                 recorder.extra_args = "-crf 0 -pix_fmt yuv420p";
                             }
-                            if (ImGuiH::Button("NVIDIA x264"))
+                            if (ImGuiH::Button("NVIDIA H264"))
                             {
                                 recorder.codec = "h264_nvenc";
                                 recorder.extra_args = "-pix_fmt yuv420p -preset p7";
                             }
                             ImGui::SameLine();
-                            if (ImGuiH::Button("NVIDIA x265"))
+                            if (ImGuiH::Button("NVIDIA H265"))
                             {
                                 recorder.codec = "hevc_nvenc";
                                 recorder.extra_args = "-pix_fmt yuv420p -preset p7";
@@ -707,13 +719,13 @@ void Gui::Render() {
                                 recorder.extra_args = "-pix_fmt yuv420p -preset p7";
                             }
                             
-                            if (ImGuiH::Button("AMD x264 Lossless"))
+                            if (ImGuiH::Button("AMD H264 Lossless"))
                             {
                                 recorder.codec = "h264_amf";
                                 recorder.extra_args = "-pix_fmt yuv420p -rc cqp -qp_i 0 -qp_p 0 -qp_b 0";
                             }
                             ImGui::SameLine();
-                            if (ImGuiH::Button("AMD x265 Lossless"))
+                            if (ImGuiH::Button("AMD H265 Lossless"))
                             {
                                 recorder.codec = "hevc_amf";
                                 recorder.extra_args = "-pix_fmt yuv420p -rc cqp -qp_i 0 -qp_p 0 -qp_b 0";
@@ -887,19 +899,15 @@ void Gui::Render() {
                         ImGui::EndTabItem();
                     }	
 
-                    if (ImGui::BeginTabItem("RE Settings")) {
-                        ImGuiH::Checkbox("Engine v2", &engine.engine_v2, m_scale);
-                        ImGui::EndTabItem();
-                    }	
                     ImGui::EndTabBar();
                     ImGui::EndPopup();
                 }                            
                                 
 
-                if (ImGui::MenuItem("Recorder")) {
+                if (ImGui::MenuItem("More Settings")) {
                     recorder.settings_openned = true;
                     recorder.ffmpeg_installed = std::filesystem::exists("ffmpeg.exe");
-                    ImGui::OpenPopup("Recorder");
+                    ImGui::OpenPopup("Replay Engine More Settings");
                 }
                 #endif
             }           

@@ -6,6 +6,73 @@
 
 using namespace geode::prelude;
 
+ReplaySelectLayer* ReplaySelectLayer::create(geode::TextInput* textInput) {
+    bool legacy_ui = Config::get().get<bool>("legacy_ui", true);
+
+    auto ret = new ReplaySelectLayer();
+    if (ret->initAnchored(200.f, 240.f, legacy_ui ? "GJ_square01.png" : "GDH_square.png"_spr)) {
+        ret->autorelease();
+        ret->input = textInput;
+        return ret;
+    }
+
+    delete ret;
+    return nullptr;
+}
+
+bool ReplaySelectLayer::setup() {
+    auto& engine = ReplayEngine::get();
+    bool legacy_ui = Config::get().get<bool>("legacy_ui", true);
+
+    this->setTitle("Select Replay", legacy_ui ? "goldFont.fnt" : "Roboto.fnt"_spr);
+
+    auto m_scrollLayer = ScrollLayer::create({400.f, 205.f});
+    m_scrollLayer->m_contentLayer->setLayout(
+        geode::ColumnLayout::create()
+            ->setAutoScale(false)
+            ->setAxisReverse(true)
+            ->setAutoGrowAxis(m_scrollLayer->getContentHeight())
+            ->setAxisAlignment(geode::AxisAlignment::End)
+            ->setGap(0)
+    );
+    m_scrollLayer->setPosition({-100.f, 5.f});
+    m_scrollLayer->m_peekLimitTop = 15;
+    m_scrollLayer->m_peekLimitBottom = 15;
+
+    for (const auto &entry : std::filesystem::directory_iterator(folderMacroPath)) {
+        std::string ext = entry.path().filename().extension().string();
+        if (ext == ".re" || ext == ".re2" || ext == ".re3") {
+            auto menu = CCMenu::create();
+            menu->setContentSize({200, 35});
+
+            auto button = ButtonSprite::create(entry.path().filename().string().c_str(), 120, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
+            auto buttonClick = CCMenuItemExt::createSpriteExtra(button, [this, &engine, entry](CCMenuItemSpriteExtra* sender) {
+                std::string extension = entry.path().filename().extension().string();
+                if (extension != ".re" && extension != ".re2")
+                    engine.replay_name = entry.path().filename().replace_extension().string();
+                else
+                    engine.replay_name = entry.path().filename().string();
+
+                input->setString(engine.replay_name);
+
+                m_closeBtn->activate();
+            });
+            buttonClick->setPosition({195.f, 10.f});
+            menu->addChild(buttonClick);
+
+            m_scrollLayer->m_contentLayer->addChild(menu);
+
+        }
+    }
+
+    m_scrollLayer->m_contentLayer->updateLayout();  
+    m_scrollLayer->moveToTop();
+
+    m_mainLayer->addChild(m_scrollLayer);
+
+    return true;
+}
+
 HacksTab* HacksTab::create() {
     auto ret = new HacksTab();
     if (ret->init()) {
@@ -144,8 +211,25 @@ bool HacksLayer::setup() {
             auto engineTab = CCMenu::create();
             engineTab->setContentSize({325, 210});
 
-            auto record_toggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [this, &config](CCMenuItemToggler* sender) {
-
+            record_toggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [this, &config, &engine](CCMenuItemToggler* sender) {
+                play_toggle->toggle(false);
+                if (!sender->isOn()) {
+                    bool canRecord = (!engine.engine_v2 && config.get<bool>("tps_enabled", false)) || (engine.engine_v2 && !config.get<bool>("tps_enabled", false));
+                    
+                    if (canRecord)
+                    {
+                        engine.mode = state::record;
+                    }
+                    else
+                    {
+                        sender->toggle(true);
+                        engine.mode = state::disable;
+                        FLAlertLayer::create("Replay Engine", engine.engine_v2 ? "Disable TPS Bypass to record the replay" : "Enable TPS Bypass to record the replay", "OK")->show();
+                    }
+                }
+                else {
+                    engine.mode = state::disable;
+                }
             });
             record_toggle->setPosition({20.f, 190.f});
             if (engine.mode == state::record) record_toggle->toggle(true);
@@ -154,8 +238,24 @@ bool HacksLayer::setup() {
             auto record_label = AddTextToToggle("Record", record_toggle);
             engineTab->addChild(record_label);
 
-            auto play_toggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [this, &config](CCMenuItemToggler* sender) {
-
+            play_toggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [this, &config, &engine](CCMenuItemToggler* sender) {
+                record_toggle->toggle(false);
+                if (!play_toggle->isOn()) {
+                    bool canPlay = (!engine.engine_v2 && config.get<bool>("tps_enabled", false)) || (engine.engine_v2 && !config.get<bool>("tps_enabled", false));
+                    
+                    if (canPlay) {
+                        engine.mode = state::play;
+                    }
+                    else
+                    {
+                        sender->toggle(true);
+                        engine.mode = state::disable;
+                        FLAlertLayer::create("Replay Engine", engine.engine_v2 ? "Disable TPS Bypass to playback the replay" : "Enable TPS Bypass to playback the replay", "OK")->show();
+                    }
+                }
+                else {
+                    engine.mode = state::disable;
+                }
             });
             play_toggle->setPosition({record_label->getPositionX() + record_label->getScaledContentWidth() + 20.f, 190.f});
             if (engine.mode == state::play) play_toggle->toggle(true);
@@ -164,7 +264,7 @@ bool HacksLayer::setup() {
             auto play_label = AddTextToToggle("Play", play_toggle);
             engineTab->addChild(play_label);
 
-            auto replay_name_input = TextInput::create(220, "Replay Name", "chatFont.fnt");
+            TextInput* replay_name_input = TextInput::create(220, "Replay Name", "chatFont.fnt");
             replay_name_input->setPosition({118.f, 155.f});
             replay_name_input->setString(engine.replay_name);
             replay_name_input->setCallback([&engine](const std::string& text) {
@@ -175,8 +275,8 @@ bool HacksLayer::setup() {
             auto replayList = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
             replayList->setScale(0.65f);
             replayList->setRotation(-90.f);
-            auto replayListClick = CCMenuItemExt::createSpriteExtra(replayList, [this](CCMenuItemSpriteExtra* sender) {
-
+            auto replayListClick = CCMenuItemExt::createSpriteExtra(replayList, [this, replay_name_input](CCMenuItemSpriteExtra* sender) {
+                ReplaySelectLayer::create(replay_name_input)->show();
             });
             replayListClick->setPosition({255.f, 155.f});
             engineTab->addChild(replayListClick);
@@ -188,46 +288,51 @@ bool HacksLayer::setup() {
             engineTab->addChild(info_label);
 
             auto saveButton = ButtonSprite::create("Save", 40, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
-            auto saveButtonClick = CCMenuItemExt::createSpriteExtra(saveButton, [this](CCMenuItemSpriteExtra* sender) {
-                
+            auto saveButtonClick = CCMenuItemExt::createSpriteExtra(saveButton, [this, &engine, info_label](CCMenuItemSpriteExtra* sender) {
+                FLAlertLayer::create("Info", engine.save(engine.replay_name).c_str(), "OK")->show();
             });
             saveButtonClick->setPosition({35, 120});
             engineTab->addChild(saveButtonClick);
 
             auto loadButton = ButtonSprite::create("Load", 40, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
-            auto loadButtonClick = CCMenuItemExt::createSpriteExtra(loadButton, [this](CCMenuItemSpriteExtra* sender) {
-
+            auto loadButtonClick = CCMenuItemExt::createSpriteExtra(loadButton, [this, &engine, info_label](CCMenuItemSpriteExtra* sender) {
+                FLAlertLayer::create("Info", engine.load(engine.replay_name).c_str(), "OK")->show();
+                info_label->setString(fmt::format("Frame: {}\nReplay Size: {}", engine.get_frame(), engine.get_actions_size()).c_str());
             });
             loadButtonClick->setPosition({95, 120});
             engineTab->addChild(loadButtonClick);
 
             auto cleanButton = ButtonSprite::create("Clear", 40, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
-            auto cleanButtonClick = CCMenuItemExt::createSpriteExtra(cleanButton, [this](CCMenuItemSpriteExtra* sender) {
-
+            auto cleanButtonClick = CCMenuItemExt::createSpriteExtra(cleanButton, [this, &engine, info_label](CCMenuItemSpriteExtra* sender) {
+                engine.clear();
+                FLAlertLayer::create("Info", "Replay has been cleared", "OK")->show();
+                info_label->setString(fmt::format("Frame: {}\nReplay Size: {}", engine.get_frame(), engine.get_actions_size()).c_str());
             });
             cleanButtonClick->setPosition({155, 120});
             engineTab->addChild(cleanButtonClick);
 
-            auto accuracy_fix_toggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [this, &config](CCMenuItemToggler* sender) {
-
+            auto accuracy_fix_toggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [this, &config, &engine](CCMenuItemToggler* sender) {
+                engine.accuracy_fix = !sender->isOn();
             });
+            accuracy_fix_toggle->toggle(engine.accuracy_fix);
             accuracy_fix_toggle->setPosition({20.f, 85.f});
             engineTab->addChild(accuracy_fix_toggle);
 
             auto accuracy_fix_label = AddTextToToggle("Accuracy Fix", accuracy_fix_toggle);
             engineTab->addChild(accuracy_fix_label);
 
-            auto rotation_fix_toggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [this, &config](CCMenuItemToggler* sender) {
-
+            auto rotation_fix_toggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [this, &config, &engine](CCMenuItemToggler* sender) {
+                engine.rotation_fix = !sender->isOn();
             });
+            rotation_fix_toggle->toggle(engine.rotation_fix);
             rotation_fix_toggle->setPosition({170.f, 85.f});
             engineTab->addChild(rotation_fix_toggle);
 
             auto rotation_fix_label = AddTextToToggle("Rotation Fix", rotation_fix_toggle);
             engineTab->addChild(rotation_fix_label);
             
-            auto engineV2_toggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [this, &config](CCMenuItemToggler* sender) {
-
+            auto engineV2_toggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [this, &config, &engine](CCMenuItemToggler* sender) {
+                engine.engine_v2 = !sender->isOn();
             });
             engineV2_toggle->setPosition({20.f, 55.f});
             engineTab->addChild(engineV2_toggle);

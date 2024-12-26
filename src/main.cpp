@@ -123,7 +123,7 @@ class $modify(CreatorLayer) {
 class $modify(LevelBrowserLayer) {
     bool init(GJSearchObject* p0) {
         if (!LevelBrowserLayer::init(p0)) return false;
-        setupButton(this, {30, cocos2d::CCDirector::sharedDirector()->getWinSize().height / 2}, "hacks-button"_spr);
+        setupButton(this, {30, (cocos2d::CCDirector::sharedDirector()->getWinSize().height / 2) - 45.f}, "hacks-button"_spr);
         return true;
     }
 };
