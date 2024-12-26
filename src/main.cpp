@@ -8,7 +8,9 @@
 #include <Geode/modify/LevelSearchLayer.hpp>
 #include <Geode/modify/CCEGLView.hpp>
 #include <imgui-cocos.hpp>
+#ifdef GEODE_IS_WINDOWS
 #include "gui.hpp"
+#endif
 #include "config.hpp"
 #include "hacks.hpp"
 #include "gui_mobile.hpp"

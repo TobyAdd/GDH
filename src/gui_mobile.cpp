@@ -2,6 +2,7 @@
 #include "config.hpp"
 #include "hacks.hpp"
 #include "labels.hpp"
+#include "replayEngine.hpp"
 
 using namespace geode::prelude;
 
@@ -89,14 +90,26 @@ void HacksTab::onToggle(CCObject* sender) {
         it->second(!toggler->isToggled());
 }
 
+CCLabelBMFont* AddTextToToggle(const char *str, CCMenuItemToggler* toggler) {
+    auto label = CCLabelBMFont::create(str, "bigFont.fnt");
+    label->setAnchorPoint({0.f, 0.5f});
+    label->setPosition({toggler->getPositionX() + 15.f, toggler->getPositionY()});
+    label->setScale(0.5f);
+    return label;
+}
+
 bool HacksLayer::setup() {
     auto& config = Config::get();
     auto& hacks = Hacks::get();
 
-    this->setTitle("GDH", "Roboto.fnt"_spr);
+    bool legacy_ui = config.get<bool>("legacy_ui", true);
 
-    auto closeBtnSprite = CCSprite::create("GDH_closeBtn.png"_spr);
-    m_closeBtn->setSprite(closeBtnSprite);
+    this->setTitle("GDH", legacy_ui ? "goldFont.fnt" : "Roboto.fnt"_spr);
+
+    if (!legacy_ui) {
+        auto closeBtnSprite = CCSprite::create("GDH_closeBtn.png"_spr);
+        m_closeBtn->setSprite(closeBtnSprite);
+    }
 
     auto background = extension::CCScale9Sprite::create("square02_small.png");
     background->setPosition({290.f, 115.f});
@@ -111,8 +124,8 @@ bool HacksLayer::setup() {
         if (win.name == "Framerate" || win.name == "GDH Settings" || win.name == "Variables" || win.name == "Shortcuts")
             continue;
 
-        auto button = ButtonSprite::create(win.name.c_str(), 90, true, "Roboto.fnt"_spr, 
-            (i == m_index) ? "GDH_button_02.png"_spr : "GDH_button_01.png"_spr, 30.f, 0.7f);
+        auto button = ButtonSprite::create(win.name.c_str(), 90, true, legacy_ui ? "bigFont.fnt" : "Roboto.fnt"_spr, 
+            (i == m_index) ? (legacy_ui ? "GJ_button_02.png" : "GDH_button_02.png"_spr) : (legacy_ui ? "GJ_button_01.png" : "GDH_button_01.png"_spr), 30.f, 0.7f);
 
         auto buttonClick = CCMenuItemExt::createSpriteExtra(button, [this, i](CCMenuItemSpriteExtra* sender) {
             switchTab(i);
@@ -125,6 +138,105 @@ bool HacksLayer::setup() {
         tab->setVisible(i == 0);
         tab->setID(fmt::format("{}"_spr, win.name));
         m_mainLayer->addChild(tab);
+
+        if (win.name == "Replay Engine") {
+            auto& engine = ReplayEngine::get();
+            auto engineTab = CCMenu::create();
+            engineTab->setContentSize({325, 210});
+
+            auto record_toggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [this, &config](CCMenuItemToggler* sender) {
+
+            });
+            record_toggle->setPosition({20.f, 190.f});
+            if (engine.mode == state::record) record_toggle->toggle(true);
+            engineTab->addChild(record_toggle);
+
+            auto record_label = AddTextToToggle("Record", record_toggle);
+            engineTab->addChild(record_label);
+
+            auto play_toggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [this, &config](CCMenuItemToggler* sender) {
+
+            });
+            play_toggle->setPosition({record_label->getPositionX() + record_label->getScaledContentWidth() + 20.f, 190.f});
+            if (engine.mode == state::play) play_toggle->toggle(true);
+            engineTab->addChild(play_toggle);
+
+            auto play_label = AddTextToToggle("Play", play_toggle);
+            engineTab->addChild(play_label);
+
+            auto replay_name_input = TextInput::create(220, "Replay Name", "chatFont.fnt");
+            replay_name_input->setPosition({118.f, 155.f});
+            replay_name_input->setString(engine.replay_name);
+            replay_name_input->setCallback([&engine](const std::string& text) {
+                engine.replay_name = text;
+            });
+            engineTab->addChild(replay_name_input);
+
+            auto replayList = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
+            replayList->setScale(0.65f);
+            replayList->setRotation(-90.f);
+            auto replayListClick = CCMenuItemExt::createSpriteExtra(replayList, [this](CCMenuItemSpriteExtra* sender) {
+
+            });
+            replayListClick->setPosition({255.f, 155.f});
+            engineTab->addChild(replayListClick);
+
+            auto info_label = CCLabelBMFont::create(fmt::format("Frame: {}\nReplay Size: {}", engine.get_frame(), engine.get_actions_size()).c_str(), "chatFont.fnt");
+            info_label->setAnchorPoint({0.f, 0.5f});
+            info_label->setPosition({8, 15});
+            info_label->setScale(0.5f);
+            engineTab->addChild(info_label);
+
+            auto saveButton = ButtonSprite::create("Save", 40, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
+            auto saveButtonClick = CCMenuItemExt::createSpriteExtra(saveButton, [this](CCMenuItemSpriteExtra* sender) {
+                
+            });
+            saveButtonClick->setPosition({35, 120});
+            engineTab->addChild(saveButtonClick);
+
+            auto loadButton = ButtonSprite::create("Load", 40, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
+            auto loadButtonClick = CCMenuItemExt::createSpriteExtra(loadButton, [this](CCMenuItemSpriteExtra* sender) {
+
+            });
+            loadButtonClick->setPosition({95, 120});
+            engineTab->addChild(loadButtonClick);
+
+            auto cleanButton = ButtonSprite::create("Clear", 40, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
+            auto cleanButtonClick = CCMenuItemExt::createSpriteExtra(cleanButton, [this](CCMenuItemSpriteExtra* sender) {
+
+            });
+            cleanButtonClick->setPosition({155, 120});
+            engineTab->addChild(cleanButtonClick);
+
+            auto accuracy_fix_toggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [this, &config](CCMenuItemToggler* sender) {
+
+            });
+            accuracy_fix_toggle->setPosition({20.f, 85.f});
+            engineTab->addChild(accuracy_fix_toggle);
+
+            auto accuracy_fix_label = AddTextToToggle("Accuracy Fix", accuracy_fix_toggle);
+            engineTab->addChild(accuracy_fix_label);
+
+            auto rotation_fix_toggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [this, &config](CCMenuItemToggler* sender) {
+
+            });
+            rotation_fix_toggle->setPosition({170.f, 85.f});
+            engineTab->addChild(rotation_fix_toggle);
+
+            auto rotation_fix_label = AddTextToToggle("Rotation Fix", rotation_fix_toggle);
+            engineTab->addChild(rotation_fix_label);
+            
+            auto engineV2_toggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [this, &config](CCMenuItemToggler* sender) {
+
+            });
+            engineV2_toggle->setPosition({20.f, 55.f});
+            engineTab->addChild(engineV2_toggle);
+
+            auto engineV2_label = AddTextToToggle("Engine v2 (Beta)", engineV2_toggle);
+            engineTab->addChild(engineV2_label);
+
+            tab->m_scrollLayer->m_contentLayer->addChild(engineTab);
+        }
 
         for (auto& hck : win.hacks) {
             tab->addToggle(hck.name, hck.desc, config.get<bool>(hck.config, false), [&config, &hck](bool enabled) {
@@ -148,6 +260,8 @@ bool HacksLayer::setup() {
 }
 
 void HacksLayer::switchTab(int newIndex) {
+    bool legacy_ui = Config::get().get<bool>("legacy_ui", true);
+
     if (newIndex < 0 || newIndex >= m_tabs.size()) return;
 
     m_index = newIndex;
@@ -161,15 +275,17 @@ void HacksLayer::switchTab(int newIndex) {
         if (button) {
             auto* btnSprite = dynamic_cast<ButtonSprite*>(button->getChildren()->objectAtIndex(0));
             if (btnSprite) {
-                btnSprite->updateBGImage(i == m_index ? "GDH_button_02.png"_spr : "GDH_button_01.png"_spr);
+                btnSprite->updateBGImage(i == m_index ? (legacy_ui ? "GJ_button_02.png" : "GDH_button_02.png"_spr) : (legacy_ui ? "GJ_button_01.png" : "GDH_button_01.png"_spr));
             }
         }
     }
 }
 
 HacksLayer* HacksLayer::create() {
+    bool legacy_ui = Config::get().get<bool>("legacy_ui", true);
+
     auto ret = new HacksLayer();
-    if (ret->initAnchored(460.f, 260.f, "GDH_square.png"_spr)) {
+    if (ret->initAnchored(460.f, 260.f, legacy_ui ? "GJ_square01.png" : "GDH_square.png"_spr)) {
         ret->autorelease();
         return ret;
     }

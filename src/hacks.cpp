@@ -26,6 +26,7 @@ void Hacks::Init() {
                 {"Speedhack", "", "speedhack_enabled"}, // +
                 {"Speedhack Audio", "", "speedhackAudio_enabled"}, // +
                 {"Invisible UI Button", "Hides the button that opens the menu", "invisible_ui_button"}, // +
+                {"Legacy UI", "", "legacy_ui"} // +
                 #endif
             }
         },
