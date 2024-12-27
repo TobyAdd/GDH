@@ -15,12 +15,6 @@
 	"resources": {
 		"sprites": [
 			"res/*.png"
-		],
-		"fonts": {
-            "Roboto": {
-                "path": "res/Roboto-Regular.ttf",
-                "size": 80
-            }
-        }
+		]
 	}
 }

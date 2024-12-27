@@ -7,10 +7,8 @@
 using namespace geode::prelude;
 
 ReplaySelectLayer* ReplaySelectLayer::create(geode::TextInput* textInput) {
-    bool legacy_ui = Config::get().get<bool>("legacy_ui", true);
-
     auto ret = new ReplaySelectLayer();
-    if (ret->initAnchored(200.f, 240.f, legacy_ui ? "GJ_square01.png" : "GDH_square.png"_spr)) {
+    if (ret->initAnchored(200.f, 240.f, "GJ_square01.png")) {
         ret->autorelease();
         ret->input = textInput;
         return ret;
@@ -22,9 +20,8 @@ ReplaySelectLayer* ReplaySelectLayer::create(geode::TextInput* textInput) {
 
 bool ReplaySelectLayer::setup() {
     auto& engine = ReplayEngine::get();
-    bool legacy_ui = Config::get().get<bool>("legacy_ui", true);
 
-    this->setTitle("Select Replay", legacy_ui ? "goldFont.fnt" : "Roboto.fnt"_spr);
+    this->setTitle("Select Replay");
 
     auto m_scrollLayer = ScrollLayer::create({400.f, 205.f});
     m_scrollLayer->m_contentLayer->setLayout(
@@ -41,7 +38,7 @@ bool ReplaySelectLayer::setup() {
 
     for (const auto &entry : std::filesystem::directory_iterator(folderMacroPath)) {
         std::string ext = entry.path().filename().extension().string();
-        if (ext == ".re" || ext == ".re2" || ext == ".re3") {
+        if (!engine.engine_v2 ? (ext == ".re" || ext == ".re2" || ext == ".re3") : ext == ".re21") {
             auto menu = CCMenu::create();
             menu->setContentSize({200, 35});
 
@@ -57,7 +54,7 @@ bool ReplaySelectLayer::setup() {
 
                 m_closeBtn->activate();
             });
-            buttonClick->setPosition({195.f, 10.f});
+            buttonClick->setPosition({200.f, 10.f});
             menu->addChild(buttonClick);
 
             m_scrollLayer->m_contentLayer->addChild(menu);
@@ -169,14 +166,7 @@ bool HacksLayer::setup() {
     auto& config = Config::get();
     auto& hacks = Hacks::get();
 
-    bool legacy_ui = config.get<bool>("legacy_ui", true);
-
-    this->setTitle("GDH", legacy_ui ? "goldFont.fnt" : "Roboto.fnt"_spr);
-
-    if (!legacy_ui) {
-        auto closeBtnSprite = CCSprite::create("GDH_closeBtn.png"_spr);
-        m_closeBtn->setSprite(closeBtnSprite);
-    }
+    this->setTitle("GDH");
 
     auto background = extension::CCScale9Sprite::create("square02_small.png");
     background->setPosition({290.f, 115.f});
@@ -191,8 +181,7 @@ bool HacksLayer::setup() {
         if (win.name == "Framerate" || win.name == "GDH Settings" || win.name == "Variables" || win.name == "Shortcuts")
             continue;
 
-        auto button = ButtonSprite::create(win.name.c_str(), 90, true, legacy_ui ? "bigFont.fnt" : "Roboto.fnt"_spr, 
-            (i == m_index) ? (legacy_ui ? "GJ_button_02.png" : "GDH_button_02.png"_spr) : (legacy_ui ? "GJ_button_01.png" : "GDH_button_01.png"_spr), 30.f, 0.7f);
+        auto button = ButtonSprite::create(win.name.c_str(), 90, true, "bigFont.fnt", (i == m_index) ? "GJ_button_02.png" : "GJ_button_01.png", 30.f, 0.7f);
 
         auto buttonClick = CCMenuItemExt::createSpriteExtra(button, [this, i](CCMenuItemSpriteExtra* sender) {
             switchTab(i);
@@ -306,7 +295,7 @@ bool HacksLayer::setup() {
             auto cleanButtonClick = CCMenuItemExt::createSpriteExtra(cleanButton, [this, &engine, info_label](CCMenuItemSpriteExtra* sender) {
                 engine.clear();
                 FLAlertLayer::create("Info", "Replay has been cleared", "OK")->show();
-                info_label->setString(fmt::format("Frame: {}\nReplay Size: {}", engine.get_frame(), engine.get_actions_size()).c_str());
+                info_label->setString(fmt::format("Frame: {}\nReplay Size: {}/{}", engine.get_frame(), engine.get_current_index(), engine.get_actions_size()).c_str());
             });
             cleanButtonClick->setPosition({155, 120});
             engineTab->addChild(cleanButtonClick);
@@ -333,11 +322,12 @@ bool HacksLayer::setup() {
             
             auto engineV2_toggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [this, &config, &engine](CCMenuItemToggler* sender) {
                 engine.engine_v2 = !sender->isOn();
+                config.set<bool>("engine::v2", !sender->isOn());
             });
             engineV2_toggle->setPosition({20.f, 55.f});
             engineTab->addChild(engineV2_toggle);
 
-            auto engineV2_label = AddTextToToggle("Engine v2 (Beta)", engineV2_toggle);
+            auto engineV2_label = AddTextToToggle("Engine v2.1 (Beta)", engineV2_toggle);
             engineTab->addChild(engineV2_label);
 
             tab->m_scrollLayer->m_contentLayer->addChild(engineTab);
@@ -365,8 +355,6 @@ bool HacksLayer::setup() {
 }
 
 void HacksLayer::switchTab(int newIndex) {
-    bool legacy_ui = Config::get().get<bool>("legacy_ui", true);
-
     if (newIndex < 0 || newIndex >= m_tabs.size()) return;
 
     m_index = newIndex;
@@ -380,17 +368,15 @@ void HacksLayer::switchTab(int newIndex) {
         if (button) {
             auto* btnSprite = dynamic_cast<ButtonSprite*>(button->getChildren()->objectAtIndex(0));
             if (btnSprite) {
-                btnSprite->updateBGImage(i == m_index ? (legacy_ui ? "GJ_button_02.png" : "GDH_button_02.png"_spr) : (legacy_ui ? "GJ_button_01.png" : "GDH_button_01.png"_spr));
+                btnSprite->updateBGImage(i == m_index ? "GJ_button_02.png" : "GJ_button_01.png");
             }
         }
     }
 }
 
 HacksLayer* HacksLayer::create() {
-    bool legacy_ui = Config::get().get<bool>("legacy_ui", true);
-
     auto ret = new HacksLayer();
-    if (ret->initAnchored(460.f, 260.f, legacy_ui ? "GJ_square01.png" : "GDH_square.png"_spr)) {
+    if (ret->initAnchored(460.f, 260.f, "GJ_square01.png")) {
         ret->autorelease();
         return ret;
     }

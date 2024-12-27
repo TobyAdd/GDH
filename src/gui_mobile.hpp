@@ -39,8 +39,5 @@ private:
     geode::TextInput* input;
 public:
     static ReplaySelectLayer* create(geode::TextInput* textInput); 
-
-    // void switchTab(int newIndex);
     bool setup();
-    // void onExit();
 };

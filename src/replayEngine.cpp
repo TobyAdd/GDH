@@ -30,11 +30,19 @@ size_t ReplayEngine::get_actions_size() {
     return m_inputFrames_p1.size() + m_inputFrames_p2.size();
 }
 
+int ReplayEngine::get_current_index() {
+    return m_inputIndex_p1 + m_inputIndex_p2;
+}
+
 std::string ReplayEngine::save(std::string name) {
     auto& config = Config::get();
 
     if (m_inputFrames_p1.empty() && m_inputFrames_p2.empty())
         return "Replay doesn't have actions";
+
+    if (engine_v2) {
+        return save2(name);
+    }
 
     std::ofstream file(folderMacroPath / std::string(name + ".re3"), std::ios::binary);    
 
@@ -137,8 +145,10 @@ std::string ReplayEngine::load_v2(std::string name) {
     return "Replay loaded";
 }
 
-std::string ReplayEngine::load_v3(std::string name) {
-    auto& config = Config::get();
+std::string ReplayEngine::load_v3(std::string name, bool only_p1, bool only_p2) {
+    if (name.empty())
+        return "Empty macro name is not allowed";
+
     std::ifstream file(folderMacroPath / std::string(name + ".re3"), std::ios::binary);
     if (!file) {
         return "Replay doesn't exist";
@@ -146,7 +156,7 @@ std::string ReplayEngine::load_v3(std::string name) {
 
     float tps_value;
     file.read(reinterpret_cast<char *>(&tps_value), sizeof(tps_value));
-    config.set<float>("tps_value", tps_value);
+    Config::get().set<float>("tps_value", tps_value);
 
     unsigned p1_size;
     unsigned p2_size;
@@ -158,43 +168,67 @@ std::string ReplayEngine::load_v3(std::string name) {
     file.read(reinterpret_cast<char *>(&p1_input_size), sizeof(p1_input_size));
     file.read(reinterpret_cast<char *>(&p2_input_size), sizeof(p2_input_size));
 
-    m_physicFrames_p1.resize(p1_size);
-    m_physicFrames_p2.resize(p2_size);
-    m_inputFrames_p1.resize(p1_input_size);
-    m_inputFrames_p2.resize(p2_input_size);
+    std::vector<replay_data> physicFrames_p1;
+    std::vector<replay_data> physicFrames_p2;
+    std::vector<replay_data2> inputFrames_p1;
+    std::vector<replay_data2> inputFrames_p2;
 
-    file.read(reinterpret_cast<char *>(&m_physicFrames_p1[0]), sizeof(replay_data) * p1_size);
-    file.read(reinterpret_cast<char *>(&m_physicFrames_p2[0]), sizeof(replay_data) * p2_size);
-    file.read(reinterpret_cast<char *>(&m_inputFrames_p1[0]), sizeof(replay_data2) * p1_input_size);
-    file.read(reinterpret_cast<char *>(&m_inputFrames_p2[0]), sizeof(replay_data2) * p2_input_size);
+    physicFrames_p1.resize(p1_size);
+    physicFrames_p2.resize(p2_size);
+    inputFrames_p1.resize(p1_input_size);
+    inputFrames_p2.resize(p2_input_size);
+
+    file.read(reinterpret_cast<char *>(&physicFrames_p1[0]), sizeof(replay_data) * p1_size);
+    file.read(reinterpret_cast<char *>(&physicFrames_p2[0]), sizeof(replay_data) * p2_size);
+    file.read(reinterpret_cast<char *>(&inputFrames_p1[0]), sizeof(replay_data2) * p1_input_size);
+    file.read(reinterpret_cast<char *>(&inputFrames_p2[0]), sizeof(replay_data2) * p2_input_size);
+
+    if (only_p1) {
+        m_physicFrames_p1 = physicFrames_p1;
+        m_inputFrames_p1 = inputFrames_p1;
+    }
+
+    if (only_p2) {
+        m_physicFrames_p2 = physicFrames_p2;
+        m_inputFrames_p2 = inputFrames_p2;
+    }
 
     file.close();
 
     return "Replay loaded";
 }
 
-#include <string>
+std::string ReplayEngine::load(std::string name, bool only_p1, bool only_p2) {
+    if (name.empty())
+        return "Empty macro name is not allowed";
 
-std::string ReplayEngine::load(std::string name) {
-    auto& config = Config::get();
-
-    if (!m_inputFrames_p1.empty() || !m_inputFrames_p2.empty())
+    if ((only_p1 && only_p2) && (!m_inputFrames_p1.empty() || !m_inputFrames_p2.empty()))
         return "Please clear replay before loading another";
 
+    if (engine_v2) {
+        return load2(name, only_p1, only_p2);
+    }
+
     if (name.size() >= 4 && name.substr(name.size() - 3) == ".re") {
+        if (!only_p1 || !only_p2)
+            return "Single player loading is supported for Engine v3/v2.1 only";
+
         std::string result = load_v1(name);
         if (result == "Replay loaded") {
             return "Replay loaded (v1 -> v3)";
         }
     } 
     else if (name.size() >= 5 && name.substr(name.size() - 4) == ".re2") {
+        if (!only_p1 || !only_p2)
+            return "Single player loading is supported for Engine v3/v2.1 only";
+
         std::string result = load_v2(name);
         if (result == "Replay loaded") {
             return "Replay loaded (v2 -> v3)";
         }
     } 
     else {
-        std::string result = load_v3(name);
+        std::string result = load_v3(name, only_p1, only_p2);
         if (result == "Replay loaded") {
             return result;
         }
@@ -202,6 +236,70 @@ std::string ReplayEngine::load(std::string name) {
 
     return "Failed to load replay";
 }
+
+std::string ReplayEngine::save2(std::string name) {
+    std::ofstream file(folderMacroPath / std::string(name + ".re21"), std::ios::binary);
+    if (!file)
+        return "Failed to open file for writing";
+
+    const std::string header = "RE21";
+
+    file.write(header.c_str(), header.size());
+
+    unsigned p1_input_size = m_inputFrames_p1.size();
+    unsigned p2_input_size = m_inputFrames_p2.size();
+
+    file.write(reinterpret_cast<char *>(&p1_input_size), sizeof(p1_input_size));
+    file.write(reinterpret_cast<char *>(&p2_input_size), sizeof(p2_input_size));
+ 
+    file.write(reinterpret_cast<char *>(&m_inputFrames_p1[0]), sizeof(replay_data2) * p1_input_size);    
+    file.write(reinterpret_cast<char *>(&m_inputFrames_p2[0]), sizeof(replay_data2) * p2_input_size);
+
+    file.close();
+    return "Replay saved (Engine v2.1)";
+}
+
+std::string ReplayEngine::load2(std::string name, bool only_p1, bool only_p2) {
+    std::ifstream file(folderMacroPath / std::string(name + ".re21"), std::ios::binary);
+    if (!file) {
+        return "Replay doesn't exist";
+    }
+
+    const std::string expected_header = "RE21";
+    char file_header[5] = {0};
+
+    file.read(file_header, expected_header.size());
+
+    if (std::string(file_header) != expected_header)
+        return "Invalid replay format (Engine v2.1)";
+
+    Config::get().set<float>("tps_value", 240.f);
+
+    unsigned p1_input_size;
+    unsigned p2_input_size;
+
+    file.read(reinterpret_cast<char *>(&p1_input_size), sizeof(p1_input_size));
+    file.read(reinterpret_cast<char *>(&p2_input_size), sizeof(p2_input_size));
+
+    std::vector<replay_data2> inputFrames_p1;
+    std::vector<replay_data2> inputFrames_p2;
+
+    inputFrames_p1.resize(p1_input_size);
+    inputFrames_p2.resize(p2_input_size);
+
+    file.read(reinterpret_cast<char *>(&inputFrames_p1[0]), sizeof(replay_data2) * p1_input_size);
+    file.read(reinterpret_cast<char *>(&inputFrames_p2[0]), sizeof(replay_data2) * p2_input_size);
+
+    if (only_p1)
+        m_inputFrames_p1 = inputFrames_p1;
+
+    if (only_p2)
+        m_inputFrames_p2 = inputFrames_p2;
+
+    file.close();
+    return "Replay loaded (Engine v2.1)";
+}
+
 
 std::string ReplayEngine::clear() {
     m_physicFrames_p1.clear();

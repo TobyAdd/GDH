@@ -4,17 +4,14 @@
 using namespace geode::prelude;
 
 bool popupSystem::setup() {
-    this->setTitle("More Settings", "Roboto.fnt"_spr);
-
-    auto closeBtnSprite = cocos2d::CCSprite::create("GDH_closeBtn.png"_spr);
-    m_closeBtn->setSprite(closeBtnSprite);
+    this->setTitle("More Settings");
 
     return true;
 }
 
 popupSystem* popupSystem::create() {
     auto ret = new popupSystem();
-    if (ret->initAnchored(300.f, 200.f, "GDH_square.png"_spr)) {
+    if (ret->initAnchored(300.f, 200.f, "GJ_square01.png")) {
         ret->autorelease();
         return ret;
     }

@@ -355,7 +355,12 @@ class $modify(PlayLayer) {
         if (obj == m_fields->anticheat_obj)
             PlayLayer::destroyPlayer(player, obj);
 
-        if (!config.get<bool>("noclip", false)) {
+        bool shouldDestroy = config.get<bool>("noclip", false) ? 
+            ((player == m_player1 && !config.get<bool>("noclip::p1", true)) || 
+            (player == m_player2 && !config.get<bool>("noclip::p2", true))) 
+            : true;
+
+        if (shouldDestroy) {
             if (Config::get().get<bool>("safe_mode", false)) {
                 m_isTestMode = true;
             }
@@ -656,7 +661,7 @@ class $modify(GJBaseGameLayer) {
         auto& recorderAudio = RecorderAudio::get();
         auto& config = Config::get();
 
-        if (config.get<bool>("stop_triggers_on_death", false) && m_player1->m_isDead || m_player2->m_isDead)
+        if (config.get<bool>("stop_triggers_on_death", false) && PlayLayer::get() && (m_player1->m_isDead || m_player2->m_isDead))
             return;
 
         if (config.get<bool>("jump_hack", false))

@@ -416,7 +416,7 @@ void Gui::Render() {
                     replay_list.clear();
                     for (const auto &entry : std::filesystem::directory_iterator(folderMacroPath)) {
                         std::string ext = entry.path().filename().extension().string();
-                        if (ext == ".re" || ext == ".re2" || ext == ".re3") {
+                        if (!engine.engine_v2 ? (ext == ".re" || ext == ".re2" || ext == ".re3") : ext == ".re21") {
                             replay_list.push_back(entry);
                         }
                     }
@@ -438,7 +438,7 @@ void Gui::Render() {
                     ImGuiH::Popup::get().add_popup("Replay has been cleared");
                 }
 
-                ImGui::Text("Replay Size: %zu", engine.get_actions_size());
+                ImGui::Text("Replay Size: %i/%zu", engine.get_current_index(), engine.get_actions_size());
                 ImGui::Text("Frame: %i", engine.get_frame());
 
                 ImGui::Separator();
@@ -466,13 +466,31 @@ void Gui::Render() {
                         return false;
                     };
                     
-                        if (ImGui::BeginTabItem("Settings")) {
-                        ImGuiH::Checkbox("Engine v2", &engine.engine_v2, m_scale);
+                    if (ImGui::BeginTabItem("Settings")) {
+                        if (ImGuiH::Checkbox("Engine v2", &engine.engine_v2, m_scale))
+                            config.set<bool>("engine::v2", engine.engine_v2);
 
                         if (!engine.engine_v2) {
                             ImGuiH::Checkbox("Accuracy Fix", &engine.accuracy_fix, m_scale);
                             ImGui::SameLine();
                             ImGuiH::Checkbox("Rotation Fix", &engine.rotation_fix, m_scale);
+                        }
+
+                        ImGui::Spacing();
+                        ImGui::Text("Load P1/P2 Macro");
+                        ImGui::Separator();
+
+                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                        ImGui::InputText("##replay_name2", &engine.replay_name);
+
+                        if (ImGuiH::Button("Load P1")) {
+                            ImGuiH::Popup::get().add_popup(engine.load(engine.replay_name, true, false));
+                        }
+
+                        ImGui::SameLine();
+
+                        if (ImGuiH::Button("Load P2")) {
+                            ImGuiH::Popup::get().add_popup(engine.load(engine.replay_name, false, true));
                         }
 
                         ImGui::EndTabItem();
@@ -630,8 +648,56 @@ void Gui::Render() {
                             ImGui::Spacing();
 
                             ImGui::Text("Presets (Thanks WarGack, ElPaan, midixd)");
-
                             ImGui::Separator();
+
+                            
+                            if (ImGuiH::Button("Save")) {
+                                matjson::Value j;
+                                j["width"] = recorder.width;
+                                j["height"] = recorder.height;
+                                j["fps"] = recorder.fps;
+                                j["bitrate"] = recorder.bitrate;
+                                j["codec"] = recorder.codec;
+                                j["extra_args"] = recorder.extra_args;
+                                j["vf_args"] = recorder.vf_args;
+
+                                std::ofstream file(folderPath / "recorder_settings.json");
+                                if (file.is_open()) {
+                                    file << j.dump(4);                            
+                                    file.close();
+
+                                    ImGuiH::Popup::get().add_popup("Configuration saved");
+                                } else {
+                                    ImGuiH::Popup::get().add_popup("Could not open file for writing");
+                                }
+                            }
+
+                            ImGui::SameLine();
+
+                            if (ImGuiH::Button("Load")) {
+                                std::ifstream file(folderPath / "recorder_settings.json");
+                                if (file.is_open()) {
+                                    auto result = matjson::parse(file);
+                                    if (!result.isErr()) {
+                                        matjson::Value j = result.unwrap();
+                                        recorder.width = j["width"].asInt().unwrapOr(recorder.width);
+                                        recorder.height = j["height"].asInt().unwrapOr(recorder.height);
+                                        recorder.fps = j["fps"].asInt().unwrapOr(recorder.fps);
+                                        recorder.bitrate = j["bitrate"].asString().unwrapOr(recorder.bitrate);
+                                        recorder.codec = j["codec"].asString().unwrapOr(recorder.codec);
+                                        recorder.extra_args = j["extra_args"].asString().unwrapOr(recorder.extra_args);
+                                        recorder.vf_args = j["vf_args"].asString().unwrapOr(recorder.vf_args);
+
+                                        ImGuiH::Popup::get().add_popup("Configuration loaded");
+                                    } else {
+                                        ImGuiH::Popup::get().add_popup("json broken?");
+                                    }
+
+                                    file.close();
+                                } else {
+                                    ImGuiH::Popup::get().add_popup("Could not open file for reading");
+                                }
+                            }
 
                             if (ImGuiH::Button("HD"))
                             {

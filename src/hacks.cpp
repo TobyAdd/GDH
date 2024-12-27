@@ -26,7 +26,6 @@ void Hacks::Init() {
                 {"Speedhack", "", "speedhack_enabled"}, // +
                 {"Speedhack Audio", "", "speedhackAudio_enabled"}, // +
                 {"Invisible UI Button", "Hides the button that opens the menu", "invisible_ui_button"}, // +
-                {"Legacy UI", "", "legacy_ui"} // +
                 #endif
             }
         },
@@ -180,6 +179,35 @@ void Hacks::Init() {
 
     #endif
 
+    SetCustomWindowHandlerByConfig("noclip", [this, &config]() {
+        bool noclip_p1 = config.get<bool>("noclip::p1", true);
+        bool noclip_p2 = config.get<bool>("noclip::p2", true);
+
+        #ifdef GEODE_IS_WINDOWS 
+        auto &gui = Gui::get();
+        if (ImGuiH::Checkbox("Player 1", &noclip_p1, gui.m_scale))
+            config.set<bool>("noclip::p1", noclip_p1);
+
+        ImGui::SameLine();
+
+        if (ImGuiH::Checkbox("Player 2", &noclip_p2, gui.m_scale))
+            config.set<bool>("noclip::p2", noclip_p2);
+
+        #elif defined(GEODE_IS_ANDROID64) 
+        auto popup = popupSystem::create();
+        popup->AddToggle("Player 1", noclip_p1, [this, &config](bool enabled) 
+        {
+            config.set<bool>("noclip::p1", enabled);
+        });
+
+        popup->AddToggle("Player 2", noclip_p2, [this, &config](bool enabled) 
+        {
+            config.set<bool>("noclip::p2", enabled);
+        });
+        popup->show();
+        #endif
+    });
+
     SetHandlerByConfig("rgb_icons", [this](bool enabled) {
         auto& colors = RGBIcons::get();
         if (enabled && colors.colors.empty()) 
@@ -233,7 +261,7 @@ void Hacks::Init() {
         straightFly.start(GJBaseGameLayer::get());
     });
 
-     SetHandlerByConfig("show_hitboxes", [this](bool enabled) {
+    SetHandlerByConfig("show_hitboxes", [this](bool enabled) {
         auto pl = PlayLayer::get();
         if (pl && !enabled && !(pl->m_isPracticeMode && GameManager::get()->getGameVariable("0166"))) {
             pl->m_debugDrawNode->setVisible(false);
@@ -260,7 +288,6 @@ void Hacks::Init() {
         popup->AddText("Note: Straight Fly Bot works only\non first player", 0.45f);
         popup->show();
         #endif
-
     });
 
     SetCustomWindowHandlerByConfig("wave_trail_size", [this, &config]() {
@@ -532,6 +559,7 @@ void Hacks::Init() {
     });
 
     Recorder::get().folderShowcasesPath = Config::get().get<std::filesystem::path>("showcases_path", folderPath / "Showcases");
+    ReplayEngine::get().engine_v2 = Config::get().get<bool>("engine::v2", false);
 
     Labels::get().load();
     RGBIcons::get().load();

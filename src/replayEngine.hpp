@@ -48,10 +48,16 @@ public:
 
     unsigned get_frame();
     void remove_actions(unsigned frame);
+
     size_t get_actions_size();
+    int get_current_index();
 
     std::string save(std::string name);
-    std::string load(std::string name);
+    std::string load(std::string name, bool only_p1 = true, bool only_p2 = true);
+
+    std::string save2(std::string name);
+    std::string load2(std::string name, bool only_p1 = true, bool only_p2 = true);
+
     std::string clear();
 
     void handle_update(GJBaseGameLayer* self);
@@ -66,7 +72,7 @@ private:
 
     std::string load_v1(std::string name);
     std::string load_v2(std::string name);
-    std::string load_v3(std::string name);
+    std::string load_v3(std::string name, bool only_p1 = true, bool only_p2 = true);
 
     std::vector<replay_data> m_physicFrames_p1;
     std::vector<replay_data> m_physicFrames_p2;
