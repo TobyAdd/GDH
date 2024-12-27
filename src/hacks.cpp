@@ -182,18 +182,27 @@ void Hacks::Init() {
     SetCustomWindowHandlerByConfig("noclip", [this, &config]() {
         bool noclip_p1 = config.get<bool>("noclip::p1", true);
         bool noclip_p2 = config.get<bool>("noclip::p2", true);
+        bool tint_on_death = config.get<bool>("noclip::tint_on_death", false);
+        int tint_opacity = config.get<int>("noclip::tint_opacity", 100);
 
-        #ifdef GEODE_IS_WINDOWS 
-        auto &gui = Gui::get();
-        if (ImGuiH::Checkbox("Player 1", &noclip_p1, gui.m_scale))
-            config.set<bool>("noclip::p1", noclip_p1);
+        // #ifdef GEODE_IS_WINDOWS 
+        // auto &gui = Gui::get();
+        // if (ImGuiH::Checkbox("Player 1", &noclip_p1, gui.m_scale))
+        //     config.set<bool>("noclip::p1", noclip_p1);
 
-        ImGui::SameLine();
+        // ImGui::SameLine();
 
-        if (ImGuiH::Checkbox("Player 2", &noclip_p2, gui.m_scale))
-            config.set<bool>("noclip::p2", noclip_p2);
+        // if (ImGuiH::Checkbox("Player 2", &noclip_p2, gui.m_scale))
+        //     config.set<bool>("noclip::p2", noclip_p2);
 
-        #elif defined(GEODE_IS_ANDROID64) 
+        // if (ImGuiH::Checkbox("Tint on Death", &tint_on_death, gui.m_scale))
+        //     config.set<bool>("noclip::tint_on_death", tint_on_death);
+
+        // if (ImGui::DragInt("##noclip::tint_opacity", &tint_opacity, 1, 0, 255, "Tint Opacity: %i"))
+        //     config.set<int>("noclip::tint_opacity", tint_opacity);
+            
+
+        // #elif defined(GEODE_IS_ANDROID64) 
         auto popup = popupSystem::create();
         popup->AddToggle("Player 1", noclip_p1, [this, &config](bool enabled) 
         {
@@ -204,8 +213,22 @@ void Hacks::Init() {
         {
             config.set<bool>("noclip::p2", enabled);
         });
+
+        popup->AddToggle("Tint on Death", tint_on_death, [this, &config](bool enabled) 
+        {
+            config.set<bool>("noclip::tint_on_death", enabled);
+        });
+
+        popup->AddText("Tint Opacity (0 - 255):");
+
+        popup->AddIntInput("Tint Opacity", tint_opacity, [this, &config](int value) 
+        {
+            config.set("noclip::tint_opacity", std::clamp(value, 0, 255));
+        }, 25.f);
+
+
         popup->show();
-        #endif
+        // #endif
     });
 
     SetCustomWindowHandlerByConfig("unlock_items", [this, &config]() {
@@ -473,7 +496,7 @@ void Hacks::Init() {
 
         popup->AddText("Trail Length:", 0.35f, 20.f);
 
-        popup->AddIntInput("Trail Length", trail_length, [this, &config](float value) 
+        popup->AddIntInput("Trail Length", trail_length, [this, &config](int value) 
         {
             config.set("show_hitboxes::trail_length", value);
         }, 25.f);

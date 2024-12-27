@@ -151,9 +151,10 @@ class $modify(PlayLayer) {
         cocos2d::CCLabelBMFont* labels_bottom_right;
         cocos2d::CCLabelBMFont* labels_bottom;
         
-        GameObject* anticheat_obj = nullptr;
         std::vector<GameObject*> coinsObjects;
         cocos2d::CCMenu* startposSwitcherUI;
+
+        cocos2d::CCSprite* tint_death_bg;
         
         ~Fields() {
             startPositions.clear();
@@ -165,11 +166,22 @@ class $modify(PlayLayer) {
     };
 
     bool init(GJGameLevel* level, bool useReplay, bool dontCreateObjects) {
+        if (!PlayLayer::init(level, useReplay, dontCreateObjects)) return false;
         auto& config = Config::get();
         auto& engine = ReplayEngine::get();
         auto& recorder = Recorder::get();
         auto& recorderAudio = RecorderAudio::get();
-        if (!PlayLayer::init(level, useReplay, dontCreateObjects)) return false;
+
+        auto wnd_size = cocos2d::CCDirector::sharedDirector()->getWinSize();
+        m_fields->tint_death_bg = cocos2d::CCSprite::create("game_bg_13_001.png");
+        auto sprSize = m_fields->tint_death_bg->getContentSize();
+        m_fields->tint_death_bg->setPosition({wnd_size.width/2, wnd_size.height/2});            
+        m_fields->tint_death_bg->setScaleX(wnd_size.width / sprSize.width * 2.f);
+        m_fields->tint_death_bg->setScaleY(wnd_size.height / sprSize.height * 2.f);
+        m_fields->tint_death_bg->setColor({255, 0, 0});
+        m_fields->tint_death_bg->setOpacity(0);
+        m_fields->tint_death_bg->setZOrder(999);
+        addChild(m_fields->tint_death_bg);
 
         if (config.get<bool>("auto_practice_mode", false))
             togglePracticeMode(true);
@@ -350,12 +362,9 @@ class $modify(PlayLayer) {
         auto& config = Config::get();
 
         bool testmode = m_isTestMode;
-
-        if (!m_fields->anticheat_obj)
-            m_fields->anticheat_obj = obj;
         
-        if (obj == m_fields->anticheat_obj)
-            PlayLayer::destroyPlayer(player, obj);
+        if (m_anticheatSpike && obj == m_anticheatSpike)
+            return PlayLayer::destroyPlayer(player, obj);
 
         bool shouldDestroy = config.get<bool>("noclip", false) ? 
             ((player == m_player1 && !config.get<bool>("noclip::p1", true)) || 
@@ -368,6 +377,12 @@ class $modify(PlayLayer) {
             }
             PlayLayer::destroyPlayer(player, obj);
             m_isTestMode = testmode;
+        }
+
+        if (config.get<bool>("noclip::tint_on_death", false)) {
+            m_fields->tint_death_bg->stopAllActions();
+            m_fields->tint_death_bg->setOpacity(config.get<int>("noclip::tint_opacity", 100));
+            m_fields->tint_death_bg->runAction(cocos2d::CCFadeTo::create(0.35f, 0));
         }
 
         NoclipAccuracy::get().handle_death();
