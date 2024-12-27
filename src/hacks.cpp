@@ -37,7 +37,7 @@ void Hacks::Init() {
                 {"Checkpoint Limit", "Removes the limit that deletes previous checkpoints after the 50th checkpoint", "checkpoint_limit"}, // +   
                 {"Treasure Room", "Unlocks the Treasure Room", "treasure_room"}, // +    
                 {"Unlock Shops", "Unlocks all shops", "unlock_shops"}, // +  
-                {"Unlock Vaults", "Unlocks all Vaults and doors", "unlock_vaults"},
+                {"Unlock Vaults", "Unlocks all Vaults and doors", "unlock_vaults"}, // +    
                 {"Main Levels", "Unlocks all main levels", "main_levels"} // +     
             }
         },
@@ -203,6 +203,42 @@ void Hacks::Init() {
         popup->AddToggle("Player 2", noclip_p2, [this, &config](bool enabled) 
         {
             config.set<bool>("noclip::p2", enabled);
+        });
+        popup->show();
+        #endif
+    });
+
+    SetCustomWindowHandlerByConfig("unlock_items", [this, &config]() {
+        bool all_icons = config.get<bool>("unlock_items::all_icons", true);
+        bool practice_music_sync = config.get<bool>("unlock_items::practice_music_sync", true);
+        bool music_unlocker = config.get<bool>("unlock_items::music_unlocker", true);
+
+        #ifdef GEODE_IS_WINDOWS 
+        auto &gui = Gui::get();
+        if (ImGuiH::Checkbox("All Icons", &all_icons, gui.m_scale))
+            config.set<bool>("unlock_items::all_icons", all_icons);
+
+        if (ImGuiH::Checkbox("Practice Music Sync", &practice_music_sync, gui.m_scale))
+            config.set<bool>("unlock_items::practice_music_sync", practice_music_sync);
+
+        if (ImGuiH::Checkbox("Music Unlocker", &music_unlocker, gui.m_scale))
+            config.set<bool>("unlock_items::music_unlocker", music_unlocker);
+
+        #elif defined(GEODE_IS_ANDROID64) 
+        auto popup = popupSystem::create();
+        popup->AddToggle("All Icons", all_icons, [this, &config](bool enabled) 
+        {
+            config.set<bool>("unlock_items::all_icons", enabled);
+        });
+
+        popup->AddToggle("Practice Music Sync", practice_music_sync, [this, &config](bool enabled) 
+        {
+            config.set<bool>("unlock_items::practice_music_sync", enabled);
+        });
+
+        popup->AddToggle("Music Unlocker", music_unlocker, [this, &config](bool enabled) 
+        {
+            config.set<bool>("unlock_items::music_unlocker", enabled);
         });
         popup->show();
         #endif

@@ -32,6 +32,8 @@
 #include <Geode/modify/EndLevelLayer.hpp>
 #include <Geode/modify/CCDrawNode.hpp>
 #include <Geode/modify/CCCircleWave.hpp>
+#include <Geode/modify/CreatorLayer.hpp>
+#include <Geode/modify/SecretLayer2.hpp>
 #include "hacks.hpp"
 #include "config.hpp"
 #include "labels.hpp"
@@ -856,6 +858,8 @@ class $modify(CameraTriggerGameObject) {
     }
 };
 
+bool bypassStat = false;
+int statValue = 0;
 
 class $modify(GameStatsManager) {
     bool isItemUnlocked(UnlockType p0, int p1) {
@@ -863,7 +867,27 @@ class $modify(GameStatsManager) {
             return true;
 
         auto& config = Config::get();
-        return config.get<bool>("unlock_items", false);
+
+        if (config.get<bool>("unlock_items", false) && config.get<bool>("unlock_items::practice_music_sync", true) && p0 == UnlockType::GJItem & p1 == 17)
+            return true;
+
+        if (config.get<bool>("unlock_items", false) && config.get<bool>("unlock_items::music_unlocker", true) && p0 == UnlockType::GJItem & p1 == 16)
+            return true;
+
+        if (config.get<bool>("unlock_vaults", false) && p0 == UnlockType::GJItem && p1 >= 1 && p1 <= 4) {
+            return true;
+        }
+
+        return false;
+    }
+
+    int getStat(const char* key) {
+        if (bypassStat) {
+            bypassStat = false;
+            return statValue;
+        }
+
+        return GameStatsManager::getStat(key);
     }
 };
 
@@ -961,7 +985,26 @@ class $modify(GameManager) {
         if (Config::get().get<bool>("unlock_shops", false) && std::strcmp(p0, "11") == 0 || std::strcmp(p0, "20") == 0 || std::strcmp(p0, "35") == 0 || std::strcmp(p0, "34") == 0)
             return true;
 
+        if (Config::get().get<bool>("unlock_vaults", false) && std::strcmp(p0, "4") == 0)
+            return true;
+
         return false;
+    }
+
+    bool isColorUnlocked(int key, UnlockType type) {
+        if (GameManager::isColorUnlocked(key, type))
+            return true;
+
+        auto& config = Config::get();
+        return (config.get<bool>("unlock_items", false) && config.get<bool>("unlock_items::all_icons", true));
+    }
+
+    bool isIconUnlocked(int key, IconType type) {
+        if (GameManager::isIconUnlocked(key, type))
+            return true;
+
+        auto& config = Config::get();
+        return (config.get<bool>("unlock_items", false) && config.get<bool>("unlock_items::all_icons", true));
     }
 
     // bool getGameVariable(const char *p0) {
@@ -1169,6 +1212,59 @@ class $modify(OptionsLayer) {
         auto* audio_engine = FMODAudioEngine::sharedEngine();
         if (value < 0.03f)
             audio_engine->setEffectsVolume(value);
+    }
+    
+    void customSetup() {
+        if (Config::get().get<bool>("unlock_vaults", false)) {
+            bypassStat = true;
+            statValue = 10;
+        }
+        OptionsLayer::customSetup();
+    }
+
+    void onSecretVault(cocos2d::CCObject* sender) {
+        if (Config::get().get<bool>("unlock_vaults", false)) {
+            bypassStat = true;
+            statValue = 10;
+        }
+        OptionsLayer::onSecretVault(sender);
+    }
+};
+
+class $modify(SecretLayer2) {
+    bool init() {
+        if (Config::get().get<bool>("unlock_vaults", false)) {
+            bypassStat = true;
+            statValue = 200;
+        }
+        return SecretLayer2::init();
+    }
+
+    void onSecretLevel(cocos2d::CCObject* sender) {
+        if (Config::get().get<bool>("unlock_vaults", false)) {
+            bypassStat = true;
+            statValue = 200;
+        }
+        SecretLayer2::onSecretLevel(sender);
+    }
+};
+
+class $modify(CreatorLayer) {
+    bool init() {
+        if (Config::get().get<bool>("unlock_vaults", false)) {
+            bypassStat = true;
+            statValue = 50;
+        }
+
+        return CreatorLayer::init();
+    }
+
+    void onSecretVault(cocos2d::CCObject* sender) {
+        if (Config::get().get<bool>("unlock_vaults", false)) {
+            bypassStat = true;
+            statValue = 51;
+        }
+        CreatorLayer::onSecretVault(sender);
     }
 };
 
