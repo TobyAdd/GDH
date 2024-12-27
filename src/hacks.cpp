@@ -185,24 +185,24 @@ void Hacks::Init() {
         bool tint_on_death = config.get<bool>("noclip::tint_on_death", false);
         int tint_opacity = config.get<int>("noclip::tint_opacity", 100);
 
-        // #ifdef GEODE_IS_WINDOWS 
-        // auto &gui = Gui::get();
-        // if (ImGuiH::Checkbox("Player 1", &noclip_p1, gui.m_scale))
-        //     config.set<bool>("noclip::p1", noclip_p1);
+        #ifdef GEODE_IS_WINDOWS 
+        auto &gui = Gui::get();
+        if (ImGuiH::Checkbox("Player 1", &noclip_p1, gui.m_scale))
+            config.set<bool>("noclip::p1", noclip_p1);
 
-        // ImGui::SameLine();
+        ImGui::SameLine();
 
-        // if (ImGuiH::Checkbox("Player 2", &noclip_p2, gui.m_scale))
-        //     config.set<bool>("noclip::p2", noclip_p2);
+        if (ImGuiH::Checkbox("Player 2", &noclip_p2, gui.m_scale))
+            config.set<bool>("noclip::p2", noclip_p2);
 
-        // if (ImGuiH::Checkbox("Tint on Death", &tint_on_death, gui.m_scale))
-        //     config.set<bool>("noclip::tint_on_death", tint_on_death);
+        if (ImGuiH::Checkbox("Tint on Death", &tint_on_death, gui.m_scale))
+            config.set<bool>("noclip::tint_on_death", tint_on_death);
 
-        // if (ImGui::DragInt("##noclip::tint_opacity", &tint_opacity, 1, 0, 255, "Tint Opacity: %i"))
-        //     config.set<int>("noclip::tint_opacity", tint_opacity);
+        if (ImGui::DragInt("##noclip::tint_opacity", &tint_opacity, 1, 0, 255, "Tint Opacity: %i"))
+            config.set<int>("noclip::tint_opacity", tint_opacity);
             
 
-        // #elif defined(GEODE_IS_ANDROID64) 
+        #elif defined(GEODE_IS_ANDROID64) 
         auto popup = popupSystem::create();
         popup->AddToggle("Player 1", noclip_p1, [this, &config](bool enabled) 
         {
@@ -228,7 +228,7 @@ void Hacks::Init() {
 
 
         popup->show();
-        // #endif
+        #endif
     });
 
     SetCustomWindowHandlerByConfig("unlock_items", [this, &config]() {

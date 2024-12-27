@@ -77,7 +77,7 @@ class $modify(MenuLayer) {
             #endif
         }
 
-        // #ifdef GEODE_IS_ANDROID
+        #ifdef GEODE_IS_ANDROID
 
         auto myButton = geode::prelude::CCMenuItemExt::createSpriteExtra(
             cocos2d::CCSprite::create(Config::get().get<bool>("invisible_ui_button", false) ? "GDH_buttonInvisible.png"_spr : "GDH_buttonUI.png"_spr), 
@@ -89,7 +89,7 @@ class $modify(MenuLayer) {
         myButton->setID("hacks-button"_spr);
         menu->updateLayout();
 
-        // #endif
+        #endif
 
         return true;
     }
