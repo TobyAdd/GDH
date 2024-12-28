@@ -163,4 +163,20 @@ class $modify(cocos2d::CCEGLView) {
         }     
     }
 };
+
+class $modify(MouseKeybindingsManagerCCEGLVHook, cocos2d::CCEGLView) {
+    void onGLFWMouseCallBack(GLFWwindow* window, int button, int action, int mods) {
+        CCEGLView::onGLFWMouseCallBack(window, button, action, mods);
+        if (inited) {
+            if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_RIGHT) {
+                auto& io = ImGui::GetIO();
+                io.AddMouseButtonEvent(1, true);
+            }
+            else if (action == GLFW_RELEASE && button == GLFW_MOUSE_BUTTON_RIGHT) {
+                auto& io = ImGui::GetIO();
+                io.AddMouseButtonEvent(1, false);
+            }
+        }
+    }
+};
 #endif

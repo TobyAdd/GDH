@@ -325,6 +325,7 @@ bool HacksLayer::setup() {
                 config.set<bool>("engine::v2", !sender->isOn());
             });
             engineV2_toggle->setPosition({20.f, 55.f});
+            engineV2_toggle->toggle(engine.engine_v2);
             engineTab->addChild(engineV2_toggle);
 
             auto engineV2_label = AddTextToToggle("Engine v2.1 (Beta)", engineV2_toggle);

@@ -1073,6 +1073,13 @@ class $modify(LevelInfoLayer) {
         return LevelInfoLayer::create(level, challenge);
     }
 
+    void tryCloneLevel(cocos2d::CCObject* sender) {
+        if (Config::get().get("copy_hack", false)) {
+            m_level->m_password = 1;
+        }
+        LevelInfoLayer::tryCloneLevel(sender);
+    }
+
     bool init(GJGameLevel* p0, bool p1) {
         if (!LevelInfoLayer::init(p0, p1))
             return false;
@@ -1294,23 +1301,27 @@ class $modify(EditorUI) {
         LevelEditorLayer::get()->m_level->m_levelType = levelType;
     }
 
-    void zoomIn(cocos2d::CCObject* sender) {
-        if (!Config::get().get("zoom_bypass", false))
-            return EditorUI::zoomIn(sender);
-
-        float scale = m_editorLayer->m_objectLayer->getScale();
-        EditorUI::updateZoom(scale + 0.1f);
+void zoomIn(cocos2d::CCObject* sender) {
+    if (!Config::get().get("zoom_bypass", false)) {
+        return EditorUI::zoomIn(sender);
     }
 
-    // void zoomOut(cocos2d::CCObject* sender) {
-    //     if (!Config::get().get("zoom_bypass", false))
-    //         return EditorUI::zoomOut(sender);
+    float scale = m_editorLayer->m_objectLayer->getScale();
+    float increment = (scale < 0.09f) ? 0.01f : 0.1f;
+    EditorUI::updateZoom(scale + increment);
+}
 
-    //     float scale = m_editorLayer->m_objectLayer->getScale();
-    //     EditorUI::updateZoom(scale - 0.1f);
-    // }
+void zoomOut(cocos2d::CCObject* sender) {
+    if (!Config::get().get("zoom_bypass", false)) {
+        return EditorUI::zoomOut(sender);
+    }
 
-    void onNewCustomItem(CCObject* sender) {
+    float scale = m_editorLayer->m_objectLayer->getScale();
+    float decrement = (scale > 0.1f) ? 0.1f : 0.01f;
+    EditorUI::updateZoom(std::max(scale - decrement, 0.01f));
+}
+
+void onNewCustomItem(CCObject* sender) {
         if (!Config::get().get("custom_object_bypass", false))
             return EditorUI::onNewCustomItem(sender);
         

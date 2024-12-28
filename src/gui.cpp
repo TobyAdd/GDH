@@ -430,7 +430,32 @@ void Gui::Render() {
 
                 if (ImGuiH::Button("Load", {ImGui::GetContentRegionAvail().x / 2, NULL})) {
                     ImGuiH::Popup::get().add_popup(engine.load(engine.replay_name));
+                }   
+
+                if (ImGui::IsItemClicked(1) && ImGui::IsItemHovered()) {
+                    ImGui::OpenPopup("P1/P2 Load");
                 }
+
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal)) {
+                    ImGui::SetTooltip("Right click to load P1/P2 macros");
+                }
+
+                if (ImGui::BeginPopup("P1/P2 Load")) {
+                    if (ImGuiH::Button("Load P1")) {
+                        ImGuiH::Popup::get().add_popup(engine.load(engine.replay_name, true, false));
+                        ImGui::CloseCurrentPopup();
+                    }
+
+                    ImGui::SameLine();
+
+                    if (ImGuiH::Button("Load P2")) {
+                        ImGuiH::Popup::get().add_popup(engine.load(engine.replay_name, false, true));
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::EndPopup();
+                }         
+
+
                 ImGui::SameLine();
 
                 if (ImGuiH::Button("Clear", {ImGui::GetContentRegionAvail().x, NULL})) {
@@ -467,30 +492,13 @@ void Gui::Render() {
                     };
                     
                     if (ImGui::BeginTabItem("Settings")) {
-                        if (ImGuiH::Checkbox("Engine v2", &engine.engine_v2, m_scale))
+                        if (ImGuiH::Checkbox("Engine v2.1 (Beta)", &engine.engine_v2, m_scale))
                             config.set<bool>("engine::v2", engine.engine_v2);
 
                         if (!engine.engine_v2) {
                             ImGuiH::Checkbox("Accuracy Fix", &engine.accuracy_fix, m_scale);
                             ImGui::SameLine();
                             ImGuiH::Checkbox("Rotation Fix", &engine.rotation_fix, m_scale);
-                        }
-
-                        ImGui::Spacing();
-                        ImGui::Text("Load P1/P2 Macro");
-                        ImGui::Separator();
-
-                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                        ImGui::InputText("##replay_name2", &engine.replay_name);
-
-                        if (ImGuiH::Button("Load P1")) {
-                            ImGuiH::Popup::get().add_popup(engine.load(engine.replay_name, true, false));
-                        }
-
-                        ImGui::SameLine();
-
-                        if (ImGuiH::Button("Load P2")) {
-                            ImGuiH::Popup::get().add_popup(engine.load(engine.replay_name, false, true));
                         }
 
                         ImGui::EndTabItem();
