@@ -41,6 +41,8 @@
 #include "recorder.hpp"
 #include "gui.hpp"
 
+std::vector<GameObject*> dualPortals, gamemodePortals, miniPortals, speedChanges, mirrorPortals;
+
 std::vector<StartPosObject*> startPositions;
 int selectedStartpos = -1;
 
@@ -75,6 +77,69 @@ void switchStartPos(int incBy, bool direction = true) {
         return;
     }
 }
+
+void setupStartPos(StartPosObject* startPos) {
+    LevelSettingsObject* startPosSettings = startPos->m_startSettings;
+    LevelSettingsObject* levelSettings = PlayLayer::get()->m_levelSettings;
+
+    startPosSettings->m_startDual = levelSettings->m_startDual;
+    startPosSettings->m_startMode = levelSettings->m_startMode;
+    startPosSettings->m_startMini = levelSettings->m_startMini;
+    startPosSettings->m_startSpeed = levelSettings->m_startSpeed;
+
+    auto getClosestObject = [](std::vector<GameObject*>& vec, StartPosObject* startPos) -> GameObject* {
+        GameObject* closest = nullptr;
+
+        std::sort(vec.begin(), vec.end(), [](GameObject* a, GameObject* b) {
+            return a->getPositionX() < b->getPositionX();
+        });
+
+        for (auto obj : vec) {
+            if (obj->getPositionX() - 10 > startPos->getPositionX())
+                break;
+            if (obj->getPositionX() - 10 < startPos->getPositionX())
+                closest = obj;
+        }
+
+        return closest;
+    };
+
+    GameObject* obj = getClosestObject(dualPortals, startPos);
+    if (obj) {
+        startPosSettings->m_startDual = (obj->m_objectID == 286);
+    }        
+
+    obj = getClosestObject(gamemodePortals, startPos);
+    if (obj) {
+        switch (obj->m_objectID) {
+            case 12:  startPosSettings->m_startMode = 0; break;
+            case 13:  startPosSettings->m_startMode = 1; break;
+            case 47:  startPosSettings->m_startMode = 2; break;
+            case 111: startPosSettings->m_startMode = 3; break;
+            case 660: startPosSettings->m_startMode = 4; break;
+            case 745: startPosSettings->m_startMode = 5; break;
+            case 1331: startPosSettings->m_startMode = 6; break;
+            case 1933: startPosSettings->m_startMode = 7; break;
+        }
+    }
+
+    obj = getClosestObject(miniPortals, startPos);
+    if (obj) {
+        startPosSettings->m_startMini = (obj->m_objectID == 101);
+    }        
+
+    obj = getClosestObject(speedChanges, startPos);
+    if (obj) {
+        switch (obj->m_objectID) {
+            case 200:   startPosSettings->m_startSpeed = Speed::Slow; break;
+            case 201:   startPosSettings->m_startSpeed = Speed::Normal; break;
+            case 202:   startPosSettings->m_startSpeed = Speed::Fast; break;
+            case 203:   startPosSettings->m_startSpeed = Speed::Faster; break;
+            case 1334:  startPosSettings->m_startSpeed = Speed::Fastest; break;
+        }
+    }
+}
+
 
 float color_dt = 0.f;
 float left_over = 0.f;
@@ -172,12 +237,66 @@ class $modify(PlayLayer) {
         
         ~Fields() {
             startPositions.clear();
+            dualPortals.clear();
+            gamemodePortals.clear();
+            miniPortals.clear();
+            speedChanges.clear();
+            mirrorPortals.clear();
+
             selectedStartpos = -1;
             playerTrail1.clear();
             playerTrail2.clear();
             color_dt = 0.f;
         }
     };
+
+    void createObjectsFromSetupFinished() {
+        auto& config = Config::get();
+        PlayLayer::createObjectsFromSetupFinished();
+
+        if (config.get<bool>("startpos_switcher", false)) {
+            auto win_size = cocos2d::CCDirector::sharedDirector()->getWinSize();
+
+            auto label = cocos2d::CCLabelBMFont::create(fmt::format("{}/{}", selectedStartpos+1, startPositions.size()).c_str(), "bigFont.fnt");
+            label->setScale(0.5f);
+            label->setPosition(win_size.width/2, 20.f);
+            label->setOpacity(100);
+            label->setID("startposSwitcherLabels"_spr);
+
+            auto left_arrow = cocos2d::CCSprite::createWithSpriteFrameName("GJ_arrow_02_001.png");
+            left_arrow->setScale(0.5f);
+            auto left_arrowClick = geode::cocos::CCMenuItemExt::createSpriteExtra(left_arrow, [this, label](CCMenuItemSpriteExtra* sender) {
+                switchStartPos(-1);
+                label->setCString(fmt::format("{}/{}", selectedStartpos+1, startPositions.size()).c_str());
+            });
+            left_arrowClick->setPosition(win_size.width/2 - 50, cocos2d::CCDirector::sharedDirector()->getScreenBottom() + left_arrowClick->getScaledContentHeight());
+            left_arrowClick->setOpacity(100);
+            left_arrowClick->setID("startposSwitcherLeftArrowClick"_spr);
+
+            auto right_arrow = cocos2d::CCSprite::createWithSpriteFrameName("GJ_arrow_02_001.png");  
+            right_arrow->setScale(0.5f);
+            right_arrow->setFlipX(true);
+            auto right_arrowClick = geode::cocos::CCMenuItemExt::createSpriteExtra(right_arrow, [this, label](CCMenuItemSpriteExtra* sender) {
+                switchStartPos(1);
+                label->setCString(fmt::format("{}/{}", selectedStartpos+1, startPositions.size()).c_str());
+            });       
+            right_arrowClick->setPosition(win_size.width/2 + 50, cocos2d::CCDirector::sharedDirector()->getScreenBottom() + right_arrowClick->getScaledContentHeight());
+            right_arrowClick->setOpacity(100);
+            right_arrowClick->setID("startpos_switcher_rightArrowClick"_spr);
+
+
+            m_fields->startposSwitcherUI = cocos2d::CCMenu::create();
+            m_fields->startposSwitcherUI->setID("startposSwitcherUI"_spr);
+            m_fields->startposSwitcherUI->setPosition(0, 0);
+            m_fields->startposSwitcherUI->setZOrder(999);
+
+            m_fields->startposSwitcherUI->addChild(left_arrowClick);
+            m_fields->startposSwitcherUI->addChild(right_arrowClick);
+            m_fields->startposSwitcherUI->addChild(label);
+
+            m_uiLayer->addChild(m_fields->startposSwitcherUI);
+        }
+    }
 
     bool init(GJGameLevel* level, bool useReplay, bool dontCreateObjects) {
         if (!PlayLayer::init(level, useReplay, dontCreateObjects)) return false;
@@ -248,49 +367,6 @@ class $modify(PlayLayer) {
 
         Labels::get().attempts = 1;
         Labels::get().session_time = 0.f;
-
-        if (config.get<bool>("startpos_switcher", false) && !startPositions.empty()) {
-            auto win_size = cocos2d::CCDirector::sharedDirector()->getWinSize();
-
-            auto label = cocos2d::CCLabelBMFont::create(fmt::format("{}/{}", selectedStartpos+1, startPositions.size()).c_str(), "bigFont.fnt");
-            label->setScale(0.5f);
-            label->setPosition(win_size.width/2, 20.f);
-            label->setOpacity(100);
-            label->setID("startposSwitcherLabels"_spr);
-
-            auto left_arrow = cocos2d::CCSprite::createWithSpriteFrameName("GJ_arrow_02_001.png");
-            left_arrow->setScale(0.5f);
-            auto left_arrowClick = geode::cocos::CCMenuItemExt::createSpriteExtra(left_arrow, [this, label](CCMenuItemSpriteExtra* sender) {
-                switchStartPos(-1);
-                label->setCString(fmt::format("{}/{}", selectedStartpos+1, startPositions.size()).c_str());
-            });
-            left_arrowClick->setPosition(win_size.width/2 - 50, cocos2d::CCDirector::sharedDirector()->getScreenBottom() + left_arrowClick->getScaledContentHeight());
-            left_arrowClick->setOpacity(100);
-            left_arrowClick->setID("startposSwitcherLeftArrowClick"_spr);
-
-            auto right_arrow = cocos2d::CCSprite::createWithSpriteFrameName("GJ_arrow_02_001.png");  
-            right_arrow->setScale(0.5f);
-            right_arrow->setFlipX(true);
-            auto right_arrowClick = geode::cocos::CCMenuItemExt::createSpriteExtra(right_arrow, [this, label](CCMenuItemSpriteExtra* sender) {
-                switchStartPos(1);
-                label->setCString(fmt::format("{}/{}", selectedStartpos+1, startPositions.size()).c_str());
-            });       
-            right_arrowClick->setPosition(win_size.width/2 + 50, cocos2d::CCDirector::sharedDirector()->getScreenBottom() + right_arrowClick->getScaledContentHeight());
-            right_arrowClick->setOpacity(100);
-            right_arrowClick->setID("startpos_switcher_rightArrowClick"_spr);
-
-
-            m_fields->startposSwitcherUI = cocos2d::CCMenu::create();
-            m_fields->startposSwitcherUI->setID("startposSwitcherUI"_spr);
-            m_fields->startposSwitcherUI->setPosition(0, 0);
-            m_fields->startposSwitcherUI->setZOrder(999);
-
-            m_fields->startposSwitcherUI->addChild(left_arrowClick);
-            m_fields->startposSwitcherUI->addChild(right_arrowClick);
-            m_fields->startposSwitcherUI->addChild(label);
-
-            m_uiLayer->addChild(m_fields->startposSwitcherUI);
-        }
 
         return true;
     }
@@ -364,11 +440,52 @@ class $modify(PlayLayer) {
 
         PlayLayer::addObject(obj);
 
-        if (obj->m_objectID == 1329 || obj->m_objectID == 142) {
-            m_fields->coinsObjects.push_back(obj);
-        }
-        else if (obj->m_objectID == 31) {
-            startPositions.push_back(static_cast<StartPosObject *>(obj));
+        switch (obj->m_objectID) {
+            case 1329:
+            case 142:
+                m_fields->coinsObjects.push_back(obj);
+                break;
+
+            case 31:
+                startPositions.push_back(static_cast<StartPosObject*>(obj));
+                break;
+
+            case 12:
+            case 13:
+            case 47:
+            case 111:
+            case 660:
+            case 745:
+            case 1331:
+            case 1933:
+                gamemodePortals.push_back(static_cast<StartPosObject*>(obj));
+                break;
+
+            case 45:
+            case 46:
+                mirrorPortals.push_back(static_cast<StartPosObject*>(obj));
+                break;
+
+            case 99:
+            case 101:
+                miniPortals.push_back(static_cast<StartPosObject*>(obj));
+                break;
+
+            case 286:
+            case 287:
+                dualPortals.push_back(static_cast<StartPosObject*>(obj));
+                break;
+
+            case 200:
+            case 201:
+            case 202:
+            case 203:
+            case 1334:
+                speedChanges.push_back(static_cast<StartPosObject*>(obj));
+                break;
+
+            default:
+                break;
         }
     }
     
@@ -435,6 +552,11 @@ class $modify(PlayLayer) {
         // m_replayRandSeed = replayRandSeed;
 
         left_over = 0;
+
+        if (config.get<bool>("smart_startpos", false)) {
+            for (StartPosObject* obj : startPositions)
+                setupStartPos(obj);
+        }
 
         engine.handle_reset();  
 

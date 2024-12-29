@@ -58,7 +58,7 @@ void Hacks::Init() {
                 {"Jump Hack", "Removes the barrier to jump gravity", "jump_hack"},  // +
                 {"Layout Mode", "Removes all decoration and colour from levels", "layout_mode"},  // +
                 {"Show Percentage", "Show percentages in level progress", "show_percentage", "0040"},  // +
-                {"Smart Startpos", "Restores correct gameplay without startpos settings", "smart_startpos"},
+                {"Smart Startpos", "Restores correct gameplay without startpos settings", "smart_startpos"},  // +
                 {"Startpos Switcher", "The ability to switch between starting positions using the keys that you setted in keybinds", "startpos_switcher"}, // +
                 {"RGB Icons", "LGBT icons, yes :3", "rgb_icons"}, // +
                 {"Solid Wave Trail", "Disables wave blending", "solid_wave_trail"}, // +
