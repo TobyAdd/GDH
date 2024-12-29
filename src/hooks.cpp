@@ -94,13 +94,12 @@ class $modify(cocos2d::CCScheduler) {
         float tps_value = config.get<float>("tps_value", 60.f);
         float new_dt = 1.f / tps_value;
 
-        if (!config.get<bool>("tps::real_time", false)) {
+        if (!config.get<bool>("tps::real_time", true)) {
             if (recorder.is_recording) recorder.applyWinSize();
             CCScheduler::update(new_dt);
             if (recorder.is_recording) recorder.restoreWinSize();
             return;
-        }
-             
+        }             
 
         unsigned times = static_cast<int>((dt + left_over) / new_dt);  
         auto start = std::chrono::high_resolution_clock::now();
@@ -420,6 +419,7 @@ class $modify(PlayLayer) {
         // m_unk3188 = unk3188;
         // m_replayRandSeed = replayRandSeed;
 
+        left_over = 0;
 
         engine.handle_reset();  
 
