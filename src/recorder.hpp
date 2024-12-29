@@ -86,6 +86,7 @@ public:
 
     void applyWinSize();
     void restoreWinSize();
+    bool needRevertOld = false;
 private:
     Recorder() = default;
 

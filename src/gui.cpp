@@ -518,10 +518,12 @@ void Gui::Render() {
                                     ImGuiH::Popup::get().add_popup("Restart level to start recording");
                                     recorder.enabled = false;
                                 }
-                                else {
-                                    bool canRecord = (config.get<bool>("tps_enabled", false) && recorder.fps <= config.get<float>("tps_value", 60.f));
+                                else {                                    
+                                    bool fps_enabled = config.get<bool>("tps_enabled", false);
+                                    bool check = recorder.fps <= config.get<float>("tps_value", 60.f);
+                                    bool check2 = recorder.fps >= 60 && recorder.fps <= 240;
 
-                                    if (canRecord) {
+                                    if (engine.engine_v2 ? (!fps_enabled && check2) : (fps_enabled && check)) {
                                         if (recorder.enabled) {
                                             if (!recorder.advanced_mode) {
                                                 recorder.full_cmd = recorder.compile_command();
@@ -534,7 +536,21 @@ void Gui::Render() {
                                     }
                                     else {
                                         recorder.enabled = false;
-                                        ImGuiH::Popup::get().add_popup("Recorder FPS is valid and less than or equal to macro FPS");
+                                        if (engine.engine_v2) {
+                                            if (fps_enabled)
+                                                ImGuiH::Popup::get().add_popup("Disable TPS Bypass to start render");
+                                            
+                                            if (!check2)
+                                                ImGuiH::Popup::get().add_popup("Recorder FPS values must be within the range 60 to 240");
+                                        }
+                                        else {
+                                            if (!fps_enabled)
+                                                ImGuiH::Popup::get().add_popup("Enable TPS Bypass to start render");
+                                            
+                                            if (!check)
+                                                ImGuiH::Popup::get().add_popup("Recorder FPS should not be more than the current TPS");
+                                        }
+                                        
                                     }
                                 }
                             }

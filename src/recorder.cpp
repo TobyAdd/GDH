@@ -160,7 +160,7 @@ void Recorder::stop() {
         need_visible_lc = true;
     }
 
-    restoreWinSize();
+    needRevertOld = true;
 
     ImGuiH::Popup::get().add_popup("Video recording stoped!");
     

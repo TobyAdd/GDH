@@ -82,11 +82,16 @@ float left_over = 0.f;
 class $modify(cocos2d::CCScheduler) {
     void update(float dt) {
         auto &config = Config::get();
+        auto &engine = ReplayEngine::get();
         auto& recorder = Recorder::get();
         auto& recorderAudio = RecorderAudio::get();
 
         if (config.get<bool>("speedhack_enabled", false))
             dt *= config.get<float>("speedhack_value", 1.f);
+
+        if (engine.engine_v2 && recorder.is_recording) {
+            return CCScheduler::update(1.f / static_cast<float>(recorder.fps));
+        }
 
         if (!config.get<bool>("tps_enabled", false))
             return CCScheduler::update(dt);
@@ -97,7 +102,12 @@ class $modify(cocos2d::CCScheduler) {
         if (!config.get<bool>("tps::real_time", true)) {
             if (recorder.is_recording) recorder.applyWinSize();
             CCScheduler::update(new_dt);
-            if (recorder.is_recording) recorder.restoreWinSize();
+            if (recorder.is_recording || recorder.needRevertOld) {
+                if (recorder.needRevertOld)
+                    recorder.needRevertOld = false;
+
+                recorder.restoreWinSize();
+            }
             return;
         }             
 
@@ -108,7 +118,12 @@ class $modify(cocos2d::CCScheduler) {
         for (unsigned i = 0; i < times; ++i) {
             if (recorder.is_recording) recorder.applyWinSize();
             CCScheduler::update(new_dt);
-            if (recorder.is_recording) recorder.restoreWinSize();
+            if (recorder.is_recording || recorder.needRevertOld) {
+                if (recorder.needRevertOld)
+                    recorder.needRevertOld = false;
+                    
+                recorder.restoreWinSize();
+            }
             if (std::chrono::high_resolution_clock::now() - start > 33.333ms) {            
                 times = i + 1;
                 break;
