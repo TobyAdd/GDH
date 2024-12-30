@@ -22,7 +22,7 @@ void Hacks::Init() {
                 {"Safe Mode", "Disables progress on levels", "safe_mode"}
                 #ifdef GEODE_IS_ANDROID
                 , // +
-                {"TPS", "", "tps_enabled"}, // +
+                {"TPS", "Multiplies the number of ticks per second, used mainly for botting\n(not recommended for normal use as it ruins the game's performance)", "tps_enabled"}, // +
                 {"Speedhack", "", "speedhack_enabled"}, // +
                 {"Speedhack Audio", "", "speedhackAudio_enabled"}, // +
                 {"Invisible UI Button", "Hides the button that opens the menu", "invisible_ui_button"}, // +
