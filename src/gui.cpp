@@ -1124,7 +1124,7 @@ void Gui::Render() {
             }
 
             if (ImGuiH::Button("Uncomplete Level", {ImGui::GetContentRegionAvail().x, NULL})) {
-                ImGuiH::Popup::get().add_popup("unimplemented");
+                utilsH::UncompleteLevel();
             }
 
             if (ImGuiH::Button("Inject DLL", {ImGui::GetContentRegionAvail().x, NULL})) {

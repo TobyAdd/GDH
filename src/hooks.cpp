@@ -177,6 +177,9 @@ class $modify(cocos2d::CCScheduler) {
         }             
 
         unsigned times = static_cast<int>((dt + left_over) / new_dt);  
+        if (dt == 0.f)
+            return CCScheduler::update(new_dt);
+
         auto start = std::chrono::high_resolution_clock::now();
         using namespace std::literals;
 
@@ -189,12 +192,18 @@ class $modify(cocos2d::CCScheduler) {
                     
                 recorder.restoreWinSize();
             }
-            if (std::chrono::high_resolution_clock::now() - start > 33.333ms) {            
+            if (std::chrono::high_resolution_clock::now() - start > 33.333ms) {         
                 times = i + 1;
                 break;
             }
         }
-        left_over += dt - new_dt * times; 
+
+        float new_left_over = dt - new_dt * times;
+        if (new_left_over < 0.f) {
+            left_over = 0.f;
+        } else {
+            left_over = new_left_over;
+        }
     }
 };
 

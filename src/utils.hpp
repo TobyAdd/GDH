@@ -4,4 +4,5 @@
 
 namespace utilsH {
     bool isNumeric(const std::string& str);
+    void UncompleteLevel();
 }
