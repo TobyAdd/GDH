@@ -258,7 +258,7 @@ class $modify(PlayLayer) {
         auto& config = Config::get();
         PlayLayer::createObjectsFromSetupFinished();
 
-        if (config.get<bool>("startpos_switcher", false)) {
+        if (config.get<bool>("startpos_switcher", false) && !startPositions.empty()) {
             auto win_size = cocos2d::CCDirector::sharedDirector()->getWinSize();
 
             auto label = cocos2d::CCLabelBMFont::create(fmt::format("{}/{}", selectedStartpos+1, startPositions.size()).c_str(), "bigFont.fnt");

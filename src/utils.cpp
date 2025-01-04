@@ -66,9 +66,10 @@ void utilsH::UncompleteLevel() {
                 
             // removing coins stat
             if (level_id >= 1 && level_id <= 22)
-                gsm->setStat("12", gsm->getStat("12") - level->m_coinsVerified);
-            else
                 gsm->setStat("8", gsm->getStat("8") - level->m_coinsVerified);
+            else
+                gsm->setStat("12", gsm->getStat("12") - level->m_coinsVerified);
+                
         
             // to do: remove more stat
             // total jumps: 1
@@ -108,8 +109,6 @@ void utilsH::UncompleteLevel() {
             auto key = level->getCoinKey(i + 1);
             gsm->m_verifiedUserCoins->removeObjectForKey(key);
         }
-
-        glm->saveLevel(level);
     }
     else {
         FLAlertLayer::create("Uncomplete Level", "Go to the level to uncomplete it", "OK");
