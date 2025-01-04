@@ -198,12 +198,7 @@ class $modify(cocos2d::CCScheduler) {
             }
         }
 
-        float new_left_over = dt - new_dt * times;
-        if (new_left_over < 0.f) {
-            left_over = 0.f;
-        } else {
-            left_over = new_left_over;
-        }
+        left_over = std::max(0.f, left_over + dt - new_dt * times);
     }
 };
 
