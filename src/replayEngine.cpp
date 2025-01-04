@@ -206,7 +206,23 @@ std::string ReplayEngine::load(std::string name, bool only_p1, bool only_p2) {
         return "Please clear replay before loading another";
 
     if (engine_v2) {
-        return load2(name, only_p1, only_p2);
+        if (name.size() >= 5 && name.substr(name.size() - 4) == ".re2") {
+            if (!only_p1 || !only_p2)
+                return "Single player loading is supported for Engine v3/v2.1 only";
+
+            std::string result = load_v2(name);
+            if (result == "Replay loaded") {
+                return "Replay loaded (v2 -> v2.1)";
+            }
+        }     
+        else {
+            std::string result = load2(name, only_p1, only_p2);
+            if (result == "Replay loaded") {
+                return "Replay loaded (Engine v2.1)";
+            }
+        }
+        
+        return "Failed to load replay";
     }
 
     if (name.size() >= 4 && name.substr(name.size() - 3) == ".re") {
@@ -217,20 +233,11 @@ std::string ReplayEngine::load(std::string name, bool only_p1, bool only_p2) {
         if (result == "Replay loaded") {
             return "Replay loaded (v1 -> v3)";
         }
-    } 
-    else if (name.size() >= 5 && name.substr(name.size() - 4) == ".re2") {
-        if (!only_p1 || !only_p2)
-            return "Single player loading is supported for Engine v3/v2.1 only";
-
-        std::string result = load_v2(name);
-        if (result == "Replay loaded") {
-            return "Replay loaded (v2 -> v3)";
-        }
-    } 
+    }
     else {
         std::string result = load_v3(name, only_p1, only_p2);
         if (result == "Replay loaded") {
-            return result;
+            return "Replay loaded (Engine v3)";
         }
     }
 
@@ -297,7 +304,7 @@ std::string ReplayEngine::load2(std::string name, bool only_p1, bool only_p2) {
         m_inputFrames_p2 = inputFrames_p2;
 
     file.close();
-    return "Replay loaded (Engine v2.1)";
+    return "Replay loaded";
 }
 
 

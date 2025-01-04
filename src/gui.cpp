@@ -416,7 +416,7 @@ void Gui::Render() {
                     replay_list.clear();
                     for (const auto &entry : std::filesystem::directory_iterator(folderMacroPath)) {
                         std::string ext = entry.path().filename().extension().string();
-                        if (!engine.engine_v2 ? (ext == ".re" || ext == ".re2" || ext == ".re3") : ext == ".re21") {
+                        if (!engine.engine_v2 ? (ext == ".re" || ext == ".re3") : (ext == ".re21" || ext == ".re2")) {
                             replay_list.push_back(entry);
                         }
                     }
