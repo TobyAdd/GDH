@@ -1,4 +1,5 @@
 #include "hacks.hpp"
+#include "hooks.hpp"
 #include "config.hpp"
 #include "gui.hpp"
 #include "labels.hpp"
@@ -6,6 +7,7 @@
 #include "replayEngine.hpp"
 #include <imgui-cocos.hpp>
 #include "popupSystem.hpp"
+#include "utils.hpp"
 
 void Hacks::Init() {
     m_windows = {
@@ -59,7 +61,7 @@ void Hacks::Init() {
                 {"Layout Mode", "Removes all decoration and colour from levels", "layout_mode"},  // +
                 {"Show Percentage", "Show percentages in level progress", "show_percentage", "0040"},  // +
                 {"Smart Startpos", "Restores correct gameplay without startpos settings", "smart_startpos"},  // +
-                {"Startpos Switcher", "The ability to switch between starting positions using the keys that you setted in keybinds", "startpos_switcher"}, // +
+                {"Startpos Switcher", "The ability to switch between starting positions using the keys that you setted in keybinds (Q/E by default)", "startpos_switcher"}, // +
                 {"RGB Icons", "LGBT icons, yes :3", "rgb_icons"}, // +
                 {"Solid Wave Trail", "Disables wave blending", "solid_wave_trail"}, // +
                 {"Show Hitboxes", "Visualizes hitbox levels", "show_hitboxes"}, // +
@@ -637,6 +639,7 @@ void Hacks::Init() {
 }
 
 void Hacks::saveKeybinds() {
+    #ifdef GEODE_IS_WINDOWS
     auto& gui = Gui::get();
     nlohmann::json keybindJson;
     
@@ -650,15 +653,35 @@ void Hacks::saveKeybinds() {
 
     keybindJson["gui::toggle"] = gui.m_toggleKey;
 
+    keybindJson["speedhackKey"] = gui.m_speedhackKey;
+    keybindJson["tpsKey"] = gui.m_tpsKey;
+
+    keybindJson["playbackKey"] = gui.m_playbackKey;
+    keybindJson["saveMacroByCurrentNameKey"] = gui.m_saveMacroByCurrentNameKey;
+    keybindJson["loadMacroByCurrentNameKey"] = gui.m_loadMacroByCurrentNameKey;
+    keybindJson["frameAdvanceEnableKey"] = gui.m_frameAdvanceEnableKey;
+    keybindJson["frameAdvanceDisableKey"] = gui.m_frameAdvanceDisableKey;
+
+    keybindJson["optionsKey"] = gui.m_optionsKey;
+    keybindJson["resetLevelKey"] = gui.m_resetLevelKey;
+    keybindJson["practiceModeKey"] = gui.m_practiceModeKey;
+    keybindJson["resetVolumeKey"] = gui.m_resetVolumeKey;
+    keybindJson["uncompleteLevelKey"] = gui.m_uncompleteLevelKey;
+
+    keybindJson["startposSwitcherLeftKey"] = gui.m_startposSwitcherLeftKey;
+    keybindJson["startposSwitcherRightKey"] = gui.m_startposSwitcherRightKey;
+
     if (!keybindJson.empty()) {
         std::ofstream file(folderPath / "keybinds.json");
         if (file.is_open()) {
             file << keybindJson.dump(4);
         }
     }
+    #endif
 }
 
 void Hacks::loadKeybinds() {
+    #ifdef GEODE_IS_WINDOWS
     auto& gui = Gui::get();
 
     std::ifstream file(folderPath / "keybinds.json");
@@ -679,7 +702,26 @@ void Hacks::loadKeybinds() {
         keybindMap[name] = key;
     }
     
+
     gui.m_toggleKey = keybindJson.value("gui::toggle", GLFW_KEY_TAB);
+
+    gui.m_speedhackKey = keybindJson.value("speedhackKey", 0);
+    gui.m_tpsKey = keybindJson.value("tpsKey", 0);
+
+    gui.m_playbackKey = keybindJson.value("playbackKey", 0);
+    gui.m_saveMacroByCurrentNameKey = keybindJson.value("saveMacroByCurrentNameKey", 0);
+    gui.m_loadMacroByCurrentNameKey = keybindJson.value("loadMacroByCurrentNameKey", 0);
+    gui.m_frameAdvanceEnableKey = keybindJson.value("frameAdvanceEnableKey", GLFW_KEY_C);
+    gui.m_frameAdvanceDisableKey = keybindJson.value("frameAdvanceDisableKey", GLFW_KEY_V);
+
+    gui.m_optionsKey = keybindJson.value("optionsKey", 0);
+    gui.m_resetLevelKey = keybindJson.value("resetLevelKey", 0);
+    gui.m_practiceModeKey = keybindJson.value("practiceModeKey", 0);
+    gui.m_resetVolumeKey = keybindJson.value("resetVolumeKey", 0);
+    gui.m_uncompleteLevelKey = keybindJson.value("uncompleteLevelKey", 0);
+
+    gui.m_startposSwitcherLeftKey = keybindJson.value("startposSwitcherLeftKey", GLFW_KEY_Q);
+    gui.m_startposSwitcherRightKey = keybindJson.value("startposSwitcherRightKey", GLFW_KEY_E);
 
     for (auto& win : m_windows) {
         for (auto& hck : win.hacks) {
@@ -689,11 +731,117 @@ void Hacks::loadKeybinds() {
             }
         }
     }
+    #endif
 }
 
 
 void Hacks::toggleKeybinds(int key) {
+    #ifdef GEODE_IS_WINDOWS
     auto& config = Config::get();
+    auto& gui = Gui::get();
+
+    if (gui.m_speedhackKey == key)
+        config.set<bool>("speedhack_enabled", !config.get<bool>("speedhack_enabled", false));
+
+    if (gui.m_tpsKey == key)
+        config.set<bool>("tps_enabled", !config.get<bool>("tps_enabled", false));
+
+    
+    if (gui.m_playbackKey == key) {
+        auto& engine = ReplayEngine::get();
+        engine.mode = (engine.mode == state::play) ? state::disable : state::play;
+    }
+    
+    
+    if (gui.m_saveMacroByCurrentNameKey == key) {
+        auto pl = PlayLayer::get();
+        auto& engine = ReplayEngine::get();
+        if (!pl) {
+            ImGuiH::Popup::get().add_popup("Can't get a level name to save a macro");
+        }
+        else {
+            std::string level_name = pl->m_level->m_levelName;
+            if (engine.engine_v2)
+                ImGuiH::Popup::get().add_popup(engine.save2(level_name));
+            else 
+                ImGuiH::Popup::get().add_popup(engine.save(level_name));
+        }
+    }
+
+    
+    if (gui.m_loadMacroByCurrentNameKey == key) {
+        auto pl = PlayLayer::get();
+        auto& engine = ReplayEngine::get();
+        if (!pl) {
+            ImGuiH::Popup::get().add_popup("Can't get a level name to load a macro");
+        }
+        else {
+            std::string level_name = pl->m_level->m_levelName;
+            if (engine.engine_v2)
+                ImGuiH::Popup::get().add_popup(engine.load2(level_name));
+            else 
+                ImGuiH::Popup::get().add_popup(engine.load(level_name));
+        }
+    }
+    
+    if (gui.m_frameAdvanceEnableKey == key) {
+        auto& engine = ReplayEngine::get();
+        if (engine.mode == state::record || engine.mode == state::play) {
+            if (!engine.frame_advance)
+                ImGuiH::Popup::get().add_popup("Frame Advance enabled");
+
+            engine.frame_advance = true;
+            engine.next_frame = true;
+        }
+    }
+
+    if (gui.m_frameAdvanceDisableKey == key) {
+        auto& engine = ReplayEngine::get();
+        if (engine.frame_advance)
+            ImGuiH::Popup::get().add_popup("Frame Advance disabled");
+
+        engine.frame_advance = false;
+    }
+
+    if (gui.m_optionsKey == key) {
+        auto options_layer = OptionsLayer::create();
+        auto scene = cocos2d::CCScene::get();
+
+        if (options_layer && scene) {
+            auto zOrder = scene->getHighestChildZ();
+            scene->addChild(options_layer, zOrder + 1);
+            options_layer->showLayer(false);
+        }
+    }
+
+    if (gui.m_resetLevelKey == key) {
+        auto pl = PlayLayer::get();
+        if (pl) pl->resetLevel();
+    }
+
+    if (gui.m_practiceModeKey == key) {
+        auto pl = PlayLayer::get();
+        if (pl) pl->togglePracticeMode(!pl->m_isPracticeMode);
+    }
+
+    if (gui.m_resetVolumeKey == key) {
+        auto fmod_engine = FMODAudioEngine::sharedEngine();
+        fmod_engine->setBackgroundMusicVolume(0.5f);
+        fmod_engine->setEffectsVolume(0.5f);
+    }
+
+    if (gui.m_uncompleteLevelKey == key) {
+        utilsH::UncompleteLevel();
+    }
+
+    if (gui.m_startposSwitcherLeftKey == key) {
+        hooksH::switchStartPos(-1);
+    }
+
+    if (gui.m_startposSwitcherRightKey == key) {
+        hooksH::switchStartPos(-1);
+    }
+
     for (auto& win : m_windows) {
         for (auto& hck : win.hacks) {
             if (hck.keybind == key && key != 0) {   
@@ -705,4 +853,5 @@ void Hacks::toggleKeybinds(int key) {
             }
         }
     }
+    #endif
 }

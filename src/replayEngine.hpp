@@ -46,6 +46,9 @@ public:
 
     bool settings_openned = false;
 
+    bool frame_advance = false;
+    bool next_frame = false;
+
     unsigned get_frame();
     void remove_actions(unsigned frame);
 

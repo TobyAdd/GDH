@@ -24,10 +24,33 @@ public:
     
     bool m_keybindMode = false;
 
+    #ifdef GEODE_IS_WINDOWS
     int m_toggleKey = GLFW_KEY_TAB;
+    
+    int m_speedhackKey = 0;
+    int m_tpsKey = 0;
+
+    int m_playbackKey = 0;
+    int m_saveMacroByCurrentNameKey = 0;
+    int m_loadMacroByCurrentNameKey = 0;
+    int m_frameAdvanceEnableKey = GLFW_KEY_C;
+    int m_frameAdvanceDisableKey = GLFW_KEY_V;
+
+    int m_optionsKey = 0;
+    int m_resetLevelKey = 0;
+    int m_practiceModeKey = 0;
+    int m_resetVolumeKey = 0;
+    int m_uncompleteLevelKey = 0;
+
+    int m_startposSwitcherLeftKey = GLFW_KEY_Q;
+    int m_startposSwitcherRightKey = GLFW_KEY_E;
 
     bool m_waitingForBindKey = false;
     int m_keyToSet = -1;
+
+    #endif
+
+
 
     void Render();
     void Init();

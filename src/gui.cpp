@@ -166,6 +166,8 @@ void Gui::Render() {
             if (ImGui::IsItemHovered())
                 ImGui::SetTooltip("Invert theme (beta)");
 
+            #ifdef GEODE_IS_WINDOWS
+
             if (ImGui::BeginPopupModal("Keybinds Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
                 auto renderKeyButton = [&](const std::string& label, int& key) {
                     std::string keyStr = label + utilsH::GetKeyName(key);
@@ -183,14 +185,55 @@ void Gui::Render() {
                     }
                 };
 
-                ImGui::Text("Tip: To disable the bind, bind it to backspace");
+                ImGui::BeginChild("##Keybinds", {420.f * m_scale, 400.f * m_scale});
+
+                ImGui::Text("UI");
                 ImGui::Separator();
                 ImGui::Spacing();
 
                 renderKeyButton("Menu Key: ", m_toggleKey);
 
+                ImGui::Text("Framerate");
+                ImGui::Separator();
+                ImGui::Spacing();
 
-                if (ImGuiH::Button("Close", {400 * m_scale, NULL}))
+                renderKeyButton("Speedhack Key: ", m_speedhackKey);
+                renderKeyButton("TPS Bypass Key: ", m_tpsKey);
+
+                ImGui::Text("Replay Engine");
+                ImGui::Separator();
+                ImGui::Spacing();
+
+                renderKeyButton("Disable/Playback Macro: ", m_playbackKey);
+                renderKeyButton("Save Macro by Current Level Name: ", m_saveMacroByCurrentNameKey);
+                renderKeyButton("Load Macro by Current Level Name: ", m_loadMacroByCurrentNameKey);
+                renderKeyButton("Enable Frame Advance + Next Frame: ", m_frameAdvanceEnableKey);
+                renderKeyButton("Disable Frame Advance: ", m_frameAdvanceDisableKey);
+
+                ImGui::Text("Shortcuts");
+                ImGui::Separator();
+                ImGui::Spacing();
+
+                renderKeyButton("Options: ", m_optionsKey);
+                renderKeyButton("Reset Level: ", m_resetLevelKey);
+                renderKeyButton("Practice Mode: ", m_practiceModeKey);
+                renderKeyButton("Reset Volume: ", m_resetVolumeKey);
+                renderKeyButton("Uncomplete Level: ", m_uncompleteLevelKey);
+
+                ImGui::Text("Startpos Switcher");
+                ImGui::Separator();
+                ImGui::Spacing();
+
+                renderKeyButton("Startpos Switcher Left: ", m_startposSwitcherLeftKey);
+                renderKeyButton("Startpos Switcher Right: ", m_startposSwitcherRightKey);
+
+                ImGui::EndChild();
+
+                ImGui::Separator();
+
+                ImGui::Text("Tip: To disable the bind, bind it to backspace");
+                
+                if (ImGuiH::Button("Close", {420 * m_scale, NULL}))
                     ImGui::CloseCurrentPopup();
 
                 ImGui::EndPopup();
@@ -200,6 +243,8 @@ void Gui::Render() {
 
             if (m_keybindMode && ImGui::IsItemHovered())
                 ImGui::SetTooltip("Binds for toggle UI, Speedhack, Replay Engine, and more in the More Keybinds");
+
+            #endif
 
             if (ImGuiH::Button(m_keybindMode ? "More Keybinds" : "More Settings", {ImGui::GetContentRegionAvail().x, 0})) {
                 if (!m_keybindMode)

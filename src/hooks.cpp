@@ -1,3 +1,4 @@
+#include "hooks.hpp"
 #include <Geode/modify/CCScheduler.hpp>
 #include <Geode/modify/PlayLayer.hpp>
 #include <Geode/modify/GameStatsManager.hpp>
@@ -48,7 +49,7 @@ int selectedStartpos = -1;
 
 std::deque<cocos2d::CCRect> playerTrail1, playerTrail2;
 
-void switchStartPos(int incBy, bool direction = true) {
+void hooksH::switchStartPos(int incBy, bool direction) {
     auto &config = Config::get();
     auto pl = PlayLayer::get();
 
@@ -164,6 +165,23 @@ class $modify(cocos2d::CCScheduler) {
         float tps_value = config.get<float>("tps_value", 60.f);
         float new_dt = 1.f / tps_value;
 
+        auto pl = PlayLayer::get();
+        if (engine.frame_advance && pl && !pl->m_isPaused) {
+            if (engine.next_frame) {
+                engine.next_frame = false;
+                if (recorder.is_recording) recorder.applyWinSize();
+                CCScheduler::update(new_dt);
+                if (recorder.is_recording || recorder.needRevertOld) {
+                    if (recorder.needRevertOld)
+                        recorder.needRevertOld = false;
+
+                    recorder.restoreWinSize();
+                }
+            }
+
+            return;
+        }
+
         if (!config.get<bool>("tps::real_time", true)) {
             if (recorder.is_recording) recorder.applyWinSize();
             CCScheduler::update(new_dt);
@@ -254,9 +272,10 @@ class $modify(PlayLayer) {
         }
     };
 
+    #ifdef GEODE_IS_ANDROID
     void createObjectsFromSetupFinished() {
+        auto& gui = Gui::get();
         auto& config = Config::get();
-        PlayLayer::createObjectsFromSetupFinished();
 
         if (config.get<bool>("startpos_switcher", false) && !startPositions.empty()) {
             auto win_size = cocos2d::CCDirector::sharedDirector()->getWinSize();
@@ -270,7 +289,7 @@ class $modify(PlayLayer) {
             auto left_arrow = cocos2d::CCSprite::createWithSpriteFrameName("GJ_arrow_02_001.png");
             left_arrow->setScale(0.5f);
             auto left_arrowClick = geode::cocos::CCMenuItemExt::createSpriteExtra(left_arrow, [this, label](CCMenuItemSpriteExtra* sender) {
-                switchStartPos(-1);
+                hooksH::switchStartPos(-1);
                 label->setCString(fmt::format("{}/{}", selectedStartpos+1, startPositions.size()).c_str());
             });
             left_arrowClick->setPosition(win_size.width/2 - 50, cocos2d::CCDirector::sharedDirector()->getScreenBottom() + left_arrowClick->getScaledContentHeight());
@@ -281,7 +300,7 @@ class $modify(PlayLayer) {
             right_arrow->setScale(0.5f);
             right_arrow->setFlipX(true);
             auto right_arrowClick = geode::cocos::CCMenuItemExt::createSpriteExtra(right_arrow, [this, label](CCMenuItemSpriteExtra* sender) {
-                switchStartPos(1);
+                hooksH::switchStartPos(1);
                 label->setCString(fmt::format("{}/{}", selectedStartpos+1, startPositions.size()).c_str());
             });       
             right_arrowClick->setPosition(win_size.width/2 + 50, cocos2d::CCDirector::sharedDirector()->getScreenBottom() + right_arrowClick->getScaledContentHeight());
@@ -301,6 +320,7 @@ class $modify(PlayLayer) {
             m_uiLayer->addChild(m_fields->startposSwitcherUI);
         }
     }
+    #endif
 
     bool init(GJGameLevel* level, bool useReplay, bool dontCreateObjects) {
         if (!PlayLayer::init(level, useReplay, dontCreateObjects)) return false;

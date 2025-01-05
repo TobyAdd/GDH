@@ -7,3 +7,5 @@ namespace utilsH {
     void UncompleteLevel();
     std::string GetKeyName(int key);
 }
+
+static void unimplemented() {}
