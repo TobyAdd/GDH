@@ -243,3 +243,10 @@ std::string utilsH::GetKeyName(int key) {
     }
 }
 #endif
+
+void utilsH::getFolder() {
+    auto result = geode::utils::file::pick(geode::utils::file::PickMode::OpenFolder, {std::nullopt, {}});
+    if (result.isFinished() && !result.getFinishedValue()->isErr()) {
+        FLAlertLayer::create("Info", result.getFinishedValue()->unwrap().string().c_str(), "OK");
+    }
+}

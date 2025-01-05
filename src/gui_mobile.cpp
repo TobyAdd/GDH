@@ -3,6 +3,7 @@
 #include "hacks.hpp"
 #include "labels.hpp"
 #include "replayEngine.hpp"
+#include "utils.hpp"
 
 using namespace geode::prelude;
 
@@ -330,6 +331,13 @@ bool HacksLayer::setup() {
 
             auto engineV2_label = AddTextToToggle("Engine v2.1 (Beta)", engineV2_toggle);
             engineTab->addChild(engineV2_label);
+
+            auto justATestButton = ButtonSprite::create("Just a test", 80, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
+            auto justATestButtonClick = CCMenuItemExt::createSpriteExtra(justATestButton, [this, &engine, info_label](CCMenuItemSpriteExtra* sender) {
+                utilsH::getFolder();
+            });
+            justATestButtonClick->setPosition({270, 25});
+            engineTab->addChild(justATestButtonClick);
 
             tab->m_scrollLayer->m_contentLayer->addChild(engineTab);
         }
