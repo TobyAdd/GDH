@@ -11,7 +11,7 @@ Label::Label(LabelCorner _corner, std::string _format_text) {
 std::string Label::get_text() {
     auto now = std::chrono::system_clock::now();
     std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
-    std::tm localTime = *std::localtime(&now_time_t);
+    std::tm localTime = fmt::localtime(now_time_t);
 
     int hour12 = localTime.tm_hour;
     std::string period12 = (hour12 < 12) ? "AM" : "PM";
