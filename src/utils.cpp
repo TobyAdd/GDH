@@ -115,7 +115,7 @@ void utilsH::UncompleteLevel() {
     }
 }
 
-
+#ifdef GEODE_IS_WINDOWS
 std::string utilsH::GetKeyName(int key) {
     switch (key) {
         case 0: return "None";
@@ -242,3 +242,4 @@ std::string utilsH::GetKeyName(int key) {
         default: return "Unknown";
     }
 }
+#endif
