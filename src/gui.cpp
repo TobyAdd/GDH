@@ -1259,6 +1259,7 @@ void Gui::Render() {
 
 
                 if (m_keybindMode) {
+                    #ifdef GEODE_IS_WINDOWS
                     if (hck.keybind == -1 && !m_waitingForBindKey && m_keyToSet != -1) {
                         hck.keybind = m_keyToSet;
                         m_keyToSet = 0;
@@ -1273,7 +1274,7 @@ void Gui::Render() {
                         hck.keybind = -1;
                         m_waitingForBindKey = true;
                     }
-
+                    #endif
                 }
                 else {
                     if (ImGuiH::Checkbox(hck.name.c_str(), &enabled, m_scale)) {
