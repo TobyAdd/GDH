@@ -1,10 +1,12 @@
 #pragma once
 #include <map>
 #include <string>
-#include <matjson.hpp>
-#include <matjson/std.hpp>
+#include "json.hpp"
 #include <fstream>
 #include <filesystem>
+#include <unordered_map>
+#include <variant>
+#include <type_traits>
 
 static const auto folderPath = geode::Mod::get()->getSaveDir();
 static const auto folderMacroPath = folderPath / "Macros";
@@ -41,44 +43,50 @@ public:
     Config(const Config&) = delete;
     Config& operator=(const Config&) = delete;
 
-    matjson::Value constructJson() const {
-        matjson::Value json;
+    nlohmann::json constructJson() const {
+        nlohmann::json json;
         for (const auto& [key, value] : m_values) {
-    #define ADD_VALUE(type) if (auto* ptr = std::get_if<type>(&value)) json[key] = *ptr;
-            ADD_VALUE(bool)
-            else ADD_VALUE(float)
-            else ADD_VALUE(std::filesystem::path)
-    #undef ADD_VALUE
+            if (std::holds_alternative<bool>(value)) {
+                json[key] = std::get<bool>(value);
+            } else if (std::holds_alternative<float>(value)) {
+                json[key] = std::get<float>(value);
+            } else if (std::holds_alternative<int>(value)) {
+                json[key] = std::get<int>(value);
+            } else if (std::holds_alternative<std::filesystem::path>(value)) {
+                json[key] = std::get<std::filesystem::path>(value).string();
+            }
         }
         return json;
     }
 
-    void loadFromJson(matjson::Value json) {
-        // for (const auto& [key, value] : json) {
-        //     if (value.isNumber()) {
-        //         if (value.isFloat()) {
-        //             m_values[key] = value.as<float>().unwrapOrDefault();
-        //         } else {
-        //             m_values[key] = value.as<int>().unwrapOrDefault();
-        //         }
-        //     } else if (value.isBool()) {
-        //         m_values[key] = value.as<bool>().unwrapOrDefault();
-        //     } else {
-        //         auto path = value.as<std::filesystem::path>().unwrapOrDefault();
-        //         m_values[key] = path;
-        //     }
-        // }
+    void loadFromJson(const nlohmann::json& json) {
+        for (auto it = json.begin(); it != json.end(); ++it) {
+            const auto& key = it.key();
+            const auto& value = it.value();
+
+            if (value.is_boolean()) {
+                m_values[key] = value.get<bool>();
+            } else if (value.is_number_float()) {
+                m_values[key] = value.get<float>();
+            } else if (value.is_number_integer()) {
+                m_values[key] = value.get<int>();
+            } else if (value.is_string()) {
+                m_values[key] = std::filesystem::path(value.get<std::string>());
+            }
+        }
     }
 
     void load(const std::filesystem::path& filepath) {
         std::ifstream inFile(filepath);
         if (inFile.is_open()) {
-            std::string file_contents((std::istreambuf_iterator(inFile)), std::istreambuf_iterator<char>());
+            std::string file_contents((std::istreambuf_iterator<char>(inFile)), std::istreambuf_iterator<char>());
 
-            if (auto result = matjson::parse(file_contents)) {
-                loadFromJson(result.unwrap());
+            nlohmann::json json = nlohmann::json::parse(file_contents, nullptr, false);
+            if (json.is_discarded()) {
+                return;
             }
 
+            loadFromJson(json);
             inFile.close();
         }
     }
@@ -92,12 +100,12 @@ public:
     }
 
     template <typename T> requires is_valid_type<T>
-    void set(std::string const& key, T value) {
+    void set(const std::string& key, T value) {
         m_values[key] = value;
     }
 
     template <typename T, typename R = optional_ref<T>> requires is_valid_type<T>
-    R get(std::string const& key, T const& defaultValue) const {
+    R get(const std::string& key, const T& defaultValue) const {
         if (auto it = m_values.find(key); it != m_values.end()) {
             if (auto* ptr = std::get_if<T>(&it->second)) {
                 return *ptr;
@@ -110,6 +118,5 @@ private:
     using Value = std::variant<bool, int, float, std::filesystem::path>;
 
     Config() = default;
-    // matjson::Value jsonData;
     std::unordered_map<std::string, Value> m_values {};
 };

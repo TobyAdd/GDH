@@ -21,6 +21,13 @@ public:
     int m_index_scale = 7;
 
     bool m_needRescale = true;
+    
+    bool m_keybindMode = false;
+
+    int m_toggleKey = GLFW_KEY_TAB;
+
+    bool m_waitingForBindKey = false;
+    int m_keyToSet = -1;
 
     void Render();
     void Init();

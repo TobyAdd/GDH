@@ -2,7 +2,7 @@
 #include <imgui/imgui_stdlib.h>
 #include <font.hpp>
 #include "config.hpp"
-#include <matjson.hpp>
+#include "json.hpp"
 #include "hacks.hpp"
 #include "memory.hpp"
 #include "labels.hpp"
@@ -56,6 +56,7 @@ void Gui::animateAlpha()
             Config::get().save(fileDataPath);
             Labels::get().save();
             RGBIcons::get().save();
+            Hacks::get().saveKeybinds();
             updateCursorState();
         }
 
@@ -165,10 +166,46 @@ void Gui::Render() {
             if (ImGui::IsItemHovered())
                 ImGui::SetTooltip("Invert theme (beta)");
 
-            ImGuiH::Checkbox("Keybinds Mode", &hacks.keybinds_mode, m_scale);
+            if (ImGui::BeginPopupModal("Keybinds Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+                auto renderKeyButton = [&](const std::string& label, int& key) {
+                    std::string keyStr = label + utilsH::GetKeyName(key);
+                    if (key == -1) {
+                        keyStr = "Press any key...";
+                        if (!m_waitingForBindKey && m_keyToSet != -1) {
+                            key = m_keyToSet;
+                            m_keyToSet = 0;
+                        }
+                    }
 
-            if (ImGuiH::Button("More Settings", {ImGui::GetContentRegionAvail().x, 0})) {
-                ImGui::OpenPopup("GDH More Settings");
+                    if (ImGuiH::Button(keyStr.c_str(), {400 * m_scale, 0})) {
+                        key = -1;
+                        m_waitingForBindKey = true;
+                    }
+                };
+
+                ImGui::Text("Tip: To disable the bind, bind it to backspace");
+                ImGui::Separator();
+                ImGui::Spacing();
+
+                renderKeyButton("Menu Key: ", m_toggleKey);
+
+
+                if (ImGuiH::Button("Close", {400 * m_scale, NULL}))
+                    ImGui::CloseCurrentPopup();
+
+                ImGui::EndPopup();
+            }
+
+            ImGuiH::Checkbox("Keybinds Mode", &m_keybindMode, m_scale);
+
+            if (m_keybindMode && ImGui::IsItemHovered())
+                ImGui::SetTooltip("Binds for toggle UI, Speedhack, Replay Engine, and more in the More Keybinds");
+
+            if (ImGuiH::Button(m_keybindMode ? "More Keybinds" : "More Settings", {ImGui::GetContentRegionAvail().x, 0})) {
+                if (!m_keybindMode)
+                    ImGui::OpenPopup("GDH More Settings");
+                else
+                    ImGui::OpenPopup("Keybinds Settings");
             }
 
             if (ImGui::BeginPopupModal("GDH More Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -676,7 +713,7 @@ void Gui::Render() {
 
                             
                             if (ImGuiH::Button("Save")) {
-                                matjson::Value j;
+                                nlohmann::json j;
                                 j["width"] = recorder.width;
                                 j["height"] = recorder.height;
                                 j["fps"] = recorder.fps;
@@ -701,22 +738,22 @@ void Gui::Render() {
                             if (ImGuiH::Button("Load")) {
                                 std::ifstream file(folderPath / "recorder_settings.json");
                                 if (file.is_open()) {
-                                    auto result = matjson::parse(file);
-                                    if (!result.isErr()) {
-                                        matjson::Value j = result.unwrap();
-                                        recorder.width = j["width"].asInt().unwrapOr(recorder.width);
-                                        recorder.height = j["height"].asInt().unwrapOr(recorder.height);
-                                        recorder.fps = j["fps"].asInt().unwrapOr(recorder.fps);
-                                        recorder.bitrate = j["bitrate"].asString().unwrapOr(recorder.bitrate);
-                                        recorder.codec = j["codec"].asString().unwrapOr(recorder.codec);
-                                        recorder.extra_args = j["extra_args"].asString().unwrapOr(recorder.extra_args);
-                                        recorder.vf_args = j["vf_args"].asString().unwrapOr(recorder.vf_args);
+                                    std::string file_contents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
+                                    nlohmann::json j = nlohmann::json::parse(file_contents, nullptr, false);
+                                    if (j.is_discarded()) {
+                                        ImGuiH::Popup::get().add_popup("JSON parsing error or invalid file");
+                                    } else {
+                                        recorder.width = j.value("width", recorder.width);
+                                        recorder.height = j.value("height", recorder.height);
+                                        recorder.fps = j.value("fps", recorder.fps);
+                                        recorder.bitrate = j.value("bitrate", recorder.bitrate);
+                                        recorder.codec = j.value("codec", recorder.codec);
+                                        recorder.extra_args = j.value("extra_args", recorder.extra_args);
+                                        recorder.vf_args = j.value("vf_args", recorder.vf_args);
 
                                         ImGuiH::Popup::get().add_popup("Configuration loaded");
-                                    } else {
-                                        ImGuiH::Popup::get().add_popup("json broken?");
                                     }
-
                                     file.close();
                                 } else {
                                     ImGuiH::Popup::get().add_popup("Could not open file for reading");
@@ -1157,6 +1194,10 @@ void Gui::Render() {
                 auto path = geode::dirs::getSaveDir();
                 geode::utils::file::openFolder(path);
             }
+
+            if (ImGuiH::Button("GDH AppData", {ImGui::GetContentRegionAvail().x, NULL})) {
+                geode::utils::file::openFolder(folderPath);
+            }
         }
         else {
             for (auto& hck : win.hacks) {
@@ -1171,30 +1212,50 @@ void Gui::Render() {
                 bool founded = search_item.empty() ? true : (search_name.find(search_item) != std::string::npos);
                 ImGui::PushStyleColor(ImGuiCol_Text, founded ? ImGui::GetStyle().Colors[ImGuiCol_Text] : ImColor(64, 64, 64).Value);
 
-                if (ImGuiH::Checkbox(hck.name.c_str(), &enabled, m_scale)) {
-                    config.set(hck.config, enabled);
-                    if (!hck.game_var.empty())
-                        GameManager::get()->setGameVariable(hck.game_var.c_str(), enabled);
-                    if (hck.handlerFunc) hck.handlerFunc(enabled);
-                }
 
-                if (ImGui::IsItemHovered() && !hck.desc.empty()) {
-                    ImGui::SetTooltip("%s", hck.desc.c_str());
-                }
-
-                if (hck.handlerCustomWindow) {
-                    ImGui::SameLine();
-                    if (ImGuiH::ArrowButton(fmt::format("{} Settings", hck.name).c_str(), ImGuiDir_Right)) {
-                        ImGui::OpenPopup(fmt::format("{} Settings", hck.name).c_str());
+                if (m_keybindMode) {
+                    if (hck.keybind == -1 && !m_waitingForBindKey && m_keyToSet != -1) {
+                        hck.keybind = m_keyToSet;
+                        m_keyToSet = 0;
                     }
 
-                    if (ImGui::BeginPopupModal(fmt::format("{} Settings", hck.name).c_str(), NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-                        hck.handlerCustomWindow();
+                    if (ImGuiH::Button(hck.keybind != -1 
+                        ? fmt::format("{}: {}", 
+                            hck.name.length() > 16 ? hck.name.substr(0, 16) : hck.name,
+                            utilsH::GetKeyName(hck.keybind)).c_str() 
+                        : "Press any key...", {ImGui::GetContentRegionAvail().x, NULL})) 
+                    {
+                        hck.keybind = -1;
+                        m_waitingForBindKey = true;
+                    }
 
-                        if (ImGuiH::Button("Close", {400 * m_scale, NULL}))
-                            ImGui::CloseCurrentPopup();
+                }
+                else {
+                    if (ImGuiH::Checkbox(hck.name.c_str(), &enabled, m_scale)) {
+                        config.set(hck.config, enabled);
+                        if (!hck.game_var.empty())
+                            GameManager::get()->setGameVariable(hck.game_var.c_str(), enabled);
+                        if (hck.handlerFunc) hck.handlerFunc(enabled);
+                    }
 
-                        ImGui::EndPopup();
+                    if (ImGui::IsItemHovered() && !hck.desc.empty()) {
+                        ImGui::SetTooltip("%s", hck.desc.c_str());
+                    }
+
+                    if (hck.handlerCustomWindow) {
+                        ImGui::SameLine();
+                        if (ImGuiH::ArrowButton(fmt::format("{} Settings", hck.name).c_str(), ImGuiDir_Right)) {
+                            ImGui::OpenPopup(fmt::format("{} Settings", hck.name).c_str());
+                        }
+
+                        if (ImGui::BeginPopupModal(fmt::format("{} Settings", hck.name).c_str(), NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+                            hck.handlerCustomWindow();
+
+                            if (ImGuiH::Button("Close", {400 * m_scale, NULL}))
+                                ImGui::CloseCurrentPopup();
+
+                            ImGui::EndPopup();
+                        }
                     }
                 }
                 

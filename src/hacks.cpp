@@ -114,7 +114,7 @@ void Hacks::Init() {
         {"Replay Engine", 680, 10, 300, 200},
         {"Labels", 680, 220, 300, 320},
         {"Variables", 10, 510, 200, 160},
-        {"Shortcuts", 990, 10, 200, 240}
+        {"Shortcuts", 990, 10, 200, 270}
     };
 
     auto &config = Config::get();
@@ -632,6 +632,77 @@ void Hacks::Init() {
         for (auto& hck : win.hacks) {
             if (!hck.game_var.empty()) config.set<bool>(hck.config, GameManager::get()->getGameVariable(hck.game_var.c_str()));
             if (config.get<bool>(hck.config, false) && hck.handlerFunc) hck.handlerFunc(true);
+        }
+    }
+}
+
+void Hacks::saveKeybinds() {
+    auto& gui = Gui::get();
+    nlohmann::json keybindJson;
+    
+    for (const auto& win : m_windows) {
+        for (auto& hck : win.hacks) {
+            if (hck.keybind != 0) {
+                keybindJson[hck.name] = hck.keybind;
+            }
+        }
+    }
+
+    keybindJson["gui::toggle"] = gui.m_toggleKey;
+
+    if (!keybindJson.empty()) {
+        std::ofstream file(folderPath / "keybinds.json");
+        if (file.is_open()) {
+            file << keybindJson.dump(4);
+        }
+    }
+}
+
+void Hacks::loadKeybinds() {
+    auto& gui = Gui::get();
+
+    std::ifstream file(folderPath / "keybinds.json");
+    if (!file.is_open()) {
+        return;
+    }
+
+    std::string file_contents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    file.close();
+
+    nlohmann::json keybindJson = nlohmann::json::parse(file_contents, nullptr, false);
+    if (keybindJson.is_discarded()) {
+        return;
+    }
+
+    std::unordered_map<std::string, int> keybindMap;
+    for (const auto& [name, key] : keybindJson.items()) {
+        keybindMap[name] = key;
+    }
+    
+    gui.m_toggleKey = keybindJson.value("gui::toggle", GLFW_KEY_TAB);
+
+    for (auto& win : m_windows) {
+        for (auto& hck : win.hacks) {
+            auto it = keybindMap.find(hck.name);
+            if (it != keybindMap.end()) {
+                hck.keybind = it->second;
+            }
+        }
+    }
+}
+
+
+void Hacks::toggleKeybinds(int key) {
+    auto& config = Config::get();
+    for (auto& win : m_windows) {
+        for (auto& hck : win.hacks) {
+            if (hck.keybind == key && key != 0) {   
+                bool value = !config.get(hck.config, false);
+                config.set(hck.config, value);
+                if (!hck.game_var.empty())
+                    GameManager::get()->setGameVariable(hck.game_var.c_str(), value);
+                if (hck.handlerFunc) hck.handlerFunc(value);
+            }
         }
     }
 }

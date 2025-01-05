@@ -39,10 +39,12 @@ public:
 
     PauseLayer* pauseLayer;
 
-    bool keybinds_mode = false;
-
     std::vector<window> m_windows;
     void Init();
+
+    void saveKeybinds();
+    void loadKeybinds();
+    void toggleKeybinds(int key);
 private:
     Hacks() = default;
 

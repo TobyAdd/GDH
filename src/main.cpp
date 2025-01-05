@@ -66,6 +66,7 @@ class $modify(MenuLayer) {
 
             auto& hacks = Hacks::get();
             hacks.Init();
+            hacks.loadKeybinds();
 
             #ifdef GEODE_IS_WINDOWS
             auto& gui = Gui::get();
@@ -155,10 +156,22 @@ class $modify(cocos2d::CCEGLView) {
 
         if (inited) {
             if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-				if (key == GLFW_KEY_TAB) {
-					auto& gui = Gui::get();
-					gui.Toggle();
-				}
+                auto& gui = Gui::get();
+                auto& hacks = Hacks::get();
+                if (gui.m_keybindMode && gui.m_waitingForBindKey) {
+                    if (key == GLFW_KEY_BACKSPACE)
+                        gui.m_keyToSet = 0;
+                    else
+                        gui.m_keyToSet = key;
+                    gui.m_waitingForBindKey = false;
+                }
+                else if (!gui.m_keybindMode) {
+                    if (key == gui.m_toggleKey) {
+                        gui.Toggle();
+                    }
+
+                    hacks.toggleKeybinds(key);
+                }
 			}
         }     
     }
