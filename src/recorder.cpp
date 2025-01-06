@@ -7,6 +7,7 @@
 #ifdef GEODE_IS_WINDOWS
 #include <subprocess.hpp>
 #endif
+#include "flvc.hpp"
 
 class $modify(ShaderLayer)
 {
@@ -20,7 +21,6 @@ class $modify(ShaderLayer)
 };
 
 void RenderTexture::begin() {   
-    #ifdef GEODE_IS_WINDOWS
     glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &oldFBO);
 
     texture = new cocos2d::CCTexture2D;
@@ -42,12 +42,10 @@ void RenderTexture::begin() {
     texture->autorelease();
 
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, oldRBO);
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, oldFBO);  
-    #endif  
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, oldFBO);
 }
 
 void RenderTexture::capture_frame(std::mutex& lock, std::vector<uint8_t>& data, volatile bool& frame_has_data) {
-    #ifdef GEODE_IS_WINDOWS
     auto& recorder = Recorder::get();
     glViewport(0, 0, width, height);
 
@@ -69,7 +67,6 @@ void RenderTexture::capture_frame(std::mutex& lock, std::vector<uint8_t>& data, 
 
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, oldFBO);
     director->setViewport();
-    #endif 
 }
 
 void RenderTexture::end() {
@@ -126,20 +123,23 @@ void Recorder::start(std::string command) {
     texture.begin();
 
     std::thread([&, command] {            
-        auto process = subprocess::Popen(command);
+        // auto process = subprocess::Popen(command);
+        FLVCEncoder encoder(width, height, fps, "output.flvc");
         while (is_recording || frame_has_data) {
             lock.lock();
             if (frame_has_data) {
                 const auto frame = current_frame;
                 frame_has_data = false;
-                process.m_stdin.write(frame.data(), frame.size());                
+                encoder.writeFrame(frame);
+                // process.m_stdin.write(frame.data(), frame.size());                
             }
             lock.unlock();
         }
+        encoder.close();
 
-        if (process.close()) {
-            return;
-        }
+        // if (process.close()) {
+        //     return;
+        // }
     }).detach();
     #endif
 }
