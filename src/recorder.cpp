@@ -95,7 +95,6 @@ void Recorder::restoreWinSize() {
 }
 
 void Recorder::start(std::string command) {
-    #ifdef GEODE_IS_WINDOWS
     need_remove_black = false;
     need_visible_lc = false;
 
@@ -124,7 +123,7 @@ void Recorder::start(std::string command) {
 
     std::thread([&, command] {            
         // auto process = subprocess::Popen(command);
-        FLVCEncoder encoder(width, height, fps, "output.flvc");
+        FLVCEncoder encoder(width, height, fps, folderPath / "output.flvc");
         while (is_recording || frame_has_data) {
             lock.lock();
             if (frame_has_data) {
@@ -141,7 +140,6 @@ void Recorder::start(std::string command) {
         //     return;
         // }
     }).detach();
-    #endif
 }
 
 void Recorder::stop() {

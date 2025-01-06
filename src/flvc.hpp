@@ -5,7 +5,7 @@
 
 class FLVCEncoder {
 public:
-    FLVCEncoder(uint16_t width, uint16_t height, uint16_t fps, const std::string& outputFilePath)
+    FLVCEncoder(uint16_t width, uint16_t height, uint16_t fps, const std::filesystem::path& outputFilePath)
         : width(width), height(height), fps(fps), frameSize(width * height * 3), frameCount(0), outputFilePath(outputFilePath) {
         outputFile.open(outputFilePath, std::ios::binary);
         if (!outputFile.is_open()) {
@@ -60,7 +60,7 @@ private:
     uint16_t fps;
     size_t frameSize;
     size_t frameCount;
-    std::string outputFilePath;
+    std::filesystem::path outputFilePath;
     std::ofstream outputFile;
 
     void writeHeader() {
@@ -80,7 +80,7 @@ private:
 
 class FLVCDecoder {
 public:
-    FLVCDecoder(const std::string& inputFilePath) : inputFilePath(inputFilePath) {
+    FLVCDecoder(const std::filesystem::path& inputFilePath) : inputFilePath(inputFilePath) {
         inputFile.open(inputFilePath, std::ios::binary);
         if (!inputFile.is_open()) {
             return;
@@ -150,7 +150,7 @@ private:
     uint16_t fps;
     size_t frameSize;
     size_t frameCount;
-    std::string inputFilePath;
+    std::filesystem::path inputFilePath;
     std::ifstream inputFile;
 
     void readHeader() {
