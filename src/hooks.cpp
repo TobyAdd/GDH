@@ -272,7 +272,7 @@ class $modify(PlayLayer) {
         }
     };
 
-    #ifdef GEODE_IS_ANDROID
+    #ifdef GEODE_IS_WINDOWS
     void createObjectsFromSetupFinished() {
         auto& gui = Gui::get();
         auto& config = Config::get();
@@ -571,7 +571,6 @@ class $modify(PlayLayer) {
         // }
 
         PlayLayer::resetLevel();
-	return;
 
         // m_unk3188 = unk3188;
         // m_replayRandSeed = replayRandSeed;
