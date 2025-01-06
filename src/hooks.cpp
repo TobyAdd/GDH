@@ -571,6 +571,7 @@ class $modify(PlayLayer) {
         // }
 
         PlayLayer::resetLevel();
+	return;
 
         // m_unk3188 = unk3188;
         // m_replayRandSeed = replayRandSeed;
