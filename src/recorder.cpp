@@ -21,7 +21,7 @@ class $modify(ShaderLayer)
 };
 
 void RenderTexture::begin() {   
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &oldFBO);
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &oldFBO);
 
     texture = new cocos2d::CCTexture2D;
     {
@@ -36,7 +36,7 @@ void RenderTexture::begin() {
     glGenFramebuffers(1, &currentFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, currentFBO);
 
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, texture->getName(), 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture->getName(), 0);
     
     texture->setAliasTexParameters();
     texture->autorelease();
