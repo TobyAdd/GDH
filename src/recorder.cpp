@@ -102,17 +102,17 @@ void Recorder::start(std::string command) {
 
     after_end_extra_time = 0.f;
 
-    auto view = cocos2d::CCEGLView::get();
+    // auto view = cocos2d::CCEGLView::get();
     
-    oldDesignResolution = view->getDesignResolutionSize();
-    float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
-    newDesignResolution = cocos2d::CCSize(roundf(320.f * aspectRatio), 320.f);
+    // oldDesignResolution = view->getDesignResolutionSize();
+    // float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
+    // newDesignResolution = cocos2d::CCSize(roundf(320.f * aspectRatio), 320.f);
 
-    originalScreenScale = cocos2d::CCSize(view->m_fScaleX, view->m_fScaleY);
-    newScreenScale = cocos2d::CCSize(static_cast<float>(width) / newDesignResolution.width, static_cast<float>(height) / newDesignResolution.height);
+    // originalScreenScale = cocos2d::CCSize(view->m_fScaleX, view->m_fScaleY);
+    // newScreenScale = cocos2d::CCSize(static_cast<float>(width) / newDesignResolution.width, static_cast<float>(height) / newDesignResolution.height);
 
-    if (oldDesignResolution != newDesignResolution)
-        applyWinSize();
+    // if (oldDesignResolution != newDesignResolution)
+    //     applyWinSize();
 
     frame_has_data = false;
     current_frame.resize(width * height * 3, 0);
