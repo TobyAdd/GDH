@@ -272,8 +272,9 @@ class $modify(PlayLayer) {
         }
     };
 
-    #ifdef GEODE_IS_WINDOWS
+    #ifdef GEODE_IS_ANDROID
     void createObjectsFromSetupFinished() {
+	PlayLayer::createObjectsFromSetupFinished();
         auto& gui = Gui::get();
         auto& config = Config::get();
 
