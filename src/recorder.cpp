@@ -31,26 +31,26 @@ void RenderTexture::begin() {
         free(data);
     }
 
-    glGetIntegerv(GL_RENDERBUFFER_BINDING_EXT, &oldRBO);
+    glGetIntegerv(GL_RENDERBUFFER_BINDING, &oldRBO);
 
-    glGenFramebuffersEXT(1, &currentFBO);
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, currentFBO);
+    glGenFramebuffers(1, &currentFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, currentFBO);
 
-    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, texture->getName(), 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, texture->getName(), 0);
     
     texture->setAliasTexParameters();
     texture->autorelease();
 
-    glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, oldRBO);
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, oldFBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, oldRBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, oldFBO);
 }
 
 void RenderTexture::capture_frame(std::mutex& lock, std::vector<uint8_t>& data, volatile bool& frame_has_data) {
     auto& recorder = Recorder::get();
     glViewport(0, 0, width, height);
 
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &oldFBO);
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, currentFBO);
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &oldFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, currentFBO);
 
     auto director = cocos2d::CCDirector::sharedDirector();
     auto scene = GameManager::sharedState()->getPlayLayer();
@@ -65,7 +65,7 @@ void RenderTexture::capture_frame(std::mutex& lock, std::vector<uint8_t>& data, 
     glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data.data());
     lock.unlock();
 
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, oldFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, oldFBO);
     director->setViewport();
 }
 
