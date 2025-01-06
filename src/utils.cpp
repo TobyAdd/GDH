@@ -244,9 +244,24 @@ std::string utilsH::GetKeyName(int key) {
 }
 #endif
 
+
 void utilsH::getFolder() {
     auto result = geode::utils::file::pick(geode::utils::file::PickMode::OpenFolder, {std::nullopt, {}});
     if (result.isFinished() && !result.getFinishedValue()->isErr()) {
-        FLAlertLayer::create("Info", result.getFinishedValue()->unwrap().string().c_str(), "OK")->show();
+        std::filesystem::path path = result.getFinishedValue()->unwrap();
+
+        std::ofstream outFile(path / "replay_engine.txt");
+
+        if (outFile.is_open()) {
+            outFile << "Hello, this is a text file saved by C++!" << std::endl;
+            outFile.close();
+
+            FLAlertLayer::create("Info", fmt::format("Saved as {}", path / "replay_engine.txt"), "OK")->show();
+        } else {
+            FLAlertLayer::create("Info", fmt::format("Error openning file"), "OK")->show();
+        }        
+    }
+    else {
+        FLAlertLayer::create("Info", fmt::format("not openned??"), "OK")->show();
     }
 }
