@@ -246,22 +246,24 @@ std::string utilsH::GetKeyName(int key) {
 
 
 void utilsH::getFolder() {
-    auto result = geode::utils::file::pick(geode::utils::file::PickMode::OpenFolder, {std::nullopt, {}});
-    if (result.isFinished() && !result.getFinishedValue()->isErr()) {
-        std::filesystem::path path = result.getFinishedValue()->unwrap();
+    geode::utils::file::pick(geode::utils::file::PickMode::OpenFolder, {std::nullopt, {}}).listen(
+            [](geode::Result<std::filesystem::path>* path) {
+        if (!path->isErr()) {
+            auto path_final = path->unwrap();
+            geode::log::debug("{}", path_final);
+            std::ofstream outFile(path_final / "replay_engine.txt");
 
-        std::ofstream outFile(path / "replay_engine.txt");
+            if (outFile.is_open()) {
+                outFile << "Hello, this is a text file saved by C++!" << std::endl;
+                outFile.close();
 
-        if (outFile.is_open()) {
-            outFile << "Hello, this is a text file saved by C++!" << std::endl;
-            outFile.close();
-
-            FLAlertLayer::create("Info", fmt::format("Saved as {}", path / "replay_engine.txt"), "OK")->show();
-        } else {
-            FLAlertLayer::create("Info", fmt::format("Error openning file"), "OK")->show();
-        }        
-    }
-    else {
-        FLAlertLayer::create("Info", fmt::format("not openned??"), "OK")->show();
-    }
+                FLAlertLayer::create("Info", fmt::format("Saved as {}", path_final / "replay_engine.txt"), "OK")->show();
+            } else {
+                FLAlertLayer::create("Info", fmt::format("Error openning file"), "OK")->show();
+            }    
+        }
+        else {
+            FLAlertLayer::create("info", "goddamn??", "OK")->show();
+        }
+    });
 }
