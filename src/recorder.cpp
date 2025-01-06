@@ -159,8 +159,9 @@ void Recorder::stop() {
     }
 
     needRevertOld = true;
-
+    #ifdef GEODE_IS_WINDOWS
     ImGuiH::Popup::get().add_popup("Video recording stoped!");
+    #endif
     
 }
 
