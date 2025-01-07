@@ -202,14 +202,22 @@ bool HacksLayer::setup() {
             auto engineTab = CCMenu::create();
             engineTab->setContentSize({325, 210});
 
-            record_toggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [this, &config, &engine](CCMenuItemToggler* sender) {
+            auto info_label = CCLabelBMFont::create(fmt::format("Frame: {}\nReplay Size: {}", engine.get_frame(), engine.get_actions_size()).c_str(), "chatFont.fnt");
+            info_label->setAnchorPoint({0.f, 0.5f});
+            info_label->setPosition({8, 15});
+            info_label->setScale(0.5f);
+            engineTab->addChild(info_label);
+
+            record_toggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [this, &config, &engine, info_label](CCMenuItemToggler* sender) {
                 play_toggle->toggle(false);
                 if (!sender->isOn()) {
                     bool canRecord = (!engine.engine_v2 && config.get<bool>("tps_enabled", false)) || (engine.engine_v2 && !config.get<bool>("tps_enabled", false));
                     
                     if (canRecord)
                     {
+                        engine.clear();
                         engine.mode = state::record;
+                        info_label->setString(fmt::format("Frame: {}\nReplay Size: {}/{}", engine.get_frame(), engine.get_current_index(), engine.get_actions_size()).c_str());
                     }
                     else
                     {
@@ -272,12 +280,6 @@ bool HacksLayer::setup() {
             replayListClick->setPosition({255.f, 155.f});
             engineTab->addChild(replayListClick);
 
-            auto info_label = CCLabelBMFont::create(fmt::format("Frame: {}\nReplay Size: {}", engine.get_frame(), engine.get_actions_size()).c_str(), "chatFont.fnt");
-            info_label->setAnchorPoint({0.f, 0.5f});
-            info_label->setPosition({8, 15});
-            info_label->setScale(0.5f);
-            engineTab->addChild(info_label);
-
             auto saveButton = ButtonSprite::create("Save", 40, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
             auto saveButtonClick = CCMenuItemExt::createSpriteExtra(saveButton, [this, &engine, info_label](CCMenuItemSpriteExtra* sender) {
                 FLAlertLayer::create("Info", engine.save(engine.replay_name).c_str(), "OK")->show();
@@ -288,7 +290,7 @@ bool HacksLayer::setup() {
             auto loadButton = ButtonSprite::create("Load", 40, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
             auto loadButtonClick = CCMenuItemExt::createSpriteExtra(loadButton, [this, &engine, info_label](CCMenuItemSpriteExtra* sender) {
                 FLAlertLayer::create("Info", engine.load(engine.replay_name).c_str(), "OK")->show();
-                info_label->setString(fmt::format("Frame: {}\nReplay Size: {}", engine.get_frame(), engine.get_actions_size()).c_str());
+                info_label->setString(fmt::format("Frame: {}\nReplay Size: {}/{}", engine.get_frame(), engine.get_current_index(), engine.get_actions_size()).c_str());
             });
             loadButtonClick->setPosition({95, 120});
             engineTab->addChild(loadButtonClick);
@@ -334,8 +336,43 @@ bool HacksLayer::setup() {
             engineTab->addChild(engineV2_label);
 
             auto justATestButton = ButtonSprite::create("Just a test", 80, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
-            auto justATestButtonClick = CCMenuItemExt::createSpriteExtra(justATestButton, [this, &engine, info_label](CCMenuItemSpriteExtra* sender) {
+            auto justATestButtonClick = CCMenuItemExt::createSpriteExtra(justATestButton, [this](CCMenuItemSpriteExtra* sender) {
+                auto& recorder = Recorder::get();
 
+                if (recorder.is_recording) {
+                    recorder.stop();
+                    FLAlertLayer::create("Recorder", "Recording stopped!", "OK")->show();
+                }
+
+                geode::utils::file::pick(geode::utils::file::PickMode::OpenFolder, {std::nullopt, {}}).listen(
+                        [&](geode::Result<std::filesystem::path>* path) {
+                    if (!path->isErr()) {
+                        auto path_final = path->unwrap();
+                        auto pl = PlayLayer::get();
+                        if (pl) {
+                            recorder.folderShowcasesPath = path_final;
+                            
+                            recorder.video_name = pl->m_level->m_levelName + ".flvc";
+
+                            auto size = CCEGLView::get()->getFrameSize();
+                            recorder.width = size.width;
+                            recorder.height = size.height;
+
+                            if (!recorder.is_recording) {
+                                recorder.start("");
+                                FLAlertLayer::create("Recorder", fmt::format("Recording started!\nFilename: {}\nPath {}\nSize: {}x{}\nFPS: {}",
+                                                recorder.video_name, recorder.folderShowcasesPath, recorder.width, recorder.height, recorder.fps).c_str(), "OK")->show();
+                            }
+
+                        }
+                        else {
+                            FLAlertLayer::create("Recorder", "Not in PlayLayer", "OK")->show();
+                        }                        
+                    }
+                    else {
+                        FLAlertLayer::create("Recorder", "Not selected directory", "OK")->show();
+                    }
+                });
             });
             justATestButtonClick->setPosition({270, 25});
             engineTab->addChild(justATestButtonClick);
