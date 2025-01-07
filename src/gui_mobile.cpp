@@ -352,7 +352,7 @@ bool HacksLayer::setup() {
                         if (pl) {
                             recorder.folderShowcasesPath = path_final;
                             
-                            recorder.video_name = pl->m_level->m_levelName + ".flvc";
+                            recorder.video_name = fmt::format("{}.flvc", pl->m_level->m_levelName);
 
                             auto size = CCEGLView::get()->getFrameSize();
                             recorder.width = size.width;
