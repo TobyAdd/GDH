@@ -95,6 +95,10 @@ void Recorder::restoreWinSize() {
 }
 
 void Recorder::start(std::string command) {
+    bool use_flvc = video_name.ends_with(".flvc");
+
+    is_recording = true;
+
     need_remove_black = false;
     need_visible_lc = false;
 
@@ -102,17 +106,17 @@ void Recorder::start(std::string command) {
 
     after_end_extra_time = 0.f;
 
-    // auto view = cocos2d::CCEGLView::get();
+    auto view = cocos2d::CCEGLView::get();
     
-    // oldDesignResolution = view->getDesignResolutionSize();
-    // float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
-    // newDesignResolution = cocos2d::CCSize(roundf(320.f * aspectRatio), 320.f);
+    oldDesignResolution = view->getDesignResolutionSize();
+    float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
+    newDesignResolution = cocos2d::CCSize(roundf(320.f * aspectRatio), 320.f);
 
-    // originalScreenScale = cocos2d::CCSize(view->m_fScaleX, view->m_fScaleY);
-    // newScreenScale = cocos2d::CCSize(static_cast<float>(width) / newDesignResolution.width, static_cast<float>(height) / newDesignResolution.height);
+    originalScreenScale = cocos2d::CCSize(view->m_fScaleX, view->m_fScaleY);
+    newScreenScale = cocos2d::CCSize(static_cast<float>(width) / newDesignResolution.width, static_cast<float>(height) / newDesignResolution.height);
 
-    // if (oldDesignResolution != newDesignResolution)
-    //     applyWinSize();
+    if (oldDesignResolution != newDesignResolution)
+        applyWinSize();
 
     frame_has_data = false;
     current_frame.resize(width * height * 3, 0);
@@ -121,24 +125,34 @@ void Recorder::start(std::string command) {
     texture.width = width;
     texture.begin();
 
-    std::thread([&, command] {            
-        // auto process = subprocess::Popen(command);
-        FLVCEncoder encoder(width, height, fps, folderPath / "output.flvc");
-        while (is_recording || frame_has_data) {
-            lock.lock();
-            if (frame_has_data) {
-                const auto frame = current_frame;
-                frame_has_data = false;
-                encoder.writeFrame(frame);
-                // process.m_stdin.write(frame.data(), frame.size());                
+    std::thread([&, command, use_flvc] {
+        if (use_flvc) {
+            FLVCEncoder encoder(width, height, fps, folderShowcasesPath / video_name);
+            while (is_recording || frame_has_data) {
+                lock.lock();
+                if (frame_has_data) {
+                    const auto frame = current_frame;
+                    frame_has_data = false;
+                    encoder.writeFrame(frame);
+                }
+                lock.unlock();
             }
-            lock.unlock();
+            encoder.close();
+        } else {
+            auto process = subprocess::Popen(command);
+            while (is_recording || frame_has_data) {
+                lock.lock();
+                if (frame_has_data) {
+                    const auto frame = current_frame;
+                    frame_has_data = false;
+                    process.m_stdin.write(frame.data(), frame.size());
+                }
+                lock.unlock();
+            }
+            if (process.close()) {
+                return;
+            }
         }
-        encoder.close();
-
-        // if (process.close()) {
-        //     return;
-        // }
     }).detach();
 }
 

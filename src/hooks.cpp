@@ -152,11 +152,23 @@ class $modify(cocos2d::CCScheduler) {
         auto& recorder = Recorder::get();
         auto& recorderAudio = RecorderAudio::get();
 
+        auto handleRestoreWinSize = [&]() {
+            if (recorder.is_recording || recorder.needRevertOld) {
+                if (recorder.needRevertOld) {
+                    recorder.needRevertOld = false;
+                }
+                recorder.restoreWinSize();
+            }
+        };
+
         if (config.get<bool>("speedhack_enabled", false))
             dt *= config.get<float>("speedhack_value", 1.f);
 
         if (engine.engine_v2 && recorder.is_recording) {
-            return CCScheduler::update(1.f / static_cast<float>(recorder.fps));
+            if (recorder.is_recording) recorder.applyWinSize();
+            CCScheduler::update(1.f / static_cast<float>(recorder.fps));
+            handleRestoreWinSize();
+            return;
         }
 
         if (!config.get<bool>("tps_enabled", false))
@@ -169,28 +181,18 @@ class $modify(cocos2d::CCScheduler) {
         if (engine.frame_advance && pl && !pl->m_isPaused) {
             if (engine.next_frame) {
                 engine.next_frame = false;
-                // if (recorder.is_recording) recorder.applyWinSize();
+                if (recorder.is_recording) recorder.applyWinSize();
                 CCScheduler::update(new_dt);
-                // if (recorder.is_recording || recorder.needRevertOld) {
-                //     if (recorder.needRevertOld)
-                //         recorder.needRevertOld = false;
-
-                //     recorder.restoreWinSize();
-                // }
+                handleRestoreWinSize();
             }
 
             return;
         }
 
         if (!config.get<bool>("tps::real_time", true)) {
-            // if (recorder.is_recording) recorder.applyWinSize();
+            if (recorder.is_recording) recorder.applyWinSize();
             CCScheduler::update(new_dt);
-            // if (recorder.is_recording || recorder.needRevertOld) {
-            //     if (recorder.needRevertOld)
-            //         recorder.needRevertOld = false;
-
-            //     recorder.restoreWinSize();
-            // }
+            handleRestoreWinSize();
             return;
         }             
 
@@ -202,14 +204,10 @@ class $modify(cocos2d::CCScheduler) {
         using namespace std::literals;
 
         for (unsigned i = 0; i < times; ++i) {
-            // if (recorder.is_recording) recorder.applyWinSize();
+            if (recorder.is_recording) recorder.applyWinSize();
             CCScheduler::update(new_dt);
-            // if (recorder.is_recording || recorder.needRevertOld) {
-            //     if (recorder.needRevertOld)
-            //         recorder.needRevertOld = false;
-                    
-            //     recorder.restoreWinSize();
-            // }
+            handleRestoreWinSize();
+
             if (std::chrono::high_resolution_clock::now() - start > 33.333ms) {         
                 times = i + 1;
                 break;

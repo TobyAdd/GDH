@@ -31,8 +31,8 @@ public:
 
     bool enabled = false;
     bool is_recording = false;
-    int width = 2400;
-    int height = 1080;
+    int width = 1280;
+    int height = 720;
     int fps = 60;
 
     bool lock_aspect_ratio = true;

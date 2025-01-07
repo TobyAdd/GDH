@@ -335,7 +335,7 @@ bool HacksLayer::setup() {
 
             auto justATestButton = ButtonSprite::create("Just a test", 80, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
             auto justATestButtonClick = CCMenuItemExt::createSpriteExtra(justATestButton, [this, &engine, info_label](CCMenuItemSpriteExtra* sender) {
-                Recorder::get().start("");
+
             });
             justATestButtonClick->setPosition({270, 25});
             engineTab->addChild(justATestButtonClick);

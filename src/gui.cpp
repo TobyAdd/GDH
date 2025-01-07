@@ -642,30 +642,41 @@ void Gui::Render() {
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                             ImGui::InputText("##videoname", &recorder.video_name);
 
-                            ImGuiH::Checkbox("Advanced Mode", &recorder.advanced_mode, m_scale);
+                            bool use_flvc = recorder.video_name.ends_with(".flvc");
 
-                            if (recorder.advanced_mode) {
-                                ImGui::SameLine();
-                                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                                ImGui::InputText("##full_args", &recorder.full_cmd);
-                                if (ImGuiH::Button("Compile")) {
-                                    recorder.full_cmd = recorder.compile_command();
-                                }
-
-                                ImGui::SameLine();
-                                if (ImGuiH::Button("Copy to clipboard")) {
-                                    ImGui::SetClipboardText(recorder.full_cmd.c_str());
-                                }
-
-                                ImGui::SameLine();
-                                if (ImGuiH::Button("Paste to from clipboard")) {
-                                    recorder.full_cmd = (std::string)ImGui::GetClipboardText();
-                                }
+                            if (use_flvc) {
+                                ImGui::PushStyleColor(ImGuiCol_Text, ImColor(255, 128, 128).Value);
+                                ImGui::Text("You are trying to encode a video in Free Lossless Video Codec (FLVC)");
+                                ImGui::TextWrapped("- Make sure you have enough disk space: a 1280x720 60 FPS video of 10 seconds takes more than 100 MB (even more at higher resolutions)");
+                                ImGui::TextWrapped("- Recommended to record the showcase on HDD (Large file volumes can compromise SSD integrity due to write cycle limitations)");
+                                ImGui::PopStyleColor();
                             }
 
-                            ImGui::SameLine();
 
-                            ImGui::Spacing();
+                            if (!use_flvc) {
+                                ImGuiH::Checkbox("Advanced Mode", &recorder.advanced_mode, m_scale);
+
+                                if (recorder.advanced_mode) {
+                                    ImGui::SameLine();
+                                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                                    ImGui::InputText("##full_args", &recorder.full_cmd);
+                                    if (ImGuiH::Button("Compile")) {
+                                        recorder.full_cmd = recorder.compile_command();
+                                    }
+
+                                    ImGui::SameLine();
+                                    if (ImGuiH::Button("Copy to clipboard")) {
+                                        ImGui::SetClipboardText(recorder.full_cmd.c_str());
+                                    }
+
+                                    ImGui::SameLine();
+                                    if (ImGuiH::Button("Paste to from clipboard")) {
+                                        recorder.full_cmd = (std::string)ImGui::GetClipboardText();
+                                    }
+                                }
+                                ImGui::Spacing();
+                            }
+
 
                             ImGui::Text("Resolution:");
                             ImGui::Separator();
@@ -701,41 +712,43 @@ void Gui::Render() {
 
                             ImGui::Text("Encoding Settings");
                             ImGui::Separator(); 
-                            
-                            ImGui::PushItemWidth(50.f * m_scale);
-                            ImGui::InputText("Bitrate", &recorder.bitrate);
 
-                            ImGui::SameLine();
+                            if (!use_flvc) {                            
+                                ImGui::PushItemWidth(50.f * m_scale);
+                                ImGui::InputText("Bitrate", &recorder.bitrate);
 
-                            ImGui::PushItemWidth(80.f * m_scale);
-                            ImGui::InputText("Codec", &recorder.codec);
+                                ImGui::SameLine();
 
-                            ImGui::PushItemWidth(300 * m_scale);
-                            ImGui::InputText("Extra Arguments", &recorder.extra_args);
+                                ImGui::PushItemWidth(80.f * m_scale);
+                                ImGui::InputText("Codec", &recorder.codec);
 
-                            ImGui::PushItemWidth(300 * m_scale);
-                            ImGui::InputText("VF Args", &recorder.vf_args);
+                                ImGui::PushItemWidth(300 * m_scale);
+                                ImGui::InputText("Extra Arguments", &recorder.extra_args);
 
-                            if (ImGuiH::Checkbox("vflip", &recorder.vflip, m_scale)) {
-                                recorder.compile_vf_args();
-                            }
+                                ImGui::PushItemWidth(300 * m_scale);
+                                ImGui::InputText("VF Args", &recorder.vf_args);
 
-                            if (ImGuiH::Checkbox("Fade in", &recorder.fade_in, m_scale)) {
-                                recorder.compile_vf_args();
-                            }
+                                if (ImGuiH::Checkbox("vflip", &recorder.vflip, m_scale)) {
+                                    recorder.compile_vf_args();
+                                }
 
-                            ImGui::SameLine();
+                                if (ImGuiH::Checkbox("Fade in", &recorder.fade_in, m_scale)) {
+                                    recorder.compile_vf_args();
+                                }
 
-                            ImGui::PushItemWidth(120 * m_scale);
-                            if (ImGui::DragFloat("##fade_in_start", &recorder.fade_in_start, 0.01f, 0, FLT_MAX, "Start: %.2fs")) {
-                                recorder.compile_vf_args();
-                            }
+                                ImGui::SameLine();
 
-                            ImGui::SameLine();
-                            
-                            ImGui::PushItemWidth(120 * m_scale);
-                            if (ImGui::DragFloat("##fade_in_end", &recorder.fade_in_end, 0.01f, 0, FLT_MAX, "End: %.2fs")) {
-                                recorder.compile_vf_args();
+                                ImGui::PushItemWidth(120 * m_scale);
+                                if (ImGui::DragFloat("##fade_in_start", &recorder.fade_in_start, 0.01f, 0, FLT_MAX, "Start: %.2fs")) {
+                                    recorder.compile_vf_args();
+                                }
+
+                                ImGui::SameLine();
+                                
+                                ImGui::PushItemWidth(120 * m_scale);
+                                if (ImGui::DragFloat("##fade_in_end", &recorder.fade_in_end, 0.01f, 0, FLT_MAX, "End: %.2fs")) {
+                                    recorder.compile_vf_args();
+                                }
                             }
 
                             ImGuiH::Checkbox("Fade out", &recorder.fade_out, m_scale);
@@ -852,62 +865,64 @@ void Gui::Render() {
                                 recorder.fps = 60;
                                 recorder.bitrate = "250M";
                             }
+
+                            if (!use_flvc) {                                
+                                if (ImGuiH::Button("CPU x264"))
+                                {
+                                    recorder.codec = "libx264";
+                                    recorder.extra_args = "-pix_fmt yuv420p -preset ultrafast";
+                                }                    
                                 
-                            if (ImGuiH::Button("CPU x264"))
-                            {
-                                recorder.codec = "libx264";
-                                recorder.extra_args = "-pix_fmt yuv420p -preset ultrafast";
-                            }                    
-                            
-                            ImGui::SameLine();
-                            
-                            if (ImGuiH::Button("CPU x265"))
-                            {
-                                recorder.codec = "libx265";
-                                recorder.extra_args = "-pix_fmt yuv420p -preset ultrafast";
-                            }
-                            ImGui::SameLine();
-                            if (ImGuiH::Button("CPU AV1 Lossless"))
-                            {
-                                recorder.codec = "libsvtav1";
-                                recorder.extra_args = "-crf 0 -pix_fmt yuv420p";
-                            }
-                            if (ImGuiH::Button("NVIDIA H264"))
-                            {
-                                recorder.codec = "h264_nvenc";
-                                recorder.extra_args = "-pix_fmt yuv420p -preset p7";
-                            }
-                            ImGui::SameLine();
-                            if (ImGuiH::Button("NVIDIA H265"))
-                            {
-                                recorder.codec = "hevc_nvenc";
-                                recorder.extra_args = "-pix_fmt yuv420p -preset p7";
-                            }
-                            ImGui::SameLine();
-                            
-                            if (ImGuiH::Button("NVIDIA AV1"))
-                            {
-                                recorder.codec = "av1_nvenc";
-                                recorder.extra_args = "-pix_fmt yuv420p -preset p7";
-                            }
-                            
-                            if (ImGuiH::Button("AMD H264 Lossless"))
-                            {
-                                recorder.codec = "h264_amf";
-                                recorder.extra_args = "-pix_fmt yuv420p -rc cqp -qp_i 0 -qp_p 0 -qp_b 0";
-                            }
-                            ImGui::SameLine();
-                            if (ImGuiH::Button("AMD H265 Lossless"))
-                            {
-                                recorder.codec = "hevc_amf";
-                                recorder.extra_args = "-pix_fmt yuv420p -rc cqp -qp_i 0 -qp_p 0 -qp_b 0";
-                            }
-                            if (ImGuiH::Button("Color Fix"))
-                            {
-                                recorder.compile_vf_args();
-                                if (!recorder.vf_args.empty())
-                                    recorder.vf_args += ",";
-                                recorder.vf_args += "scale=out_color_matrix=bt709";
+                                ImGui::SameLine();
+                                
+                                if (ImGuiH::Button("CPU x265"))
+                                {
+                                    recorder.codec = "libx265";
+                                    recorder.extra_args = "-pix_fmt yuv420p -preset ultrafast";
+                                }
+                                ImGui::SameLine();
+                                if (ImGuiH::Button("CPU AV1 Lossless"))
+                                {
+                                    recorder.codec = "libsvtav1";
+                                    recorder.extra_args = "-crf 0 -pix_fmt yuv420p";
+                                }
+                                if (ImGuiH::Button("NVIDIA H264"))
+                                {
+                                    recorder.codec = "h264_nvenc";
+                                    recorder.extra_args = "-pix_fmt yuv420p -preset p7";
+                                }
+                                ImGui::SameLine();
+                                if (ImGuiH::Button("NVIDIA H265"))
+                                {
+                                    recorder.codec = "hevc_nvenc";
+                                    recorder.extra_args = "-pix_fmt yuv420p -preset p7";
+                                }
+                                ImGui::SameLine();
+                                
+                                if (ImGuiH::Button("NVIDIA AV1"))
+                                {
+                                    recorder.codec = "av1_nvenc";
+                                    recorder.extra_args = "-pix_fmt yuv420p -preset p7";
+                                }
+                                
+                                if (ImGuiH::Button("AMD H264 Lossless"))
+                                {
+                                    recorder.codec = "h264_amf";
+                                    recorder.extra_args = "-pix_fmt yuv420p -rc cqp -qp_i 0 -qp_p 0 -qp_b 0";
+                                }
+                                ImGui::SameLine();
+                                if (ImGuiH::Button("AMD H265 Lossless"))
+                                {
+                                    recorder.codec = "hevc_amf";
+                                    recorder.extra_args = "-pix_fmt yuv420p -rc cqp -qp_i 0 -qp_p 0 -qp_b 0";
+                                }
+                                if (ImGuiH::Button("Color Fix"))
+                                {
+                                    recorder.compile_vf_args();
+                                    if (!recorder.vf_args.empty())
+                                        recorder.vf_args += ",";
+                                    recorder.vf_args += "scale=out_color_matrix=bt709";
+                                }
                             }
 
                             ImGui::Spacing();
