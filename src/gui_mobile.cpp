@@ -342,6 +342,7 @@ bool HacksLayer::setup() {
                 if (recorder.is_recording) {
                     recorder.stop();
                     FLAlertLayer::create("Recorder", "Recording stopped!", "OK")->show();
+                    return;
                 }
 
                 geode::utils::file::pick(geode::utils::file::PickMode::OpenFolder, {std::nullopt, {}}).listen(
