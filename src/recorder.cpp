@@ -139,6 +139,7 @@ void Recorder::start(std::string command) {
             }
             encoder.close();
         } else {
+            #ifdef GEODE_IS_WINDOWS
             auto process = subprocess::Popen(command);
             while (is_recording || frame_has_data) {
                 lock.lock();
@@ -152,6 +153,7 @@ void Recorder::start(std::string command) {
             if (process.close()) {
                 return;
             }
+            #endif
         }
     }).detach();
 }
