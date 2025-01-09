@@ -1461,6 +1461,8 @@ class $modify(EditorUI) {
         LevelEditorLayer::get()->m_level->m_levelType = levelType;
     }
 
+#ifdef GEODE_IS_WINDOWS
+
 void zoomIn(cocos2d::CCObject* sender) {
     if (!Config::get().get("zoom_bypass", false)) {
         return EditorUI::zoomIn(sender);
@@ -1480,6 +1482,7 @@ void zoomOut(cocos2d::CCObject* sender) {
     float decrement = (scale > 0.1f) ? 0.1f : 0.01f;
     EditorUI::updateZoom(std::max(scale - decrement, 0.01f));
 }
+#endif
 
 void onNewCustomItem(CCObject* sender) {
         if (!Config::get().get("custom_object_bypass", false))
