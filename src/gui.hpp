@@ -15,6 +15,8 @@ public:
     Gui& operator=(const Gui&) = delete;
     Gui(const Gui&) = delete;
 
+    bool m_license_inited = false;
+
     bool m_show = false;
 
     float m_scale = 1.f;
@@ -55,6 +57,7 @@ public:
     void Render();
     void Init();
     void Toggle();
+    void License();
 private:
     Gui() = default;
 

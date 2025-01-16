@@ -27,10 +27,6 @@ void CheckDir(const std::filesystem::path &path)
 $execute {
     ImGuiCocos::get().setForceLegacy(true);
 
-    FLVCDecoder decoder("output.flvc");
-    geode::log::debug("{}x{}; {} FPS; {} frames; {} seconds", decoder.getWidth(), decoder.getHeight(), decoder.getFPS(), decoder.getFrameCount(), decoder.getDuration());
-    decoder.close();
-
 	auto& config = Config::get();
     config.load(fileDataPath);
 

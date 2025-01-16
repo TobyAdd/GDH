@@ -23,6 +23,104 @@ int selected_label_corner = 0;
 int selected_label_type = 0;
 std::string selected_label_text;
 
+void Gui::License() {
+    auto& config = Config::get();
+    if (!m_license_inited) {
+        ImGui::SetNextWindowSize({590 * m_scale, 390 * m_scale});
+        ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));  
+        m_license_inited = true;
+    }    
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {20 * m_scale, 20 * m_scale});
+    ImGui::Begin("Welcome", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_Button]);
+    ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]);
+    ImGui::Text("New era of GDH :)");
+    ImGui::PopFont();
+    ImGui::PopStyleColor();
+
+    ImGui::Text("GDH is an open-source mod menu under the MIT license");
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {10 * m_scale, 10 * m_scale});
+    ImGui::BeginChild("##LicenseChild", {0, ImGui::GetContentRegionAvail().y - 40 * m_scale}, true);
+    ImGui::Text("Customize a comfortable size for GDH:");
+
+    const char* items[] = {"25%", "50%", "75%", "80%", "85%", "90%", "95%", "100%", "125%", "150%", "175%", "200%", "250%", "300%", "400%"};
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+    if (ImGuiH::Combo("##Menu scale", &m_index_scale, items, IM_ARRAYSIZE(items))) {
+        m_scale = float(atof(items[m_index_scale])) / 100.0f;    
+        config.set<float>("gui_scale", m_scale);
+        config.set<int>("gui_index_scale", m_index_scale);
+        m_needRescale = true;
+        ImGuiCocos::get().reload();
+    }
+
+    ImGui::Text("Pick your favorite accent color:");
+    
+    int alpha = int(ImGui::GetStyle().Alpha * 255); 
+    for (int i = 0; i < themes.size(); ++i) {
+        const auto& theme = themes[i];
+        ImColor button_color(theme.color_bg.r, theme.color_bg.g, theme.color_bg.b, alpha);
+
+        if (i == 0)
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 5.f * m_scale);
+
+        if (ImGuiH::CircularButton(fmt::format("COLOR_{}", i).c_str(), 10.f * m_scale, button_color)) {
+            config.set<int>("gui_color_index", i);
+            ApplyColor(theme);
+        }   
+        ImGui::SameLine();
+    }   
+
+    bool inverted = config.get("gui_inverted", false);
+    ImColor inverted_button_color = inverted ? ImColor(255, 255, 255) : ImColor(27, 27, 29, alpha);
+    ImColor inverted_button_hover_color = ImColor(64, 64, 64, alpha);   
+    if (ImGuiH::CircularButton("TOGGLE_INVERT", 10.f * m_scale, inverted_button_color, true, inverted_button_hover_color)) {
+        config.set("gui_inverted", !inverted);
+        ApplyGuiColors(!inverted);
+    }   
+
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Invert theme (beta)");
+
+    ImGui::Text("Menu Key:");
+
+    auto renderKeyButton = [&](const std::string& label, int& key) {
+        std::string keyStr = label + utilsH::GetKeyName(key);
+        if (key == -1) {
+            keyStr = "Press any key...";
+            if (!m_waitingForBindKey && m_keyToSet != -1) {
+                key = m_keyToSet;
+                m_keyToSet = 0;
+                m_keybindMode = false;
+            }
+        }
+
+        if (ImGuiH::Button(keyStr.c_str(), {ImGui::GetContentRegionAvail().x, 0})) {
+            key = -1;
+            m_keybindMode = true;
+            m_waitingForBindKey = true;
+        }
+    };
+
+    renderKeyButton("Menu Key: ", m_toggleKey);
+
+    ImGui::EndChild();
+    ImGui::PopStyleVar();
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    if (ImGuiH::Button("Processed", {ImGui::GetContentRegionAvail().x, 30 * m_scale})) {
+        config.set<bool>("license_accepted", true);
+    }
+    ImGui::End();
+    ImGui::PopStyleVar();
+}
+
 void Gui::updateCursorState() {
     bool canShowInLevel = true;
     if (auto* playLayer = PlayLayer::get()) {
@@ -82,6 +180,12 @@ void Gui::Render() {
     
     if (!m_show) return;
 
+    auto &config = Config::get();
+    if (!config.get<bool>("license_accepted", false)) {
+        License();
+        return;
+    }
+    
     auto& hacks = Hacks::get();
     for (auto& win : hacks.m_windows) {
         std::string windowName = win.name;
@@ -119,7 +223,6 @@ void Gui::Render() {
         ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);    
 
        
-        auto &config = Config::get();
         if (windowName == "GDH Settings") {
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             ImGui::InputTextWithHint("##Search", "Search:", &search_text);
@@ -1337,6 +1440,8 @@ void Gui::Init() {
 
     m_scale = config.get<float>("gui_scale", 1.f);
     m_index_scale = config.get<int>("gui_index_scale", 7);
+
+    m_license_inited = false;
 
     ApplyGuiColors(config.get("gui_inverted", false));
     ApplyColor(themes[config.get<int>("gui_color_index", 0)]);
