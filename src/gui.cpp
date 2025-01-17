@@ -87,6 +87,8 @@ void Gui::License() {
 
     ImGui::Text("Menu Key:");
 
+    #ifdef GEODE_IS_WINDOWS
+
     auto renderKeyButton = [&](const std::string& label, int& key) {
         std::string keyStr = label + utilsH::GetKeyName(key);
         if (key == -1) {
@@ -106,6 +108,8 @@ void Gui::License() {
     };
 
     renderKeyButton("Menu Key: ", m_toggleKey);
+
+    #endif
 
     ImGui::EndChild();
     ImGui::PopStyleVar();
@@ -539,11 +543,9 @@ void Gui::Render() {
                     }
                     ImGui::EndChild();
 
-                    #ifdef GEODE_IS_WINDOWS
                     if (ImGuiH::Button("Open Folder", {ImGui::GetContentRegionAvail().x, NULL})) {
                         geode::utils::file::openFolder(folderMacroPath);
                     }
-                    #endif
                     
                     if (ImGuiH::Button("Close", {ImGui::GetContentRegionAvail().x, NULL})) {
                         ImGui::CloseCurrentPopup();
@@ -1119,14 +1121,14 @@ void Gui::Render() {
                         ImGui::EndTabItem();
                     }
                     
-                    if (ImGui::BeginTabItem("Merge")) {
+                    if (ImGui::BeginTabItem("Merge (Video + Audio)")) {
                         static bool shortest = true;
                         static std::vector<std::filesystem::path> videos;
                         static std::vector<std::filesystem::path> audios;
                         static int index_videos = 0;
                         static int index_audios = 0;
 
-                        ImGui::BeginChild("##VideoSelect", {NULL, 150 * m_scale}, true);
+                        ImGui::BeginChild("##VideoSelect", {NULL, 190 * m_scale}, true);
                         for (size_t i = 0; i < videos.size(); i++) {
                             bool is_selected = (index_videos == i);
                             if (ImGui::Selectable(videos[i].filename().string().c_str(), is_selected)) {
@@ -1135,7 +1137,7 @@ void Gui::Render() {
                         }
                         ImGui::EndChild();
 
-                        ImGui::BeginChild("##AudioSelect", {NULL, 150 * m_scale}, true);
+                        ImGui::BeginChild("##AudioSelect", {NULL, 190 * m_scale}, true);
                         for (size_t i = 0; i < audios.size(); i++) {
                             bool is_selected = (index_audios == i);
                             if (ImGui::Selectable(audios[i].filename().string().c_str(), is_selected)) {

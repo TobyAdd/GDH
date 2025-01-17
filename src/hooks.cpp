@@ -41,6 +41,7 @@
 #include "replayEngine.hpp"
 #include "recorder.hpp"
 #include "gui.hpp"
+#include <random>
 
 std::vector<GameObject*> dualPortals, gamemodePortals, miniPortals, speedChanges, mirrorPortals;
 
@@ -145,7 +146,7 @@ void setupStartPos(StartPosObject* startPos) {
 float color_dt = 0.f;
 float left_over = 0.f;
 
-class $modify(cocos2d::CCScheduler) {
+class $modify(MyCCScheduler, cocos2d::CCScheduler) {
     void update(float dt) {
         auto &config = Config::get();
         auto &engine = ReplayEngine::get();
@@ -219,7 +220,7 @@ class $modify(cocos2d::CCScheduler) {
 };
 
 
-class $modify(FMODAudioEngine) {
+class $modify(MyFMODAudioEngine, FMODAudioEngine) {
     void update(float delta) {
         auto &config = Config::get();
 
@@ -231,17 +232,10 @@ class $modify(FMODAudioEngine) {
             group->setPitch(speed);
         }
     }
-
-    void playMusic(gd::string path, bool shouldLoop, float fadeInTime, int channel) {
-        // if (path == "menuLoop.mp3") {
-        //     path = "StereoMadness.mp3";
-        // }
-        FMODAudioEngine::playMusic(path, shouldLoop, fadeInTime, channel);
-    }
 };
 
 
-class $modify(PlayLayer) {
+class $modify(MyPlayLayer, PlayLayer) {
     struct Fields {
         cocos2d::CCLabelBMFont* labels_top_left;
         cocos2d::CCLabelBMFont* labels_top_right;
@@ -676,6 +670,12 @@ class $modify(PlayLayer) {
 
     void updateVisibility(float dt)  {   
         auto& config = Config::get();
+        auto& recorderAudio = RecorderAudio::get();
+
+        if (recorderAudio.is_recording || recorderAudio.enabled) {
+            return;
+        }
+        
 
         if (!config.get<bool>("pulse_size", false) && config.get<bool>("no_pulse", false)) {
             m_audioEffectsLayer->m_notAudioScale = 0.5f;
@@ -795,7 +795,7 @@ class $modify(MyEndLevelLayer, EndLevelLayer) {
     }
 };
 
-class $modify(GJBaseGameLayer) {
+class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
     static void onModify(auto& self) {
         (void) self.setHookPriority("GJBaseGameLayer::update", 0x99999);
     }
@@ -1024,7 +1024,7 @@ class $modify(GJBaseGameLayer) {
     }
 };
 
-class $modify(CameraTriggerGameObject) {
+class $modify(MyCameraTriggerGameObject, CameraTriggerGameObject) {
     void triggerObject(GJBaseGameLayer *p0, int p1, const gd::vector<int> *p2) {
         auto& config = Config::get();
         if (config.get<bool>("no_camera_move", false)) return;
@@ -1036,7 +1036,7 @@ class $modify(CameraTriggerGameObject) {
 bool bypassStat = false;
 int statValue = 0;
 
-class $modify(GameStatsManager) {
+class $modify(MyGameStatsManager, GameStatsManager) {
     bool isItemUnlocked(UnlockType p0, int p1) {
         if (GameStatsManager::isItemUnlocked(p0, p1))
             return true;
@@ -1066,7 +1066,7 @@ class $modify(GameStatsManager) {
     }
 };
 
-class $modify(PlayerObject) {
+class $modify(MyPlayerObject, PlayerObject) {
     void update(float dt)
     {
         PlayerObject::update(dt);
@@ -1122,7 +1122,7 @@ class $modify(PlayerObject) {
     }
 };
 
-class $modify(CCTextInputNode){
+class $modify(MyCCTextInputNode, CCTextInputNode){
     void updateLabel(gd::string p0)
     {
         if (Config::get().get<bool>("text_lenght", false))
@@ -1135,7 +1135,7 @@ class $modify(CCTextInputNode){
     }
 };
 
-class $modify(LevelPage) {
+class $modify(MyLevelPage, LevelPage) {
     void onPlay(cocos2d::CCObject* sender) {
         auto coins = m_level->m_requiredCoins;
 
@@ -1147,7 +1147,7 @@ class $modify(LevelPage) {
     }
 };
 
-class $modify(GameManager) {
+class $modify(MyGameManager, GameManager) {
     bool getUGV(char const* p0) {
         if (GameManager::getUGV(p0))
             return true;
@@ -1191,7 +1191,7 @@ class $modify(GameManager) {
     // }
 };
 
-class $modify(SliderTouchLogic) {
+class $modify(MySliderTouchLogic, SliderTouchLogic) {
     void ccTouchMoved(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) {
         if (!Config::get().get<bool>("slider_limit", false)) 
             return ccTouchMoved(touch, event);
@@ -1206,7 +1206,7 @@ class $modify(SliderTouchLogic) {
     }
 };
 
-class $modify(GJScaleControl) {
+class $modify(MyGJScaleControl, GJScaleControl) {
     void ccTouchMoved(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) {
         if (!Config::get().get<bool>("slider_limit", false)) 
             return ccTouchMoved(touch, event);
@@ -1223,7 +1223,7 @@ class $modify(GJScaleControl) {
     }
 };
 
-class $modify(LevelInfoLayer) {
+class $modify(MyLevelInfoLayer, LevelInfoLayer) {
     static LevelInfoLayer* create(GJGameLevel* level, bool challenge) {
         auto password = level->m_password;
         if (Config::get().get("copy_hack", false)) {
@@ -1253,7 +1253,7 @@ class $modify(LevelInfoLayer) {
     }
 };
 
-class $modify(UILayer) {
+class $modify(MyUILayer, UILayer) {
     bool init(GJBaseGameLayer* p0) {
         auto& config = Config::get();
 
@@ -1271,7 +1271,7 @@ class $modify(UILayer) {
     }
 };
 
-class $modify(cocos2d::CCTransitionFade) {
+class $modify(MyCCTransitionFade, cocos2d::CCTransitionFade) {
     static cocos2d::CCTransitionFade* create(float t, cocos2d::CCScene *scene) {
         auto& config = Config::get();
         if (config.get<bool>("no_transition", false)) t = 0;
@@ -1280,7 +1280,7 @@ class $modify(cocos2d::CCTransitionFade) {
     }
 };
 
-class $modify(PauseLayer) {
+class $modify(MyPauseLayer, PauseLayer) {
     static void onModify(auto& self) {
         (void) self.setHookPriority("PauseLayer::onQuit", 0x99999);
     }
@@ -1365,7 +1365,7 @@ class $modify(PauseLayer) {
     // #endif
 };
 
-class $modify(OptionsLayer) {
+class $modify(MyOptionsLayer, OptionsLayer) {
     void musicSliderChanged(cocos2d::CCObject* sender) {
         auto& config = Config::get();
 
@@ -1413,7 +1413,7 @@ class $modify(OptionsLayer) {
     }
 };
 
-class $modify(SecretLayer2) {
+class $modify(MySecretLayer2, SecretLayer2) {
     bool init() {
         if (Config::get().get<bool>("unlock_vaults", false)) {
             bypassStat = true;
@@ -1431,7 +1431,7 @@ class $modify(SecretLayer2) {
     }
 };
 
-class $modify(CreatorLayer) {
+class $modify(MyCreatorLayer, CreatorLayer) {
     bool init() {
         if (Config::get().get<bool>("unlock_vaults", false)) {
             bypassStat = true;
@@ -1450,7 +1450,7 @@ class $modify(CreatorLayer) {
     }
 };
 
-class $modify(EditorUI) {
+class $modify(MyEditorUI, EditorUI) {
     void onSettings(cocos2d::CCObject* sender) {
         auto& config = Config::get();
         auto levelType = LevelEditorLayer::get()->m_level->m_levelType;
@@ -1505,7 +1505,7 @@ void onNewCustomItem(CCObject* sender) {
     }
 };
 
-class $modify(EditorPauseLayer) {
+class $modify(MyEditorPauseLayer, EditorPauseLayer) {
     bool init(LevelEditorLayer* p0) {
         auto& config = Config::get();
         auto levelType = LevelEditorLayer::get()->m_level->m_levelType;
@@ -1519,7 +1519,7 @@ class $modify(EditorPauseLayer) {
     }
 };
 
-class $modify(LevelTools) {
+class $modify(MyLevelTools, LevelTools) {
     static bool verifyLevelIntegrity(gd::string p0, int p1) {
         auto& config = Config::get();
         if (LevelTools::verifyLevelIntegrity(p0, p1))
@@ -1529,7 +1529,7 @@ class $modify(LevelTools) {
     }
 };
 
-class $modify(cocos2d::CCParticleSystemQuad) {
+class $modify(MyCCParticleSystemQuad, cocos2d::CCParticleSystemQuad) {
     void draw() {
         auto& config = Config::get();
         if (config.get<bool>("no_particles", false)) return;
@@ -1538,7 +1538,7 @@ class $modify(cocos2d::CCParticleSystemQuad) {
     }
 };
 
-class $modify(ShaderLayer) {
+class $modify(MyShaderLayer, ShaderLayer) {
     void performCalculations() {
         auto& config = Config::get();
         if (config.get<bool>("no_shaders", false)) {
@@ -1550,7 +1550,7 @@ class $modify(ShaderLayer) {
     }
 };
 
-class $modify(GameToolbox) {
+class $modify(MyGameToolbox, GameToolbox) {
     static gd::string intToShortString(int value) {
         auto& config = Config::get();
         if (!config.get<bool>("no_short_numbers", false))
@@ -1561,7 +1561,7 @@ class $modify(GameToolbox) {
     }
 };
 
-class $modify(HardStreak) {
+class $modify(MyHardStreak, HardStreak) {
     void updateStroke(float p0) {
         auto& config = Config::get();
 
@@ -1572,7 +1572,7 @@ class $modify(HardStreak) {
     }
 };
 
-class $modify(cocos2d::CCMotionStreak) {
+class $modify(MyCCMotionStreak, cocos2d::CCMotionStreak) {
     void update(float delta) {
         auto& config = Config::get();
         if (config.get<bool>("always_trail", false))
@@ -1586,7 +1586,7 @@ class $modify(cocos2d::CCMotionStreak) {
 };
 
 
-class $modify(SongSelectNode) {
+class $modify(MySongSelectNode, SongSelectNode) {
     void audioNext(cocos2d::CCObject* p0) {
         if (Config::get().get<bool>("default_song_bypass", false)) {
             m_selectedSongID++;
@@ -1610,7 +1610,7 @@ class $modify(SongSelectNode) {
     }
 };
 
-class $modify(MoreSearchLayer) {
+class $modify(MyMoreSearchLayer, MoreSearchLayer) {
     void audioPrevious(cocos2d::CCObject* sender) {
         if (!Config::get().get<bool>("default_song_bypass", false))
             return MoreSearchLayer::audioPrevious(sender);
@@ -1636,7 +1636,7 @@ class $modify(MoreSearchLayer) {
     }
 };
 
-class $modify(EditLevelLayer) {
+class $modify(MyEditLevelLayer, EditLevelLayer) {
     bool init(GJGameLevel *gjgl) {
         if (Config::get().get<bool>("verify_hack", false))
             gjgl->m_isVerified = true;
@@ -1650,7 +1650,7 @@ class $modify(EditLevelLayer) {
     }
 };
 
-class $modify(LevelEditorLayer) {
+class $modify(MyLevelEditorLayer, LevelEditorLayer) {
     void postUpdate(float dt) {
         if (Config::get().get<bool>("smooth_editor_trail", false))
             m_trailTimer = 0.1f;
@@ -1670,7 +1670,7 @@ class $modify(LevelEditorLayer) {
     }
 };
 
-class $modify(cocos2d::CCDrawNode) {
+class $modify(MyCCDrawNode, cocos2d::CCDrawNode) {
     bool drawPolygon(cocos2d::CCPoint* vertex, unsigned int count, const cocos2d::ccColor4F& fillColor,
                      float borderWidth, const cocos2d::ccColor4F& borderColor) {
 
@@ -1704,7 +1704,7 @@ class $modify(cocos2d::CCDrawNode) {
     }
 };
 
-class $modify(AchievementNotifier) {
+class $modify(MyAchievementNotifier, AchievementNotifier) {
     void notifyAchievement(char const* title, char const* desc, char const* icon, bool quest) {
         if (Recorder::get().is_recording || RecorderAudio::get().is_recording) return;
         
@@ -1712,7 +1712,7 @@ class $modify(AchievementNotifier) {
     }
 };
 
-class $modify(CCCircleWave) {
+class $modify(MyCCCircleWave, CCCircleWave) {
     void draw()
     {
         auto& config = Config::get(); 
