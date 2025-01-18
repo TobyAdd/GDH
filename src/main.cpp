@@ -25,8 +25,6 @@ void CheckDir(const std::filesystem::path &path)
 }
 
 $execute {
-    ImGuiCocos::get().setForceLegacy(true);
-
 	auto& config = Config::get();
     config.load(fileDataPath);
 

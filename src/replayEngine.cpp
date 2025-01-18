@@ -432,6 +432,47 @@ void ReplayEngine::auto_button_release() {
     }
 }
 
+bool SpamBot::next_frame()
+{
+    auto& config = Config::get();
+    
+    if ((downed && ++release_current >= config.get<int>("release_lenght", 5)) || (!downed && ++hold_current >= config.get<int>("hold_lenght", 5)))
+    {
+        downed = !downed;
+        (downed) ? release_current = 0 : hold_current = 0;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+void SpamBot::handle_spambot(GJBaseGameLayer *self)
+{
+    auto& config = Config::get();
+
+    if (config.get<bool>("spambot_enabled", false) && next_frame())
+    {
+        bool action = downed;
+        if (config.get<bool>("spambot_player1", true))
+        {
+            self->handleButton(action, 1, true);
+        }
+        if (config.get<bool>("spambot_player2", false) && self->m_gameState.m_isDualMode)
+        {
+            self->handleButton(action, 1, false);
+        }
+    }
+}
+
+
+void SpamBot::reset_temp()
+{
+    hold_current = 0;
+    release_current = 0;
+}
+
 void StraightFly::handle_straightfly(GJBaseGameLayer *self)
 {
     if (!Config::get().get<bool>("straight_fly_bot", false))

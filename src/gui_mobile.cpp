@@ -215,6 +215,7 @@ bool HacksLayer::setup() {
                     
                     if (canRecord)
                     {
+                        config.set<bool>("practice_fix", true);
                         engine.clear();
                         engine.mode = state::record;
                         info_label->setString(fmt::format("Frame: {}\nReplay Size: {}/{}", engine.get_frame(), engine.get_current_index(), engine.get_actions_size()).c_str());

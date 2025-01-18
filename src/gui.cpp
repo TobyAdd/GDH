@@ -566,6 +566,11 @@ void Gui::Render() {
                     
                     if (canRecord)
                     {
+                        if (!config.get<bool>("practice_fix", false)) {
+                            config.set<bool>("practice_fix", true);
+                            ImGuiH::Popup::get().add_popup("Practice Fix was enabled for more accurate macro recording");
+                        }
+
                         if (engine.mode != state::record) {
                             engine.clear();
                         }
@@ -687,6 +692,10 @@ void Gui::Render() {
                             ImGui::SameLine();
                             ImGuiH::Checkbox("Rotation Fix", &engine.rotation_fix, m_scale);
                         }
+
+                        bool practice_fix = config.get<bool>("practice_fix", false);
+                        if (ImGuiH::Checkbox("Practice Fix", &practice_fix, m_scale))
+                            config.set<bool>("practice_fix", practice_fix);
 
                         ImGui::EndTabItem();
                     }	
@@ -867,6 +876,7 @@ void Gui::Render() {
                             ImGui::Separator();
 
                             ImGui::PushItemWidth(200 * m_scale);
+                            
                             ImGui::InputFloat("Second to Render After", &recorder.after_end_duration, 1);
 
                             ImGui::Spacing();

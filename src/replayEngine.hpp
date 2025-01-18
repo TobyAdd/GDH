@@ -88,6 +88,29 @@ private:
     size_t m_inputIndex_p2 = 0;
 };
 
+class SpamBot
+{
+public:
+    static SpamBot& get() {
+        static SpamBot instance;
+        return instance;
+    }
+
+    SpamBot& operator=(const SpamBot&) = delete;
+    SpamBot(const SpamBot&) = delete;
+
+    int hold_current = 0;
+    int release_current = 0;
+
+    bool downed = false;
+
+    bool next_frame();
+    void handle_spambot(GJBaseGameLayer *self);
+    void reset_temp();
+private:
+    SpamBot() = default;
+};
+
 class StraightFly
 {
 public:

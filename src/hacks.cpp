@@ -61,6 +61,7 @@ void Hacks::Init() {
                 {"Layout Mode", "Removes all decoration and colour from levels", "layout_mode"},  // +
                 {"Show Percentage", "Show percentages in level progress", "show_percentage", "0040"},  // +
                 {"Smart Startpos", "Restores correct gameplay without startpos settings", "smart_startpos"},  // +
+                {"Spam Bot", "AKA Auto-Clicker", "spambot_enabled"},  // +
                 {"Startpos Switcher", "The ability to switch between starting positions using the keys that you setted in keybinds (Q/E by default)", "startpos_switcher"}, // +
                 {"RGB Icons", "LGBT icons, yes :3", "rgb_icons"}, // +
                 {"Solid Wave Trail", "Disables wave blending", "solid_wave_trail"}, // +
@@ -88,6 +89,7 @@ void Hacks::Init() {
                 {"No Portal Lighting", "Disables lightning when entering mini/large portal", "no_portal_lighting"}, // +
                 {"No Pulse", "Disables pulsation of falls, orbs, etc", "no_pulse"}, // +
                 {"Pause On Complete", "Lets you pouse during the level complete animation", "pause_during_complete"}, // +
+                {"Practice Fix", "More accurate respawning in practice mode (used for botting)", "practice_fix"}, // +
                 {"Pulse Size", "Changes pulsation of falls, orbs, etc", "pulse_size"}, // +
                 {"No Robot Fire", "Hides robot boost fire", "no_robot_fire"}, // +
                 {"No Spider Dash", "Disables spider dash trail when teleporting", "no_spider_dash"}, // +
@@ -316,6 +318,11 @@ void Hacks::Init() {
         if (ui)
             ui->setVisible(!enabled);
     });
+
+    SetHandlerByConfig("spambot_enabled", [this](bool enabled) {
+        auto& spamBot = SpamBot::get();
+        spamBot.reset_temp();
+    });
     
     SetHandlerByConfig("straight_fly_bot", [this](bool enabled) {
         auto& straightFly = StraightFly::get();
@@ -347,6 +354,61 @@ void Hacks::Init() {
         35.f);
 
         popup->AddText("Note: Straight Fly Bot works only\non first player", 0.45f);
+        popup->show();
+        #endif
+    });
+
+    SetCustomWindowHandlerByConfig("spambot_enabled", [this, &config]() {
+        int spamBotHoldLenght = config.get<int>("hold_lenght", 5);
+        int spamBotReleaseLenght = config.get<int>("release_lenght", 5);
+        bool spamBotPlayer1 = config.get<bool>("spambot_player1", true);
+        bool spamBotPlayer2 = config.get<bool>("spambot_player2", false);
+
+        #ifdef GEODE_IS_WINDOWS 
+        auto &gui = Gui::get();
+
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x / 2);
+        if (ImGui::DragInt("##spamhold", &spamBotHoldLenght, 1, 1, INT_MAX, "Hold Lenght: %i"))
+            config.set<int>("hold_lenght", spamBotHoldLenght);
+
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (ImGui::DragInt("##spamrelease", &spamBotReleaseLenght, 1, 1, INT_MAX, "Release Lenght: %i"))
+            config.set<int>("release_lenght", spamBotReleaseLenght);
+
+        if (ImGuiH::Checkbox("Player 1", &spamBotPlayer1, gui.m_scale))
+            config.set<bool>("spambot_player1", spamBotPlayer1);
+
+        ImGui::SameLine();
+        if (ImGuiH::Checkbox("Player 2", &spamBotPlayer2, gui.m_scale))
+            config.set<bool>("spambot_player2", spamBotPlayer2);
+
+        #elif defined(GEODE_IS_ANDROID64) 
+        auto popup = popupSystem::create();
+        popup->AddText("Hold Lenght:");
+        popup->AddIntInput("Hold Lenght", spamBotReleaseLenght, [this, &config](int value) 
+        {
+            config.set<int>("hold_lenght", value);
+        },
+        30.f);
+
+        popup->AddText("Release Lenght:");
+        popup->AddIntInput("Release Lenght", spamBotHoldLenght, [this, &config](int value) 
+        {
+            config.set<int>("release_lenght", value);
+        },
+        30.f);
+
+        popup->AddToggle("Player 1", spamBotPlayer1, [this, &config](bool enabled) 
+        {
+            config.set<bool>("spambot_player1", enabled);
+        });
+
+        popup->AddToggle("Player 2", spamBotPlayer2, [this, &config](bool enabled) 
+        {
+            config.set<bool>("spambot_player2", enabled);
+        });
+
         popup->show();
         #endif
     });
