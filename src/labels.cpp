@@ -30,7 +30,7 @@ std::string Label::get_text() {
     result = replace_all(result, "{time:24}", time_to_fmt_time(localTime.tm_hour, localTime.tm_min, localTime.tm_sec));
     result = replace_all(result, "{attempt}", std::to_string(Labels::get().attempts));
     result = replace_all(result, "{sessionTime}", seconds_to_fmt_time(Labels::get().session_time));
-    result = replace_all(result, "{progress}", platformer ? seconds_to_fmt_time(percentage) : fmt::format("{}%", round_float(percentage, 2)));
+    result = replace_all(result, "{progress}", platformer ? seconds_to_fmt_time(percentage) : fmt::format("{:.2f}%", percentage, 2));
     result = replace_all(result, "{clicks}", std::to_string(CpsCounter::get().overall));
     result = replace_all(result, "{cps}", std::to_string(CpsCounter::get().cps));
     result = replace_all(result, "{cpsHigh}", std::to_string(CpsCounter::get().highscore));
@@ -38,7 +38,7 @@ std::string Label::get_text() {
     result = replace_all(result, "{levelCreator}", pl->m_level->m_creatorName);
     result = replace_all(result, "{byLevelCreator}", pl->m_level->m_creatorName.empty() ? "" : fmt::format(" by {}", pl->m_level->m_creatorName));
     result = replace_all(result, "{levelId}", std::to_string(pl->m_level->m_levelID));
-    result = replace_all(result, "{noclipAccuracy}", fmt::format("{}%", round_float(NoclipAccuracy::get().getPercentage(), 2)));
+    result = replace_all(result, "{noclipAccuracy}", fmt::format("{:.2f}%", NoclipAccuracy::get().getPercentage()));
     result = replace_all(result, "{deaths}", std::to_string(NoclipAccuracy::get().deaths_full));
     result = replace_all(result, "{\\n}", "\n");
 
@@ -67,13 +67,6 @@ std::string Label::seconds_to_fmt_time(float seconds) {
     int hour = minutes / 60;
     return time_to_fmt_time(hour % 60, minutes % 60, time % 60);
 }
-
-std::string Label::round_float(float value, int decimal_places) {
-    std::stringstream fmtFloat;
-    fmtFloat << std::fixed << std::setprecision(decimal_places) << value;
-    return fmtFloat.str();
-}
-
 
 std::string Labels::get_label_string(LabelCorner corner) {
     std::string result = "";
@@ -152,4 +145,22 @@ void Labels::load() {
     }
 
     file.close();
+}
+
+bool setSubColor(cocos2d::CCLabelBMFont* label, int from, int to, const cocos2d::ccColor3B &color) {
+    if (!label) return false;
+
+    cocos2d::CCArray* children = label->getChildren();
+    unsigned int size = children->count();
+
+    if (from < 0 || to >= size || from > to) return false;
+
+    for (int i = from; i <= to; ++i) {
+        cocos2d::CCSprite* sprite = static_cast<cocos2d::CCSprite*>(children->objectAtIndex(i));
+        if (sprite) {
+            sprite->setColor(color);
+        }
+    }
+    
+    return true;
 }

@@ -1279,6 +1279,11 @@ void Gui::Render() {
                 ImGui::PushID(index);
 
                 ImGui::Selectable("  =", false, 0, {20.f * m_scale, 20.f * m_scale});
+
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal)) {
+                    ImGui::SetTooltip("Double click to remove label");
+                }
+
                 ImGui::SameLine();
                 
                 if (ImGui::GetMouseClickedCount(ImGuiMouseButton_Left) >= 2 && ImGui::IsItemHovered()) {

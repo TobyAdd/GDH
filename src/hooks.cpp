@@ -400,6 +400,7 @@ class $modify(MyPlayLayer, PlayLayer) {
         
     void postUpdate(float dt) {
         auto& config = Config::get();
+        auto& labels = Labels::get();
 
         PlayLayer::postUpdate(dt);
 
@@ -419,36 +420,36 @@ class $modify(MyPlayLayer, PlayLayer) {
                 i == 3 ? m_fields->labels_bottom_right :
                 i == 4 ? m_fields->labels_bottom :
                 m_fields->labels_top;
-            label_object->setScale(Labels::get().size);
-            label_object->setOpacity((int)(Labels::get().opacity*255));
+            label_object->setScale(labels.size);
+            label_object->setOpacity((int)(labels.opacity*255));
         }
         
         auto size = cocos2d::CCDirector::sharedDirector()->getWinSize();
         
-        m_fields->labels_top_left->    setCString(Labels::get().get_label_string(LabelCorner_TopLeft).c_str());
-        m_fields->labels_top_right->   setCString(Labels::get().get_label_string(LabelCorner_TopRight).c_str());
-        m_fields->labels_bottom_left-> setCString(Labels::get().get_label_string(LabelCorner_BottomLeft).c_str());
-        m_fields->labels_bottom_right->setCString(Labels::get().get_label_string(LabelCorner_BottomRight).c_str());
-        m_fields->labels_bottom->      setCString(Labels::get().get_label_string(LabelCorner_Bottom).c_str());
-        m_fields->labels_top->         setCString(Labels::get().get_label_string(LabelCorner_Top).c_str());
+        m_fields->labels_top_left->    setCString(labels.get_label_string(LabelCorner_TopLeft).c_str());
+        m_fields->labels_top_right->   setCString(labels.get_label_string(LabelCorner_TopRight).c_str());
+        m_fields->labels_bottom_left-> setCString(labels.get_label_string(LabelCorner_BottomLeft).c_str());
+        m_fields->labels_bottom_right->setCString(labels.get_label_string(LabelCorner_BottomRight).c_str());
+        m_fields->labels_bottom->      setCString(labels.get_label_string(LabelCorner_Bottom).c_str());
+        m_fields->labels_top->         setCString(labels.get_label_string(LabelCorner_Top).c_str());
         
         m_fields->labels_top_left->    setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentLeft);
-        m_fields->labels_top_left->    setPosition({Labels::get().padding, size.height - Labels::get().padding});
+        m_fields->labels_top_left->    setPosition({labels.padding, size.height - labels.padding});
         
         m_fields->labels_bottom_left-> setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentLeft);
-        m_fields->labels_bottom_left-> setPosition({Labels::get().padding, Labels::get().padding});
+        m_fields->labels_bottom_left-> setPosition({labels.padding, labels.padding});
         
         m_fields->labels_top_right->   setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentRight);
-        m_fields->labels_top_right->   setPosition({size.width - Labels::get().padding, size.height - Labels::get().padding});
+        m_fields->labels_top_right->   setPosition({size.width - labels.padding, size.height - labels.padding});
         
         m_fields->labels_bottom_right->setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentRight);
-        m_fields->labels_bottom_right->setPosition({size.width - Labels::get().padding, Labels::get().padding});
+        m_fields->labels_bottom_right->setPosition({size.width - labels.padding, labels.padding});
         
         m_fields->labels_top->setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentCenter);
-        m_fields->labels_top->setPosition({size.width/2, size.height - Labels::get().padding});
+        m_fields->labels_top->setPosition({size.width/2, size.height - labels.padding});
         
         m_fields->labels_bottom->setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentCenter);
-        m_fields->labels_bottom->setPosition({size.width/2, Labels::get().padding});
+        m_fields->labels_bottom->setPosition({size.width/2, labels.padding});
     }
 
     void addObject(GameObject* obj) {
@@ -808,6 +809,7 @@ class $modify(MyEndLevelLayer, EndLevelLayer) {
     }
 
     void showLayer(bool p0) {
+        auto& config = Config::get();
         auto& recorder = Recorder::get();
         auto& recorderAudio = RecorderAudio::get();
         EndLevelLayer::showLayer(p0);
@@ -816,6 +818,12 @@ class $modify(MyEndLevelLayer, EndLevelLayer) {
         if (recorder.is_recording && recorder.hide_level_complete) {
             setVisible(false);
         }        
+
+        if (config.get<bool>("cheat_indicator", false)) {
+            m_mainLayer->sortAllChildren();
+            auto* sprite = m_mainLayer->getChildByType<cocos2d::CCSprite>(-1);
+            sprite->setColor({255, 0, 0});
+        }
 
         if (recorder.is_recording && recorder.fade_out) {
             auto wnd_size = cocos2d::CCDirector::sharedDirector()->getWinSize();
@@ -839,11 +847,25 @@ class $modify(MyEndLevelLayer, EndLevelLayer) {
 
         schedule(schedule_selector(MyEndLevelLayer::pizdec), 0.0f);
     }
+
+    //if ( GameManager::getGameVariable(v16, "0095") )
+
+    void customSetup() {
+        auto gm = GameManager::get();
+        auto& config = Config::get();
+        bool orig = gm->getGameVariable("0095");
+        if (config.get("no_do_not_flip", false))
+            gm->setGameVariable("0095", false);
+
+        EndLevelLayer::customSetup();
+
+        gm->setGameVariable("0095", orig);
+    }
 };
 
 class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
     static void onModify(auto& self) {
-        (void) self.setHookPriority("GJBaseGameLayer::update", 0x99999);
+        (void) self.setHookPriority("GJBaseGameLayer::update", 0x99999); 
     }
 
     void handleButton(bool down, int button, bool isPlayer1) {
