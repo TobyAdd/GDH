@@ -1268,9 +1268,11 @@ void Gui::Render() {
             ImGui::BeginChild("Labels");
             ImGui::Spacing();
 
-            if (labels.labels.empty())
+            if (!std::any_of(labels.labels.begin(), labels.labels.end(), 
+                            [&](const Label& label) { return static_cast<int>(label.corner - 1) == selected_label_corner; })) {
                 ImGui::TextDisabled("No labels in this corner");
-            
+            }
+                        
             for (size_t index = 0; index < labels.labels.size(); index++) {
                 Label& item = labels.labels[index];
 

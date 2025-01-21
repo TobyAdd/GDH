@@ -62,6 +62,7 @@ class Labels {
         void save();
         void load();
 
+        void initMobileContext(geode::ScrollLayer* scrollLayer);
     private:
         Labels() = default;
 };

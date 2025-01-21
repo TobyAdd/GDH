@@ -45,6 +45,12 @@ public:
     void saveKeybinds();
     void loadKeybinds();
     void toggleKeybinds(int key);
+
+    cocos2d::ccColor3B getIndicatorColor() {
+        cocos2d::ccColor3B color;
+        
+        return color;
+    }
 private:
     Hacks() = default;
 

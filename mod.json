@@ -16,5 +16,14 @@
 		"sprites": [
 			"res/*.png"
 		]
-	}
+	},
+	"settings": {
+        "legacy-render": {
+            "name": "Legacy Render",
+            "description": "Possibly fix menu rendering issues on older devices",
+            "type": "bool",
+            "default": false,
+			"requires-restart": true
+        }
+    }
 }

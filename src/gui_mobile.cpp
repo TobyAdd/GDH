@@ -381,6 +381,10 @@ bool HacksLayer::setup() {
 
             tab->m_scrollLayer->m_contentLayer->addChild(engineTab);
         }
+        else if (win.name == "Labels") {
+            auto& labels = Labels::get();
+            labels.initMobileContext(tab->m_scrollLayer);
+        }
 
         for (auto& hck : win.hacks) {
             tab->addToggle(hck.name, hck.desc, config.get<bool>(hck.config, false), [&config, &hck](bool enabled) {

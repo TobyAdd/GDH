@@ -3,6 +3,8 @@
 #include <sstream>
 #include "labels.hpp"
 
+using namespace geode::prelude;
+
 Label::Label(LabelCorner _corner, std::string _format_text) {
     format_text = _format_text;
     corner = _corner;
@@ -163,4 +165,110 @@ bool setSubColor(cocos2d::CCLabelBMFont* label, int from, int to, const cocos2d:
     }
     
     return true;
+}
+
+void Labels::initMobileContext(geode::ScrollLayer* scrollLayer) {
+    scrollLayer->m_contentLayer->removeAllChildren();
+
+    for (size_t index = 0; index < labels.size(); index++) {
+        Label& item = labels[index];
+        auto labelMenu = CCMenu::create();
+        labelMenu->setContentSize({325.f, 40.f});
+        
+        TextInput* replay_name_input = TextInput::create(195.f, "", "chatFont.fnt");
+        replay_name_input->setPosition({105.f, 20.f});
+        replay_name_input->setString(item.format_text);
+        replay_name_input->setFilter("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~ ");
+        replay_name_input->setCallback([&item](const std::string& text) {
+            item.format_text = text;
+        });
+        labelMenu->addChild(replay_name_input);
+
+        auto labelUp = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
+        labelUp->setScale(0.65f);
+        labelUp->setRotation(90.f);
+        auto labelUpClick = CCMenuItemExt::createSpriteExtra(labelUp, [this, index, scrollLayer](CCMenuItemSpriteExtra* sender) {
+            move_up(index);
+            initMobileContext(scrollLayer);
+        });
+        labelUpClick->setPosition({220.f, 20.f});
+        labelMenu->addChild(labelUpClick);
+
+        auto labelDown = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
+        labelDown->setScale(0.65f);
+        labelDown->setRotation(-90.f);
+        auto labelDownClick = CCMenuItemExt::createSpriteExtra(labelDown, [this, index, scrollLayer](CCMenuItemSpriteExtra* sender) {
+            move_down(index);
+            initMobileContext(scrollLayer);
+        });
+        labelDownClick->setPosition({245.f, 20.f});
+        labelMenu->addChild(labelDownClick);
+
+        auto moreSettings = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
+        moreSettings->setScale(0.5f);
+        auto moreSettingsClick = CCMenuItemExt::createSpriteExtra(moreSettings, [this](CCMenuItemSpriteExtra* sender) {
+
+        });
+        moreSettingsClick->setPosition({275.f, 20.f});
+        labelMenu->addChild(moreSettingsClick);
+
+        auto deleteButton = CCSprite::createWithSpriteFrameName("GJ_resetBtn_001.png");
+        deleteButton->setScale(1.f);
+        auto deleteButtonClick = CCMenuItemExt::createSpriteExtra(deleteButton, [this, index, scrollLayer](CCMenuItemSpriteExtra* sender) {
+            remove(index);
+            initMobileContext(scrollLayer);
+        });
+        deleteButtonClick->setPosition({305.f, 20.f});
+        labelMenu->addChild(deleteButtonClick);
+
+        scrollLayer->m_contentLayer->addChild(labelMenu);
+    }
+
+    auto addLabel = CCSprite::createWithSpriteFrameName("GJ_plus2Btn_001.png");
+    auto addLabelClick = CCMenuItemExt::createSpriteExtra(addLabel, [this, scrollLayer](CCMenuItemSpriteExtra* sender) {
+        Label l((LabelCorner) (LabelCorner_TopLeft), "hello world");
+        add(l);
+
+        initMobileContext(scrollLayer);
+    });
+    addLabelClick->setPosition({15.f, 15.f});
+
+    auto infoButton = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
+    infoButton->setScale(0.75f);
+    auto infoButtonClick = CCMenuItemExt::createSpriteExtra(infoButton, [this](CCMenuItemSpriteExtra* sender) {
+        FLAlertLayer::create("Info",
+        "<cg>{time:12}</c> - time 12-hour\n"
+        "<cg>{time:24}</c> - time 24-hour\n"
+        "<cg>{attempt}</c> - attempt\n"
+        "<cg>{sessionTime}</c> - session time\n"
+        "<cg>{progress}</c> - progress %\n"
+        "<cg>{clicks}</c> - clicks\n"
+        "<cg>{cps}</c> - cps counter\n"
+        "<cg>{cpsHigh}</c> - cps counter highscore"
+        , "OK")->show();
+    });
+    infoButtonClick->setPosition({40.f, 15.f});
+
+    auto infoButton2Click = CCMenuItemExt::createSpriteExtra(infoButton, [this](CCMenuItemSpriteExtra* sender) {
+        FLAlertLayer::create("Info",
+        "<cg>{levelName}</c> - level name\n"
+        "<cg>{levelCreator}</c> - creator name\n"
+        "<cg>{levelId}</c> - level id\n"
+        "<cg>{noclipAccuracy}</c> - noclip acc %\n"
+        "<cg>{deaths}</c> - total deaths in noclip\n"
+        "<cg>{\\n}</c> - new line\n"
+        "\nWIP, too lazy to make popup to select label"
+        , "OK")->show();
+    });
+    infoButton2Click->setPosition({65.f, 15.f});
+
+    auto addButtonMenu = CCMenu::create();
+    addButtonMenu->setContentSize({325.f, 30.f});
+    addButtonMenu->addChild(addLabelClick);
+    addButtonMenu->addChild(infoButtonClick);
+    addButtonMenu->addChild(infoButton2Click);
+    scrollLayer->m_contentLayer->addChild(addButtonMenu);
+
+    scrollLayer->m_contentLayer->updateLayout();
+    scrollLayer->moveToTop();
 }

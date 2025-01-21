@@ -25,6 +25,9 @@ void CheckDir(const std::filesystem::path &path)
 }
 
 $execute {
+    auto *mod = geode::Mod::get();
+    ImGuiCocos::get().setForceLegacy(mod->getSettingValue<bool>("legacy-render"));
+
 	auto& config = Config::get();
     config.load(fileDataPath);
 
