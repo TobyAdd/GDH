@@ -227,7 +227,7 @@ class $modify(MyFMODAudioEngine, FMODAudioEngine) {
         FMODAudioEngine::update(delta);
         
         FMOD::ChannelGroup* group;
-        float speed = config.get<bool>("speedhack_enabled", false) ? config.get<float>("speedhack_value", 1.f) : 1.f;
+        float speed = config.get<bool>("speedhackAudio_enabled", false) ? config.get<float>("speedhack_value", 1.f) : 1.f;
         if (m_system->getMasterChannelGroup(&group) == FMOD_OK) {
             group->setPitch(speed);
         }
