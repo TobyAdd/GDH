@@ -425,6 +425,10 @@ static checkpoint_data create_checkpoint(PlayerObject* player) {
     result.m_controlsDisabled = player->m_controlsDisabled;
     result.m_lastGroundedPos = player->m_lastGroundedPos;
     // result.m_touchingRings = player->m_touchingRings;
+    for (int i = 0; i < player->m_touchingRings->count(); i++) {
+        result.m_touchingRings.push_back(player->m_touchingRings->objectAtIndex(i));
+    }
+
     result.m_touchedRings = player->m_touchedRings;
     result.m_lastActivatedPortal = player->m_lastActivatedPortal;
     result.m_hasEverJumped = player->m_hasEverJumped;
@@ -678,6 +682,13 @@ static void apply_checkpoint(PlayerObject* player, checkpoint_data checkpoint) {
     player->m_controlsDisabled = checkpoint.m_controlsDisabled;
     player->m_lastGroundedPos = checkpoint.m_lastGroundedPos;
     // player->m_touchingRings = checkpoint.m_touchingRings;
+    player->m_touchingRings->removeAllObjects();
+
+    for (auto* obj : checkpoint.m_touchingRings) {
+        player->m_touchingRings->addObject(obj);
+    }
+        
+
     player->m_touchedRings = checkpoint.m_touchedRings;
     player->m_lastActivatedPortal = checkpoint.m_lastActivatedPortal;
     player->m_hasEverJumped = checkpoint.m_hasEverJumped;

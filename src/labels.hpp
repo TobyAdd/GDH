@@ -67,6 +67,19 @@ class Labels {
         Labels() = default;
 };
 
+class LabelsCreateLayer : public geode::Popup<> {
+private:
+    std::vector<CCMenuItemToggler*> m_toggles;
+    std::vector<CCMenuItemToggler*> m_labelTypeToggles;
+    int m_toggleIndex = 1;
+    int m_labelTypeIndex = 0;
+
+    geode::ScrollLayer* m_scrollLayer;
+public:
+    static LabelsCreateLayer* create(geode::ScrollLayer* scrollLayer); 
+    bool setup();
+};
+
 class NoclipAccuracy {
 public:    
     static NoclipAccuracy& get() {

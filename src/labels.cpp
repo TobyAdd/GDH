@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <sstream>
 #include "labels.hpp"
+#include "popupSystem.hpp"
 
 using namespace geode::prelude;
 
@@ -206,8 +207,9 @@ void Labels::initMobileContext(geode::ScrollLayer* scrollLayer) {
 
         auto moreSettings = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
         moreSettings->setScale(0.5f);
-        auto moreSettingsClick = CCMenuItemExt::createSpriteExtra(moreSettings, [this](CCMenuItemSpriteExtra* sender) {
-
+        auto moreSettingsClick = CCMenuItemExt::createSpriteExtra(moreSettings, [this, &item](CCMenuItemSpriteExtra* sender) {
+            std::array<std::string, 6> corners = {"Top Left", "Top Right", "Top", "Bottom Left", "Bottom Right", "Bottom"};
+            FLAlertLayer::create("Info", fmt::format("Corner: {}", corners[(int)item.corner - 1]), "OK")->show();
         });
         moreSettingsClick->setPosition({275.f, 20.f});
         labelMenu->addChild(moreSettingsClick);
@@ -226,12 +228,36 @@ void Labels::initMobileContext(geode::ScrollLayer* scrollLayer) {
 
     auto addLabel = CCSprite::createWithSpriteFrameName("GJ_plus2Btn_001.png");
     auto addLabelClick = CCMenuItemExt::createSpriteExtra(addLabel, [this, scrollLayer](CCMenuItemSpriteExtra* sender) {
-        Label l((LabelCorner) (LabelCorner_TopLeft), "hello world");
-        add(l);
-
-        initMobileContext(scrollLayer);
+        LabelsCreateLayer::create(scrollLayer)->show();
     });
     addLabelClick->setPosition({15.f, 15.f});
+
+    auto labelSettings = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
+    labelSettings->setScale(0.5f);
+    auto labelSettingsClick = CCMenuItemExt::createSpriteExtra(labelSettings, [this](CCMenuItemSpriteExtra* sender) {
+        auto popup = popupSystem::create();
+
+        popup->AddText("Opacity (0 - 1.0):", 0.35f);
+        popup->AddFloatInput("Opacity", opacity, [this](float value) 
+        {
+            opacity = std::clamp(value, 0.f, 1.f);
+        }, 30.f);
+        
+        popup->AddText("Size:", 0.35f);
+        popup->AddFloatInput("Size", size, [this](float value) 
+        {
+            size = value;
+        }, 30.f);     
+
+        popup->AddText("Label Padding:", 0.35f);
+        popup->AddFloatInput("Label Padding", padding, [this](float value) 
+        {
+            padding = value;
+        }, 30.f);
+
+        popup->show();
+    });
+    labelSettingsClick->setPosition({40.f, 15.f});
 
     auto infoButton = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
     infoButton->setScale(0.75f);
@@ -247,7 +273,7 @@ void Labels::initMobileContext(geode::ScrollLayer* scrollLayer) {
         "<cg>{cpsHigh}</c> - cps counter highscore"
         , "OK")->show();
     });
-    infoButtonClick->setPosition({40.f, 15.f});
+    infoButtonClick->setPosition({65.f, 15.f});
 
     auto infoButton2Click = CCMenuItemExt::createSpriteExtra(infoButton, [this](CCMenuItemSpriteExtra* sender) {
         FLAlertLayer::create("Info",
@@ -256,19 +282,139 @@ void Labels::initMobileContext(geode::ScrollLayer* scrollLayer) {
         "<cg>{levelId}</c> - level id\n"
         "<cg>{noclipAccuracy}</c> - noclip acc %\n"
         "<cg>{deaths}</c> - total deaths in noclip\n"
-        "<cg>{\\n}</c> - new line\n"
-        "\nWIP, too lazy to make popup to select label"
+        "<cg>{\\n}</c> - new line"
         , "OK")->show();
     });
-    infoButton2Click->setPosition({65.f, 15.f});
+    infoButton2Click->setPosition({90.f, 15.f});
 
     auto addButtonMenu = CCMenu::create();
     addButtonMenu->setContentSize({325.f, 30.f});
     addButtonMenu->addChild(addLabelClick);
+    addButtonMenu->addChild(labelSettingsClick);
     addButtonMenu->addChild(infoButtonClick);
     addButtonMenu->addChild(infoButton2Click);
     scrollLayer->m_contentLayer->addChild(addButtonMenu);
 
     scrollLayer->m_contentLayer->updateLayout();
     scrollLayer->moveToTop();
+}
+
+LabelsCreateLayer* LabelsCreateLayer::create(geode::ScrollLayer* scrollLayer) {
+    auto ret = new LabelsCreateLayer();
+    if (ret->initAnchored(360.f, 260.f, "GJ_square01.png")) {
+        ret->autorelease();
+        ret->m_scrollLayer = scrollLayer;
+        return ret;
+    }
+
+    delete ret;
+    return nullptr;
+}
+
+bool LabelsCreateLayer::setup() {
+    std::array<std::string, 6> corners = {"Top Left", "Top Right", "Top", "Bottom Left", "Bottom Right", "Bottom"};
+    std::array<std::string, 10> label_types = {"Time (24H)", "Time (12H)", "Session Time", "Level Progress", "Attempt", "CPS Counter", "Level Info", "Noclip Accuracy", "Death Counter", "Custom Text"};
+    
+    this->setTitle("Add Label");
+
+    auto buttons = CCMenu::create();
+    buttons->setPosition({0,0});
+
+    float positionY = 210.f;
+
+    for (int i = 0; i < corners.size(); i++) {
+        auto cornerToggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [this, i](CCMenuItemToggler* sender) {
+            for (int i = 0; i < m_toggles.size(); i++) {
+                m_toggles[i]->toggle(false);
+            }
+            m_toggleIndex = i + 1;
+        });
+        if (i == 0) cornerToggle->toggle(true);
+        cornerToggle->setPosition({25.f, positionY});
+        m_toggles.push_back(cornerToggle);
+        buttons->addChild(cornerToggle);
+
+        auto label = CCLabelBMFont::create(corners[i].c_str(), "bigFont.fnt");
+        label->setAnchorPoint({0.f, 0.5f});
+        label->setPosition({cornerToggle->getPositionX() + 15.f, cornerToggle->getPositionY()});
+        label->setScale(0.5f);
+        buttons->addChild(label);
+
+        positionY -= 25.f;
+    }
+
+    auto createButton = ButtonSprite::create("Create", 60, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
+    auto createButtonClick = CCMenuItemExt::createSpriteExtra(createButton, [this](CCMenuItemSpriteExtra* sender) {
+        std::string text;
+        if (m_labelTypeIndex == 0) text = "{time:24}";
+        else if (m_labelTypeIndex == 1) text = "{time:12}";
+        else if (m_labelTypeIndex == 2) text = "Session Time: {sessionTime}";
+        else if (m_labelTypeIndex == 3) text = "{progress}";
+        else if (m_labelTypeIndex == 4) text = "Attempt {attempt}";
+        else if (m_labelTypeIndex == 5) text = "{cps}/{cpsHigh}/{clicks}";
+        else if (m_labelTypeIndex == 6) text = "{levelName}{byLevelCreator} ({levelId})";
+        else if (m_labelTypeIndex == 7) text = "{noclipAccuracy}";
+        else if (m_labelTypeIndex == 8) text = "{deaths} Deaths";
+        else if (m_labelTypeIndex == 9) text = "here your text";
+        
+        auto& labels = Labels::get();
+        Label l((LabelCorner) (m_toggleIndex), text);
+        labels.add(l);
+
+        labels.initMobileContext(m_scrollLayer);
+
+        m_closeBtn->activate();
+    });
+    createButtonClick->setPosition({50.f, positionY - 25.f});
+    buttons->addChild(createButtonClick);
+
+    auto background = extension::CCScale9Sprite::create("square02_small.png");
+    background->setPosition({255.f, 125.f});
+    background->setContentSize({180.f, 200.f});
+    background->setOpacity(100);
+    buttons->addChild(background);
+
+    auto scrollLayer = ScrollLayer::create({180.f, 200.f});
+    scrollLayer->m_contentLayer->setLayout(
+        geode::ColumnLayout::create()
+            ->setAutoScale(false)
+            ->setAxisReverse(true)
+            ->setAutoGrowAxis(scrollLayer->getContentHeight())
+            ->setAxisAlignment(geode::AxisAlignment::End)
+            ->setGap(0)
+    );
+    scrollLayer->setPosition({165.f, 25.f});
+    scrollLayer->m_peekLimitTop = 15;
+    scrollLayer->m_peekLimitBottom = 15;
+    buttons->addChild(scrollLayer);
+    
+    for (int i = 0; i < label_types.size(); i++) {
+        auto toggleMenu = CCMenu::create();
+        toggleMenu->setContentSize({180.f, 25.f});
+        auto levelTypeToggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [this, i](CCMenuItemToggler* sender) {
+            for (int i = 0; i < m_labelTypeToggles.size(); i++) {
+                m_labelTypeToggles[i]->toggle(false);
+            }
+            m_labelTypeIndex = i;
+        });
+        if (i == 0) levelTypeToggle->toggle(true);
+        levelTypeToggle->setPosition({15.f, 10});
+        m_labelTypeToggles.push_back(levelTypeToggle);
+        toggleMenu->addChild(levelTypeToggle);
+
+        auto label = CCLabelBMFont::create(label_types[i].c_str(), "bigFont.fnt");
+        label->setAnchorPoint({0.f, 0.5f});
+        label->setPosition({levelTypeToggle->getPositionX() + 15.f, levelTypeToggle->getPositionY()});
+        label->setScale(0.5f);
+        toggleMenu->addChild(label);
+
+        scrollLayer->m_contentLayer->addChild(toggleMenu);
+    }
+
+    scrollLayer->m_contentLayer->updateLayout();  
+    scrollLayer->moveToTop();
+
+    m_mainLayer->addChild(buttons);
+
+    return true;
 }
