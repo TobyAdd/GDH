@@ -926,7 +926,7 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
         NoclipAccuracy::get().handle_update(this, dt);
 
         if (config.get<bool>("rgb_icons", false)) {
-            color_dt += dt * config.get<float>("rgb_icons::speed", 0.25f);
+            color_dt += dt * config.get<float>("rgb_icons::speed", 0.20f);
 
             auto& rgb_colors = RGBIcons::get();
             auto color1 = rgb_colors.interpolateColor(color_dt);

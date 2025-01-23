@@ -14,7 +14,6 @@
 #include "config.hpp"
 #include "hacks.hpp"
 #include "gui_mobile.hpp"
-#include "flvc.hpp"
 
 void CheckDir(const std::filesystem::path &path)
 {

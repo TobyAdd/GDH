@@ -43,7 +43,7 @@ void Hacks::Init() {
                 {"Main Levels", "Unlocks all main levels", "main_levels"} // +     
             }
         },
-        {"Player", 220, 10, 220, 640, 
+        {"Player", 220, 10, 220, 660, 
             {
                 {"Accurate Percentage", "Shows decimals in level progress", "accurate_percentage", "0126"}, // +
                 {"Auto Pickup Coins", "Collects all coins in the level", "auto_pickup_coins"}, // +
@@ -586,16 +586,17 @@ void Hacks::Init() {
     // });
 
     SetCustomWindowHandlerByConfig("rgb_icons", [this, &config]() {
-        #ifdef GEODE_IS_WINDOWS 
-        auto &gui = Gui::get();
         auto &colors = RGBIcons::get();
 
-        float size = config.get<float>("rgb_icons::speed", 0.25f);
+        float size = config.get<float>("rgb_icons::speed", 0.20f);
 
         bool player_p1 = config.get<bool>("rgb_icons::player_p1", true);
         bool player_p2 = config.get<bool>("rgb_icons::player_p2", true);
         bool wave_trail_p1 = config.get<bool>("rgb_icons::wave_trail_p1", true);
         bool wave_trail_p2 = config.get<bool>("rgb_icons::wave_trail_p2", true);
+        
+        #ifdef GEODE_IS_WINDOWS 
+        auto &gui = Gui::get();
 
         if (ImGuiH::Checkbox("Player 1", &player_p1, gui.m_scale))
             config.set<bool>("rgb_icons::player_p1", player_p1);
@@ -678,7 +679,40 @@ void Hacks::Init() {
             ImGui::PopID();
         }
         #elif defined(GEODE_IS_ANDROID64) 
-        FLAlertLayer::create("Info", "interface is not implemented, sorry :(", "OK")->show();        
+        auto popup = popupSystem::create();
+        popup->AddToggle("Player 1", player_p1, [this, &config](bool enabled) 
+        {
+            config.set<bool>("rgb_icons::player_p1", enabled);
+        });
+
+        popup->AddToggle("Player 2", player_p2, [this, &config](bool enabled) 
+        {
+            config.set<bool>("rgb_icons::player_p2", enabled);
+        });
+
+        popup->AddToggle("Player 2", wave_trail_p1, [this, &config](bool enabled) 
+        {
+            config.set<bool>("rgb_icons::wave_trail_p1", enabled);
+        });
+
+        popup->AddToggle("Wave Trail P1", wave_trail_p1, [this, &config](bool enabled) 
+        {
+            config.set<bool>("rgb_icons::wave_trail_p1", enabled);
+        });
+
+        popup->AddToggle("Wave Trail P2", wave_trail_p2, [this, &config](bool enabled) 
+        {
+            config.set<bool>("rgb_icons::wave_trail_p2", enabled);
+        }, 20.f);
+
+        popup->AddText("Speed:", 0.30f, 20.f);
+
+        popup->AddFloatInput("Speed", size, [this, &config](float value) 
+        {
+           config.set<float>("rgb_icons::speed", value);
+        },
+        35.f);
+        popup->show();
         #endif
     });
 

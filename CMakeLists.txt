@@ -22,15 +22,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE libs)
 set(HAS_IMGUI ON)
 add_subdirectory(libs/imgui)
 CPMAddPackage("gh:matcool/gd-imgui-cocos#8973953")
-CPMAddPackage(
-    NAME LZ4
-    GITHUB_REPOSITORY lz4/lz4
-    GIT_TAG v1.9.3
-    DOWNLOAD_ONLY YES
-)
-target_include_directories(${PROJECT_NAME} PRIVATE ${LZ4_SOURCE_DIR}/lib)
-file(GLOB LZ4_SOURCES ${LZ4_SOURCE_DIR}/lib/*.c)
-target_sources(${PROJECT_NAME} PRIVATE ${LZ4_SOURCES})
 
 target_link_libraries(${PROJECT_NAME} imgui-cocos imgui)
 

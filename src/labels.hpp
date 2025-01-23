@@ -224,22 +224,18 @@ public:
             std::reverse(_colors.begin(), _colors.end());
 
         size_t num_colors = _colors.size();
-
         dt = fmod(dt, 1.0f);
-
         float scaledDt = dt * (num_colors);
-
         size_t index1 = static_cast<size_t>(scaledDt);
         size_t index2 = (index1 + 1) % num_colors;
-
         float blend = scaledDt - index1;
 
         cocos2d::ccColor3B color1 = _colors[index1];
         cocos2d::ccColor3B color2 = _colors[index2];
 
-        uint8_t r = static_cast<uint8_t>(color1.r + (color2.r - color1.r) * blend);
-        uint8_t g = static_cast<uint8_t>(color1.g + (color2.g - color1.g) * blend);
-        uint8_t b = static_cast<uint8_t>(color1.b + (color2.b - color1.b) * blend);
+        uint8_t r = static_cast<GLubyte>(color1.r + (color2.r - color1.r) * blend);
+        uint8_t g = static_cast<GLubyte>(color1.g + (color2.g - color1.g) * blend);
+        uint8_t b = static_cast<GLubyte>(color1.b + (color2.b - color1.b) * blend);
 
         return cocos2d::ccColor3B(r, g, b);
     }
