@@ -23,7 +23,18 @@ jobs:
     runs-on: ${{ matrix.config.os }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get Compiled FFmpeg Libs
+        uses: actions/checkout@v4
+        with:
+          repository: TobyAdd/ffmpeg-libs
+          token: ${{ secrets.FFMPEG_LIBS_TOKEN }}
+          path: ffmpeg-libs
+
+      - name: Extracting FFmpeg Builds
+        run: 7z x ffmpeg-libs/libs.7z -olibs
 
       - name: Build the mod
         uses: geode-sdk/build-geode-mod@main

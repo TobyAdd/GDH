@@ -1,4 +1,3 @@
-#ifdef GEODE_IS_ANDROID
 #include "gui_mobile.hpp"
 #include "config.hpp"
 #include "hacks.hpp"
@@ -7,6 +6,7 @@
 #include "utils.hpp"
 #include "recorder.hpp"
 
+#ifdef GEODE_IS_ANDROID
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
@@ -35,6 +35,7 @@ void export_codecs_to_file(const std::filesystem::path& filename) {
     
     file.close();
 }
+#endif
 
 using namespace geode::prelude;
 
@@ -368,7 +369,9 @@ bool HacksLayer::setup() {
 
             auto justATestButton = ButtonSprite::create("Just a test", 80, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
             auto justATestButtonClick = CCMenuItemExt::createSpriteExtra(justATestButton, [this](CCMenuItemSpriteExtra* sender) {
+                #ifdef GEODE_IS_ANDROID
                 export_codecs_to_file(folderPath / "codecs.txt");
+                #endif
                 
                 return;
                 auto& recorder = Recorder::get();
@@ -477,4 +480,3 @@ void HacksLayer::onExit() {
     RGBIcons::get().save();
     geode::Popup<>::onExit();
 }
-#endif
