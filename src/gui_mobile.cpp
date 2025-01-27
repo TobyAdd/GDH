@@ -1,3 +1,4 @@
+#ifdef GEODE_IS_ANDROID
 #include "gui_mobile.hpp"
 #include "config.hpp"
 #include "hacks.hpp"
@@ -5,6 +6,35 @@
 #include "replayEngine.hpp"
 #include "utils.hpp"
 #include "recorder.hpp"
+
+extern "C" {
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libswscale/swscale.h>
+}
+
+void export_codecs_to_file(const std::filesystem::path& filename) {
+    std::ofstream file(filename);
+    if (!file.is_open()) {
+        return;
+    }
+    
+    const AVCodec* codec = nullptr;
+    void* iter = nullptr;
+    
+    while ((codec = av_codec_iterate(&iter))) {
+        file << "Codec: " << codec->name << " (" << codec->long_name << ")";
+        if (av_codec_is_encoder(codec)) {
+            file << " [Encoder]";
+        }
+        if (av_codec_is_decoder(codec)) {
+            file << " [Decoder]";
+        }
+        file << std::endl;
+    }
+    
+    file.close();
+}
 
 using namespace geode::prelude;
 
@@ -189,7 +219,7 @@ bool HacksLayer::setup() {
             switchTab(i);
         });
         buttonClick->setPosition({65.f, tabPositionY});
-        buttonClick->setTag(i);
+        m_buttonTabs.push_back(buttonClick);
         m_buttonMenu->addChild(buttonClick);
 
         auto tab = HacksTab::create();
@@ -338,6 +368,9 @@ bool HacksLayer::setup() {
 
             auto justATestButton = ButtonSprite::create("Just a test", 80, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
             auto justATestButtonClick = CCMenuItemExt::createSpriteExtra(justATestButton, [this](CCMenuItemSpriteExtra* sender) {
+                export_codecs_to_file(folderPath / "codecs.txt");
+                
+                return;
                 auto& recorder = Recorder::get();
 
                 if (recorder.is_recording) {
@@ -416,10 +449,10 @@ void HacksLayer::switchTab(int newIndex) {
         m_tabs[i]->setVisible(i == m_index);
     }
 
-    for (int i = 0; i < m_buttonMenu->getChildrenCount(); i++) {
-        auto* button = static_cast<CCMenuItemSpriteExtra*>(m_buttonMenu->getChildByTag(i));
+    for (int i = 0; i < m_buttonTabs.size(); i++) {
+        auto* button = m_buttonTabs[i];
         if (button) {
-            auto* btnSprite = dynamic_cast<ButtonSprite*>(button->getChildren()->objectAtIndex(0));
+            auto* btnSprite = static_cast<ButtonSprite*>(button->getChildren()->objectAtIndex(0));
             if (btnSprite) {
                 btnSprite->updateBGImage(i == m_index ? "GJ_button_02.png" : "GJ_button_01.png");
             }
@@ -444,3 +477,4 @@ void HacksLayer::onExit() {
     RGBIcons::get().save();
     geode::Popup<>::onExit();
 }
+#endif

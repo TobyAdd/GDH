@@ -21,6 +21,7 @@ protected:
 
 class HacksLayer : public geode::Popup<> {
 private:
+    std::vector<CCMenuItemSpriteExtra*> m_buttonTabs;
     std::vector<HacksTab*> m_tabs;
     int m_index = 0;
 

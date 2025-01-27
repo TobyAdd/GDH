@@ -10,10 +10,11 @@
 #include <imgui-cocos.hpp>
 #ifdef GEODE_IS_WINDOWS
 #include "gui.hpp"
+#elif defined(GEODE_IS_ANDROID64) 
+#include "gui_mobile.hpp"
 #endif
 #include "config.hpp"
 #include "hacks.hpp"
-#include "gui_mobile.hpp"
 
 void CheckDir(const std::filesystem::path &path)
 {
