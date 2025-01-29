@@ -62,9 +62,6 @@ public:
 
     std::mutex lock;
 
-    bool shader_visiting = false;
-    bool playlayer_visiting = false;
-
     float after_end_extra_time;
     float after_end_duration = 3.f;
     

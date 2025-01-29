@@ -8,17 +8,7 @@
 #include <subprocess.hpp>
 #endif
 #include "flvc.hpp"
-
-class $modify(ShaderLayer)
-{
-	void visit()
-	{
-        auto& recorder = Recorder::get();
-		recorder.shader_visiting = true;
-		ShaderLayer::visit();
-		recorder.shader_visiting = false;
-	}
-};
+#include "h264_encoder.hpp"
 
 void RenderTexture::begin() {   
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &oldFBO);
@@ -53,11 +43,15 @@ void RenderTexture::capture_frame(std::mutex& lock, std::vector<uint8_t>& data, 
     glBindFramebuffer(GL_FRAMEBUFFER, currentFBO);
 
     auto director = cocos2d::CCDirector::sharedDirector();
-    auto scene = GameManager::sharedState()->getPlayLayer();
+    auto scene = PlayLayer::get();
 
-    recorder.playlayer_visiting = true;
+    #ifdef GEODE_IS_ANDROID
+    scene->setScale(-1);
+    #endif
     scene->visit();
-    recorder.playlayer_visiting = false;
+    #ifdef GEODE_IS_ANDROID
+    scene->setScale(1);
+    #endif
 
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     lock.lock();
@@ -153,6 +147,18 @@ void Recorder::start(std::string command) {
             if (process.close()) {
                 return;
             }
+            #elif defined(GEODE_IS_ANDROID64) 
+            H264Encoder encoder(width, height, fps, 20000000, folderShowcasesPath / video_name);
+            while (is_recording || frame_has_data) {
+                lock.lock();
+                if (frame_has_data) {
+                    const auto frame = current_frame;
+                    frame_has_data = false;
+                    encoder.writeFrame(frame);
+                }
+                lock.unlock();
+            }
+            encoder.finish();
             #endif
         }
     }).detach();
