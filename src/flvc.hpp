@@ -16,13 +16,6 @@ public:
         writeHeader();
     }
 
-    ~FLVCEncoder() {
-        if (outputFile.is_open()) {
-            updateHeader();
-            outputFile.close();
-        }
-    }
-
     void close() {
         if (outputFile.is_open()) {
             updateHeader();
