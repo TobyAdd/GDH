@@ -8,32 +8,205 @@
 
 #ifdef GEODE_IS_ANDROID
 extern "C" {
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libswscale/swscale.h>
+    #include <libavcodec/avcodec.h>
+    #include <libavutil/opt.h>
+    #include <libavutil/imgutils.h>
+    #include <libavformat/avformat.h>
 }
 
-void export_codecs_to_file(const std::filesystem::path& filename) {
-    std::ofstream file(filename);
-    if (!file.is_open()) {
-        return;
+static int encode_video_frame(AVCodecContext *enc_ctx, AVFrame *frame, 
+                            AVPacket *pkt, AVFormatContext *fmt_ctx)
+{
+    int ret;
+
+    // Send frame to encoder
+    ret = avcodec_send_frame(enc_ctx, frame);
+    if (ret < 0) {
+        FLAlertLayer::create("Encoding Error", fmt::format("Error sending frame for encoding: {}", av_err2str(ret)), "OK")->show();
+        return ret;
     }
-    
-    const AVCodec* codec = nullptr;
-    void* iter = nullptr;
-    
-    while ((codec = av_codec_iterate(&iter))) {
-        file << "Codec: " << codec->name << " (" << codec->long_name << ")";
-        if (av_codec_is_encoder(codec)) {
-            file << " [Encoder]";
+
+    while (ret >= 0) {
+        ret = avcodec_receive_packet(enc_ctx, pkt);
+        if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
+            return 0;
+        else if (ret < 0) {
+            FLAlertLayer::create("Encoding Error", fmt::format("Error during encoding: {}", av_err2str(ret)), "OK")->show();
+            return ret;
         }
-        if (av_codec_is_decoder(codec)) {
-            file << " [Decoder]";
+
+        // Rescale output packet timestamp values from codec to stream timebase
+        av_packet_rescale_ts(pkt, enc_ctx->time_base, fmt_ctx->streams[0]->time_base);
+        pkt->stream_index = 0;
+
+        // Write packet to file
+        ret = av_interleaved_write_frame(fmt_ctx, pkt);
+        if (ret < 0) {
+            FLAlertLayer::create("File Error", fmt::format("Error writing packet: {}", av_err2str(ret)), "OK")->show();
+            return ret;
         }
-        file << std::endl;
+        av_packet_unref(pkt);
     }
+
+    return 0;
+}
+
+int render_video()
+{
+    auto filefs=folderPath/"test_h264.mp4";
+    const char *filename = filefs.c_str();
+    int ret;
+    AVCodecContext *c = nullptr;
+    AVFormatContext *fmt_ctx = nullptr;
+    AVFrame *frame = nullptr;
+    AVPacket *pkt = nullptr;
     
-    file.close();
+    // Find x264 encoder
+    const AVCodec *codec = avcodec_find_encoder_by_name("libx264");
+    if (!codec) {
+        FLAlertLayer::create("Codec Error", "Codec libx264 not found", "OK")->show();
+        return -1;
+    }
+
+    // Allocate codec context
+    c = avcodec_alloc_context3(codec);
+    if (!c) {
+        FLAlertLayer::create("Allocation Error", "Could not allocate video codec context", "OK")->show();
+        return -1;
+    }
+
+    // Initialize format context
+    ret = avformat_alloc_output_context2(&fmt_ctx, NULL, NULL, filename);
+    if (!fmt_ctx) {
+        FLAlertLayer::create("Format Error", "Could not allocate format context", "OK")->show();
+        return 0;
+    }
+
+    // Add video stream
+    AVStream *stream = avformat_new_stream(fmt_ctx, codec);
+    if (!stream) {
+        FLAlertLayer::create("Stream Error", "Could not allocate stream", "OK")->show();
+        return 0;
+    }
+
+    // Set codec parameters
+    c->bit_rate = 400000;
+    c->width = 352;
+    c->height = 288;
+    c->time_base = (AVRational){1, 60};
+    c->framerate = (AVRational){60, 1};
+    c->gop_size = 10;
+    c->max_b_frames = 1;
+    c->pix_fmt = AV_PIX_FMT_YUV420P;
+
+    // Set x264 preset
+    av_opt_set(c->priv_data, "preset", "medium", 0);
+
+    // Set stream parameters
+    stream->time_base = c->time_base;
+
+    // Open codec
+    ret = avcodec_open2(c, codec, NULL);
+    if (ret < 0) {
+        FLAlertLayer::create("Codec Error", fmt::format("Could not open codec: {}", av_err2str(ret)), "OK")->show();
+        return 0;
+    }
+
+    // Copy codec parameters to stream
+    ret = avcodec_parameters_from_context(stream->codecpar, c);
+    if (ret < 0) {
+        FLAlertLayer::create("Parameter Error", "Could not copy codec params to stream", "OK")->show();
+        return 0;
+    }
+
+    // Open output file
+    ret = avio_open(&fmt_ctx->pb, filename, AVIO_FLAG_WRITE);
+    if (ret < 0) {
+        FLAlertLayer::create("File Error", fmt::format("Could not open {}: {}", filename, av_err2str(ret)), "OK")->show();
+        return 0;
+    }
+
+    // Write header
+    ret = avformat_write_header(fmt_ctx, NULL);
+    if (ret < 0) {
+        FLAlertLayer::create("Format Error", "Error writing header", "OK")->show();
+        return 0;
+    }
+
+    // Allocate frame
+    frame = av_frame_alloc();
+    if (!frame) {
+        FLAlertLayer::create("Allocation Error", "Could not allocate video frame", "OK")->show();
+        return 0;
+    }
+
+    frame->format = c->pix_fmt;
+    frame->width = c->width;
+    frame->height = c->height;
+
+    ret = av_frame_get_buffer(frame, 0);
+    if (ret < 0) {
+        FLAlertLayer::create("Buffer Error", "Could not allocate frame data", "OK")->show();
+        return 0;
+    }
+
+    pkt = av_packet_alloc();
+    if (!pkt) {
+        FLAlertLayer::create("Allocation Error", "Could not allocate packet", "OK")->show();
+        return 0;
+    }
+
+    // Encode frames
+    for (int i = 0; i < 600; i++) {
+        ret = av_frame_make_writable(frame);
+        if (ret < 0) {
+            FLAlertLayer::create("Frame Error", "Could not make frame writable", "OK")->show();
+            return 0;
+        }
+
+        // Generate synthetic video data
+        for (int y = 0; y < c->height; y++) {
+            for (int x = 0; x < c->width; x++) {
+                frame->data[0][y * frame->linesize[0] + x] = x + y + i * 3;
+            }
+        }
+        for (int y = 0; y < c->height/2; y++) {
+            for (int x = 0; x < c->width/2; x++) {
+                frame->data[1][y * frame->linesize[1] + x] = 128 + y + i * 2;
+                frame->data[2][y * frame->linesize[2] + x] = 64 + x + i * 5;
+            }
+        }
+
+        frame->pts = i;
+        
+        ret = encode_video_frame(c, frame, pkt, fmt_ctx);
+        if (ret < 0) {
+            return 0;
+        }
+    }
+
+    // Flush encoder
+    ret = encode_video_frame(c, NULL, pkt, fmt_ctx);
+    if (ret < 0) {
+        return 0;
+    }
+
+    // Write trailer
+    av_write_trailer(fmt_ctx);
+
+    // Success message
+    FLAlertLayer::create("Success", fmt::format("Video encoding completed. Output saved to {}", filename), "OK")->show();
+
+    // Clean up
+    if (fmt_ctx && fmt_ctx->pb) {
+        avio_closep(&fmt_ctx->pb);
+    }
+    avformat_free_context(fmt_ctx);
+    avcodec_free_context(&c);
+    av_frame_free(&frame);
+    av_packet_free(&pkt);
+
+    return ret < 0 ? ret : 0;
 }
 #endif
 
@@ -367,13 +540,17 @@ bool HacksLayer::setup() {
             auto engineV2_label = AddTextToToggle("Engine v2.1 (Beta)", engineV2_toggle);
             engineTab->addChild(engineV2_label);
 
-            auto justATestButton = ButtonSprite::create("Just a test", 80, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
-            auto justATestButtonClick = CCMenuItemExt::createSpriteExtra(justATestButton, [this](CCMenuItemSpriteExtra* sender) {
+            auto exampleButton = ButtonSprite::create("H264 Example", 80, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
+            auto exampleButtonClick = CCMenuItemExt::createSpriteExtra(exampleButton, [this](CCMenuItemSpriteExtra* sender) {
                 #ifdef GEODE_IS_ANDROID
-                export_codecs_to_file(folderPath / "codecs.txt");
+                render_video();
                 #endif
-                
-                return;
+            });
+            exampleButtonClick->setPosition({170, 25});
+            engineTab->addChild(exampleButtonClick);
+
+            auto justATestButton = ButtonSprite::create("FLVC Test", 80, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
+            auto justATestButtonClick = CCMenuItemExt::createSpriteExtra(justATestButton, [this](CCMenuItemSpriteExtra* sender) {
                 auto& recorder = Recorder::get();
 
                 if (recorder.is_recording) {
