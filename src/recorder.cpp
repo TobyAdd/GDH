@@ -46,11 +46,11 @@ void RenderTexture::capture_frame(std::mutex& lock, std::vector<uint8_t>& data, 
     auto scene = PlayLayer::get();
 
     #ifdef GEODE_IS_ANDROID
-    scene->setScale(-1);
+    scene->setScaleY(-1);
     #endif
     scene->visit();
     #ifdef GEODE_IS_ANDROID
-    scene->setScale(1);
+    scene->setScaleY(1);
     #endif
 
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
