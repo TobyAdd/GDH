@@ -5,7 +5,6 @@
 #include "replayEngine.hpp"
 #include "utils.hpp"
 #include "recorder.hpp"
-#include "h264_encoder.hpp"
 
 using namespace geode::prelude;
 

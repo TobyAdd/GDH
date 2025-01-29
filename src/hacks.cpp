@@ -90,6 +90,7 @@ void Hacks::Init() {
                 {"No Portal Lighting", "Disables lightning when entering mini/large portal", "no_portal_lighting"}, // +
                 {"No Pulse", "Disables pulsation of falls, orbs, etc", "no_pulse"}, // +
                 {"Pause On Complete", "Lets you pouse during the level complete animation", "pause_during_complete"}, // +
+                {"Pitch Shifter", "Shifts the pitch of background music", "pitch_shifter"}, // +
                 {"Practice Fix", "More accurate respawning in practice mode (used for botting)", "practice_fix"}, // +
                 {"Pulse Size", "Changes pulsation of falls, orbs, etc", "pulse_size"}, // +
                 {"No Robot Fire", "Hides robot boost fire", "no_robot_fire"}, // +
@@ -111,7 +112,9 @@ void Hacks::Init() {
                 {"Smooth Editor Trail", "Makes the wave smoother in the editor", "smooth_editor_trail"}, // +
                 {"Level Edit", "Edit any online level", "level_edit"}, // +
                 {"No (C) Mark", "Removes copyright on copied levels", "no_c_mark"}, // +
+                #ifdef GEODE_IS_WINDOWS //ui layer class is almost broken for mobile :(
                 {"Zoom Bypass", "", "zoom_bypass"} // +
+                #endif
             }
         },
         {"Framerate", 450, 330, 220, 130},
@@ -272,6 +275,10 @@ void Hacks::Init() {
         #endif
     });
 
+    SetHandlerByConfig("pitch_shifter", [this, &config](bool enabled) {
+        utilsH::setPitchShifter(enabled ? config.get<float>("pitch_shifter_value", 1.f) : 1.f);
+    });
+
     SetHandlerByConfig("rgb_icons", [this](bool enabled) {
         auto& colors = RGBIcons::get();
         if (enabled && colors.colors.empty()) 
@@ -335,6 +342,34 @@ void Hacks::Init() {
         if (pl && !enabled && !(pl->m_isPracticeMode && GameManager::get()->getGameVariable("0166"))) {
             pl->m_debugDrawNode->setVisible(false);
         }
+    });
+
+    SetCustomWindowHandlerByConfig("pitch_shifter", [this, &config]() {
+        float pitch_value = config.get<float>("pitch_shifter_value", 1.f);
+
+        #ifdef GEODE_IS_WINDOWS 
+        auto &gui = Gui::get();
+
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (ImGui::DragFloat("##PitchValue", &pitch_value, 0.01f, 0.5f, 2.f, "Pitch: %.2f")) {
+            config.set<float>("pitch_shifter_value", pitch_value);
+            if (config.get<bool>("pitch_shifter", false))
+                utilsH::setPitchShifter(pitch_value);
+        }
+            
+        #elif defined(GEODE_IS_ANDROID64) 
+        auto popup = popupSystem::create();
+        popup->AddText("Pitch (0.5 - 2):");
+        popup->AddFloatInput("Pitch Value", pitch_value, [&](float value) 
+        {
+            float limited_value = std::clamp(value, 0.5f, 2.f);
+            config.set<float>("pitch_shifter_value", limited_value);
+            if (config.get<bool>("pitch_shifter", false))
+                utilsH::setPitchShifter(limited_value);
+        },
+        35.f);
+        popup->show();
+        #endif
     });
 
     SetCustomWindowHandlerByConfig("straight_fly_bot", [this, &config]() {

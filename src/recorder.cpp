@@ -8,7 +8,9 @@
 #include <subprocess.hpp>
 #endif
 #include "flvc.hpp"
+#ifdef GEODE_IS_ANDROID
 #include "h264_encoder.hpp"
+#endif
 
 void RenderTexture::begin() {   
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &oldFBO);

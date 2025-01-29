@@ -1,4 +1,6 @@
 #include "utils.hpp"
+#include "config.hpp"
+
 bool utilsH::isNumeric(const std::string& str) {
     if (str.empty()) {
         return false;
@@ -113,6 +115,31 @@ void utilsH::UncompleteLevel() {
     else {
         FLAlertLayer::create("Uncomplete Level", "Go to the level to uncomplete it", "OK");
     }
+}
+
+void utilsH::setPitchShifter(float pitch) {
+    static FMOD::DSP* pitchShifter = nullptr;
+    auto fmod_engine = FMODAudioEngine::get();
+    FMOD::System* system = fmod_engine->m_system;
+
+    if (pitch == 1.f) {
+        if (pitchShifter) {
+            fmod_engine->m_backgroundMusicChannel->removeDSP(pitchShifter);
+            pitchShifter->release();
+            pitchShifter = nullptr;
+        }
+        return;
+    }
+
+    if (!pitchShifter) {
+        if (system->createDSPByType(FMOD_DSP_TYPE_PITCHSHIFT, &pitchShifter) != FMOD_OK) {
+            return;
+        }
+        fmod_engine->m_backgroundMusicChannel->addDSP(0, pitchShifter);
+    }
+
+    pitchShifter->setParameterFloat(FMOD_DSP_PITCHSHIFT_FFTSIZE, 2048); // Average balance of accuracy and delay (1024 by default)
+    pitchShifter->setParameterFloat(FMOD_DSP_PITCHSHIFT_PITCH, pitch);
 }
 
 #ifdef GEODE_IS_WINDOWS
