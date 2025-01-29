@@ -3,6 +3,8 @@
 #include <filesystem>
 #include <vector>
 #include <cstring>
+#include <stdexcept>
+#include <memory>
 
 extern "C" {
     #include <libavcodec/avcodec.h>
@@ -13,7 +15,6 @@ extern "C" {
 }
 
 #include "config.hpp"
-
 inline void logMessage(const std::string& message) {
     std::ofstream logFile(folderPath / "h264_encode.txt", std::ios::app);
     if (logFile.is_open()) {
@@ -24,44 +25,105 @@ inline void logMessage(const std::string& message) {
 
 class H264Encoder {
 public:
-    H264Encoder(int width, int height, int fps, int64_t bitrate, const std::filesystem::path& outputFilePath) {
-        int ret;
-        std::string filenameStr = outputFilePath.string();
-        const char *filename = filenameStr.c_str();
+    H264Encoder(int width, int height, int fps, int64_t bitrate, const std::filesystem::path& outputFilePath) 
+        : m_frameCount(0) {
+        if (width <= 0 || height <= 0 || fps <= 0 || bitrate <= 0) {
+            logMessage("Invalid encoder parameters");
+        }
 
-        logMessage("== H264 Encoder ==");
+        initializeEncoder(width, height, fps, bitrate, outputFilePath);
+    }
+
+    H264Encoder(const H264Encoder&) = delete;
+    H264Encoder& operator=(const H264Encoder&) = delete;
+
+    H264Encoder(H264Encoder&&) noexcept = default;
+    H264Encoder& operator=(H264Encoder&&) noexcept = default;
+
+    ~H264Encoder() {
+        cleanup();
+    }
+
+    int finish() {
+        logMessage("Finishing encoding process...");
+        
+        try {
+            int result = encode_video_frame(c.get(), nullptr, pkt.get(), fmt_ctx.get());
+            if (result < 0) {
+                logMessage("Failed to encode final frame");
+            }
+
+            av_write_trailer(fmt_ctx.get());
+            return result;
+        }
+        catch (const std::exception& e) {
+            logMessage("Error during finish: " + std::string(e.what()));
+            return -1;
+        }
+    }
+
+    bool writeFrame(const std::vector<uint8_t>& frameData) {
+        if (frameData.empty()) {
+            logMessage("Empty frame data provided");
+        }
+
+        const size_t expectedSize = c->width * c->height * 3;
+        if (frameData.size() != expectedSize) {
+            logMessage("Invalid frame data size");
+        }
+
+        try {
+            return writeFrameInternal(frameData);
+        }
+        catch (const std::exception& e) {
+            logMessage("Error writing frame: " + std::string(e.what()));
+            return false;
+        }
+    }
+
+private:
+    int m_frameCount;
+    
+    struct AVCodecContextDeleter {
+        void operator()(AVCodecContext* p) { avcodec_free_context(&p); }
+    };
+    struct AVFormatContextDeleter {
+        void operator()(AVFormatContext* p) { avformat_free_context(p); }
+    };
+    struct AVFrameDeleter {
+        void operator()(AVFrame* p) { av_frame_free(&p); }
+    };
+    struct AVPacketDeleter {
+        void operator()(AVPacket* p) { av_packet_free(&p); }
+    };
+
+    std::unique_ptr<AVCodecContext, AVCodecContextDeleter> c;
+    std::unique_ptr<AVFormatContext, AVFormatContextDeleter> fmt_ctx;
+    std::unique_ptr<AVFrame, AVFrameDeleter> frame;
+    std::unique_ptr<AVPacket, AVPacketDeleter> pkt;
+
+    void initializeEncoder(int width, int height, int fps, int64_t bitrate, 
+                         const std::filesystem::path& outputFilePath) {
+        logMessage("== Start of encoding ==");
         logMessage("Initializing H264Encoder with parameters:");
         logMessage("Width: " + std::to_string(width));
         logMessage("Height: " + std::to_string(height));
         logMessage("FPS: " + std::to_string(fps));
         logMessage("Bitrate: " + std::to_string(bitrate));
-        logMessage("Output file: " + filenameStr);
+        logMessage("Output file: " + outputFilePath.string());
 
-        const AVCodec *codec = avcodec_find_encoder_by_name("libx264");
+        const AVCodec* codec = avcodec_find_encoder_by_name("libx264");
         if (!codec) {
-            logMessage("Error: Could not find libx264 codec.");
-            return;
+            logMessage("Could not find libx264 codec");
         }
 
-        c = avcodec_alloc_context3(codec);
-        if (!c) {
-            logMessage("Error: Could not allocate codec context.");
-            return;
+        AVCodecContext* codec_ctx = avcodec_alloc_context3(codec);
+        if (!codec_ctx) {
+            logMessage("Could not allocate codec context");
         }
+        c.reset(codec_ctx);
 
-        ret = avformat_alloc_output_context2(&fmt_ctx, NULL, NULL, filename);
-        if (!fmt_ctx) {
-            logMessage("Error: Could not allocate output context.");
-            return;
-        }
-
-        AVStream *stream = avformat_new_stream(fmt_ctx, codec);
-        if (!stream) {
-            logMessage("Error: Could not create new stream.");
-            return;
-        }
-
-        c->bit_rate = bitrate;
+        c->bit_rate = std::max(int64_t(0), std::min(bitrate, int64_t(INT_MAX)));
         c->width = width;
         c->height = height;
         c->time_base = (AVRational){1, fps};
@@ -70,96 +132,81 @@ public:
         c->max_b_frames = 1;
         c->pix_fmt = AV_PIX_FMT_YUV420P;
 
-        av_opt_set(c->priv_data, "preset", "medium", 0);
-
-        stream->time_base = c->time_base;
-
-        ret = avcodec_open2(c, codec, NULL);
-        if (ret < 0) {
-            logMessage("Error: Could not open codec.");
-            return;
+        if (width % 2 != 0 || height % 2 != 0) {
+            logMessage("Width and height must be even numbers");
         }
 
-        ret = avcodec_parameters_from_context(stream->codecpar, c);
-        if (ret < 0) {
-            logMessage("Error: Could not copy codec parameters to stream.");
-            return;
+        if (av_opt_set(c->priv_data, "preset", "medium", 0) < 0) {
+            logMessage("Failed to set encoder preset");
         }
 
-        ret = avio_open(&fmt_ctx->pb, filename, AVIO_FLAG_WRITE);
-        if (ret < 0) {
-            logMessage("Error: Could not open output file.");
-            return;
+        setupFormatContext(outputFilePath, codec);
+        setupFrameAndPacket();
+    }
+
+    void setupFormatContext(const std::filesystem::path& outputFilePath, const AVCodec* codec) {
+        AVFormatContext* format_ctx = nullptr;
+        std::string filenameStr = outputFilePath.string();
+        
+        if (avformat_alloc_output_context2(&format_ctx, nullptr, nullptr, 
+                                         filenameStr.c_str()) < 0) {
+            logMessage("Could not allocate output context");
+        }
+        fmt_ctx.reset(format_ctx);
+
+        AVStream* stream = avformat_new_stream(fmt_ctx.get(), codec);
+        if (!stream) {
+            logMessage("Could not create new stream");
         }
 
-        ret = avformat_write_header(fmt_ctx, NULL);
-        if (ret < 0) {
-            logMessage("Error: Could not write header to output file.");
-            return;
+        if (avcodec_open2(c.get(), codec, nullptr) < 0) {
+            logMessage("Could not open codec");
         }
 
-        frame = av_frame_alloc();
-        if (!frame) {
-            logMessage("Error: Could not allocate video frame.");
-            return;
+        if (avcodec_parameters_from_context(stream->codecpar, c.get()) < 0) {
+            logMessage("Could not copy codec parameters");
         }
+
+        if (avio_open(&fmt_ctx->pb, filenameStr.c_str(), AVIO_FLAG_WRITE) < 0) {
+            logMessage("Could not open output file");
+        }
+
+        if (avformat_write_header(fmt_ctx.get(), nullptr) < 0) {
+            logMessage("Could not write header");
+        }
+    }
+
+    void setupFrameAndPacket() {
+        AVFrame* frame_ptr = av_frame_alloc();
+        if (!frame_ptr) {
+            logMessage("Could not allocate video frame");
+        }
+        frame.reset(frame_ptr);
 
         frame->format = c->pix_fmt;
         frame->width = c->width;
         frame->height = c->height;
 
-        ret = av_frame_get_buffer(frame, 0);
-        if (ret < 0) {
-            logMessage("Error: Could not allocate frame buffer.");
-            return;
+        if (av_frame_get_buffer(frame.get(), 0) < 0) {
+            logMessage("Could not allocate frame buffer");
         }
 
-        pkt = av_packet_alloc();
-        if (!pkt) {
-            logMessage("Error: Could not allocate packet.");
-            return;
+        AVPacket* pkt_ptr = av_packet_alloc();
+        if (!pkt_ptr) {
+            logMessage("Could not allocate packet");
         }
-
-        logMessage("H264Encoder initialized successfully.");
+        pkt.reset(pkt_ptr);
     }
 
-    int finish() {
-        logMessage("Finishing encoding process...");
-
-        int result = encode_video_frame(c, NULL, pkt, fmt_ctx);
-        if (result < 0) {
-            logMessage("Error: Failed to encode final frame.");
-            return 0;
-        }
-
-        av_write_trailer(fmt_ctx);
-
-        if (fmt_ctx && fmt_ctx->pb) {
-            avio_closep(&fmt_ctx->pb);
-        }
-        avformat_free_context(fmt_ctx);
-        avcodec_free_context(&c);
-        av_frame_free(&frame);
-        av_packet_free(&pkt);
-
-        logMessage("Encoding process finished successfully.");
-        logMessage("== The End ==");
-
-        return result;
-    }
-
-    bool writeFrame(const std::vector<uint8_t>& frameData) {
-        int ret;
-
-        ret = av_frame_make_writable(frame);
-        if (ret < 0) {
-            logMessage("Error: Could not make frame writable.");
+    bool writeFrameInternal(const std::vector<uint8_t>& frameData) {
+        if (av_frame_make_writable(frame.get()) < 0) {
+            logMessage("Could not make frame writable");
             return false;
         }
 
-        AVFrame* tempFrame = av_frame_alloc();
+        std::unique_ptr<AVFrame, AVFrameDeleter> tempFrame(av_frame_alloc());
         if (!tempFrame) {
-            logMessage("Error: Could not allocate temporary frame.");
+            logMessage("Could not allocate temporary frame");
             return false;
         }
 
@@ -167,70 +214,58 @@ public:
         tempFrame->width = c->width;
         tempFrame->height = c->height;
 
-        ret = av_frame_get_buffer(tempFrame, 0);
-        if (ret < 0) {
-            logMessage("Error: Could not allocate temporary frame buffer.");
-            av_frame_free(&tempFrame);
+        if (av_frame_get_buffer(tempFrame.get(), 0) < 0) {
+            logMessage("Could not allocate temporary frame buffer");
             return false;
         }
 
-        memcpy(tempFrame->data[0], frameData.data(), frameData.size());
+        std::memcpy(tempFrame->data[0], frameData.data(), frameData.size());
 
-        SwsContext* swsCtx = sws_getContext(c->width, c->height, AV_PIX_FMT_RGB24,
-                                            c->width, c->height, AV_PIX_FMT_YUV420P,
-                                            0, nullptr, nullptr, nullptr);
+        struct SwsContextDeleter {
+            void operator()(SwsContext* p) { sws_freeContext(p); }
+        };
+
+        std::unique_ptr<SwsContext, SwsContextDeleter> swsCtx(
+            sws_getContext(c->width, c->height, AV_PIX_FMT_RGB24,
+                          c->width, c->height, AV_PIX_FMT_YUV420P,
+                          0, nullptr, nullptr, nullptr)
+        );
+
         if (!swsCtx) {
-            logMessage("Error: Could not create SwsContext.");
-            av_frame_free(&tempFrame);
+            logMessage("Could not create SwsContext");
             return false;
         }
 
-        ret = sws_scale(swsCtx, tempFrame->data, tempFrame->linesize, 0, c->height,
-                        frame->data, frame->linesize);
-        if (ret < 0) {
-            logMessage("Error: Could not scale frame.");
-            sws_freeContext(swsCtx);
-            av_frame_free(&tempFrame);
+        if (sws_scale(swsCtx.get(), tempFrame->data, tempFrame->linesize, 0, c->height, frame->data, frame->linesize) < 0) {
+            logMessage("Could not scale frame");
             return false;
         }
-
-        sws_freeContext(swsCtx);
-        av_frame_free(&tempFrame);
 
         frame->pts = m_frameCount++;
-        ret = encode_video_frame(c, frame, pkt, fmt_ctx);
-        if (ret < 0) {
-            logMessage("Error: Could not encode video frame.");
+        
+        if (encode_video_frame(c.get(), frame.get(), pkt.get(), fmt_ctx.get()) < 0) {
+            logMessage("Could not encode video frame");
             return false;
         }
-        
+
         return true;
     }
 
-private:
-    AVCodecContext *c = nullptr;
-    AVFormatContext *fmt_ctx = nullptr;
-    AVFrame *frame = nullptr;
-    AVPacket *pkt = nullptr;
-    
-    int m_frameCount = 0;
-
     int encode_video_frame(AVCodecContext *enc_ctx, AVFrame *frame, AVPacket *pkt, AVFormatContext *fmt_ctx) {
-        int ret;
-
-        ret = avcodec_send_frame(enc_ctx, frame);
+        int ret = avcodec_send_frame(enc_ctx, frame);
         if (ret < 0) {
-            logMessage("Error: Could not send frame to encoder.");
-            return ret;
+            logMessage("Could not send frame to encoder");
+            return false;
         }
 
         while (ret >= 0) {
             ret = avcodec_receive_packet(enc_ctx, pkt);
-            if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
+            if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
                 return 0;
-            else if (ret < 0) {
-                logMessage("Error: Could not receive packet from encoder.");
-                return ret;
+            }
+            if (ret < 0) {
+                logMessage("Could not receive packet from encoder");
+                return false;
             }
 
             av_packet_rescale_ts(pkt, enc_ctx->time_base, fmt_ctx->streams[0]->time_base);
@@ -238,12 +273,19 @@ private:
 
             ret = av_interleaved_write_frame(fmt_ctx, pkt);
             if (ret < 0) {
-                logMessage("Error: Could not write packet to file.");
-                return ret;
+                logMessage("Could not write packet to file");
+                return false;
             }
             av_packet_unref(pkt);
         }
 
         return 0;
-    }  
+    }
+
+    void cleanup() {
+        if (fmt_ctx && fmt_ctx->pb) {
+            avio_closep(&fmt_ctx->pb);
+        }
+        logMessage("== End of encoding ==");
+    }
 };
