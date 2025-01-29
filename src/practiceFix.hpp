@@ -490,11 +490,13 @@ static checkpoint_data create_checkpoint(PlayerObject* player) {
     result.m_stateForce = player->m_stateForce;
     result.m_stateForceVector = player->m_stateForceVector;
     result.m_affectedByForces = player->m_affectedByForces;
+    #ifdef GEODE_IS_WINDOWS //freeze on android :(
     result.m_jumpPadRelated = player->m_jumpPadRelated;
+    #endif
     result.m_somethingPlayerSpeedTime = player->m_somethingPlayerSpeedTime;
     result.m_playerSpeedAC = player->m_playerSpeedAC;
     result.m_fixRobotJump = player->m_fixRobotJump;
-    result.m_holdingButtons = player->m_holdingButtons;
+    // result.m_holdingButtons = player->m_holdingButtons;
     result.m_inputsLocked = player->m_inputsLocked;
     result.m_currentRobotAnimation = player->m_currentRobotAnimation;
     result.m_gv0123 = player->m_gv0123;
@@ -750,11 +752,13 @@ static void apply_checkpoint(PlayerObject* player, checkpoint_data checkpoint) {
     player->m_stateForce = checkpoint.m_stateForce;
     player->m_stateForceVector = checkpoint.m_stateForceVector;
     player->m_affectedByForces = checkpoint.m_affectedByForces;
+    #ifdef GEODE_IS_WINDOWS //freeze on android :(
     player->m_jumpPadRelated = checkpoint.m_jumpPadRelated;
+    #endif
     player->m_somethingPlayerSpeedTime = checkpoint.m_somethingPlayerSpeedTime;
     player->m_playerSpeedAC = checkpoint.m_playerSpeedAC;
     player->m_fixRobotJump = checkpoint.m_fixRobotJump;
-    player->m_holdingButtons = checkpoint.m_holdingButtons;
+    // player->m_holdingButtons = checkpoint.m_holdingButtons;
     player->m_inputsLocked = checkpoint.m_inputsLocked;
     player->m_currentRobotAnimation = checkpoint.m_currentRobotAnimation;
     player->m_gv0123 = checkpoint.m_gv0123;
