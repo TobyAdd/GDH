@@ -156,10 +156,10 @@ void HacksTab::onToggle(CCObject* sender) {
         it->second(!toggler->isToggled());
 }
 
-CCLabelBMFont* AddTextToToggle(const char *str, CCMenuItemToggler* toggler) {
+CCLabelBMFont* AddTextToToggle(const char *str, CCMenuItemToggler* toggler, float x_space = 15.f) {
     auto label = CCLabelBMFont::create(str, "bigFont.fnt");
     label->setAnchorPoint({0.f, 0.5f});
-    label->setPosition({toggler->getPositionX() + 15.f, toggler->getPositionY()});
+    label->setPosition({toggler->getPositionX() + x_space, toggler->getPositionY()});
     label->setScale(0.5f);
     return label;
 }
@@ -215,7 +215,6 @@ bool HacksLayer::setup() {
                     
                     if (canRecord)
                     {
-                        config.set<bool>("practice_fix", true);
                         engine.clear();
                         engine.mode = state::record;
                         info_label->setString(fmt::format("Frame: {}\nReplay Size: {}/{}", engine.get_frame(), engine.get_current_index(), engine.get_actions_size()).c_str());
@@ -336,52 +335,9 @@ bool HacksLayer::setup() {
             auto engineV2_label = AddTextToToggle("Engine v2.1 (Beta)", engineV2_toggle);
             engineTab->addChild(engineV2_label);
 
-            // auto exampleButton = ButtonSprite::create("H264 Example", 80, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
-            // auto exampleButtonClick = CCMenuItemExt::createSpriteExtra(exampleButton, [this](CCMenuItemSpriteExtra* sender) {
-
-            // });
-            // exampleButtonClick->setPosition({170, 25});
-            // engineTab->addChild(exampleButtonClick);
-
-            auto justATestButton = ButtonSprite::create("H264 Test", 80, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
+            auto justATestButton = ButtonSprite::create("Recorder", 80, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
             auto justATestButtonClick = CCMenuItemExt::createSpriteExtra(justATestButton, [this](CCMenuItemSpriteExtra* sender) {
-                auto& recorder = Recorder::get();
-
-                if (recorder.is_recording) {
-                    recorder.stop();
-                    FLAlertLayer::create("Recorder", "Recording stopped!", "OK")->show();
-                    return;
-                }
-
-                geode::utils::file::pick(geode::utils::file::PickMode::OpenFolder, {std::nullopt, {}}).listen(
-                        [&](geode::Result<std::filesystem::path>* path) {
-                    if (!path->isErr()) {
-                        auto path_final = path->unwrap();
-                        auto pl = PlayLayer::get();
-                        if (pl) {
-                            recorder.folderShowcasesPath = path_final;
-                            
-                            recorder.video_name = fmt::format("{}.mp4", pl->m_level->m_levelName);
-
-                            auto size = CCEGLView::get()->getFrameSize();
-                            recorder.width = size.width;
-                            recorder.height = size.height;
-
-                            if (!recorder.is_recording) {
-                                recorder.start("");
-                                FLAlertLayer::create("Recorder", fmt::format("Recording started!\nFilename: {}\nPath {}\nSize: {}x{}\nFPS: {}",
-                                                recorder.video_name, recorder.folderShowcasesPath, recorder.width, recorder.height, recorder.fps).c_str(), "OK")->show();
-                            }
-
-                        }
-                        else {
-                            FLAlertLayer::create("Recorder", "Not in PlayLayer", "OK")->show();
-                        }                        
-                    }
-                    else {
-                        FLAlertLayer::create("Recorder", "Not selected directory", "OK")->show();
-                    }
-                });
+                RecorderLayer::create()->show();
             });
             justATestButtonClick->setPosition({270, 25});
             engineTab->addChild(justATestButtonClick);
@@ -450,4 +406,188 @@ void HacksLayer::onExit() {
     Labels::get().save();
     RGBIcons::get().save();
     geode::Popup<>::onExit();
+}
+
+RecorderLayer* RecorderLayer::create() {
+    auto ret = new RecorderLayer();
+    if (ret->initAnchored(360.f, 240.f, "GJ_square01.png")) {
+        ret->autorelease();
+        return ret;
+    }
+
+    delete ret;
+    return nullptr;
+}
+
+bool RecorderLayer::setup() {
+    auto& recorder = Recorder::get();
+    this->setTitle("Recorder");
+
+    auto menu = CCMenu::create();
+    menu->setPosition({0, 0});
+
+    auto createTextInput = [&menu, &recorder](const cocos2d::CCPoint& position, const std::string& filter, const std::string& initial_value, float width, const std::function<void(const std::string&)>& callback) {
+        TextInput* input = TextInput::create(width, "Input", "chatFont.fnt");
+        input->setFilter(filter);
+        input->setPosition(position);
+        input->setString(initial_value);
+        input->setCallback(callback);
+        menu->addChild(input);
+        return input;
+    };
+
+    auto createLabel = [&menu](const std::string& text, const cocos2d::CCPoint& position) {
+        auto label = CCLabelBMFont::create(text.c_str(), "bigFont.fnt");
+        label->setAnchorPoint({0.f, 0.5f});
+        label->setPosition(position);
+        label->setScale(0.5f);
+        menu->addChild(label);
+        return label;
+    };
+
+    CCMenuItemToggler* record_toggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [this, &recorder](CCMenuItemToggler* sender) {
+        auto pl = PlayLayer::get();
+        auto& config = Config::get();
+        auto& engine = ReplayEngine::get();
+
+        recorder.enabled = !sender->isOn();
+
+        if (pl && pl->m_hasCompletedLevel) {
+            FLAlertLayer::create("Recorder", "Restart level to start recording", "OK");
+            recorder.enabled = false;
+            sender->toggle(true);
+        }
+        else {                                    
+            bool fps_enabled = config.get<bool>("tps_enabled", false);
+            bool check = recorder.fps <= config.get<float>("tps_value", 60.f);
+            bool check2 = recorder.fps >= 60 && recorder.fps <= 240;        
+            if (engine.engine_v2 ? (!fps_enabled && check2) : (fps_enabled && check)) {
+                if (recorder.enabled) {
+                    geode::utils::file::pick(geode::utils::file::PickMode::OpenFolder, {std::nullopt, {}}).listen(
+                            [&](geode::Result<std::filesystem::path>* path) {
+                        if (!path->isErr()) {
+                            auto path_final = path->unwrap();
+                            auto pl = PlayLayer::get();
+                            if (pl) {
+                                recorder.folderShowcasesPath = path_final;
+                                
+                                recorder.video_name = fmt::format("{}.{}", recorder.video_name2, recorder.flvc_enabled ? "flvc" : "mp4");
+
+                                if (!recorder.is_recording) {
+                                    recorder.start("");
+                                    FLAlertLayer::create("Recorder", fmt::format("Recording started!\nFilename: {}\nPath {}\nSize: {}x{}\nFPS: {}",
+                                                    recorder.video_name, recorder.folderShowcasesPath, recorder.width, recorder.height, recorder.fps), "OK")->show();
+                                }
+                            }                     
+                        }
+                        else {
+                            FLAlertLayer::create("Recorder", "Not selected directory", "OK")->show();
+                            sender->toggle(false);
+                        }
+                    });
+                }                        
+                else {
+                    recorder.stop();
+                    FLAlertLayer::create("Recorder", "Recording stopped!", "OK")->show();
+                }
+            }
+            else {
+                recorder.enabled = false;
+                sender->toggle(true);
+                if (engine.engine_v2) {
+                    if (fps_enabled)
+                        FLAlertLayer::create("Recorder", "Disable TPS Bypass to start render", "OK")->show();
+
+                    if (!check2)
+                        FLAlertLayer::create("Recorder", "Recorder FPS values must be within the range 60 to 240", "OK")->show();
+                }
+                else {
+                    recorder.enabled = false;
+                    sender->toggle(true);
+
+                    if (!fps_enabled)
+                        FLAlertLayer::create("Recorder", "Enable TPS Bypass to start render", "OK")->show();
+
+                    if (!check)
+                        FLAlertLayer::create("Recorder", "Recorder FPS should not be more than the current TPS", "OK")->show();
+                }
+
+            }
+        }
+    });
+    record_toggle->toggle(recorder.enabled);
+    record_toggle->setPosition({25.f, 190.f});
+    menu->addChild(record_toggle);
+    auto record_label = AddTextToToggle("Start Record", record_toggle);
+    menu->addChild(record_label);
+
+    createTextInput({260.f, 190.f}, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789", recorder.video_name2, 180.f, [&recorder](const std::string& text) {
+        if (utilsH::isNumeric(text)) {
+            recorder.video_name2 = text;
+        }
+    });
+
+    createLabel("Resolution:", {15.f, 165.f});
+    auto width_input = createTextInput({35.f, 140.f}, "1234567890", std::to_string(recorder.width), 40.f, [&recorder](const std::string& text) {
+        if (utilsH::isNumeric(text)) {
+            recorder.width = std::stoi(text);
+        }
+    });
+    createLabel("x", {57.f, 140.f});
+    auto height_input = createTextInput({92.f, 140.f}, "1234567890", std::to_string(recorder.height), 40.f, [&recorder](const std::string& text) {
+        if (utilsH::isNumeric(text)) {
+            recorder.height = std::stoi(text);
+        }
+    });
+    createLabel("@", {115.f, 140.f});
+    auto fps_input = createTextInput({152.f, 140.f}, "1234567890", std::to_string(recorder.fps), 40.f, [&recorder](const std::string& text) {
+        if (utilsH::isNumeric(text)) {
+            recorder.fps = std::stoi(text);
+        }
+    });
+
+    auto fullSizeButton = ButtonSprite::create("Full Size", 60, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
+    auto fullSizeButtonClick = CCMenuItemExt::createSpriteExtra(fullSizeButton, [this, &recorder, width_input, height_input](CCMenuItemSpriteExtra* sender) {
+        auto size = CCEGLView::get()->getFrameSize();
+        recorder.width = size.width;
+        recorder.height = size.height;
+        width_input->setString(std::to_string(recorder.width));
+        height_input->setString(std::to_string(recorder.height));
+    });
+    fullSizeButtonClick->setPosition({215, 140});
+    menu->addChild(fullSizeButtonClick);
+
+    createLabel("Encoder Settings:", {15.f, 110.f});
+    auto bitrate_input = createTextInput({35.f, 85.f}, "1234567890M", recorder.bitrate, 40.f, [&recorder](const std::string& text) {
+        recorder.bitrate = text;
+    });
+
+    CCMenuItemToggler* flvc_toggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [this, &recorder](CCMenuItemToggler* sender) { 
+        recorder.flvc_enabled = !sender->isOn();
+    });
+    flvc_toggle->setPosition({75.f, 85.f});
+    flvc_toggle->toggle(recorder.flvc_enabled);
+    menu->addChild(flvc_toggle);
+    auto flvc_label = AddTextToToggle("FLVC", flvc_toggle);
+    menu->addChild(flvc_label);
+
+    CCMenuItemToggler* hide_level_complete_toggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [this, &recorder](CCMenuItemToggler* sender) {
+        recorder.hide_level_complete = !sender->isOn();
+    });
+    hide_level_complete_toggle->setPosition({150.f, 85.f});
+    hide_level_complete_toggle->toggle(recorder.hide_level_complete);
+    menu->addChild(hide_level_complete_toggle);
+    auto hide_level_complete_label = AddTextToToggle("Hide Level Complete", hide_level_complete_toggle);
+    menu->addChild(hide_level_complete_label);
+
+    createLabel("Level Settings:", {15.f, 55.f});
+    auto seconds_to_render_after_input = createTextInput({35.f, 30.f}, "1234567890.", std::format("{:.2f}", recorder.after_end_duration), 40.f, [&recorder](const std::string& text) {
+        if (utilsH::isNumeric(text)) {
+            recorder.after_end_duration = std::stof(text);
+        }
+    });
+    auto seconds_to_render_after_label = createLabel("Seconds to render after", {65.f, 30.f});
+
+    m_mainLayer->addChild(menu);
+    return true;
 }

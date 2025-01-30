@@ -70,8 +70,8 @@ void Hacks::Init() {
                 {"Show Total Attempts", "", "show_total_attempts"},  // +
                 {"Straight Fly Bot", "", "straight_fly_bot"},  // +
                 {"Stop triggers on death", "Stops move/rotation triggers on death so you can see what killed you", "stop_triggers_on_death"},   // +
-                {"All Modes Platformer", "Removes the limit on all modes in the platformer", "all_modes_platformer"},
-                {"Force Platformer", "Enables platformer mode in all levels", "force_platformer"},
+                // {"All Modes Platformer", "Removes the limit on all modes in the platformer", "all_modes_platformer"},
+                {"Force Platformer", "Enables platformer mode in all levels", "force_platformer"}, // +
                 {"Hide Attempts", "Hides the attempt count in-game", "hide_attempts", "0135"}, // +
                 {"Hide Pause Button", "Removes the pause button when the cursor is shown", "hide_pause_button"}, // +
                 {"Hide Pause Menu", "Removes the pause menu", "hide_pause_menu"},  // +        

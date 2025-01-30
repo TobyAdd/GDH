@@ -342,11 +342,23 @@ class $modify(MyPlayLayer, PlayLayer) {
         if (engine.mode == state::disable)
             engine.replay_name = fmt::format("{}", level->m_levelName);
 
-        if (!recorder.is_recording)
+        if (!recorder.is_recording) {
             recorder.video_name = fmt::format("{}.mp4", level->m_levelName);
+            recorder.video_name2 = fmt::format("{}", level->m_levelName);
+        }            
 
         if (!recorderAudio.is_recording)
             recorderAudio.audio_name = fmt::format("{}.wav", level->m_levelName);
+
+        if (config.get<bool>("force_platformer", false)) {
+            if (m_player1) m_player1->togglePlatformerMode(true);
+            if (m_player2) m_player2->togglePlatformerMode(true);
+
+            #ifdef GEODE_IS_MOBILE
+            if (m_uiLayer)
+                m_uiLayer->togglePlatformerMode(true);
+            #endif
+        }
         
         m_fields->labels_top_left     = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
         m_fields->labels_top_right    = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
@@ -1090,6 +1102,23 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
             }
         }
         GJBaseGameLayer::collisionCheckObjects(player, objects, objectCount, dt);
+    }
+};
+
+class $modify(ForcePlatformerGJBLHook, GJBaseGameLayer) {
+    void loadLevelSettings() {
+        auto& config = Config::get();
+
+        bool platformerMode = m_levelSettings->m_platformerMode;
+        int levelLength = m_levelSettings->m_level->m_levelLength;
+        if (config.get<bool>("force_platformer", false)) {
+            m_levelSettings->m_platformerMode = true;
+        }
+
+        GJBaseGameLayer::loadLevelSettings();
+
+        m_levelSettings->m_platformerMode = platformerMode;
+        m_levelSettings->m_level->m_levelLength = levelLength;
     }
 };
 

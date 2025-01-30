@@ -26,6 +26,7 @@ public:
 
     std::filesystem::path folderShowcasesPath = folderPath / "Showcases";
     std::string video_name = "video.mp4";
+    std::string video_name2 = "video";
 
     bool settings_openned = false;
 
@@ -37,7 +38,7 @@ public:
 
     bool lock_aspect_ratio = true;
 
-    std::string bitrate = "0";
+    std::string bitrate = "25M";
     std::string codec = "libx264";
     std::string extra_args = "-pix_fmt yuv420p -preset ultrafast";
     std::string vf_args = "\"vflip\"";
@@ -84,6 +85,8 @@ public:
     void applyWinSize();
     void restoreWinSize();
     bool needRevertOld = false;
+
+    bool flvc_enabled = false;
 private:
     Recorder() = default;
 

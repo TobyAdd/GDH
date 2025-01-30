@@ -93,8 +93,7 @@ private:
     std::unique_ptr<AVFrame, AVFrameDeleter> frame;
     std::unique_ptr<AVPacket, AVPacketDeleter> pkt;
 
-    bool initializeEncoder(int width, int height, int fps, int64_t bitrate, 
-                         const std::filesystem::path& outputFilePath) {
+    bool initializeEncoder(int width, int height, int fps, int64_t bitrate, const std::filesystem::path& outputFilePath) {
         logMessage("Initializing H264Encoder with parameters:");
         logMessage("Width: " + std::to_string(width));
         logMessage("Height: " + std::to_string(height));
@@ -147,8 +146,7 @@ private:
 
     bool setupFormatContext(const std::filesystem::path& outputFilePath) {
         AVFormatContext* fmt_ctx_ptr = nullptr;
-        if (avformat_alloc_output_context2(&fmt_ctx_ptr, nullptr, nullptr, 
-                                         outputFilePath.c_str()) < 0) {
+        if (avformat_alloc_output_context2(&fmt_ctx_ptr, nullptr, nullptr, outputFilePath.c_str()) < 0) {
             logMessage("Error: Could not allocate output context");
             return false;
         }
@@ -226,9 +224,7 @@ private:
 
         const int stride = c->width * 3;
         for (int y = 0; y < c->height; y++) {
-            memcpy(rgbFrame->data[0] + y * rgbFrame->linesize[0],
-                   frameData.data() + y * stride,
-                   stride);
+            memcpy(rgbFrame->data[0] + y * rgbFrame->linesize[0], frameData.data() + y * stride, stride);
         }
 
         SwsContext* sws_ctx = sws_getContext(

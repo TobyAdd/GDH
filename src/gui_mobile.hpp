@@ -42,3 +42,9 @@ public:
     static ReplaySelectLayer* create(geode::TextInput* textInput); 
     bool setup();
 };
+
+class RecorderLayer : public geode::Popup<> {;
+public:
+    static RecorderLayer* create(); 
+    bool setup();
+};

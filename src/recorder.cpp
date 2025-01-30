@@ -11,6 +11,7 @@
 #ifdef GEODE_IS_ANDROID
 #include "h264_encoder.hpp"
 #endif
+#include "utils.hpp"
 
 void RenderTexture::begin() {   
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &oldFBO);
@@ -71,6 +72,8 @@ void RenderTexture::end() {
 }
 
 void Recorder::applyWinSize() {
+    auto pl = PlayLayer::get();
+    if (pl && pl->m_isPaused) return;
     if (newDesignResolution.width != 0 && newDesignResolution.height != 0) {    
         cocos2d::CCDirector::get()->m_obWinSizeInPoints = newDesignResolution;        
         auto view = cocos2d::CCEGLView::get();
@@ -111,9 +114,6 @@ void Recorder::start(std::string command) {
     originalScreenScale = cocos2d::CCSize(view->m_fScaleX, view->m_fScaleY);
     newScreenScale = cocos2d::CCSize(static_cast<float>(width) / newDesignResolution.width, static_cast<float>(height) / newDesignResolution.height);
 
-    if (oldDesignResolution != newDesignResolution)
-        applyWinSize();
-
     frame_has_data = false;
     current_frame.resize(width * height * 3, 0);
     is_recording = true;
@@ -150,7 +150,20 @@ void Recorder::start(std::string command) {
                 return;
             }
             #elif defined(GEODE_IS_ANDROID64) 
-            H264Encoder encoder(width, height, fps, 20000000, folderShowcasesPath / video_name);
+            auto convert_bitrate = [](const std::string& str) -> int64_t {
+                size_t len = str.length();                
+                if (len == 0) return 0;                
+                bool isMegabit = (str[len - 1] == 'M' || str[len - 1] == 'm');                
+                std::string num_str = isMegabit ? str.substr(0, len - 1) : str;
+
+                if (utilsH::isNumeric(num_str)) {
+                    return std::stoll(num_str) * (isMegabit ? 1000000 : 1);
+                }
+
+                return 0;                
+            };
+
+            H264Encoder encoder(width, height, fps, convert_bitrate(bitrate), folderShowcasesPath / video_name);
             while (is_recording || frame_has_data) {
                 lock.lock();
                 if (frame_has_data) {

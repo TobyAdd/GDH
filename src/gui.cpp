@@ -566,11 +566,6 @@ void Gui::Render() {
                     
                     if (canRecord)
                     {
-                        if (!config.get<bool>("practice_fix", false)) {
-                            config.set<bool>("practice_fix", true);
-                            ImGuiH::Popup::get().add_popup("Practice Fix was enabled for more accurate macro recording");
-                        }
-
                         if (engine.mode != state::record) {
                             engine.clear();
                         }
@@ -740,6 +735,7 @@ void Gui::Render() {
                                                 ImGuiH::Popup::get().add_popup("Recorder FPS values must be within the range 60 to 240");
                                         }
                                         else {
+                                            recorder.enabled = false;
                                             if (!fps_enabled)
                                                 ImGuiH::Popup::get().add_popup("Enable TPS Bypass to start render");
                                             
