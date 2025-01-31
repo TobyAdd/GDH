@@ -120,10 +120,21 @@ public:
 
     float old_volume_music;
     float old_volume_sfx;
-    
+
     void start();
-    void stop(); 
-    void handle_recording(float dt);  
+    void stop();
+    void handle_recording(float dt);
+
+    std::vector<float> get_data();
+
 private:
     RecorderAudio() = default;
+
+    FMOD::DSP* m_dsp = nullptr;
+    FMOD::ChannelGroup* m_masterGroup = nullptr;
+    std::vector<float> m_data;
+    std::mutex m_data_mutex;
+
+    void init();
+    void save_to_wav(const std::filesystem::path& filename);
 };

@@ -52,7 +52,7 @@ void Hacks::Init() {
                 {"Allow Low Volume", "Removes the limit on minimum volume percentage", "allow_low_volume"},  // +
                 {"Coins In Practice", "The ability to collect coins in practice", "coins_in_practice"},  // +
                 {"Confirm Exit", "Warning before level exit", "confim_exit", "0167"},  // +  
-                {"Cheat Indicator", "", "cheat_indicator"},  // +
+                // {"Cheat Indicator", "", "cheat_indicator"},  // +
                 {"Fast Chest Open", "Removes the delay for opening chests", "fast_chest_open"}, 
                 // {"Random Seed", "Changes the seed game so that the random trigger is not triggered randomly", "random_seed"},
                 {"Respawn Time", "Changes respawn time on death", "respawn_time"},  // +

@@ -198,6 +198,8 @@ void Recorder::stop() {
     needRevertOld = true;
     #ifdef GEODE_IS_WINDOWS
     ImGuiH::Popup::get().add_popup("Video recording stoped!");
+    #elif defined(GEODE_IS_ANDROID64) 
+    FLALertLayer::create("Recorder", "Video recording stoped!", "OK")->show();
     #endif
     
 }
@@ -272,41 +274,82 @@ void Recorder::compile_vf_args() {
     }
 }
 
+void RecorderAudio::init() {
+    auto system = FMODAudioEngine::get()->m_system;
+
+    FMOD_DSP_DESCRIPTION desc = {};
+    strcpy(desc.name, "DSP Recorder");
+    desc.numinputbuffers = 1;
+    desc.numoutputbuffers = 1;
+    desc.read = [](FMOD_DSP_STATE* dspState, float* inBuffer, float* outBuffer, unsigned int length, int inChannels, int* outChannels) {
+        auto recorder = &RecorderAudio::get();
+        if (!recorder->is_recording) return FMOD_OK;
+
+        auto channels = *outChannels;
+
+        recorder->m_data_mutex.lock();
+        recorder->m_data.insert(recorder->m_data.end(), inBuffer, inBuffer + length * channels);
+        recorder->m_data_mutex.unlock();
+
+        std::memcpy(outBuffer, inBuffer, length * channels * sizeof(float));
+
+        return FMOD_OK;
+    };
+
+    system->createDSP(&desc, &m_dsp);
+    system->getMasterChannelGroup(&m_masterGroup);
+}
+
 void RecorderAudio::start() {
+    if (is_recording) return;
+
+    init();
+
     is_recording = true;
     after_end_extra_time = 0;
 
     auto fmod_engine = FMODAudioEngine::get();
-    
+
     old_volume_music = fmod_engine->getBackgroundMusicVolume();
     old_volume_sfx = fmod_engine->getEffectsVolume();
 
     fmod_engine->setBackgroundMusicVolume(1.f);
     fmod_engine->setEffectsVolume(1.f);
 
-    fmod_engine->m_system->setOutput(FMOD_OUTPUTTYPE_WAVWRITER);
+    m_masterGroup->addDSP(0, m_dsp);
+
+    m_data_mutex.lock();
+    m_data.clear();
+    m_data_mutex.unlock();
 }
 
 void RecorderAudio::stop() {
+    if (!is_recording) return;
+
     enabled = false;
     is_recording = false;
 
-    auto fmod_engine = FMODAudioEngine::get();
-    fmod_engine->m_system->setOutput(FMOD_OUTPUTTYPE_AUTODETECT);
+    m_masterGroup->removeDSP(m_dsp);
 
+    auto fmod_engine = FMODAudioEngine::get();
     fmod_engine->setBackgroundMusicVolume(old_volume_music);
     fmod_engine->setEffectsVolume(old_volume_sfx);
 
+    #ifdef GEODE_IS_WINDOWS
     ImGuiH::Popup::get().add_popup("Audio recording stoped!");
+    #elif defined(GEODE_IS_ANDROID64) 
+    FLALertLayer::create("Recorder", "Audio recording stoped!", "OK")->show();
+    #endif
 
-    if (std::filesystem::exists("fmodoutput.wav")) {
-        try {
-            std::filesystem::rename("fmodoutput.wav", Recorder::get().folderShowcasesPath / audio_name);
-        }
-        catch (const std::filesystem::filesystem_error& e) {
-            geode::log::error("Error moving file: {}", e.what());
-        }
-    }    
+    save_to_wav(Recorder::get().folderShowcasesPath / audio_name);
+}
+
+std::vector<float> RecorderAudio::get_data() {
+    m_data_mutex.lock();
+    auto data = m_data;
+    m_data.clear();
+    m_data_mutex.unlock();
+    return data;
 }
 
 void RecorderAudio::handle_recording(float dt) {
@@ -316,9 +359,58 @@ void RecorderAudio::handle_recording(float dt) {
             if (playLayer->m_hasCompletedLevel) {
                 after_end_extra_time += dt;
             }
-        }
-        else {
+        } else {
             stop();
-        } 
-    }  
+        }
+    }
+}
+
+void RecorderAudio::save_to_wav(const std::filesystem::path& filename) {
+    m_data_mutex.lock();
+
+    if (m_data.empty()) {
+        m_data_mutex.unlock();
+        return;
+    }
+
+    int sampleRate;
+    int channels;
+    FMODAudioEngine::get()->m_system->getSoftwareFormat(&sampleRate, nullptr, &channels);
+
+    std::ofstream outFile(filename, std::ios::binary);
+    if (!outFile.is_open()) {
+        m_data_mutex.unlock();
+        return;
+    }
+
+    struct WavHeader {
+        char chunkId[4] = {'R', 'I', 'F', 'F'};
+        uint32_t chunkSize;
+        char format[4] = {'W', 'A', 'V', 'E'};
+        char subchunk1Id[4] = {'f', 'm', 't', ' '};
+        uint32_t subchunk1Size = 16;
+        uint16_t audioFormat = 3;
+        uint16_t numChannels;
+        uint32_t sampleRate;
+        uint32_t byteRate;
+        uint16_t blockAlign;
+        uint16_t bitsPerSample = 32;
+        char subchunk2Id[4] = {'d', 'a', 't', 'a'};
+        uint32_t subchunk2Size;
+    };
+
+    WavHeader header;
+    header.numChannels = static_cast<uint16_t>(channels);
+    header.sampleRate = static_cast<uint32_t>(sampleRate);
+    header.byteRate = header.sampleRate * header.numChannels * (header.bitsPerSample / 8);
+    header.blockAlign = header.numChannels * (header.bitsPerSample / 8);
+    header.subchunk2Size = static_cast<uint32_t>(m_data.size() * sizeof(float));
+    header.chunkSize = 36 + header.subchunk2Size;
+
+    outFile.write(reinterpret_cast<char*>(&header), sizeof(header));
+    outFile.write(reinterpret_cast<char*>(m_data.data()), m_data.size() * sizeof(float));
+
+    outFile.close();
+
+    m_data_mutex.unlock();
 }

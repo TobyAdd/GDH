@@ -30,11 +30,13 @@ $execute {
 	auto& config = Config::get();
     config.load(fileDataPath);
 
-    if (config.get<float>("speedhack_value", 1.f) < 0.25f)
-        config.set<float>("speedhack_value", 1.f);
+    float speedhack_value = config.get<float>("speedhack_value", 1.f);
+    speedhack_value = std::clamp(speedhack_value, 0.25f, 500.f);
+    config.set<float>("speedhack_value", speedhack_value);
 
-    if (config.get<float>("tps_value", 60.f) < 30.f)
-        config.set<float>("tps_value", 60.f);
+    float tps_value = config.get<float>("tps_value", 60.f);
+    tps_value = std::clamp(tps_value, 30.f, 240.f);
+    config.set<float>("tps_value", tps_value);
 
     CheckDir(folderMacroPath);
     CheckDir(Config::get().get<std::filesystem::path>("showcases_path", folderPath / "Showcases"));

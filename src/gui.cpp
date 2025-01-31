@@ -1032,7 +1032,7 @@ void Gui::Render() {
                                     recorder.compile_vf_args();
                                     if (!recorder.vf_args.empty())
                                         recorder.vf_args += ",";
-                                    recorder.vf_args += "scale=out_color_matrix=bt709";
+                                    recorder.vf_args += "colorspace=all=bt709:iall=bt470bg:fast=1";
                                 }
                             }
 
