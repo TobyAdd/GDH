@@ -41,7 +41,6 @@
 #include "replayEngine.hpp"
 #include "recorder.hpp"
 #include "gui.hpp"
-#include "practiceFix.hpp"
 
 std::vector<GameObject*> dualPortals, gamemodePortals, miniPortals, speedChanges, mirrorPortals;
 
@@ -248,9 +247,6 @@ class $modify(MyPlayLayer, PlayLayer) {
         cocos2d::CCMenu* startposSwitcherUI;
 
         cocos2d::CCSprite* tint_death_bg;
-
-        std::vector<checkpoint_data> checkpoints_p1;
-        std::vector<checkpoint_data> checkpoints_p2;
         
         ~Fields() {
             startPositions.clear();
@@ -586,17 +582,6 @@ class $modify(MyPlayLayer, PlayLayer) {
 
         left_over = 0;
 
-        if (config.get<bool>("practice_fix", false)) {
-            if (m_isPracticeMode && !m_fields->checkpoints_p1.empty() && !m_fields->checkpoints_p2.empty()) {
-                apply_checkpoint(m_player1, m_fields->checkpoints_p1.back());
-                apply_checkpoint(m_player2, m_fields->checkpoints_p2.back());
-            }
-            else if (!m_isPracticeMode) {
-                m_fields->checkpoints_p1.clear();
-                m_fields->checkpoints_p2.clear();
-            }
-        }
-
         if (config.get<bool>("smart_startpos", false)) {
             for (StartPosObject* obj : startPositions)
                 setupStartPos(obj);
@@ -693,38 +678,11 @@ class $modify(MyPlayLayer, PlayLayer) {
 
         if (!config.get("checkpoint_limit", false)) {
             PlayLayer::storeCheckpoint(obj);
-
-            if (config.get<bool>("practice_fix", false)) {
-                if (m_fields->checkpoints_p1.size() >= 50) 
-                    m_fields->checkpoints_p1.erase(m_fields->checkpoints_p1.begin()); 
-
-                m_fields->checkpoints_p1.push_back(create_checkpoint(m_player1));
-
-                if (m_fields->checkpoints_p2.size() >= 50) 
-                    m_fields->checkpoints_p2.erase(m_fields->checkpoints_p2.begin());
-                
-                m_fields->checkpoints_p2.push_back(create_checkpoint(m_player2));
-            }
             return;
         }
         
         m_checkpointArray->addObject(obj);
         PlayLayer::addToSection(obj->m_physicalCheckpointObject);
-
-        if (config.get<bool>("practice_fix", false)) {
-            m_fields->checkpoints_p1.push_back(create_checkpoint(m_player1));
-            m_fields->checkpoints_p2.push_back(create_checkpoint(m_player2));
-        }
-    }
-
-    void removeCheckpoint(bool p0) {
-        auto& config = Config::get();
-        
-        PlayLayer::removeCheckpoint(p0);
-        if (config.get<bool>("practice_fix", false)) {
-            if (!m_fields->checkpoints_p1.empty()) m_fields->checkpoints_p1.pop_back();
-            if (!m_fields->checkpoints_p2.empty()) m_fields->checkpoints_p2.pop_back();
-        }
     }
 
     void updateVisibility(float dt)  {   

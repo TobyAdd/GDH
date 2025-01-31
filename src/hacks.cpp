@@ -52,7 +52,7 @@ void Hacks::Init() {
                 {"Allow Low Volume", "Removes the limit on minimum volume percentage", "allow_low_volume"},  // +
                 {"Coins In Practice", "The ability to collect coins in practice", "coins_in_practice"},  // +
                 {"Confirm Exit", "Warning before level exit", "confim_exit", "0167"},  // +  
-                // {"Cheat Indicator", "", "cheat_indicator"},  // +
+                // {"Cheat Indicator", "", "cheat_indicator"},
                 {"Fast Chest Open", "Removes the delay for opening chests", "fast_chest_open"}, 
                 // {"Random Seed", "Changes the seed game so that the random trigger is not triggered randomly", "random_seed"},
                 {"Respawn Time", "Changes respawn time on death", "respawn_time"},  // +
@@ -91,7 +91,7 @@ void Hacks::Init() {
                 {"No Pulse", "Disables pulsation of falls, orbs, etc", "no_pulse"}, // +
                 {"Pause On Complete", "Lets you pouse during the level complete animation", "pause_during_complete"}, // +
                 {"Pitch Shifter", "Shifts the pitch of background music", "pitch_shifter"}, // +
-                {"Practice Fix", "More accurate respawning in practice mode (used for botting)", "practice_fix"}, // +
+                // {"Practice Fix", "More accurate respawning in practice mode (used for botting)", "practice_fix"},
                 {"Pulse Size", "Changes pulsation of falls, orbs, etc", "pulse_size"}, // +
                 {"No Robot Fire", "Hides robot boost fire", "no_robot_fire"}, // +
                 {"No Spider Dash", "Disables spider dash trail when teleporting", "no_spider_dash"}, // +
