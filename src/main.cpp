@@ -104,7 +104,10 @@ class $modify(MenuLayer) {
 class $modify(PauseLayer) {
     void customSetup() {
         PauseLayer::customSetup();
-        setupButton(this, {40, cocos2d::CCDirector::sharedDirector()->getScreenTop() - 45.f}, "hacks-button"_spr);
+        auto top = cocos2d::CCDirector::sharedDirector()->getScreenTop();
+        static geode::Mod* clickSoundsMod = geode::Loader::get()->getLoadedMod("beat.click-sound");
+        static bool hasClickSoundsMod = clickSoundsMod != nullptr && clickSoundsMod->isEnabled();
+        setupButton(this, {40, hasClickSoundsMod ? top - 80.f : top - 45.f}, "hacks-button"_spr);
     }
 };
 

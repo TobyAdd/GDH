@@ -130,10 +130,11 @@ public:
     void handle_recording(float dt);
 
     std::vector<float> get_data();
+    std::string get_data_size();
 
 private:
     RecorderAudio() = default;
-
+    
     FMOD::DSP* m_dsp = nullptr;
     FMOD::ChannelGroup* m_masterGroup = nullptr;
     std::vector<float> m_data;

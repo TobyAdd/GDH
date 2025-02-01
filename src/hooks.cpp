@@ -410,6 +410,7 @@ class $modify(MyPlayLayer, PlayLayer) {
     void postUpdate(float dt) {
         auto& config = Config::get();
         auto& labels = Labels::get();
+        auto& recorderAudio = RecorderAudio::get();
 
         PlayLayer::postUpdate(dt);
 
@@ -434,10 +435,16 @@ class $modify(MyPlayLayer, PlayLayer) {
         }
         
         auto size = cocos2d::CCDirector::sharedDirector()->getWinSize();
+
+        std::string bottom_left;
+        bottom_left += labels.get_label_string(LabelCorner_BottomRight);
+        if (recorderAudio.is_recording) {
+            bottom_left += fmt::format("Audio recording ({})\n", recorderAudio.get_data_size());
+        }
         
         m_fields->labels_top_left->    setCString(labels.get_label_string(LabelCorner_TopLeft).c_str());
         m_fields->labels_top_right->   setCString(labels.get_label_string(LabelCorner_TopRight).c_str());
-        m_fields->labels_bottom_left-> setCString(labels.get_label_string(LabelCorner_BottomLeft).c_str());
+        m_fields->labels_bottom_left-> setCString(bottom_left.c_str());
         m_fields->labels_bottom_right->setCString(labels.get_label_string(LabelCorner_BottomRight).c_str());
         m_fields->labels_bottom->      setCString(labels.get_label_string(LabelCorner_Bottom).c_str());
         m_fields->labels_top->         setCString(labels.get_label_string(LabelCorner_Top).c_str());

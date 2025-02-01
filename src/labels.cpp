@@ -236,23 +236,28 @@ void Labels::initMobileContext(geode::ScrollLayer* scrollLayer) {
     labelSettings->setScale(0.5f);
     auto labelSettingsClick = CCMenuItemExt::createSpriteExtra(labelSettings, [this](CCMenuItemSpriteExtra* sender) {
         auto popup = popupSystem::create();
+        auto& config = Config::get();
 
         popup->AddText("Opacity (0 - 1.0):", 0.35f);
-        popup->AddFloatInput("Opacity", opacity, [this](float value) 
+        popup->AddFloatInput("Opacity", opacity, [this, &config](float value) 
         {
-            opacity = std::clamp(value, 0.f, 1.f);
+            value = std::clamp(value, 0.f, 1.f);
+            opacity = value;
+            config.set<float>("label-opacity", value);
         }, 30.f);
         
         popup->AddText("Size:", 0.35f);
-        popup->AddFloatInput("Size", size, [this](float value) 
+        popup->AddFloatInput("Size", size, [this, &config](float value) 
         {
             size = value;
+            config.set<float>("label-size", value);
         }, 30.f);     
 
         popup->AddText("Label Padding:", 0.35f);
-        popup->AddFloatInput("Label Padding", padding, [this](float value) 
+        popup->AddFloatInput("Label Padding", padding, [this, &config](float value) 
         {
             padding = value;
+            config.set<float>("label-padding", value);
         }, 30.f);
 
         popup->show();

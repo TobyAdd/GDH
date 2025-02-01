@@ -288,10 +288,10 @@ void RecorderAudio::init() {
         if (!recorder->is_recording) return FMOD_OK;
 
         auto channels = *outChannels;
-
-        recorder->m_data_mutex.lock();
-        recorder->m_data.insert(recorder->m_data.end(), inBuffer, inBuffer + length * channels);
-        recorder->m_data_mutex.unlock();
+        {
+            std::lock_guard<std::mutex> lock(recorder->m_data_mutex);
+            recorder->m_data.insert(recorder->m_data.end(), inBuffer, inBuffer + length * channels);
+        }
 
         std::memcpy(outBuffer, inBuffer, length * channels * sizeof(float));
 
@@ -306,12 +306,11 @@ void RecorderAudio::start() {
     if (is_recording) return;
 
     init();
-
+    
     is_recording = true;
     after_end_extra_time = 0;
 
     auto fmod_engine = FMODAudioEngine::get();
-
     old_volume_music = fmod_engine->getBackgroundMusicVolume();
     old_volume_sfx = fmod_engine->getEffectsVolume();
 
@@ -320,9 +319,10 @@ void RecorderAudio::start() {
 
     m_masterGroup->addDSP(0, m_dsp);
 
-    m_data_mutex.lock();
-    m_data.clear();
-    m_data_mutex.unlock();
+    {
+        std::lock_guard<std::mutex> lock(m_data_mutex);
+        m_data.clear();
+    }
 }
 
 void RecorderAudio::stop() {
@@ -339,10 +339,10 @@ void RecorderAudio::stop() {
     fmod_engine->setEffectsVolume(old_volume_sfx);
 
     #ifdef GEODE_IS_WINDOWS
-    ImGuiH::Popup::get().add_popup("Audio recording stoped!");
+    ImGuiH::Popup::get().add_popup("Audio recording stopped!");
     #elif defined(GEODE_IS_ANDROID64) 
     geode::queueInMainThread([] {
-        FLAlertLayer::create("Recorder", "Audio recording stoped!", "OK")->show();
+        FLAlertLayer::create("Recorder", "Audio recording stopped!", "OK")->show();
     });
     #endif
 
@@ -350,10 +350,9 @@ void RecorderAudio::stop() {
 }
 
 std::vector<float> RecorderAudio::get_data() {
-    m_data_mutex.lock();
+    std::lock_guard<std::mutex> lock(m_data_mutex);
     auto data = m_data;
     m_data.clear();
-    m_data_mutex.unlock();
     return data;
 }
 
@@ -371,22 +370,14 @@ void RecorderAudio::handle_recording(float dt) {
 }
 
 void RecorderAudio::save_to_wav(const std::filesystem::path& filename) {
-    m_data_mutex.lock();
+    std::lock_guard<std::mutex> lock(m_data_mutex);
+    if (m_data.empty()) return;
 
-    if (m_data.empty()) {
-        m_data_mutex.unlock();
-        return;
-    }
-
-    int sampleRate;
-    int channels;
+    int sampleRate, channels;
     FMODAudioEngine::get()->m_system->getSoftwareFormat(&sampleRate, nullptr, &channels);
 
     std::ofstream outFile(filename, std::ios::binary);
-    if (!outFile.is_open()) {
-        m_data_mutex.unlock();
-        return;
-    }
+    if (!outFile.is_open()) return;
 
     struct WavHeader {
         char chunkId[4] = {'R', 'I', 'F', 'F'};
@@ -414,8 +405,19 @@ void RecorderAudio::save_to_wav(const std::filesystem::path& filename) {
 
     outFile.write(reinterpret_cast<char*>(&header), sizeof(header));
     outFile.write(reinterpret_cast<char*>(m_data.data()), m_data.size() * sizeof(float));
+}
 
-    outFile.close();
+std::string RecorderAudio::get_data_size() {
+    std::lock_guard<std::mutex> lock(m_data_mutex);
+    size_t size_in_bytes = m_data.size() * sizeof(float);
 
-    m_data_mutex.unlock();
+    if (size_in_bytes < 1024) {
+        return fmt::format("{} B", size_in_bytes);
+    } else if (size_in_bytes < 1024 * 1024) {
+        return fmt::format("{:.2f} KB", size_in_bytes / 1024.0);
+    } else if (size_in_bytes < 1024 * 1024 * 1024) {
+        return fmt::format("{:.2f} MB", size_in_bytes / (1024.0 * 1024.0));
+    } else {
+        return fmt::format("{:.2f} GB", size_in_bytes / (1024.0 * 1024.0 * 1024.0));
+    }
 }
