@@ -1092,6 +1092,8 @@ void Gui::Render() {
                                     else 
                                         recorderAudio.stop();
                                 }
+                                else if (recorderAudio.showcase_mode && recorderAudio.enabled)
+                                    recorderAudio.stop();
                             }
                         }
 

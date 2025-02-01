@@ -107,6 +107,7 @@ public:
     RecorderAudio(const RecorderAudio&) = delete;
 
     std::string audio_name = "audio.wav";
+    std::string audio_name2 = "audio";
 
     bool enabled = false;
     bool is_recording = false;

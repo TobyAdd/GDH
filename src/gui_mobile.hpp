@@ -43,8 +43,14 @@ public:
     bool setup();
 };
 
-class RecorderLayer : public geode::Popup<> {;
+class RecorderLayer : public geode::Popup<> {
 public:
     static RecorderLayer* create(); 
+    bool setup();
+};
+
+class RecorderAudioLayer : public geode::Popup<> {
+public:
+    static RecorderAudioLayer* create(); 
     bool setup();
 };

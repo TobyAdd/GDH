@@ -5,6 +5,9 @@
 #include "replayEngine.hpp"
 #include "utils.hpp"
 #include "recorder.hpp"
+#ifdef GEODE_IS_ANDROID
+#include "h264_encoder.hpp"
+#endif
 
 using namespace geode::prelude;
 
@@ -335,12 +338,19 @@ bool HacksLayer::setup() {
             auto engineV2_label = AddTextToToggle("Engine v2.1 (Beta)", engineV2_toggle);
             engineTab->addChild(engineV2_label);
 
-            auto justATestButton = ButtonSprite::create("Recorder", 80, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
-            auto justATestButtonClick = CCMenuItemExt::createSpriteExtra(justATestButton, [this](CCMenuItemSpriteExtra* sender) {
+            auto recorderButton = ButtonSprite::create("Recorder", 80, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
+            auto recorderButtonClick = CCMenuItemExt::createSpriteExtra(recorderButton, [this](CCMenuItemSpriteExtra* sender) {
                 RecorderLayer::create()->show();
             });
-            justATestButtonClick->setPosition({270, 25});
-            engineTab->addChild(justATestButtonClick);
+            recorderButtonClick->setPosition({170, 25});
+            engineTab->addChild(recorderButtonClick);
+
+            auto recorderAudioButton = ButtonSprite::create("Audio", 80, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
+            auto recorderAudioButtonClick = CCMenuItemExt::createSpriteExtra(recorderAudioButton, [this](CCMenuItemSpriteExtra* sender) {
+                RecorderAudioLayer::create()->show();
+            });
+            recorderAudioButtonClick->setPosition({270, 25});
+            engineTab->addChild(recorderAudioButtonClick);
 
             tab->m_scrollLayer->m_contentLayer->addChild(engineTab);
         }
@@ -467,18 +477,16 @@ bool RecorderLayer::setup() {
                             [&](geode::Result<std::filesystem::path>* path) {
                         if (!path->isErr()) {
                             auto path_final = path->unwrap();
-                            auto pl = PlayLayer::get();
-                            if (pl) {
-                                recorder.folderShowcasesPath = path_final;
-                                
-                                recorder.video_name = fmt::format("{}.{}", recorder.video_name2, recorder.flvc_enabled ? "flvc" : "mp4");
 
-                                if (!recorder.is_recording) {
-                                    recorder.start("");
-                                    FLAlertLayer::create("Recorder", fmt::format("Recording started!\nFilename: {}\nPath {}\nSize: {}x{}\nFPS: {}",
-                                                    recorder.video_name, recorder.folderShowcasesPath, recorder.width, recorder.height, recorder.fps), "OK")->show();
-                                }
-                            }                     
+                            recorder.folderShowcasesPath = path_final;
+                            
+                            recorder.video_name = fmt::format("{}.{}", recorder.video_name2, recorder.flvc_enabled ? "flvc" : "mp4");
+
+                            if (!recorder.is_recording) {
+                                recorder.start("");
+                                FLAlertLayer::create("Recorder", fmt::format("Recording started!\nFilename: {}\nPath {}\nSize: {}x{}\nFPS: {}",
+                                                recorder.video_name, recorder.folderShowcasesPath, recorder.width, recorder.height, recorder.fps), "OK")->show();
+                            }                   
                         }
                         else {
                             FLAlertLayer::create("Recorder", "Not selected directory", "OK")->show();
@@ -546,16 +554,16 @@ bool RecorderLayer::setup() {
         }
     });
 
-    auto fullSizeButton = ButtonSprite::create("Full Size", 60, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
-    auto fullSizeButtonClick = CCMenuItemExt::createSpriteExtra(fullSizeButton, [this, &recorder, width_input, height_input](CCMenuItemSpriteExtra* sender) {
-        auto size = CCEGLView::get()->getFrameSize();
-        recorder.width = size.width;
-        recorder.height = size.height;
-        width_input->setString(std::to_string(recorder.width));
-        height_input->setString(std::to_string(recorder.height));
-    });
-    fullSizeButtonClick->setPosition({215, 140});
-    menu->addChild(fullSizeButtonClick);
+    // auto fullSizeButton = ButtonSprite::create("Full Size", 60, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
+    // auto fullSizeButtonClick = CCMenuItemExt::createSpriteExtra(fullSizeButton, [this, &recorder, width_input, height_input](CCMenuItemSpriteExtra* sender) {
+    //     auto size = CCEGLView::get()->getFrameSize();
+    //     recorder.width = size.width;
+    //     recorder.height = size.height;
+    //     width_input->setString(std::to_string(recorder.width));
+    //     height_input->setString(std::to_string(recorder.height));
+    // });
+    // fullSizeButtonClick->setPosition({215, 140});
+    // menu->addChild(fullSizeButtonClick);
 
     createLabel("Encoder Settings:", {15.f, 110.f});
     auto bitrate_input = createTextInput({35.f, 85.f}, "1234567890M", recorder.bitrate, 40.f, [&recorder](const std::string& text) {
@@ -584,6 +592,107 @@ bool RecorderLayer::setup() {
     auto seconds_to_render_after_input = createTextInput({35.f, 30.f}, "1234567890.", std::format("{:.2f}", recorder.after_end_duration), 40.f, [&recorder](const std::string& text) {
         if (utilsH::isNumeric(text)) {
             recorder.after_end_duration = std::stof(text);
+        }
+    });
+    auto seconds_to_render_after_label = createLabel("Seconds to render after", {65.f, 30.f});
+
+    m_mainLayer->addChild(menu);
+    return true;
+}
+
+RecorderAudioLayer* RecorderAudioLayer::create() {
+    auto ret = new RecorderAudioLayer();
+    if (ret->initAnchored(360.f, 240.f, "GJ_square01.png")) {
+        ret->autorelease();
+        return ret;
+    }
+
+    delete ret;
+    return nullptr;
+}
+
+bool RecorderAudioLayer::setup() {
+    auto& recorder = Recorder::get();
+    auto& recorderAudio = RecorderAudio::get();
+    this->setTitle("Recorder (Audio)");
+
+    auto menu = CCMenu::create();
+    menu->setPosition({0, 0});
+
+    auto createTextInput = [&menu, &recorderAudio](const cocos2d::CCPoint& position, const std::string& filter, const std::string& initial_value, float width, const std::function<void(const std::string&)>& callback) {
+        TextInput* input = TextInput::create(width, "Input", "chatFont.fnt");
+        input->setFilter(filter);
+        input->setPosition(position);
+        input->setString(initial_value);
+        input->setCallback(callback);
+        menu->addChild(input);
+        return input;
+    };
+
+    auto createLabel = [&menu](const std::string& text, const cocos2d::CCPoint& position) {
+        auto label = CCLabelBMFont::create(text.c_str(), "bigFont.fnt");
+        label->setAnchorPoint({0.f, 0.5f});
+        label->setPosition(position);
+        label->setScale(0.5f);
+        menu->addChild(label);
+        return label;
+    };
+
+    CCMenuItemToggler* record_toggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [this, &recorder, &recorderAudio](CCMenuItemToggler* sender) {
+        recorderAudio.enabled = !sender->isOn();
+
+        if (recorderAudio.enabled) {
+            geode::utils::file::pick(geode::utils::file::PickMode::OpenFolder, {std::nullopt, {}}).listen(
+                    [&](geode::Result<std::filesystem::path>* path) {
+                if (!path->isErr()) {
+                    auto path_final = path->unwrap();
+                    recorder.folderShowcasesPath = path_final;                        
+                    recorderAudio.audio_name = fmt::format("{}.wav", recorderAudio.audio_name2);
+
+                    if (!recorderAudio.is_recording) {
+                        if (!recorderAudio.showcase_mode)
+                            recorderAudio.start();
+                        FLAlertLayer::create("Recorder (Audio)", 
+                            recorderAudio.showcase_mode ? "Rendering begins when you re-enter the level, ensuring a clean start for recording (make sure macro playback is set up!!)" :
+                                                        "Recording started!", "OK")->show();
+                    }               
+                }
+                else {
+                    FLAlertLayer::create("Recorder", "Not selected directory", "OK")->show();
+                    sender->toggle(false);
+                }
+            });
+        }                        
+        else {
+            recorder.stop();
+            FLAlertLayer::create("Recorder", "Recording stopped!", "OK")->show();
+        }
+    });
+    record_toggle->toggle(recorderAudio.enabled);
+    record_toggle->setPosition({25.f, 190.f});
+    menu->addChild(record_toggle);
+    auto record_label = AddTextToToggle("Start Record", record_toggle);
+    menu->addChild(record_label);
+
+    CCMenuItemToggler* showcaseMode_toggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [this, &recorderAudio](CCMenuItemToggler* sender) {
+        recorderAudio.showcase_mode = !sender->isOn();
+    });
+    showcaseMode_toggle->toggle(recorderAudio.showcase_mode);
+    showcaseMode_toggle->setPosition({25.f, 160.f});
+    menu->addChild(showcaseMode_toggle);
+    auto showcaseMode_label = AddTextToToggle("Showcase Mode", showcaseMode_toggle);
+    menu->addChild(showcaseMode_label);
+
+    createTextInput({260.f, 190.f}, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789", recorderAudio.audio_name2, 180.f, [&recorderAudio](const std::string& text) {
+        if (utilsH::isNumeric(text)) {
+            recorderAudio.audio_name2 = text;
+        }
+    });
+
+    createLabel("Level Settings:", {15.f, 55.f});
+    auto seconds_to_render_after_input = createTextInput({35.f, 30.f}, "1234567890.", std::format("{:.2f}", recorderAudio.after_end_duration), 40.f, [&recorderAudio](const std::string& text) {
+        if (utilsH::isNumeric(text)) {
+            recorderAudio.after_end_duration = std::stof(text);
         }
     });
     auto seconds_to_render_after_label = createLabel("Seconds to render after", {65.f, 30.f});

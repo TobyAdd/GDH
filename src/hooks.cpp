@@ -343,8 +343,10 @@ class $modify(MyPlayLayer, PlayLayer) {
             recorder.video_name2 = fmt::format("{}", level->m_levelName);
         }            
 
-        if (!recorderAudio.is_recording)
+        if (!recorderAudio.is_recording && !recorderAudio.enabled) {
             recorderAudio.audio_name = fmt::format("{}.wav", level->m_levelName);
+            recorderAudio.audio_name2 = fmt::format("{}", level->m_levelName);
+        }
 
         if (config.get<bool>("force_platformer", false)) {
             if (m_player1) m_player1->togglePlatformerMode(true);
@@ -717,10 +719,12 @@ class $modify(MyPlayLayer, PlayLayer) {
     void pauseGame(bool paused) {
         auto& config = Config::get();
         auto& recorderAudio = RecorderAudio::get();
+        #ifdef GEODE_IS_WINDOWS
         if (recorderAudio.enabled) {
             ImGuiH::Popup::get().add_popup("You can't pause because the audio is still recording");
             return;
         }
+        #endif
 
         bool levelEndAnimationStarted = m_levelEndAnimationStarted;
         if (config.get<bool>("pause_during_complete", false))
