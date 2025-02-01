@@ -99,7 +99,7 @@ class $modify(MenuLayer) {
     }
 };
 
-#ifdef GEODE_IS_ANDROID
+// #ifdef GEODE_IS_ANDROID
 
 class $modify(PauseLayer) {
     void customSetup() {
@@ -149,7 +149,7 @@ class $modify(LevelSearchLayer) {
     }
 };
 
-#endif
+// #endif
 
 
 #ifdef GEODE_IS_WINDOWS

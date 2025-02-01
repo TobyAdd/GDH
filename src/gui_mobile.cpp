@@ -649,23 +649,25 @@ bool RecorderAudioLayer::setup() {
                     recorder.folderShowcasesPath = path_final;                        
                     recorderAudio.audio_name = fmt::format("{}.wav", recorderAudio.audio_name2);
 
-                    if (!recorderAudio.is_recording) {
-                        if (!recorderAudio.showcase_mode)
+                        if (!recorderAudio.showcase_mode) {
                             recorderAudio.start();
+                        }
+                        else
+                            recorderAudio.first_start = true;
+
                         FLAlertLayer::create("Recorder (Audio)", 
-                            recorderAudio.showcase_mode ? "Rendering begins when you re-enter the level, ensuring a clean start for recording (make sure macro playback is set up!!)" :
-                                                        "Recording started!", "OK")->show();
-                    }               
+                            recorderAudio.showcase_mode ? "Rendering begins when you re-enter the level (don't forget to set up the macro playback!!)" :
+                                                        "Audio recording started!", "OK")->show();             
                 }
                 else {
-                    FLAlertLayer::create("Recorder", "Not selected directory", "OK")->show();
+                    FLAlertLayer::create("Recorder (Audio)", "Not selected directory", "OK")->show();
                     sender->toggle(false);
                 }
             });
         }                        
-        else {
-            recorder.stop();
-            FLAlertLayer::create("Recorder", "Recording stopped!", "OK")->show();
+        else {            
+            recorderAudio.stop();
+            FLAlertLayer::create("Recorder (Audio)", "Audio recording stoped!", "OK")->show();
         }
     });
     record_toggle->toggle(recorderAudio.enabled);

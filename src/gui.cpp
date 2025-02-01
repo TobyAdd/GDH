@@ -1086,14 +1086,20 @@ void Gui::Render() {
                                 ImGuiH::Popup::get().add_popup("Invalid path to the showcase folder. Please remove any Cyrillic characters");
                             }
                             else {
-                                if (!recorderAudio.showcase_mode) {
-                                    if (recorderAudio.enabled)
+                                if (recorderAudio.enabled) {
+                                    if (!recorderAudio.showcase_mode) {
                                         recorderAudio.start();
-                                    else 
-                                        recorderAudio.stop();
+                                        ImGuiH::Popup::get().add_popup("Audio recording started!");
+                                    }                                        
+                                    else {
+                                        ImGuiH::Popup::get().add_popup("Rendering begins when you re-enter the level (don't forget to set up the macro playback!!)");
+                                        recorderAudio.first_start = true;
+                                    }                                        
                                 }
-                                else if (recorderAudio.showcase_mode && recorderAudio.enabled)
+                                else {
                                     recorderAudio.stop();
+                                    ImGuiH::Popup::get().add_popup("Audio recording stopped!");
+                                }                                    
                             }
                         }
 

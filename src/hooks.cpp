@@ -347,7 +347,6 @@ class $modify(MyPlayLayer, PlayLayer) {
             recorderAudio.audio_name = fmt::format("{}.wav", level->m_levelName);
             recorderAudio.audio_name2 = fmt::format("{}", level->m_levelName);
         }
-
         if (config.get<bool>("force_platformer", false)) {
             if (m_player1) m_player1->togglePlatformerMode(true);
             if (m_player2) m_player2->togglePlatformerMode(true);
@@ -719,12 +718,23 @@ class $modify(MyPlayLayer, PlayLayer) {
     void pauseGame(bool paused) {
         auto& config = Config::get();
         auto& recorderAudio = RecorderAudio::get();
-        #ifdef GEODE_IS_WINDOWS
-        if (recorderAudio.enabled) {
+        
+        if (recorderAudio.is_recording) {
+            #ifdef GEODE_IS_WINDOWS
             ImGuiH::Popup::get().add_popup("You can't pause because the audio is still recording");
             return;
+            #elif defined(GEODE_IS_ANDROID64) 
+            if (!recorderAudio.want_to_stop) {
+                FLAlertLayer::create("Recorder (Audio)", "You can't pause because the audio is still recording (or pause again if you want to stop recording)", "OK")->show();
+                recorderAudio.want_to_stop = true;
+                return;
+            }
+            else {
+                recorderAudio.stop();
+            }            
+            #endif
         }
-        #endif
+        
 
         bool levelEndAnimationStarted = m_levelEndAnimationStarted;
         if (config.get<bool>("pause_during_complete", false))
@@ -738,11 +748,12 @@ class $modify(MyPlayLayer, PlayLayer) {
     void startMusic() {
         auto& recorderAudio = RecorderAudio::get();
         PlayLayer::startMusic();
-        if (recorderAudio.enabled && recorderAudio.showcase_mode) {
-            if (recorderAudio.is_recording) {
-                recorderAudio.stop();
-            }
+        if (recorderAudio.enabled && recorderAudio.showcase_mode && recorderAudio.first_start) {
+            recorderAudio.first_start = false;
             recorderAudio.start();
+        }
+        else if (recorderAudio.is_recording && !recorderAudio.first_start) {
+            recorderAudio.stop();
         }
     }
 

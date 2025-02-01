@@ -199,7 +199,9 @@ void Recorder::stop() {
     #ifdef GEODE_IS_WINDOWS
     ImGuiH::Popup::get().add_popup("Video recording stoped!");
     #elif defined(GEODE_IS_ANDROID64) 
-    FLAlertLayer::create("Recorder", "Video recording stoped!", "OK")->show();
+    geode::queueInMainThread([] {
+        FLAlertLayer::create("Recorder", "Video recording stoped!", "OK")->show();
+    });
     #endif
     
 }
@@ -328,6 +330,7 @@ void RecorderAudio::stop() {
 
     enabled = false;
     is_recording = false;
+    want_to_stop = false;
 
     m_masterGroup->removeDSP(m_dsp);
 
@@ -338,7 +341,9 @@ void RecorderAudio::stop() {
     #ifdef GEODE_IS_WINDOWS
     ImGuiH::Popup::get().add_popup("Audio recording stoped!");
     #elif defined(GEODE_IS_ANDROID64) 
-    FLAlertLayer::create("Recorder", "Audio recording stoped!", "OK")->show();
+    geode::queueInMainThread([] {
+        FLAlertLayer::create("Recorder", "Audio recording stoped!", "OK")->show();
+    });
     #endif
 
     save_to_wav(Recorder::get().folderShowcasesPath / audio_name);

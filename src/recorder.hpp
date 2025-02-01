@@ -122,6 +122,9 @@ public:
     float old_volume_music;
     float old_volume_sfx;
 
+    bool first_start = false;
+    bool want_to_stop = false;
+
     void start();
     void stop();
     void handle_recording(float dt);
