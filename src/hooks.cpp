@@ -437,7 +437,7 @@ class $modify(MyPlayLayer, PlayLayer) {
         auto size = cocos2d::CCDirector::sharedDirector()->getWinSize();
 
         std::string bottom_left;
-        bottom_left += labels.get_label_string(LabelCorner_BottomRight);
+        bottom_left += labels.get_label_string(LabelCorner_BottomLeft);
         if (recorderAudio.is_recording) {
             bottom_left += fmt::format("Audio recording ({})\n", recorderAudio.get_data_size());
         }
