@@ -27,11 +27,6 @@ void RenderTexture::begin() {
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureId, 0);
 
-    glGenBuffers(1, &pbo);
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo);
-    glBufferData(GL_PIXEL_PACK_BUFFER, width * height * 3, nullptr, GL_STREAM_READ);
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-
     glBindFramebuffer(GL_FRAMEBUFFER, oldFBO);
 }
 
@@ -42,28 +37,24 @@ void RenderTexture::capture_frame(std::mutex& lock, std::vector<uint8_t>& data, 
 
     auto director = cocos2d::CCDirector::get();
     auto scene = PlayLayer::get();
+
+    #ifdef GEODE_IS_ANDROID
+    scene->setScaleY(-1);
+    #endif
     scene->visit();
+    #ifdef GEODE_IS_ANDROID
+    scene->setScaleY(1);
+    #endif
 
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo);
-    
-    glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+    lock.lock();
+    glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data.data());
+    frame_has_data = true;
+    lock.unlock();
 
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo);
-    void* mappedData = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
-    if (mappedData) {
-        lock.lock();
-        memcpy(data.data(), mappedData, width * height * 3);
-        frame_has_data = true;
-        lock.unlock();
-
-        glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
-    }
-
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, oldFBO);
+
     director->setViewport();
 }
-
 
 void RenderTexture::end() {
     if (textureId) {
@@ -73,10 +64,6 @@ void RenderTexture::end() {
     if (fbo) {
         glDeleteFramebuffers(1, &fbo);
         fbo = 0;
-    }
-    if (pbo) {
-        glDeleteBuffers(1, &pbo);
-        pbo = 0;
     }
 }
 

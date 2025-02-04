@@ -6,7 +6,6 @@ class RenderTexture {
 public:
     int width, height;
     unsigned int fbo;
-    unsigned int pbo;
     unsigned int textureId;
     int oldFBO;
 
