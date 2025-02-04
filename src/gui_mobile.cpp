@@ -476,8 +476,8 @@ bool RecorderLayer::setup() {
         }
         else {                                    
             bool fps_enabled = config.get<bool>("tps_enabled", false);
-            bool check = recorder.fps < config.get<float>("tps_value", 60.f);
-            bool check2 = recorder.fps > 60 && recorder.fps < 240;        
+            bool check = recorder.fps <= config.get<float>("tps_value", 60.f);
+            bool check2 = recorder.fps >= 60 && recorder.fps <= 240;        
             if (engine.engine_v2 ? (!fps_enabled && check2) : (fps_enabled && check)) {
                 if (recorder.enabled) {
                     geode::utils::file::pick(geode::utils::file::PickMode::OpenFolder, {std::nullopt, {}}).listen(
