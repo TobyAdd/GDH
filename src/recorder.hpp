@@ -5,9 +5,10 @@
 class RenderTexture {
 public:
     int width, height;
-    cocos2d::CCTexture2D* texture;
-    int oldFBO, oldRBO;
-    unsigned currentFBO;
+    unsigned int fbo;
+    unsigned int pbo;
+    unsigned int textureId;
+    int oldFBO;
 
     void begin();
     void capture_frame(std::mutex& lock, std::vector<uint8_t>& data, volatile bool& frame_has_data);

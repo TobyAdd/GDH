@@ -13,62 +13,71 @@
 #endif
 #include "utils.hpp"
 
-void RenderTexture::begin() {   
+void RenderTexture::begin() {
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &oldFBO);
 
-    texture = new cocos2d::CCTexture2D;
-    {
-        auto data = malloc(width * height * 3);
-        memset(data, 0, width * height * 3);
-        texture->initWithData(data, cocos2d::kCCTexture2DPixelFormat_RGB888, width, height, cocos2d::CCSize(static_cast<float>(width), static_cast<float>(height)));
-        free(data);
-    }
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
-    glGetIntegerv(GL_RENDERBUFFER_BINDING, &oldRBO);
+    glGenTextures(1, &textureId);
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    glGenFramebuffers(1, &currentFBO);
-    glBindFramebuffer(GL_FRAMEBUFFER, currentFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureId, 0);
 
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture->getName(), 0);
-    
-    texture->setAliasTexParameters();
-    texture->autorelease();
+    glGenBuffers(1, &pbo);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo);
+    glBufferData(GL_PIXEL_PACK_BUFFER, width * height * 3, nullptr, GL_STREAM_READ);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
-    glBindRenderbuffer(GL_RENDERBUFFER, oldRBO);
     glBindFramebuffer(GL_FRAMEBUFFER, oldFBO);
 }
 
 void RenderTexture::capture_frame(std::mutex& lock, std::vector<uint8_t>& data, volatile bool& frame_has_data) {
-    auto& recorder = Recorder::get();
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
     glViewport(0, 0, width, height);
 
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &oldFBO);
-    glBindFramebuffer(GL_FRAMEBUFFER, currentFBO);
-
-    auto director = cocos2d::CCDirector::sharedDirector();
+    auto director = cocos2d::CCDirector::get();
     auto scene = PlayLayer::get();
-
-    #ifdef GEODE_IS_ANDROID
-    scene->setScaleY(-1);
-    #endif
     scene->visit();
-    #ifdef GEODE_IS_ANDROID
-    scene->setScaleY(1);
-    #endif
 
-    glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    lock.lock();
-    frame_has_data = true;
-    glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data.data());
-    lock.unlock();
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo);
+    
+    glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo);
+    void* mappedData = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+    if (mappedData) {
+        lock.lock();
+        memcpy(data.data(), mappedData, width * height * 3);
+        frame_has_data = true;
+        lock.unlock();
+
+        glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+    }
+
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, oldFBO);
     director->setViewport();
 }
 
+
 void RenderTexture::end() {
-    if (texture)
-        texture->release();
+    if (textureId) {
+        glDeleteTextures(1, &textureId);
+        textureId = 0;
+    }
+    if (fbo) {
+        glDeleteFramebuffers(1, &fbo);
+        fbo = 0;
+    }
+    if (pbo) {
+        glDeleteBuffers(1, &pbo);
+        pbo = 0;
+    }
 }
 
 void Recorder::applyWinSize() {
