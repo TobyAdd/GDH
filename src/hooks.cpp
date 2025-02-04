@@ -41,7 +41,6 @@
 #include "replayEngine.hpp"
 #include "recorder.hpp"
 #include "gui.hpp"
-#include "utils.hpp"
 
 std::vector<GameObject*> dualPortals, gamemodePortals, miniPortals, speedChanges, mirrorPortals;
 
@@ -166,13 +165,9 @@ class $modify(MyCCScheduler, cocos2d::CCScheduler) {
             dt *= config.get<float>("speedhack_value", 1.f);
 
         if (engine.engine_v2 && recorder.is_recording) {
-            logMessage("Upscaling frame...");
             if (recorder.is_recording) recorder.applyWinSize();
-            logMessage("Upscaling done...");
             CCScheduler::update(1.f / static_cast<float>(recorder.fps));
-            logMessage("Resoting original size...");
             handleRestoreWinSize();
-            logMessage("Original size restored...");
             return;
         }
 
@@ -195,13 +190,9 @@ class $modify(MyCCScheduler, cocos2d::CCScheduler) {
         }
 
         if (!config.get<bool>("tps::real_time", true)) {
-            logMessage("Upscaling frame...");
             if (recorder.is_recording) recorder.applyWinSize();
-            logMessage("Upscaling done...");
             CCScheduler::update(new_dt);
-            logMessage("Resoting original size...");
             handleRestoreWinSize();
-            logMessage("Original size restored...");
             return;
         }             
 
@@ -213,13 +204,9 @@ class $modify(MyCCScheduler, cocos2d::CCScheduler) {
         using namespace std::literals;
 
         for (unsigned i = 0; i < times; ++i) {
-            logMessage("Upscaling frame...");
             if (recorder.is_recording) recorder.applyWinSize();
-            logMessage("Upscaling done...");
             CCScheduler::update(new_dt);
-            logMessage("Resoting original size...");
             handleRestoreWinSize();
-            logMessage("Original size restored...");
 
             if (std::chrono::high_resolution_clock::now() - start > 33.333ms) {         
                 times = i + 1;
@@ -917,9 +904,7 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
         if (config.get<bool>("jump_hack", false))
             m_player1->m_isOnGround = true;
 
-        logMessage("Handling record...");
-        if (recorder.is_recording) recorder.handle_recording(dt);   
-        logMessage("Probably recorded?");     
+        if (recorder.is_recording) recorder.handle_recording(dt);        
         if (recorderAudio.is_recording) recorderAudio.handle_recording(dt);
     
         GJBaseGameLayer::update(dt);

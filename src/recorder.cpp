@@ -73,6 +73,7 @@ void RenderTexture::end() {
 }
 
 void Recorder::applyWinSize() {
+    logMessage("Trying to upscale...");
     auto pl = PlayLayer::get();
     if (pl && pl->m_isPaused) return;
     if (newDesignResolution.width != 0 && newDesignResolution.height != 0) {    
@@ -81,16 +82,19 @@ void Recorder::applyWinSize() {
         view->setDesignResolutionSize(newDesignResolution.width, newDesignResolution.height, ResolutionPolicy::kResolutionExactFit);
         view->m_fScaleX = newScreenScale.width;
         view->m_fScaleY = newScreenScale.height;
+        logMessage("Upscaled?");
     }
 }
 
 void Recorder::restoreWinSize() {
+    logMessage("Restoring original size...");
     if (oldDesignResolution.width != 0 && oldDesignResolution.height != 0) {
         cocos2d::CCDirector::get()->m_obWinSizeInPoints = oldDesignResolution;
         auto view = cocos2d::CCEGLView::get();
         view->setDesignResolutionSize(oldDesignResolution.width, oldDesignResolution.height, ResolutionPolicy::kResolutionExactFit);
         view->m_fScaleX = originalScreenScale.width;
         view->m_fScaleY = originalScreenScale.height;
+        logMessage("Restored?");
     }
 }
 
@@ -209,13 +213,18 @@ void Recorder::stop() {
 }
 
 void Recorder::render_frame() {
+    logMessage("Waiting for frame data");
     while (frame_has_data) {}
+    logMessage("Capture frame...");
     texture.capture_frame(lock, current_frame, frame_has_data);
+    logMessage("Probably finished frame capture...");
 }
 
 void Recorder::handle_recording(float dt) {
+    logMessage("Handling record...");
     auto playLayer = PlayLayer::get();
     if (!playLayer->m_hasCompletedLevel || after_end_extra_time < after_end_duration) {
+        logMessage("Got in recorder structure");
         if (playLayer->m_hasCompletedLevel) {
             after_end_extra_time += dt;
         }
@@ -231,6 +240,7 @@ void Recorder::handle_recording(float dt) {
             last_frame_time = (playLayer->m_gameState.m_levelTime - delay);
             render_frame();
         }
+        logMessage("Recorded?");
     }
     else {
         stop();
