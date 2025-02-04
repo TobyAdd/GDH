@@ -195,9 +195,13 @@ class $modify(MyCCScheduler, cocos2d::CCScheduler) {
         }
 
         if (!config.get<bool>("tps::real_time", true)) {
+            logMessage("Upscaling frame...");
             if (recorder.is_recording) recorder.applyWinSize();
+            logMessage("Upscaling done...");
             CCScheduler::update(new_dt);
+            logMessage("Resoting original size...");
             handleRestoreWinSize();
+            logMessage("Original size restored...");
             return;
         }             
 
@@ -209,9 +213,13 @@ class $modify(MyCCScheduler, cocos2d::CCScheduler) {
         using namespace std::literals;
 
         for (unsigned i = 0; i < times; ++i) {
+            logMessage("Upscaling frame...");
             if (recorder.is_recording) recorder.applyWinSize();
+            logMessage("Upscaling done...");
             CCScheduler::update(new_dt);
+            logMessage("Resoting original size...");
             handleRestoreWinSize();
+            logMessage("Original size restored...");
 
             if (std::chrono::high_resolution_clock::now() - start > 33.333ms) {         
                 times = i + 1;
