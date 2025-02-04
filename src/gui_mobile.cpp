@@ -352,6 +352,13 @@ bool HacksLayer::setup() {
             recorderAudioButtonClick->setPosition({270, 25});
             engineTab->addChild(recorderAudioButtonClick);
 
+            auto mixerButton = ButtonSprite::create("Mixer", 80, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
+            auto mixerButtonButtonClick = CCMenuItemExt::createSpriteExtra(mixerButton, [this](CCMenuItemSpriteExtra* sender) {
+
+            });
+            mixerButtonButtonClick->setPosition({270, 60});
+            engineTab->addChild(mixerButtonButtonClick);
+
             tab->m_scrollLayer->m_contentLayer->addChild(engineTab);
         }
         else if (win.name == "Labels") {

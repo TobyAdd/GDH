@@ -59,6 +59,7 @@ void RenderTexture::capture_frame(std::mutex& lock, std::vector<uint8_t>& data, 
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     lock.lock();
     frame_has_data = true;
+    logMessage("Reading pixels...");
     glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data.data());
     lock.unlock();
 
@@ -167,6 +168,7 @@ void Recorder::start(std::string command) {
             while (is_recording || frame_has_data) {
                 lock.lock();
                 if (frame_has_data) {
+                    logMessage("Frame has data, writting frame...");
                     const auto frame = current_frame;
                     frame_has_data = false;
                     encoder.writeFrame(frame);

@@ -41,6 +41,7 @@
 #include "replayEngine.hpp"
 #include "recorder.hpp"
 #include "gui.hpp"
+#include "utils.hpp"
 
 std::vector<GameObject*> dualPortals, gamemodePortals, miniPortals, speedChanges, mirrorPortals;
 
@@ -165,9 +166,13 @@ class $modify(MyCCScheduler, cocos2d::CCScheduler) {
             dt *= config.get<float>("speedhack_value", 1.f);
 
         if (engine.engine_v2 && recorder.is_recording) {
+            logMessage("Upscaling frame...");
             if (recorder.is_recording) recorder.applyWinSize();
+            logMessage("Upscaling done...");
             CCScheduler::update(1.f / static_cast<float>(recorder.fps));
+            logMessage("Resoting original size...");
             handleRestoreWinSize();
+            logMessage("Original size restored...");
             return;
         }
 
@@ -904,7 +909,9 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
         if (config.get<bool>("jump_hack", false))
             m_player1->m_isOnGround = true;
 
-        if (recorder.is_recording) recorder.handle_recording(dt);        
+        logMessage("Handling record...");
+        if (recorder.is_recording) recorder.handle_recording(dt);   
+        logMessage("Probably recorded?");     
         if (recorderAudio.is_recording) recorderAudio.handle_recording(dt);
     
         GJBaseGameLayer::update(dt);
