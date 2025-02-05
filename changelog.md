@@ -1,4 +1,4 @@
-# v5.0.0-beta
+# v5.0.0-beta.1
 A new major version of GDH!
 
 Global changes:
