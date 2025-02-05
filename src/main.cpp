@@ -48,6 +48,12 @@ void setupButton(cocos2d::CCNode* parent, const cocos2d::CCPoint& position, cons
     auto sprite = cocos2d::CCSprite::create(Config::get().get<bool>("invisible_ui_button", false) ? "GDH_buttonInvisible.png"_spr : "GDH_buttonUI.png"_spr);
     sprite->setScale(0.85f);
     auto myButton = geode::prelude::CCMenuItemExt::createSpriteExtra(sprite, [](CCMenuItemSpriteExtra* sender) {
+        auto& config = Config::get();
+        if (!config.get<bool>("license_accepted", false)) {
+            FLAlertLayer::create("GDH Beta Testing", "Note: GDH is currently in beta testing, so some elements may be unstable/unfinished\n\nIn case of any issues/crashes, please report the problem in the GDH issues section on GitHub", "OK")->show();
+            config.set<bool>("license_accepted", true);
+            return;
+        }
         HacksLayer::create()->show();
     });
     myButton->setPosition(position);
@@ -85,7 +91,15 @@ class $modify(MenuLayer) {
 
         auto myButton = geode::prelude::CCMenuItemExt::createSpriteExtra(
             cocos2d::CCSprite::create(Config::get().get<bool>("invisible_ui_button", false) ? "GDH_buttonInvisible.png"_spr : "GDH_buttonUI.png"_spr), 
-            [this](CCMenuItemSpriteExtra* sender) { HacksLayer::create()->show(); }
+            [this](CCMenuItemSpriteExtra* sender) {
+                auto& config = Config::get();
+                if (!config.get<bool>("license_accepted", false)) {
+                    FLAlertLayer::create("GDH Beta Testing", "<cr>Note: GDH is currently in beta testing, so some elements may be unstable/unfinished</c>\n\n<cg>In case of any issues/crashes, please report the problem in the GDH issues section on GitHub</c>", "OK")->show();
+                    config.set<bool>("license_accepted", true);
+                    return;
+                }
+                HacksLayer::create()->show();
+            }
         );
         auto menu = this->getChildByID("bottom-menu");
         menu->addChild(myButton);
@@ -99,7 +113,7 @@ class $modify(MenuLayer) {
     }
 };
 
-// #ifdef GEODE_IS_ANDROID
+#ifdef GEODE_IS_ANDROID
 
 class $modify(PauseLayer) {
     void customSetup() {
@@ -152,7 +166,7 @@ class $modify(LevelSearchLayer) {
     }
 };
 
-// #endif
+#endif
 
 
 #ifdef GEODE_IS_WINDOWS

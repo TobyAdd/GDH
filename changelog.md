@@ -1,3 +1,28 @@
+# v5.0.0-beta
+A new major version of GDH!
+
+Global changes:
+- Complete rewrite from scratch, redesigned almost all hacks to the hook system, allowing them to be used on both Android and Windows
+- Android Support
+- Replay Engine v3, P1/P2 macro load/merge support (Beta, merging only for PC)
+- A lot of new hacks and features
+- Variables (Beta, only for PC)
+- Improved Labels (acid thanks)
+- Shortcuts (Beta, only for PC)
+- Recorder for Android (may be unstable, please report crashes/problems!)
+
+GUI changes:
+- More customizable UI size selection
+- New keybind system
+- Mini theme selection
+
+Hacks changes:
+- Fixed Speedhack Audio (works perfectly on SFX/Music triggers)
+- Smart Startpos
+- Layout Mode
+- Pitch Shifter
+- Pulse Size
+
 # v4.9.0-alpha.1
 - Ported to 2.2074
 

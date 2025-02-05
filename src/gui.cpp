@@ -43,6 +43,10 @@ void Gui::License() {
 
     ImGui::Text("GDH is an open-source mod menu under the MIT license");
 
+    ImGui::PushStyleColor(ImGuiCol_Text, ImColor(255, 128, 128).Value);
+    ImGui::TextWrapped("Note: GDH is currently in beta testing, so some elements may be unstable/unfinished\n\nIn case of any issues/crashes, please report the problem in the GDH issues section on GitHub");
+    ImGui::PopStyleColor();
+
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {10 * m_scale, 10 * m_scale});
     ImGui::BeginChild("##LicenseChild", {0, ImGui::GetContentRegionAvail().y - 40 * m_scale}, true);
     ImGui::Text("Customize a comfortable size for GDH:");

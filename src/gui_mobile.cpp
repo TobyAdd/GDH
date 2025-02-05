@@ -173,6 +173,21 @@ bool HacksLayer::setup() {
 
     this->setTitle("GDH");
 
+    auto warningButton = CCSprite::createWithSpriteFrameName("GJ_reportBtn_001.png");
+    warningButton->setScale(0.65f);
+    auto warningButtonClick = CCMenuItemExt::createSpriteExtra(warningButton, [this](CCMenuItemSpriteExtra* sender) {
+        FLAlertLayer::create("GDH Beta Testing", "<cr>Note: GDH is currently in beta testing, so some elements may be unstable/unfinished</c>\n\n<cg>In case of any issues/crashes, please report the problem in the GDH issues section on GitHub</c>", "OK")->show();
+    });
+    warningButtonClick->setPosition({455.f, 255.f});
+    m_buttonMenu->addChild(warningButtonClick);
+
+    auto githubButton = CCSprite::create("github.png"_spr);
+    auto githubButtonClick = CCMenuItemExt::createSpriteExtra(githubButton, [this](CCMenuItemSpriteExtra* sender) {
+        CCApplication::sharedApplication()->openURL("https://github.com/TobyAdd/GDH");
+    });
+    githubButtonClick->setPosition({420.f, 255.f});
+    m_buttonMenu->addChild(githubButtonClick);
+
     auto background = extension::CCScale9Sprite::create("square02_small.png");
     background->setPosition({290.f, 115.f});
     background->setContentSize({325.f, 210.f});
@@ -354,7 +369,7 @@ bool HacksLayer::setup() {
 
             auto mixerButton = ButtonSprite::create("Mixer", 80, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
             auto mixerButtonButtonClick = CCMenuItemExt::createSpriteExtra(mixerButton, [this](CCMenuItemSpriteExtra* sender) {
-
+                FLAlertLayer::create("Recorder", "Not yet implemented, use a video editor to merge the video and audio", "OK")->show();
             });
             mixerButtonButtonClick->setPosition({270, 60});
             engineTab->addChild(mixerButtonButtonClick);
