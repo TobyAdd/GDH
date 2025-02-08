@@ -1246,6 +1246,7 @@ void Gui::Render() {
                 "Level Info",
                 "Noclip Accuracy",
                 "Death Counter",
+                "Startpos Switcher",
                 "Custom Text",
             };
             int label_types_count = sizeof(label_types)/sizeof(label_types[0]);
@@ -1267,6 +1268,7 @@ void Gui::Render() {
                 else if (selected_label_type == 6) text = "{levelName}{byLevelCreator} ({levelId})";
                 else if (selected_label_type == 7) text = "{noclipAccuracy}";
                 else if (selected_label_type == 8) text = "{deaths} Deaths";
+                else if (selected_label_type == 9) text = "{startposCurrentIDX}/{startposAllIDX}";
                 
                 Label l((LabelCorner) (selected_label_corner+1), text);
                 labels.add(l);

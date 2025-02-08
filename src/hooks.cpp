@@ -44,8 +44,8 @@
 
 std::vector<GameObject*> dualPortals, gamemodePortals, miniPortals, speedChanges, mirrorPortals;
 
-std::vector<StartPosObject*> startPositions;
-int selectedStartpos = -1;
+std::vector<StartPosObject*> hooksH::startPositions;
+int hooksH::selectedStartpos = -1;
 
 std::deque<cocos2d::CCRect> playerTrail1, playerTrail2;
 
@@ -53,18 +53,18 @@ void hooksH::switchStartPos(int incBy, bool direction) {
     auto &config = Config::get();
     auto pl = PlayLayer::get();
 
-    if (!pl || startPositions.empty()) return;
+    if (!pl || hooksH::startPositions.empty()) return;
 
-    selectedStartpos += incBy;
+    hooksH::selectedStartpos += incBy;
 
-    if (selectedStartpos < -1)
-        selectedStartpos = startPositions.size() - 1;
+    if (hooksH::selectedStartpos < -1)
+        hooksH::selectedStartpos = hooksH::startPositions.size() - 1;
 
-    if (selectedStartpos >= startPositions.size())
-        selectedStartpos = -1;
+    if (hooksH::selectedStartpos >= hooksH::startPositions.size())
+        hooksH::selectedStartpos = -1;
 
     if (direction) {
-        StartPosObject* obj = selectedStartpos == -1 ? nullptr : startPositions[selectedStartpos];
+        StartPosObject* obj = hooksH::selectedStartpos == -1 ? nullptr : hooksH::startPositions[hooksH::selectedStartpos];
         
         pl->m_currentCheckpoint = nullptr;
         pl->setStartPosObject(obj);
@@ -249,14 +249,14 @@ class $modify(MyPlayLayer, PlayLayer) {
         cocos2d::CCSprite* tint_death_bg;
         
         ~Fields() {
-            startPositions.clear();
+            hooksH::startPositions.clear();
             dualPortals.clear();
             gamemodePortals.clear();
             miniPortals.clear();
             speedChanges.clear();
             mirrorPortals.clear();
 
-            selectedStartpos = -1;
+            hooksH::selectedStartpos = -1;
             playerTrail1.clear();
             playerTrail2.clear();
             color_dt = 0.f;
@@ -269,10 +269,10 @@ class $modify(MyPlayLayer, PlayLayer) {
         auto& gui = Gui::get();
         auto& config = Config::get();
 
-        if (config.get<bool>("startpos_switcher", false) && !startPositions.empty()) {
+        if (config.get<bool>("startpos_switcher", false) && !hooksH::startPositions.empty()) {
             auto win_size = cocos2d::CCDirector::sharedDirector()->getWinSize();
 
-            auto label = cocos2d::CCLabelBMFont::create(fmt::format("{}/{}", selectedStartpos+1, startPositions.size()).c_str(), "bigFont.fnt");
+            auto label = cocos2d::CCLabelBMFont::create(fmt::format("{}/{}", hooksH::selectedStartpos+1, hooksH::startPositions.size()).c_str(), "bigFont.fnt");
             label->setScale(0.5f);
             label->setPosition(win_size.width/2, 20.f);
             label->setOpacity(100);
@@ -282,7 +282,7 @@ class $modify(MyPlayLayer, PlayLayer) {
             left_arrow->setScale(0.5f);
             auto left_arrowClick = geode::cocos::CCMenuItemExt::createSpriteExtra(left_arrow, [this, label](CCMenuItemSpriteExtra* sender) {
                 hooksH::switchStartPos(-1);
-                label->setCString(fmt::format("{}/{}", selectedStartpos+1, startPositions.size()).c_str());
+                label->setCString(fmt::format("{}/{}", hooksH::selectedStartpos+1, hooksH::startPositions.size()).c_str());
             });
             left_arrowClick->setPosition(win_size.width/2 - 50, cocos2d::CCDirector::sharedDirector()->getScreenBottom() + left_arrowClick->getScaledContentHeight());
             left_arrowClick->setOpacity(100);
@@ -293,7 +293,7 @@ class $modify(MyPlayLayer, PlayLayer) {
             right_arrow->setFlipX(true);
             auto right_arrowClick = geode::cocos::CCMenuItemExt::createSpriteExtra(right_arrow, [this, label](CCMenuItemSpriteExtra* sender) {
                 hooksH::switchStartPos(1);
-                label->setCString(fmt::format("{}/{}", selectedStartpos+1, startPositions.size()).c_str());
+                label->setCString(fmt::format("{}/{}", hooksH::selectedStartpos+1, hooksH::startPositions.size()).c_str());
             });       
             right_arrowClick->setPosition(win_size.width/2 + 50, cocos2d::CCDirector::sharedDirector()->getScreenBottom() + right_arrowClick->getScaledContentHeight());
             right_arrowClick->setOpacity(100);
@@ -346,15 +346,6 @@ class $modify(MyPlayLayer, PlayLayer) {
         if (!recorderAudio.is_recording && !recorderAudio.enabled) {
             recorderAudio.audio_name = fmt::format("{}.wav", level->m_levelName);
             recorderAudio.audio_name2 = fmt::format("{}", level->m_levelName);
-        }
-        if (config.get<bool>("force_platformer", false)) {
-            if (m_player1) m_player1->togglePlatformerMode(true);
-            if (m_player2) m_player2->togglePlatformerMode(true);
-
-            #ifdef GEODE_IS_MOBILE
-            if (m_uiLayer)
-                m_uiLayer->togglePlatformerMode(true);
-            #endif
         }
         
         m_fields->labels_top_left     = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
@@ -484,7 +475,7 @@ class $modify(MyPlayLayer, PlayLayer) {
                 break;
 
             case 31:
-                startPositions.push_back(static_cast<StartPosObject*>(obj));
+                hooksH::startPositions.push_back(static_cast<StartPosObject*>(obj));
                 break;
 
             case 12:
@@ -591,17 +582,17 @@ class $modify(MyPlayLayer, PlayLayer) {
         left_over = 0;
 
         if (config.get<bool>("smart_startpos", false)) {
-            for (StartPosObject* obj : startPositions)
+            for (StartPosObject* obj : hooksH::startPositions)
                 setupStartPos(obj);
         }
 
         SpamBot::get().reset_temp();
         engine.handle_reset();  
 
-        if (!m_isPracticeMode && !startPositions.empty()) {
+        if (!m_isPracticeMode && !hooksH::startPositions.empty()) {
             recorder.delay = m_gameState.m_levelTime;
         }
-        else if (startPositions.empty()) {
+        else if (hooksH::startPositions.empty()) {
             recorder.delay = 0;
         }      
 
@@ -730,7 +721,7 @@ class $modify(MyPlayLayer, PlayLayer) {
             #ifdef GEODE_IS_WINDOWS
             ImGuiH::Popup::get().add_popup("You can't pause because the audio is still recording");
             return;
-            #elif defined(GEODE_IS_ANDROID64) 
+            #elif defined(GEODE_IS_ANDROID) 
             if (!recorderAudio.want_to_stop) {
                 FLAlertLayer::create("Recorder (Audio)", "You can't pause because the audio is still recording (or pause again if you want to stop recording)", "OK")->show();
                 recorderAudio.want_to_stop = true;

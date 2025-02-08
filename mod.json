@@ -8,7 +8,7 @@
 	},
 	"id": "tobyadd.gdh",
 	"name": "GDH",
-	"version": "v5.0.0-beta.2",
+	"version": "v5.0.0-beta.3",
 	"developer": "TobyAdd",
 	"description": "GDH is an open-source Geometry Dash mod menu that aims to improve the game's performance and add new features",
 	"early-load": true,

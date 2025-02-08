@@ -5,9 +5,6 @@
 #include "replayEngine.hpp"
 #include "utils.hpp"
 #include "recorder.hpp"
-#ifdef GEODE_IS_ANDROID
-#include "h264_encoder.hpp"
-#endif
 
 using namespace geode::prelude;
 
@@ -353,6 +350,8 @@ bool HacksLayer::setup() {
             auto engineV2_label = AddTextToToggle("Engine v2.1 (Beta)", engineV2_toggle);
             engineTab->addChild(engineV2_label);
 
+            #ifdef GEODE_IS_ANDROID64
+
             auto recorderButton = ButtonSprite::create("Recorder", 80, true, "bigFont.fnt", "GJ_button_01.png", 30.f, 0.7f);
             auto recorderButtonClick = CCMenuItemExt::createSpriteExtra(recorderButton, [this](CCMenuItemSpriteExtra* sender) {
                 RecorderLayer::create()->show();
@@ -373,6 +372,8 @@ bool HacksLayer::setup() {
             });
             mixerButtonButtonClick->setPosition({270, 60});
             engineTab->addChild(mixerButtonButtonClick);
+
+            #endif
 
             tab->m_scrollLayer->m_contentLayer->addChild(engineTab);
         }

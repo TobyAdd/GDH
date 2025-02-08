@@ -25,7 +25,7 @@ CPMAddPackage("gh:matcool/gd-imgui-cocos#8973953")
 
 target_link_libraries(${PROJECT_NAME} imgui-cocos imgui)
 
-if (ANDROID) 
+if (ANDROID AND ANDROID_ABI STREQUAL "arm64-v8a") 
     target_link_libraries(${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/libs/ffmpeg/libavcodec/libavcodec.a)
     target_link_libraries(${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/libs/ffmpeg/libavdevice/libavdevice.a)
     target_link_libraries(${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/libs/ffmpeg/libavfilter/libavfilter.a)

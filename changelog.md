@@ -1,4 +1,8 @@
-# v5.0.0-beta.1
+# v5.0.0-beta.3
+- armeabi-v7a support (no recorder yet)
+- startpos switcher keybinds fix (thanks ery)
+
+# v5.0.0-beta.2
 A new major version of GDH!
 
 Global changes:

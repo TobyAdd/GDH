@@ -3,6 +3,7 @@
 #include <sstream>
 #include "labels.hpp"
 #include "popupSystem.hpp"
+#include "hooks.hpp"
 
 using namespace geode::prelude;
 
@@ -43,6 +44,8 @@ std::string Label::get_text() {
     result = replace_all(result, "{levelId}", std::to_string(pl->m_level->m_levelID));
     result = replace_all(result, "{noclipAccuracy}", fmt::format("{:.2f}%", NoclipAccuracy::get().getPercentage()));
     result = replace_all(result, "{deaths}", std::to_string(NoclipAccuracy::get().deaths_full));
+    result = replace_all(result, "{startposCurrentIDX}", std::to_string(hooksH::selectedStartpos+1));
+    result = replace_all(result, "{startposAllIDX}", std::to_string(hooksH::startPositions.size()));
     result = replace_all(result, "{\\n}", "\n");
 
     return result;

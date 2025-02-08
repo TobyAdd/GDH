@@ -106,7 +106,9 @@ void Hacks::Init() {
                 {"Copy Hack", "Copy any online level without a password", "copy_hack"},  // +
                 {"Custom Object Bypass", "Removes the limit restricted to 1000 objects", "custom_object_bypass"}, // +
                 {"Default Song Bypass", "Removes restrictions on secret official songs", "default_song_bypass"}, // +
+                #if defined(GEODE_IS_WINDOWS) || defined(GEODE_IS_ANDROID64)
                 {"Editor Extension", "Increases the editor length by a factor of 128", "editor_extension"}, // +
+                #endif
                 {"Hide UI", "Hides the editor Ul while building", "hide_ui"}, // +
                 {"Verify Hack", "Publish a level without verification", "verify_hack"}, // +
                 {"Smooth Editor Trail", "Makes the wave smoother in the editor", "smooth_editor_trail"}, // +
@@ -210,7 +212,7 @@ void Hacks::Init() {
             config.set<int>("noclip::tint_opacity", tint_opacity);
             
 
-        #elif defined(GEODE_IS_ANDROID64) 
+        #elif defined(GEODE_IS_ANDROID) 
         auto popup = popupSystem::create();
         popup->AddToggle("Player 1", noclip_p1, [this, &config](bool enabled) 
         {
@@ -255,7 +257,7 @@ void Hacks::Init() {
         if (ImGuiH::Checkbox("Music Unlocker", &music_unlocker, gui.m_scale))
             config.set<bool>("unlock_items::music_unlocker", music_unlocker);
 
-        #elif defined(GEODE_IS_ANDROID64) 
+        #elif defined(GEODE_IS_ANDROID) 
         auto popup = popupSystem::create();
         popup->AddToggle("All Icons", all_icons, [this, &config](bool enabled) 
         {
@@ -286,6 +288,9 @@ void Hacks::Init() {
                 colors.colors.push_back(color);
     });
 
+
+    #if defined(GEODE_IS_WINDOWS) || defined(GEODE_IS_ANDROID64)
+
     SetHandlerByConfig("editor_extension", [this](bool enabled) {
         uintptr_t address1; //Pattern: 00 60 6A 48 (2x)
         uintptr_t address2; //Pattern: 80 67 6A 48 (1x)
@@ -313,6 +318,8 @@ void Hacks::Init() {
             if (patch2) (void) patch2->disable();
         }        
     });
+
+    #endif
     
 
     SetHandlerByConfig("hide_pause_menu", [this](bool enabled) {
@@ -357,7 +364,7 @@ void Hacks::Init() {
                 utilsH::setPitchShifter(pitch_value);
         }
             
-        #elif defined(GEODE_IS_ANDROID64) 
+        #elif defined(GEODE_IS_ANDROID) 
         auto popup = popupSystem::create();
         popup->AddText("Pitch (0.5 - 2):");
         popup->AddFloatInput("Pitch Value", pitch_value, [&](float value) 
@@ -380,7 +387,7 @@ void Hacks::Init() {
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         ImGui::DragFloat("##StraightFlyAcc", &straightFly.accuracy, 0.1f, 0.f, 100.f, "Y Accuracy: %.1f");
         ImGui::Text("Note: Straight Fly Bot works only on first player");
-        #elif defined(GEODE_IS_ANDROID64) 
+        #elif defined(GEODE_IS_ANDROID) 
         auto popup = popupSystem::create();
         popup->AddText("Y Accuracy:");
         popup->AddFloatInput("Y Accuracy", straightFly.accuracy, [this, &straightFly](float value) 
@@ -419,7 +426,7 @@ void Hacks::Init() {
         if (ImGuiH::Checkbox("Player 2", &spamBotPlayer2, gui.m_scale))
             config.set<bool>("spambot_player2", spamBotPlayer2);
 
-        #elif defined(GEODE_IS_ANDROID64) 
+        #elif defined(GEODE_IS_ANDROID) 
         auto popup = popupSystem::create();
         popup->AddText("Hold Lenght:");
         popup->AddIntInput("Hold Lenght", spamBotReleaseLenght, [this, &config](int value) 
@@ -456,7 +463,7 @@ void Hacks::Init() {
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         if (ImGui::DragFloat("##waveTrailSize", &value, 0.01f, 0.0f, FLT_MAX, "Wave Trail Size: %.2f")) 
             config.set("wave_trail_size_value", value);
-        #elif defined(GEODE_IS_ANDROID64) 
+        #elif defined(GEODE_IS_ANDROID) 
 
         auto popup = popupSystem::create();
         popup->AddText("Wave Trail Size:");
@@ -476,7 +483,7 @@ void Hacks::Init() {
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         if (ImGui::DragFloat("##respawn_time_value", &value, 0.01f, 0.0f, FLT_MAX, "Respawn Time: %.2f")) 
             config.set("respawn_time_value", value);
-        #elif defined(GEODE_IS_ANDROID64) 
+        #elif defined(GEODE_IS_ANDROID) 
 
         auto popup = popupSystem::create();
         popup->AddText("Respawn Time:");
@@ -503,7 +510,7 @@ void Hacks::Init() {
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         if (ImGui::DragFloat("##pulse_size_value", &value, 0.01f, 0.0f, FLT_MAX, "Pulse Size: %.2f")) 
             config.set("pulse_size_value", value);
-        #elif defined(GEODE_IS_ANDROID64) 
+        #elif defined(GEODE_IS_ANDROID) 
 
         auto popup = popupSystem::create();
         popup->AddToggle("Multiply pulsation", multiply, [this, &config](bool enabled) 
@@ -530,7 +537,7 @@ void Hacks::Init() {
 
         if (ImGuiH::Checkbox("Reset Camera", &reset_camera, gui.m_scale))
             config.set<bool>("startos_switcher::reset_camera", reset_camera);
-        #elif defined(GEODE_IS_ANDROID64) 
+        #elif defined(GEODE_IS_ANDROID) 
 
         auto popup = popupSystem::create();
         popup->AddToggle("Reset Camera", reset_camera, [this, &config](bool enabled) 
@@ -576,7 +583,7 @@ void Hacks::Init() {
             config.set<float>("show_hitboxes::size", size);
 
         ImGui::Text("Tip: Enable hitboxes in the editor by checking the \"Show\nHitboxes\" option in the Editor Pause menu");
-        #elif defined(GEODE_IS_ANDROID64) 
+        #elif defined(GEODE_IS_ANDROID) 
 
         auto popup = popupSystem::create();
         popup->AddToggle("Fill Color", fill_color, [this, &config](bool enabled) 
@@ -713,7 +720,7 @@ void Hacks::Init() {
 
             ImGui::PopID();
         }
-        #elif defined(GEODE_IS_ANDROID64) 
+        #elif defined(GEODE_IS_ANDROID) 
         auto popup = popupSystem::create();
         popup->AddToggle("Player 1", player_p1, [this, &config](bool enabled) 
         {
@@ -966,12 +973,12 @@ void Hacks::toggleKeybinds(int key) {
         utilsH::UncompleteLevel();
     }
 
-    if (gui.m_startposSwitcherLeftKey == key) {
+    if (gui.m_startposSwitcherLeftKey == key && config.get<bool>("startpos_switcher", false)) {
         hooksH::switchStartPos(-1);
     }
 
-    if (gui.m_startposSwitcherRightKey == key) {
-        hooksH::switchStartPos(-1);
+    if (gui.m_startposSwitcherRightKey == key && config.get<bool>("startpos_switcher", false)) {
+        hooksH::switchStartPos(1);
     }
 
     for (auto& win : m_windows) {

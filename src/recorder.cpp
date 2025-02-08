@@ -8,7 +8,7 @@
 #include <subprocess.hpp>
 #endif
 #include "flvc.hpp"
-#ifdef GEODE_IS_ANDROID
+#ifdef GEODE_IS_ANDROID64
 #include "h264_encoder.hpp"
 #endif
 #include "utils.hpp"
