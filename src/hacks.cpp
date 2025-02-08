@@ -93,6 +93,9 @@ void Hacks::Init() {
                 {"Pitch Shifter", "Shifts the pitch of background music", "pitch_shifter"}, // +
                 // {"Practice Fix", "More accurate respawning in practice mode (used for botting)", "practice_fix"},
                 {"Pulse Size", "Changes pulsation of falls, orbs, etc", "pulse_size"}, // +
+                #ifdef GEODE_IS_ANDROID
+                {"Uncomplete Level", "Resets level completion statistics (it's just a button, it doesn't depend on on/off switch)", "uncomplete_level"}, // +
+                #endif
                 {"No Robot Fire", "Hides robot boost fire", "no_robot_fire"}, // +
                 {"No Spider Dash", "Disables spider dash trail when teleporting", "no_spider_dash"}, // +
                 {"No Trail", "Removes the trail located near the player", "no_trail"},  // +
@@ -279,6 +282,11 @@ void Hacks::Init() {
 
     SetHandlerByConfig("pitch_shifter", [this, &config](bool enabled) {
         utilsH::setPitchShifter(enabled ? config.get<float>("pitch_shifter_value", 1.f) : 1.f);
+    });
+
+    SetHandlerByConfig("uncomplete_level", [this, &config](bool enabled) {
+        config.set<bool>("uncomplete_level", false);
+        utilsH::UncompleteLevel();
     });
 
     SetHandlerByConfig("rgb_icons", [this](bool enabled) {
@@ -531,18 +539,27 @@ void Hacks::Init() {
 
     SetCustomWindowHandlerByConfig("startpos_switcher", [this, &config]() {
         bool reset_camera = config.get<bool>("startos_switcher::reset_camera", true);
+        bool sort_objects_by_x = config.get<bool>("startos_switcher::sort_objects_by_x", false);
 
         #ifdef GEODE_IS_WINDOWS 
         auto &gui = Gui::get();       
 
         if (ImGuiH::Checkbox("Reset Camera", &reset_camera, gui.m_scale))
             config.set<bool>("startos_switcher::reset_camera", reset_camera);
+
+        if (ImGuiH::Checkbox("Sort objects by X", &sort_objects_by_x, gui.m_scale))
+            config.set<bool>("startos_switcher::sort_objects_by_x", sort_objects_by_x);
         #elif defined(GEODE_IS_ANDROID) 
 
         auto popup = popupSystem::create();
         popup->AddToggle("Reset Camera", reset_camera, [this, &config](bool enabled) 
         {
             config.set<bool>("startos_switcher::reset_camera", enabled);
+        });
+
+        popup->AddToggle("Sort objects by X", sort_objects_by_x, [this, &config](bool enabled) 
+        {
+            config.set<bool>("startos_switcher::sort_objects_by_x", enabled);
         });
         popup->show();
         #endif
@@ -552,21 +569,11 @@ void Hacks::Init() {
         bool draw_trail = config.get<bool>("show_hitboxes::draw_trail", false);
         bool show_hitboxes_on_death = config.get<bool>("show_hitboxes::on_death", false);
 
-        bool fill_color = config.get<bool>("show_hitboxes::fill_color", false);
-        float fill_color_alpha = config.get<float>("show_hitboxes::fill_color_alpha", 0.2f);
-
         int trail_length = config.get<int>("show_hitboxes::trail_length", 240);
         float size = config.get<float>("show_hitboxes::size", 0.25f);
 
         #ifdef GEODE_IS_WINDOWS 
         auto &gui = Gui::get();
-
-        if (ImGuiH::Checkbox("Fill Color", &fill_color, gui.m_scale))
-            config.set<bool>("show_hitboxes::fill_color", fill_color);
-
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (ImGui::DragFloat("##show_hitboxes::fill_color_alpha", &fill_color_alpha, 0.01f, 0.f, 1, "Fill Color Alpha: %0.2f"))
-            config.set<float>("show_hitboxes::fill_color_alpha", fill_color_alpha);
 
         if (ImGuiH::Checkbox("Show Hitboxes on Death", &show_hitboxes_on_death, gui.m_scale))
             config.set<bool>("show_hitboxes::on_death", show_hitboxes_on_death);
@@ -586,10 +593,6 @@ void Hacks::Init() {
         #elif defined(GEODE_IS_ANDROID) 
 
         auto popup = popupSystem::create();
-        popup->AddToggle("Fill Color", fill_color, [this, &config](bool enabled) 
-        {
-            config.set<bool>("fill_color", enabled);
-        });
 
         popup->AddToggle("Show Hitboxes on Death", show_hitboxes_on_death, [this, &config](bool enabled) 
         {
@@ -980,6 +983,9 @@ void Hacks::toggleKeybinds(int key) {
     if (gui.m_startposSwitcherRightKey == key && config.get<bool>("startpos_switcher", false)) {
         hooksH::switchStartPos(1);
     }
+
+    if (config.get<bool>("use_keybinds_only_in_game", true) && !PlayLayer::get())
+        return;
 
     for (auto& win : m_windows) {
         for (auto& hck : win.hacks) {

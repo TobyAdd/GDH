@@ -1,6 +1,9 @@
 # v5.0.0-beta.3
 - armeabi-v7a support (no recorder yet)
 - startpos switcher keybinds fix (thanks ery)
+- "startpos switcher sort objects x" feature
+- removed "Hitbox Fill Color" feature due to problem with hitbox trail
+- improved keybinds
 
 # v5.0.0-beta.2
 A new major version of GDH!

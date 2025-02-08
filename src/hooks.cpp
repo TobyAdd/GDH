@@ -226,7 +226,7 @@ class $modify(MyFMODAudioEngine, FMODAudioEngine) {
         FMODAudioEngine::update(delta);
         
         FMOD::ChannelGroup* group;
-        float speed = config.get<bool>("speedhackAudio_enabled", false) ? config.get<float>("speedhack_value", 1.f) : 1.f;
+        float speed = (config.get<bool>("speedhackAudio_enabled", false) && config.get<bool>("speedhack_enabled", false)) ? config.get<float>("speedhack_value", 1.f) : 1.f;
         if (m_system->getMasterChannelGroup(&group) == FMOD_OK) {
             group->setPitch(speed);
         }
@@ -262,13 +262,19 @@ class $modify(MyPlayLayer, PlayLayer) {
             color_dt = 0.f;
         }
     };
-
-    #ifdef GEODE_IS_ANDROID
+    
     void createObjectsFromSetupFinished() {
 	    PlayLayer::createObjectsFromSetupFinished();
-        auto& gui = Gui::get();
         auto& config = Config::get();
 
+        if (config.get<bool>("startos_switcher::sort_objects_by_x", false)) {
+            std::sort(hooksH::startPositions.begin(), hooksH::startPositions.end(), 
+                [](StartPosObject* a, StartPosObject* b) {
+                    return a->getPositionX() < b->getPositionX();
+                });
+        }
+
+        #ifdef GEODE_IS_ANDROID
         if (config.get<bool>("startpos_switcher", false) && !hooksH::startPositions.empty()) {
             auto win_size = cocos2d::CCDirector::sharedDirector()->getWinSize();
 
@@ -311,8 +317,8 @@ class $modify(MyPlayLayer, PlayLayer) {
 
             m_uiLayer->addChild(m_fields->startposSwitcherUI);
         }
+        #endif
     }
-    #endif
 
     bool init(GJGameLevel* level, bool useReplay, bool dontCreateObjects) {
         if (!PlayLayer::init(level, useReplay, dontCreateObjects)) return false;
@@ -1745,31 +1751,25 @@ class $modify(MyCCDrawNode, cocos2d::CCDrawNode) {
 
         auto& config = Config::get(); 
 
-        cocos2d::ccColor4F fillColor2;
-        fillColor2 = {borderColor.r, borderColor.g, borderColor.b, static_cast<GLfloat>(config.get<float>("show_hitboxes::fill_color_alpha", 0.2f))};
-
         if (config.get<bool>("show_hitboxes", false)) {
-            borderWidth = abs(borderWidth);
             borderWidth = config.get<float>("show_hitboxes::size", 0.25f);
+            borderWidth = abs(borderWidth);
         }
 
-        return cocos2d::CCDrawNode::drawPolygon(vertex, count, config.get<bool>("show_hitboxes::fill_color", false) ? fillColor2 : fillColor, borderWidth, borderColor);
+        return cocos2d::CCDrawNode::drawPolygon(vertex, count, fillColor, borderWidth, borderColor);
     }
 
     bool drawCircle(const cocos2d::CCPoint& position, float radius, const cocos2d::ccColor4F& color,
                     float borderWidth, const cocos2d::ccColor4F& borderColor, unsigned int segments) {
         
-        auto& config = Config::get(); 
-
-        cocos2d::ccColor4F color2;
-        color2 = {borderColor.r, borderColor.g, borderColor.b, static_cast<GLfloat>(config.get<float>("show_hitboxes::fill_color_alpha", 0.2f))};
+        auto& config = Config::get();
 
         if (config.get<bool>("show_hitboxes", false)) {
-            borderWidth = abs(borderWidth);
             borderWidth = config.get<float>("show_hitboxes::size", 0.25f);
+            borderWidth = abs(borderWidth);
         } 
 
-        return cocos2d::CCDrawNode::drawCircle(position, radius, config.get<bool>("show_hitboxes::fill_color", false) ? color2 : color, borderWidth, borderColor, segments);
+        return cocos2d::CCDrawNode::drawCircle(position, radius, color, borderWidth, borderColor, segments);
     }
 };
 

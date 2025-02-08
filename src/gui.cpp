@@ -298,6 +298,11 @@ void Gui::Render() {
 
                 ImGui::BeginChild("##Keybinds", {420.f * m_scale, 400.f * m_scale});
 
+                bool useKeybindsOnlyInGame = config.get<bool>("use_keybinds_only_in_game", true);
+                if (ImGuiH::Checkbox("Use keybinds only in game", &useKeybindsOnlyInGame, m_scale)) {
+                    config.set<bool>("use_keybinds_only_in_game", useKeybindsOnlyInGame);
+                }
+
                 ImGui::Text("UI");
                 ImGui::Separator();
                 ImGui::Spacing();
