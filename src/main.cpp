@@ -6,6 +6,8 @@
 #include <Geode/modify/LevelBrowserLayer.hpp>
 #include <Geode/modify/EditorPauseLayer.hpp>
 #include <Geode/modify/LevelSearchLayer.hpp>
+#include <Geode/modify/EditLevelLayer.hpp>
+#include <Geode/modify/LevelInfoLayer.hpp>
 #include <Geode/modify/CCEGLView.hpp>
 #include <imgui-cocos.hpp>
 #ifdef GEODE_IS_WINDOWS
@@ -44,7 +46,7 @@ $execute {
 
 static bool inited = false;
 
-void setupButton(cocos2d::CCNode* parent, const cocos2d::CCPoint& position, const std::string& buttonID) {
+void setupButton(cocos2d::CCNode* parent, const cocos2d::CCPoint& position, const std::string& buttonID, const std::string& childID = "") {
     auto sprite = cocos2d::CCSprite::create(Config::get().get<bool>("invisible_ui_button", false) ? "GDH_buttonInvisible.png"_spr : "GDH_buttonUI.png"_spr);
     sprite->setScale(0.85f);
     auto myButton = geode::prelude::CCMenuItemExt::createSpriteExtra(sprite, [](CCMenuItemSpriteExtra* sender) {
@@ -56,23 +58,31 @@ void setupButton(cocos2d::CCNode* parent, const cocos2d::CCPoint& position, cons
         }
         HacksLayer::create()->show();
     });
-    myButton->setPosition(position);
+    myButton->setID(childID);
 
-    auto menu = cocos2d::CCMenu::create();
-    menu->setPosition(0, 0);
-    menu->addChild(myButton);
-    parent->addChild(menu);
+    if (childID.empty()) {
+        myButton->setPosition(position);
+        
+        auto menu = cocos2d::CCMenu::create();
+        menu->setPosition(0, 0);
+        menu->addChild(myButton);
+        parent->addChild(menu);
+    }
+    else {
+        auto menu = parent->getChildByID(childID);
+        if (menu) {
+            menu->addChild(myButton);
+            menu->updateLayout();
+        }
+    }
 
-    myButton->setID(buttonID);
 }
 
 class $modify(MenuLayer) {
     bool init() {
         if (!MenuLayer::init()) return false;
-
+            
         if (!inited) {
-            inited = true;
-
             auto& hacks = Hacks::get();
             hacks.Init();
             hacks.loadKeybinds();
@@ -85,27 +95,13 @@ class $modify(MenuLayer) {
                 gui.Render();
             });
             #endif
+
+            inited = true;
         }
 
         #ifdef GEODE_IS_ANDROID
 
-        auto myButton = geode::prelude::CCMenuItemExt::createSpriteExtra(
-            cocos2d::CCSprite::create(Config::get().get<bool>("invisible_ui_button", false) ? "GDH_buttonInvisible.png"_spr : "GDH_buttonUI.png"_spr), 
-            [this](CCMenuItemSpriteExtra* sender) {
-                auto& config = Config::get();
-                if (!config.get<bool>("license_accepted", false)) {
-                    FLAlertLayer::create("GDH Beta Testing", "<cr>Note: GDH is currently in beta testing, so some elements may be unstable/unfinished</c>\n\n<cg>In case of any issues/crashes, please report the problem in the GDH issues section on GitHub</c>", "OK")->show();
-                    config.set<bool>("license_accepted", true);
-                    return;
-                }
-                HacksLayer::create()->show();
-            }
-        );
-        auto menu = this->getChildByID("bottom-menu");
-        menu->addChild(myButton);
-
-        myButton->setID("hacks-button"_spr);
-        menu->updateLayout();
+        setupButton(this, {0, 0}, "hacks-button"_spr, "bottom-menu");
 
         #endif
 
@@ -118,10 +114,30 @@ class $modify(MenuLayer) {
 class $modify(PauseLayer) {
     void customSetup() {
         PauseLayer::customSetup();
+
+        static geode::Mod* nodeId = geode::Loader::get()->getLoadedMod("geode.node-ids");
+        static bool hasNodeIdMod = nodeId != nullptr && nodeId->isEnabled();
+
         auto top = cocos2d::CCDirector::sharedDirector()->getScreenTop();
-        static geode::Mod* clickSoundsMod = geode::Loader::get()->getLoadedMod("beat.click-sound");
-        static bool hasClickSoundsMod = clickSoundsMod != nullptr && clickSoundsMod->isEnabled();
-        setupButton(this, {40, hasClickSoundsMod ? top - 80.f : top - 45.f}, "hacks-button"_spr);
+        if (hasNodeIdMod)
+            setupButton(this, {40, top - 45.f}, "hacks-button"_spr, "left-button-menu");
+        else
+            setupButton(this, {40, top - 45.f}, "hacks-button"_spr);
+    }
+};
+
+class $modify(LevelInfoLayer) {
+    bool init(GJGameLevel *level, bool challenge) {
+        if (!LevelInfoLayer::init(level, challenge)) return false;
+
+        static geode::Mod* nodeId = geode::Loader::get()->getLoadedMod("geode.node-ids");
+        static bool hasNodeIdMod = nodeId != nullptr && nodeId->isEnabled();
+
+        auto top = cocos2d::CCDirector::sharedDirector()->getScreenTop();
+        if (hasNodeIdMod) 
+            setupButton(this, {0, 0}, "hacks-button"_spr, "left-side-menu");
+
+        return true;
     }
 };
 
@@ -136,7 +152,16 @@ class $modify(LevelSelectLayer) {
 class $modify(CreatorLayer) {
     bool init() {
         if (!CreatorLayer::init()) return false;
-        setupButton(this, {30, cocos2d::CCDirector::sharedDirector()->getWinSize().height / 2}, "hacks-button"_spr);
+
+        static geode::Mod* nodeId = geode::Loader::get()->getLoadedMod("geode.node-ids");
+        static bool hasNodeIdMod = nodeId != nullptr && nodeId->isEnabled();
+
+        auto top = cocos2d::CCDirector::sharedDirector()->getScreenTop();
+        if (hasNodeIdMod) 
+            setupButton(this, {0, 0}, "hacks-button"_spr, "bottom-left-menu");
+        else 
+            setupButton(this, {30, cocos2d::CCDirector::sharedDirector()->getWinSize().height / 2}, "hacks-button"_spr);
+        
         return true;
     }
 };
@@ -152,8 +177,16 @@ class $modify(LevelBrowserLayer) {
 class $modify(EditorPauseLayer) {
     bool init(LevelEditorLayer* p0) {
         if (!EditorPauseLayer::init(p0)) return false;
-        setupButton(this, {cocos2d::CCDirector::sharedDirector()->getScreenRight() - 25.f, 
-                           cocos2d::CCDirector::sharedDirector()->getScreenTop() - 25.f}, "hacks-button"_spr);
+
+        static geode::Mod* nodeId = geode::Loader::get()->getLoadedMod("geode.node-ids");
+        static bool hasNodeIdMod = nodeId != nullptr && nodeId->isEnabled();
+
+        auto top = cocos2d::CCDirector::sharedDirector()->getScreenTop();
+        if (hasNodeIdMod) 
+            setupButton(this, {0, 0}, "hacks-button"_spr, "guidelines-menu");
+        else 
+            setupButton(this, {cocos2d::CCDirector::sharedDirector()->getScreenRight() - 25.f, 
+                                cocos2d::CCDirector::sharedDirector()->getScreenTop() - 25.f}, "hacks-button"_spr);
         return true;
     }
 };
@@ -162,6 +195,19 @@ class $modify(LevelSearchLayer) {
     bool init(int p0) {
         if (!LevelSearchLayer::init(p0)) return false;
         setupButton(this, {30, cocos2d::CCDirector::sharedDirector()->getWinSize().height / 2}, "hacks-button"_spr);
+        return true;
+    }
+};
+
+
+class $modify(EditLevelLayer) {
+    bool init(GJGameLevel *p0) {
+        if (!EditLevelLayer::init(p0)) return false;
+        static geode::Mod* nodeId = geode::Loader::get()->getLoadedMod("geode.node-ids");
+        static bool hasNodeIdMod = nodeId != nullptr && nodeId->isEnabled();
+
+        if (hasNodeIdMod) 
+            setupButton(this, {0, 0}, "hacks-button"_spr, "level-actions-menu");
         return true;
     }
 };
@@ -186,11 +232,14 @@ class $modify(cocos2d::CCEGLView) {
                     gui.m_waitingForBindKey = false;
                 }
                 else if (!gui.m_keybindMode) {
-                    if (key == gui.m_toggleKey) {
-                        gui.Toggle();
+                    auto& io = ImGui::GetIO();
+                    if (!io.WantCaptureKeyboard) {
+                        if (key == gui.m_toggleKey) {
+                            gui.Toggle();
+                        }
+    
+                        hacks.toggleKeybinds(key);
                     }
-
-                    hacks.toggleKeybinds(key);
                 }
 			}
         }     
