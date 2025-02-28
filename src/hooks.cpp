@@ -45,7 +45,7 @@
 std::vector<GameObject*> dualPortals, gamemodePortals, miniPortals, speedChanges, mirrorPortals;
 
 std::vector<StartPosObject*> hooksH::startPositions;
-int hooksH::selectedStartpos = -1;
+int hooksH::selectedStartpos = -2;
 
 std::deque<cocos2d::CCRect> playerTrail1, playerTrail2;
 
@@ -54,6 +54,9 @@ void hooksH::switchStartPos(int incBy, bool direction) {
     auto pl = PlayLayer::get();
 
     if (!pl || hooksH::startPositions.empty()) return;
+
+    if (hooksH::selectedStartpos == -2)
+        hooksH::selectedStartpos = hooksH::startPositions.size() - 1;
 
     hooksH::selectedStartpos += incBy;
 
@@ -256,7 +259,7 @@ class $modify(MyPlayLayer, PlayLayer) {
             speedChanges.clear();
             mirrorPortals.clear();
 
-            hooksH::selectedStartpos = -1;
+            hooksH::selectedStartpos = -2;
             playerTrail1.clear();
             playerTrail2.clear();
             color_dt = 0.f;
