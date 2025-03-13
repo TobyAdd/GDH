@@ -207,6 +207,9 @@ class $modify(MyCCScheduler, cocos2d::CCScheduler) {
         using namespace std::literals;
 
         for (unsigned i = 0; i < times; ++i) {
+            if (recorder.is_recording && recorder.frame_has_data && recorder.overlay_mode)
+                break;
+
             if (recorder.is_recording) recorder.applyWinSize();
             CCScheduler::update(new_dt);
             handleRestoreWinSize();
@@ -1266,6 +1269,11 @@ class $modify(MyGameManager, GameManager) {
     //         return true;
 
     //     return false;
+    // }
+
+    // void setGameVariable(const char *p0, bool p1) {
+    //     geode::log::debug("{} {}", p0, p1);
+    //     GameManager::setGameVariable(p0, p1);
     // }
 };
 

@@ -672,7 +672,7 @@ void Gui::Render() {
                     static bool first_time = true;
                     if (first_time) {
                         first_time = false;
-                        ImGui::SetNextWindowSize({800 * m_scale, 520 * m_scale});
+                        ImGui::SetNextWindowSize({800 * m_scale, 540 * m_scale});
                     }                
                 }
 
@@ -725,6 +725,12 @@ void Gui::Render() {
 
                                     if (engine.engine_v2 ? (!fps_enabled && check2) : (fps_enabled && check)) {
                                         if (recorder.enabled) {
+                                            if (recorder.overlay_mode) {
+                                                auto size = ImGui::GetIO().DisplaySize;
+                                                recorder.width = static_cast<int>(size.x);
+                                                recorder.height = static_cast<int>(size.y);
+                                            }
+
                                             if (!recorder.advanced_mode) {
                                                 recorder.full_cmd = recorder.compile_command();
                                             }
@@ -794,6 +800,21 @@ void Gui::Render() {
                                     }
                                 }
                                 ImGui::Spacing();
+                            }
+
+                            if (ImGuiH::Checkbox("Overlay Mode", &recorder.overlay_mode, m_scale)) {
+                                bool isFullscreen = !GameManager::sharedState()->getGameVariable("0025");
+                                if (!isFullscreen) {
+                                    recorder.overlay_mode = false;
+                                    ImGuiH::Popup::get().add_popup("Please switch to fullscreen to record in overlay mode");
+                                }
+                            }
+
+                            if (recorder.overlay_mode) {
+                                ImGui::PushStyleColor(ImGuiCol_Text, ImColor(255, 128, 128).Value);
+                                ImGui::TextWrapped("Overlay Mode allows you to capture all overlays (like steam or reshade)");
+                                ImGui::TextWrapped("In this mode, you can only record in full screen mode (native screen resolution)");
+                                ImGui::PopStyleColor();
                             }
 
 
@@ -1150,6 +1171,15 @@ void Gui::Render() {
                         static std::vector<std::filesystem::path> audios;
                         static int index_videos = 0;
                         static int index_audios = 0;
+                        static std::string args = "-c:v copy -c:a libfdk_aac -vbr 5 -shortest";
+
+                        auto compile = [&]()
+                        {
+                            args = "-c:v copy -c:a libfdk_aac -vbr 5";
+                            if (shortest) {
+                                args += " -shortest";
+                            }
+                        };
 
                         ImGui::BeginChild("##VideoSelect", {NULL, 190 * m_scale}, true);
                         for (size_t i = 0; i < videos.size(); i++) {
@@ -1186,29 +1216,31 @@ void Gui::Render() {
                                     videos.push_back(entry.path().string());
                                 }
 
-                                if (entry.path().extension() == ".wav") {
+                                if (entry.path().extension() == ".wav" ||
+                                    entry.path().extension() == ".mp3" ||
+                                    entry.path().extension() == ".m4a") {
                                     audios.push_back(entry.path().string());
                                 }
                             }
                         }
 
-                        ImGuiH::Checkbox("Shortest", &shortest, m_scale);
+                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                        ImGui::InputText("##merge_command", &args);
 
+                        if (ImGuiH::Checkbox("Shortest", &shortest, m_scale)) 
+                            compile();
                         
                         ImGui::SameLine();
 
                         if (ImGuiH::Button("Merge", {ImGui::GetContentRegionAvail().x, NULL})) {
                             if (videos.empty() || audios.empty()) {
-                                
+
                             } else if (index_videos >= 0 && index_videos < (int)videos.size() && index_audios >= 0 && index_audios < (int)audios.size()) {
-                                std::string command2 = "ffmpeg.exe -y -i \"" + videos[index_videos].string() + "\" -i \"" + audios[index_audios].string() + "\" -map 0:v -map 1:a -c:v copy ";
-                                if (shortest) {
-                                    command2 += "-shortest ";
-                                }
+                                std::string command = "ffmpeg.exe -y -i \"" + videos[index_videos].string() + "\" -i \"" + audios[index_audios].string() + "\" " + args + " ";
                                 std::filesystem::path video_rel(videos[index_videos]);
-                                command2 += fmt::format("\"{}\\audio_{}\"", recorder.folderShowcasesPath, video_rel.filename().string());
-                                geode::log::debug("{}", command2);
-                                auto process = subprocess::Popen(command2);
+                                command += fmt::format("\"{}\\audio_{}\"", recorder.folderShowcasesPath, video_rel.filename().string());
+                                geode::log::debug("{}", command);
+                                auto process = subprocess::Popen(command);
                             }
                         }
                         ImGui::EndTabItem();

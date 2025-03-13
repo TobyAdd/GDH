@@ -87,6 +87,8 @@ public:
     bool needRevertOld = false;
 
     bool flvc_enabled = false;
+
+    bool overlay_mode = false;
 private:
     Recorder() = default;
 

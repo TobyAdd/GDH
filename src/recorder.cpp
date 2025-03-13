@@ -31,6 +31,16 @@ void RenderTexture::begin() {
 }
 
 void RenderTexture::capture_frame(std::mutex& lock, std::vector<uint8_t>& data, volatile bool& frame_has_data) {
+    auto& recorder = Recorder::get();
+
+    if (recorder.overlay_mode) {
+        lock.lock();
+        glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data.data());
+        frame_has_data = true;
+        lock.unlock();
+        return;
+    }
+
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
     glViewport(0, 0, width, height);
