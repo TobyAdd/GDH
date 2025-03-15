@@ -123,7 +123,7 @@ void Hacks::Init() {
             }
         },
         {"Framerate", 450, 330, 220, 130},
-        {"GDH Settings", 450, 470, 220, 180},
+        {"GDH Settings", 450, 470, 220, 210},
         {"Replay Engine", 680, 10, 300, 200},
         {"Labels", 680, 220, 300, 320},
         {"Variables", 10, 510, 200, 160},

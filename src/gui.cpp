@@ -385,6 +385,25 @@ void Gui::Render() {
 
                 ImGui::EndPopup();
             }
+
+            #ifdef GEODE_IS_WINDOWS
+
+            static int priorityIndex = 3;
+            const char* priorityNames[] = {"Real-time", "High", "Above Normal", "Normal", "Below Normal", "Low"};
+            DWORD priorityValues[] = {REALTIME_PRIORITY_CLASS, HIGH_PRIORITY_CLASS, ABOVE_NORMAL_PRIORITY_CLASS, 
+                                      NORMAL_PRIORITY_CLASS, BELOW_NORMAL_PRIORITY_CLASS, IDLE_PRIORITY_CLASS};
+
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGuiH::Combo("##Process Priority", &priorityIndex, priorityNames, IM_ARRAYSIZE(priorityNames))) {
+                if (SetPriorityClass(GetCurrentProcess(), priorityValues[priorityIndex])) {
+                    ImGuiH::Popup::get().add_popup(fmt::format("Priority changed to: {}", priorityNames[priorityIndex]));
+                } else {
+                    ImGuiH::Popup::get().add_popup("Failed to change priority!");
+                }
+            }
+            
+            #endif
+
         }
         else if (windowName == "Framerate") {
             bool tps_enabled = config.get<bool>("tps_enabled", false);
