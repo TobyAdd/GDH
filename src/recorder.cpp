@@ -320,8 +320,8 @@ void RecorderAudio::start() {
     old_volume_music = fmod_engine->getBackgroundMusicVolume();
     old_volume_sfx = fmod_engine->getEffectsVolume();
 
-    fmod_engine->setBackgroundMusicVolume(1.f);
-    fmod_engine->setEffectsVolume(1.f);
+    fmod_engine->setBackgroundMusicVolume(volume_music);
+    fmod_engine->setEffectsVolume(volume_sfx);
 
     m_masterGroup->addDSP(0, m_dsp);
 

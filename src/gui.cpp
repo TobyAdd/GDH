@@ -814,6 +814,8 @@ void Gui::Render() {
                                 ImGui::PushStyleColor(ImGuiCol_Text, ImColor(255, 128, 128).Value);
                                 ImGui::TextWrapped("Overlay Mode allows you to capture all overlays (like steam or reshade)");
                                 ImGui::TextWrapped("In this mode, you can only record in full screen mode (native screen resolution)");
+                                ImGui::TextWrapped("- Don't open other overlays like GDH, Steam, Reshade to make a good showcase");
+                                ImGui::TextWrapped("- Don't pause while recording the showcase, a frame of the pause menu may be visible");
                                 ImGui::PopStyleColor();
                             }
 
@@ -1135,13 +1137,21 @@ void Gui::Render() {
 
                         ImGuiH::Checkbox("Showcase Mode", &recorderAudio.showcase_mode, m_scale);
 
-                        if (recorderAudio.showcase_mode) {
-                            ImGui::Spacing();
+                        ImGui::Spacing();
 
-                            ImGui::Text("Level Settings");
-                            ImGui::Separator();
+                        ImGui::Text("Level Settings");
+                        ImGui::Separator();
 
+                        ImGui::PushItemWidth(120 * m_scale);
+                        ImGui::SliderFloat("##MusicRecorder", &recorderAudio.volume_music, 0.f, 1.f, "Music: %.2f");
+
+                        ImGui::SameLine();
                         
+                        ImGui::PushItemWidth(120 * m_scale);
+                        
+                        ImGui::SliderFloat("##SFXRecorder", &recorderAudio.volume_sfx, 0.f, 1.f, "SFX: %.2f");
+
+                        if (recorderAudio.showcase_mode) {
                             ImGui::PushItemWidth(200 * m_scale);
                             ImGui::InputFloat("Second to Render After##2", &recorderAudio.after_end_duration, 1);
                         }

@@ -121,6 +121,9 @@ public:
 
     std::string extra_args;
 
+    float volume_music = 1.f;
+    float volume_sfx = 1.f;
+
     float old_volume_music;
     float old_volume_sfx;
 

@@ -217,6 +217,10 @@ class $modify(EditLevelLayer) {
 
 #ifdef GEODE_IS_WINDOWS
 class $modify(cocos2d::CCEGLView) {
+    static void onModify(auto& self) {
+        (void)self.setHookPriority("cocos2d::CCEGLView::onGLFWKeyCallback", geode::Priority::First);
+    }
+
     void onGLFWKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
         CCEGLView::onGLFWKeyCallback(window, key, scancode, action, mods);
 
