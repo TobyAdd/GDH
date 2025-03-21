@@ -33,6 +33,7 @@ std::string Label::get_text() {
     result = replace_all(result, "{time:12}", fmt::format("{} {}", time_to_fmt_time(hour12, localTime.tm_min, localTime.tm_sec), period12));
     result = replace_all(result, "{time:24}", time_to_fmt_time(localTime.tm_hour, localTime.tm_min, localTime.tm_sec));
     result = replace_all(result, "{attempt}", std::to_string(Labels::get().attempts));
+    result = replace_all(result, "{fps}", std::string(CCDirector::sharedDirector()->m_pszFPS).erase(0, 5));
     result = replace_all(result, "{sessionTime}", seconds_to_fmt_time(Labels::get().session_time));
     result = replace_all(result, "{progress}", platformer ? seconds_to_fmt_time(percentage) : fmt::format("{:.2f}%", percentage, 2));
     result = replace_all(result, "{clicks}", std::to_string(CpsCounter::get().overall));
@@ -274,6 +275,7 @@ void Labels::initMobileContext(geode::ScrollLayer* scrollLayer) {
         "<cg>{time:12}</c> - time 12-hour\n"
         "<cg>{time:24}</c> - time 24-hour\n"
         "<cg>{attempt}</c> - attempt\n"
+        "<cg>{fps}</c> - fps counter\n"
         "<cg>{sessionTime}</c> - session time\n"
         "<cg>{progress}</c> - progress %\n"
         "<cg>{clicks}</c> - clicks\n"
@@ -321,7 +323,7 @@ LabelsCreateLayer* LabelsCreateLayer::create(geode::ScrollLayer* scrollLayer) {
 
 bool LabelsCreateLayer::setup() {
     std::array<std::string, 6> corners = {"Top Left", "Top Right", "Top", "Bottom Left", "Bottom Right", "Bottom"};
-    std::array<std::string, 10> label_types = {"Time (24H)", "Time (12H)", "Session Time", "Level Progress", "Attempt", "CPS Counter", "Level Info", "Noclip Accuracy", "Death Counter", "Custom Text"};
+    std::array<std::string, 11> label_types = {"Time (24H)", "Time (12H)", "Session Time", "FPS Counter", "Level Progress", "Attempt", "CPS Counter", "Level Info", "Noclip Accuracy", "Death Counter", "Custom Text"};
     
     this->setTitle("Add Label");
 
@@ -357,13 +359,14 @@ bool LabelsCreateLayer::setup() {
         if (m_labelTypeIndex == 0) text = "{time:24}";
         else if (m_labelTypeIndex == 1) text = "{time:12}";
         else if (m_labelTypeIndex == 2) text = "Session Time: {sessionTime}";
-        else if (m_labelTypeIndex == 3) text = "{progress}";
-        else if (m_labelTypeIndex == 4) text = "Attempt {attempt}";
-        else if (m_labelTypeIndex == 5) text = "{cps}/{cpsHigh}/{clicks}";
-        else if (m_labelTypeIndex == 6) text = "{levelName}{byLevelCreator} ({levelId})";
-        else if (m_labelTypeIndex == 7) text = "{noclipAccuracy}";
-        else if (m_labelTypeIndex == 8) text = "{deaths} Deaths";
-        else if (m_labelTypeIndex == 9) text = "here your text";
+        else if (m_labelTypeIndex == 3) text = "{fps}";
+        else if (m_labelTypeIndex == 4) text = "{progress}";
+        else if (m_labelTypeIndex == 5) text = "Attempt {attempt}";
+        else if (m_labelTypeIndex == 6) text = "{cps}/{cpsHigh}/{clicks}";
+        else if (m_labelTypeIndex == 7) text = "{levelName}{byLevelCreator} ({levelId})";
+        else if (m_labelTypeIndex == 8) text = "{noclipAccuracy}";
+        else if (m_labelTypeIndex == 9) text = "{deaths} Deaths";
+        else if (m_labelTypeIndex == 10) text = "here your text";
         
         auto& labels = Labels::get();
         Label l((LabelCorner) (m_toggleIndex), text);

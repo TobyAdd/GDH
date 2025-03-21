@@ -123,7 +123,7 @@ void Hacks::Init() {
             }
         },
         {"Framerate", 450, 330, 220, 130},
-        {"GDH Settings", 450, 470, 220, 210},
+        {"GDH Settings", 450, 470, 220, 230},
         {"Replay Engine", 680, 10, 300, 200},
         {"Labels", 680, 220, 300, 320},
         {"Variables", 10, 510, 200, 160},
@@ -136,6 +136,8 @@ void Hacks::Init() {
     SetCustomWindowHandlerByConfig("tps_enabled", [this, &config]() {
         bool tps_real_time = config.get<bool>("tps::real_time", true);
         float tps_value = config.get<float>("tps_value", 60.f);
+        int resumeTimer = config.get<int>("resumeTimer_value", 2);
+
         auto popup = popupSystem::create();
         popup->AddText("TPS Value:");
         popup->AddFloatInput("TPS Value", tps_value, [this, &config](float value) 
@@ -150,6 +152,15 @@ void Hacks::Init() {
             config.set<bool>("tps::real_time", enabled);
         });
 
+        popup->AddText("Resumer Timer:");
+
+        popup->AddIntInput("Resumer Timer", resumeTimer, [this, &config](int value) 
+        {
+            config.set<int>("resumeTimer_value", std::clamp(value, 2, INT_MAX));
+        },
+        30.f);
+
+        popup->AddText("Higher resume timer means a smoother\nstart but a delay (adjust as needed)", 0.35f);
 
         popup->show();
     });

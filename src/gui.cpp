@@ -393,6 +393,7 @@ void Gui::Render() {
             DWORD priorityValues[] = {REALTIME_PRIORITY_CLASS, HIGH_PRIORITY_CLASS, ABOVE_NORMAL_PRIORITY_CLASS, 
                                       NORMAL_PRIORITY_CLASS, BELOW_NORMAL_PRIORITY_CLASS, IDLE_PRIORITY_CLASS};
 
+            ImGui::Text("Process Priority");
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             if (ImGuiH::Combo("##Process Priority", &priorityIndex, priorityNames, IM_ARRAYSIZE(priorityNames))) {
                 if (SetPriorityClass(GetCurrentProcess(), priorityValues[priorityIndex])) {
@@ -1312,6 +1313,7 @@ void Gui::Render() {
                 "Time (24H)",
                 "Time (12H)",
                 "Session Time",
+                "FPS Counter",
                 "Level Progress",
                 "Attempt",
                 "CPS Counter",
@@ -1334,13 +1336,14 @@ void Gui::Render() {
                 else if (selected_label_type == 0) text = "{time:24}";
                 else if (selected_label_type == 1) text = "{time:12}";
                 else if (selected_label_type == 2) text = "Session Time: {sessionTime}";
-                else if (selected_label_type == 3) text = "{progress}";
-                else if (selected_label_type == 4) text = "Attempt {attempt}";
-                else if (selected_label_type == 5) text = "{cps}/{cpsHigh}/{clicks}";
-                else if (selected_label_type == 6) text = "{levelName}{byLevelCreator} ({levelId})";
-                else if (selected_label_type == 7) text = "{noclipAccuracy}";
-                else if (selected_label_type == 8) text = "{deaths} Deaths";
-                else if (selected_label_type == 9) text = "{startposCurrentIDX}/{startposAllIDX}";
+                else if (selected_label_type == 3) text = "{fps}";
+                else if (selected_label_type == 4) text = "{progress}";
+                else if (selected_label_type == 5) text = "Attempt {attempt}";
+                else if (selected_label_type == 6) text = "{cps}/{cpsHigh}/{clicks}";
+                else if (selected_label_type == 7) text = "{levelName}{byLevelCreator} ({levelId})";
+                else if (selected_label_type == 8) text = "{noclipAccuracy}";
+                else if (selected_label_type == 9) text = "{deaths} Deaths";
+                else if (selected_label_type == 10) text = "{startposCurrentIDX}/{startposAllIDX}";
                 
                 Label l((LabelCorner) (selected_label_corner+1), text);
                 labels.add(l);
