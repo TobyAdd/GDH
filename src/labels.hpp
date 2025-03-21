@@ -55,7 +55,7 @@ class Labels {
         void swap(int index_0, int index_1);
 
         int attempts = 1;
-        float session_time = 0.f;
+        std::chrono::steady_clock::time_point session_time;
         float progress = 0.f;
         bool platformer = false;
         

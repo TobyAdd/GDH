@@ -4,6 +4,7 @@
 #include "labels.hpp"
 #include "popupSystem.hpp"
 #include "hooks.hpp"
+#include <algorithm>
 
 using namespace geode::prelude;
 
@@ -14,6 +15,7 @@ Label::Label(LabelCorner _corner, std::string _format_text) {
 
 std::string Label::get_text() {
     auto now = std::chrono::system_clock::now();
+    auto steady_now = std::chrono::steady_clock::now();
     std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
     std::tm localTime = fmt::localtime(now_time_t);
 
@@ -34,8 +36,13 @@ std::string Label::get_text() {
     result = replace_all(result, "{time:24}", time_to_fmt_time(localTime.tm_hour, localTime.tm_min, localTime.tm_sec));
     result = replace_all(result, "{attempt}", std::to_string(Labels::get().attempts));
     result = replace_all(result, "{fps}", std::string(CCDirector::sharedDirector()->m_pszFPS).erase(0, 5));
-    result = replace_all(result, "{sessionTime}", seconds_to_fmt_time(Labels::get().session_time));
-    result = replace_all(result, "{progress}", platformer ? seconds_to_fmt_time(percentage) : fmt::format("{:.2f}%", percentage, 2));
+    float session_time_seconds = std::chrono::duration<float>(steady_now - Labels::get().session_time).count();
+    result = replace_all(result, "{sessionTime}", seconds_to_fmt_time(session_time_seconds));    
+    for (int i = 0; i <= 6; ++i) {
+        std::string placeholder = fmt::format("{{progress:{}f}}", i);
+        std::string replacement = platformer ? seconds_to_fmt_time(percentage) : fmt::format("{:.{}f}%", percentage, i);
+        result = replace_all(result, placeholder, replacement);
+    }    
     result = replace_all(result, "{clicks}", std::to_string(CpsCounter::get().overall));
     result = replace_all(result, "{cps}", std::to_string(CpsCounter::get().cps));
     result = replace_all(result, "{cpsHigh}", std::to_string(CpsCounter::get().highscore));
@@ -360,7 +367,7 @@ bool LabelsCreateLayer::setup() {
         else if (m_labelTypeIndex == 1) text = "{time:12}";
         else if (m_labelTypeIndex == 2) text = "Session Time: {sessionTime}";
         else if (m_labelTypeIndex == 3) text = "{fps}";
-        else if (m_labelTypeIndex == 4) text = "{progress}";
+        else if (m_labelTypeIndex == 4) text = "{progress:2f}";
         else if (m_labelTypeIndex == 5) text = "Attempt {attempt}";
         else if (m_labelTypeIndex == 6) text = "{cps}/{cpsHigh}/{clicks}";
         else if (m_labelTypeIndex == 7) text = "{levelName}{byLevelCreator} ({levelId})";

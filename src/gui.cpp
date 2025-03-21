@@ -1337,7 +1337,7 @@ void Gui::Render() {
                 else if (selected_label_type == 1) text = "{time:12}";
                 else if (selected_label_type == 2) text = "Session Time: {sessionTime}";
                 else if (selected_label_type == 3) text = "{fps}";
-                else if (selected_label_type == 4) text = "{progress}";
+                else if (selected_label_type == 4) text = "{progress:2f}";
                 else if (selected_label_type == 5) text = "Attempt {attempt}";
                 else if (selected_label_type == 6) text = "{cps}/{cpsHigh}/{clicks}";
                 else if (selected_label_type == 7) text = "{levelName}{byLevelCreator} ({levelId})";

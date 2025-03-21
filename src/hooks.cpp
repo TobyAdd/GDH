@@ -398,7 +398,7 @@ class $modify(MyPlayLayer, PlayLayer) {
         addChild(m_fields->labels_top);
 
         Labels::get().attempts = 1;
-        Labels::get().session_time = 0.f;
+        Labels::get().session_time = std::chrono::steady_clock::now();
 
         return true;
     }
@@ -677,14 +677,6 @@ class $modify(MyPlayLayer, PlayLayer) {
     void updateAttempts() {
         PlayLayer::updateAttempts();
         Labels::get().attempts++;
-    }
-
-    void updateAttemptTime(float time) {
-        PlayLayer::updateAttemptTime(time);
-        float speed = Config::get().get<float>("speedhack_value", 1.f);
-
-        if (speed != 0.f)
-            Labels::get().session_time += time / speed;
     }
 
     void storeCheckpoint(CheckpointObject* obj) {
