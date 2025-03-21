@@ -448,6 +448,12 @@ void Gui::Render() {
                 if (ImGuiH::Checkbox("Real Time", &tps_real_time, m_scale)) 
                     config.set<bool>("tps::real_time", tps_real_time);
 
+                int resumeTimer = config.get<int>("resumeTimer_value", 2);
+                if (ImGui::DragInt("##ResumerTimer", &resumeTimer, 1, 2, INT_MAX, "Resume Timer: %d"))
+                    config.set<int>("resumeTimer_value", resumeTimer);    
+
+                ImGui::Text("Higher resume timer means a smoother start but a delay (adjust as needed)");
+
                 if (ImGui::IsItemHovered())
                     ImGui::SetTooltip("Allows real-time update of multiplied ticks (may cause lags)");
             }

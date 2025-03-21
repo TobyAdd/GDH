@@ -587,6 +587,9 @@ class $modify(MyPlayLayer, PlayLayer) {
         // }
 
         PlayLayer::resetLevel();
+        if (config.get<bool>("tps_enabled", false)) {
+            m_resumeTimer = config.get<int>("resumeTimer_value", 2);
+        }
 
         // m_unk3188 = unk3188;
         // m_replayRandSeed = replayRandSeed;
