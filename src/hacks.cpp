@@ -2,6 +2,7 @@
 #include "hooks.hpp"
 #include "config.hpp"
 #include "gui.hpp"
+#include "imgui.h"
 #include "labels.hpp"
 #include "recorder.hpp"
 #include "replayEngine.hpp"
@@ -163,7 +164,17 @@ void Hacks::Init() {
         bool undeafen_on_pause = config.get<bool>("auto_deafen::undeafen_on_pause", true);
         if (ImGuiH::Checkbox("Undeafen on Pause", &undeafen_on_pause, gui.m_scale))
             config.set<bool>("auto_deafen::undeafen_on_pause", undeafen_on_pause);
-    
+
+        if (hooksH::isWine()) {
+            ImGui::Spacing();
+            ImGui::PushStyleColor(ImGuiCol_Text, ImColor(255, 128, 128).Value);
+            ImGui::Text("Linux detected, may be unstable. Experimental feature.");
+            ImGui::PopStyleColor();
+            ImGui::Spacing();
+            ImGui::Text("Binary distributed from \ngh:GMDProjectL/linux-new-autodeafen-xpart");
+            ImGui::Spacing();
+        }
+
         #endif
     });
     #endif

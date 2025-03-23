@@ -54,11 +54,70 @@ std::deque<cocos2d::CCRect> playerTrail1, playerTrail2;
 
 #ifdef GEODE_IS_WINDOWS
 bool autoDeafenMuted = false;
+
+
+bool hooksH::isWine() {
+    static bool wineChecked = false;
+    static bool isWinePersistent;
+
+    if (wineChecked) {
+        return isWinePersistent;
+    }
+
+    wineChecked = true;
+
+    HMODULE ntdll = GetModuleHandleA("ntdll.dll");
+    if (ntdll) {
+        typedef void (*wine_get_version_t)(void);
+        wine_get_version_t wine_get_version = (wine_get_version_t)GetProcAddress(ntdll, "wine_get_version");
+        if (wine_get_version) {
+            wine_get_version();
+            isWinePersistent = true;
+            return true;
+        }
+    }
+    return false;
+}
+
+void hooksH::spawn_deafen_process(int xkeycode) { // NEEDS TO BE COMPLIANT WITH XCB
+	SECURITY_ATTRIBUTES sa;
+	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+	sa.bInheritHandle = TRUE;
+	sa.lpSecurityDescriptor = NULL;
+
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
+	ZeroMemory(&si, sizeof(si));
+	si.cb = sizeof(si);
+	ZeroMemory(&pi, sizeof(pi));
+
+	std::string path = cocos2d::CCFileUtils::get()->fullPathForFilename("lnax.exe.so"_spr, true);
+
+	auto keycodeArg = std::to_string(xkeycode).c_str();
+
+	if (!CreateProcess(path.c_str(), (char*)keycodeArg, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
+		geode::log::error("Failed to launch Deafen program: {}", GetLastError());
+		return;
+	}
+}
+
 void setDeafen(bool muted) {
     if (autoDeafenMuted == muted) return;
     autoDeafenMuted = muted;
 
     auto &gui = Gui::get();
+
+    if (hooksH::isWine()) {
+        int xcbKeycode = KeyMappingUtils::GetXcbFromGLFW(gui.m_autoDeafenKey);
+
+        geode::log::info("It's wine, so we're spawning a process with a {} key", xcbKeycode);
+
+        std::thread([xcbKeycode] {
+            hooksH::spawn_deafen_process(xcbKeycode);
+        }).detach();
+
+        return;
+    }
 
     keybd_event(KeyMappingUtils::GetWinAPIFromGLFW(gui.m_autoDeafenKey), 0, 0, 0);
     keybd_event(KeyMappingUtils::GetWinAPIFromGLFW(gui.m_autoDeafenKey), 0, KEYEVENTF_KEYUP, 0);
