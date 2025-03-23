@@ -1543,7 +1543,9 @@ void Gui::Toggle() {
     }
 }
 
+
 void Gui::renderKeyButton(const std::string& label, int& key, bool withoutKeybindsMode) {
+    #ifdef GEODE_IS_WINDOWS
     std::string keyStr = label + KeyMappingUtils::GetNameFromGLFW(key);
     if (key == -1) {
         keyStr = "Press any key...";
@@ -1559,4 +1561,5 @@ void Gui::renderKeyButton(const std::string& label, int& key, bool withoutKeybin
         if (withoutKeybindsMode) m_keybindMode = true;
         m_waitingForBindKey = true;
     }
+    #endif
 };
