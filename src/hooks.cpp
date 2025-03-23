@@ -41,7 +41,9 @@
 #include "replayEngine.hpp"
 #include "recorder.hpp"
 #include "gui.hpp"
+#ifdef GEODE_IS_WINDOWS
 #include "keyMapping.hpp"
+#endif
 
 std::vector<GameObject*> dualPortals, gamemodePortals, miniPortals, speedChanges, mirrorPortals;
 
