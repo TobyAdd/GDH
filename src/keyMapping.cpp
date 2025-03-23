@@ -1,3 +1,4 @@
+#ifdef GEODE_IS_WINDOWS
 #include "keyMapping.hpp"
 #include <algorithm>
 
@@ -184,3 +185,4 @@ const KeyMapping* GetMappingFromWinAPI(int winApiKey) {
 }
 
 }
+#endif
