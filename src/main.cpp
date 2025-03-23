@@ -19,7 +19,9 @@
 #include "gui_mobile.hpp"
 #include "config.hpp"
 #include "hacks.hpp"
+#ifdef GEODE_IS_WINDOWS
 #include "keyMapping.hpp"
+#endif
 
 void CheckDir(const std::filesystem::path &path)
 {
@@ -115,7 +117,7 @@ class $modify(MenuLayer) {
                         if (permChecked) {
                             continue;
                         }
-                        
+
 
                         auto &gui = Gui::get();
                         auto xcbkey1 = KeyMappingUtils::GetXcbFromGLFW(gui.m_autoDeafenKey);
