@@ -138,6 +138,140 @@ static const std::vector<KeyMapping> keyMappings = {
     {GLFW_KEY_WORLD_2, 0, "World 2"}
 };
 
+static const std::vector<KeyMapping> xcbKeyMappings = {
+    {0, 0, "None"},
+    {GLFW_KEY_ESCAPE, 9, "Esc"},
+    {GLFW_KEY_ENTER, 36, "Enter"},
+    {GLFW_KEY_TAB, 23, "Tab"},
+    {GLFW_KEY_BACKSPACE, 22, "Backspace"},
+    {GLFW_KEY_INSERT, 110, "Insert"},
+    {GLFW_KEY_DELETE, 119, "Delete"},
+    
+    {GLFW_KEY_RIGHT, 114, "Right"},
+    {GLFW_KEY_LEFT, 113, "Left"},
+    {GLFW_KEY_DOWN, 116, "Down"},
+    {GLFW_KEY_UP, 111, "Up"},
+    
+    {GLFW_KEY_PAGE_UP, 112, "Page Up"},
+    {GLFW_KEY_PAGE_DOWN, 117, "Page Down"},
+    {GLFW_KEY_HOME, 110, "Home"},
+    {GLFW_KEY_END, 115, "End"},
+    
+    {GLFW_KEY_CAPS_LOCK, 66, "Caps Lock"},
+    {GLFW_KEY_SCROLL_LOCK, 78, "Scroll Lock"},
+    {GLFW_KEY_NUM_LOCK, 77, "Num Lock"},
+    {GLFW_KEY_PRINT_SCREEN, 107, "Print Screen"},
+    {GLFW_KEY_PAUSE, 127, "Pause"},
+    
+    {GLFW_KEY_F1, 67, "F1"},
+    {GLFW_KEY_F2, 68, "F2"},
+    {GLFW_KEY_F3, 69, "F3"},
+    {GLFW_KEY_F4, 70, "F4"},
+    {GLFW_KEY_F5, 71, "F5"},
+    {GLFW_KEY_F6, 72, "F6"},
+    {GLFW_KEY_F7, 73, "F7"},
+    {GLFW_KEY_F8, 74, "F8"},
+    {GLFW_KEY_F9, 75, "F9"},
+    {GLFW_KEY_F10, 76, "F10"},
+    {GLFW_KEY_F11, 95, "F11"},
+    {GLFW_KEY_F12, 96, "F12"},
+    {GLFW_KEY_F13, 183, "F13"},
+    {GLFW_KEY_F14, 184, "F14"},
+    {GLFW_KEY_F15, 185, "F15"},
+    {GLFW_KEY_F16, 186, "F16"},
+    {GLFW_KEY_F17, 187, "F17"},
+    {GLFW_KEY_F18, 188, "F18"},
+    {GLFW_KEY_F19, 189, "F19"},
+    {GLFW_KEY_F20, 190, "F20"},
+    {GLFW_KEY_F21, 191, "F21"},
+    {GLFW_KEY_F22, 192, "F22"},
+    {GLFW_KEY_F23, 193, "F23"},
+    {GLFW_KEY_F24, 194, "F24"},
+    {GLFW_KEY_F25, 0, "F25"},
+    
+    {GLFW_KEY_0, 19, "0"},
+    {GLFW_KEY_1, 10, "1"},
+    {GLFW_KEY_2, 11, "2"},
+    {GLFW_KEY_3, 12, "3"},
+    {GLFW_KEY_4, 13, "4"},
+    {GLFW_KEY_5, 14, "5"},
+    {GLFW_KEY_6, 15, "6"},
+    {GLFW_KEY_7, 16, "7"},
+    {GLFW_KEY_8, 17, "8"},
+    {GLFW_KEY_9, 18, "9"},
+    
+    {GLFW_KEY_A, 38, "A"},
+    {GLFW_KEY_B, 56, "B"},
+    {GLFW_KEY_C, 54, "C"},
+    {GLFW_KEY_D, 40, "D"},
+    {GLFW_KEY_E, 26, "E"},
+    {GLFW_KEY_F, 41, "F"},
+    {GLFW_KEY_G, 42, "G"},
+    {GLFW_KEY_H, 43, "H"},
+    {GLFW_KEY_I, 31, "I"},
+    {GLFW_KEY_J, 44, "J"},
+    {GLFW_KEY_K, 45, "K"},
+    {GLFW_KEY_L, 46, "L"},
+    {GLFW_KEY_M, 58, "M"},
+    {GLFW_KEY_N, 57, "N"},
+    {GLFW_KEY_O, 32, "O"},
+    {GLFW_KEY_P, 33, "P"},
+    {GLFW_KEY_Q, 24, "Q"},
+    {GLFW_KEY_R, 27, "R"},
+    {GLFW_KEY_S, 39, "S"},
+    {GLFW_KEY_T, 28, "T"},
+    {GLFW_KEY_U, 30, "U"},
+    {GLFW_KEY_V, 55, "V"},
+    {GLFW_KEY_W, 25, "W"},
+    {GLFW_KEY_X, 53, "X"},
+    {GLFW_KEY_Y, 29, "Y"},
+    {GLFW_KEY_Z, 52, "Z"},
+    
+    {GLFW_KEY_SPACE, 65, "Space"},
+    {GLFW_KEY_APOSTROPHE, 48, "'"},
+    {GLFW_KEY_COMMA, 59, ","},
+    {GLFW_KEY_MINUS, 20, "-"},
+    {GLFW_KEY_PERIOD, 60, "."},
+    {GLFW_KEY_SLASH, 61, "/"},
+    {GLFW_KEY_SEMICOLON, 47, ";"},
+    {GLFW_KEY_EQUAL, 21, "="},
+    {GLFW_KEY_LEFT_BRACKET, 34, "["},
+    {GLFW_KEY_BACKSLASH, 51, "\\"},
+    {GLFW_KEY_RIGHT_BRACKET, 35, "]"},
+    {GLFW_KEY_GRAVE_ACCENT, 49, "`"},
+    
+    {GLFW_KEY_KP_0, 90, "Num 0"},
+    {GLFW_KEY_KP_1, 87, "Num 1"},
+    {GLFW_KEY_KP_2, 88, "Num 2"},
+    {GLFW_KEY_KP_3, 89, "Num 3"},
+    {GLFW_KEY_KP_4, 83, "Num 4"},
+    {GLFW_KEY_KP_5, 84, "Num 5"},
+    {GLFW_KEY_KP_6, 85, "Num 6"},
+    {GLFW_KEY_KP_7, 79, "Num 7"},
+    {GLFW_KEY_KP_8, 80, "Num 8"},
+    {GLFW_KEY_KP_9, 81, "Num 9"},
+    {GLFW_KEY_KP_DECIMAL, 134, "Num ."},
+    {GLFW_KEY_KP_DIVIDE, 91, "Num /"},
+    {GLFW_KEY_KP_MULTIPLY, 63, "Num *"},
+    {GLFW_KEY_KP_SUBTRACT, 82, "Num -"},
+    {GLFW_KEY_KP_ADD, 86, "Num +"},
+    {GLFW_KEY_KP_ENTER, 108, "Num Enter"},
+    {GLFW_KEY_KP_EQUAL, 21, "Num ="},
+    
+    {GLFW_KEY_LEFT_SHIFT, 50, "Left Shift"},
+    {GLFW_KEY_LEFT_CONTROL, 37, "Left Ctrl"},
+    {GLFW_KEY_LEFT_ALT, 64, "Left Alt"},
+    {GLFW_KEY_LEFT_SUPER, 133, "Left Super"},
+    {GLFW_KEY_RIGHT_SHIFT, 62, "Right Shift"},
+    {GLFW_KEY_RIGHT_CONTROL, 105, "Right Ctrl"},
+    {GLFW_KEY_RIGHT_ALT, 108, "Right Alt"},
+    {GLFW_KEY_RIGHT_SUPER, 134, "Right Super"},
+    {GLFW_KEY_MENU, 135, "Menu"},
+    
+    {GLFW_KEY_WORLD_1, 0, "World 1"},
+    {GLFW_KEY_WORLD_2, 0, "World 2"}
+};
+
 const std::vector<KeyMapping>& GetKeyMappings() {
     return keyMappings;
 }
@@ -168,6 +302,13 @@ int GetWinAPIFromGLFW(int glfwKey) {
         [glfwKey](const KeyMapping& mapping) { return mapping.glfwKey == glfwKey; });
     
     return (it != keyMappings.end()) ? it->winApiKey : 0;
+}
+
+int GetXcbFromGLFW(int glfwKey) {
+    auto it = std::find_if(xcbKeyMappings.begin(), xcbKeyMappings.end(), 
+        [glfwKey](const KeyMapping& mapping) { return mapping.glfwKey == glfwKey; });
+    
+    return (it != xcbKeyMappings.end()) ? it->winApiKey : 0;
 }
 
 const KeyMapping* GetMappingFromGLFW(int glfwKey) {
