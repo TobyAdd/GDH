@@ -41,6 +41,7 @@
 #include "replayEngine.hpp"
 #include "recorder.hpp"
 #include "gui.hpp"
+#include "keyMapping.hpp"
 
 std::vector<GameObject*> dualPortals, gamemodePortals, miniPortals, speedChanges, mirrorPortals;
 
@@ -48,6 +49,17 @@ std::vector<StartPosObject*> hooksH::startPositions;
 int hooksH::selectedStartpos = -2;
 
 std::deque<cocos2d::CCRect> playerTrail1, playerTrail2;
+
+bool autoDeafenMuted = false;
+void setDeafen(bool muted) {
+    if (autoDeafenMuted == muted) return;
+    autoDeafenMuted = muted;
+
+    auto &gui = Gui::get();
+
+    keybd_event(KeyMappingUtils::GetWinAPIFromGLFW(gui.m_autoDeafenKey), 0, 0, 0);
+    keybd_event(KeyMappingUtils::GetWinAPIFromGLFW(gui.m_autoDeafenKey), 0, KEYEVENTF_KEYUP, 0);
+}
 
 void hooksH::switchStartPos(int incBy, bool direction) {
     auto &config = Config::get();
@@ -740,10 +752,16 @@ class $modify(MyPlayLayer, PlayLayer) {
             #endif
         }
         
-
         bool levelEndAnimationStarted = m_levelEndAnimationStarted;
         if (config.get<bool>("pause_during_complete", false))
             m_levelEndAnimationStarted = false;
+
+        #ifdef GEODE_IS_WINDOWS   
+
+        if (config.get<bool>("auto_deafen", false) && config.get<bool>("auto_deafen::undeafen_on_pause", true))
+            setDeafen(false);
+
+        #endif
 
         PlayLayer::pauseGame(paused);
 
@@ -940,6 +958,27 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
 
             if (wave_trail_p2 && m_player2->m_waveTrail) m_player2->m_waveTrail->setColor(color2);
         }
+
+        #ifdef GEODE_IS_WINDOWS
+        if (config.get<bool>("auto_deafen", false)) {
+            auto pl = PlayLayer::get();
+            if (pl) {
+                bool defaen_in_practice = config.get<bool>("auto_deafen::defaen_in_practice", false);
+                bool defaen_with_startpos = config.get<bool>("auto_deafen::defaen_with_startpos", false);
+
+                if (!defaen_in_practice && pl->m_isPracticeMode) return setDeafen(false);
+                if (!defaen_with_startpos && pl->m_isTestMode) return setDeafen(false);
+
+                if (pl->m_isPaused || pl->m_levelEndAnimationStarted || pl->m_player1->m_isDead)
+                    return setDeafen(false);
+
+                int percentage = pl->getCurrentPercentInt();
+                int start = config.get<int>("auto_deafen::start", 50);
+                int end = config.get<int>("auto_deafen::end", 100);
+                setDeafen(percentage >= start && percentage <= end);
+            }
+        }
+        #endif
     }
 
     void updateDebugDraw() {

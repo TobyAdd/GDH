@@ -49,6 +49,9 @@ void Hacks::Init() {
                 {"Auto Pickup Coins", "Collects all coins in the level", "auto_pickup_coins"}, // +
                 {"Auto Practice Mode", "Auto-enables practice mode", "auto_practice_mode"}, // +
                 {"Auto Song Download", "Automatic downloading of song when you enter an online level", "auto_song_download"},  // +
+                #ifdef GEODE_IS_WINDOWS
+                {"Auto Deafen", "Deafens user in Discord after a certain %", "auto_deafen"},  // +
+                #endif
                 {"Allow Low Volume", "Removes the limit on minimum volume percentage", "allow_low_volume"},  // +
                 {"Coins In Practice", "The ability to collect coins in practice", "coins_in_practice"},  // +
                 {"Confirm Exit", "Warning before level exit", "confim_exit", "0167"},  // +  
@@ -131,6 +134,39 @@ void Hacks::Init() {
     };
 
     auto &config = Config::get();
+
+    #ifdef GEODE_IS_WINDOWS
+    SetCustomWindowHandlerByConfig("auto_deafen", [this, &config]() {
+        auto &gui = Gui::get();
+        #ifdef GEODE_IS_WINDOWS
+  
+        gui.renderKeyButton("Letter Key: ", gui.m_autoDeafenKey, true);
+        
+        int start = config.get<int>("auto_deafen::start", 50);
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (ImGui::SliderInt("##DeafenStart", &start, 0, 100, "Deafen At: %d%%"))
+            config.set<int>("auto_deafen::start", start);
+
+        int end = config.get<int>("auto_deafen::end", 100);
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (ImGui::SliderInt("##DeafenEnd", &end, 0, 100, "Undeafen At: %d%%"))
+            config.set<int>("auto_deafen::end", end);
+
+        bool defaen_in_practice = config.get<bool>("auto_deafen::defaen_in_practice", false);
+        if (ImGuiH::Checkbox("Deafen in Practice", &defaen_in_practice, gui.m_scale))
+            config.set<bool>("auto_deafen::defaen_in_practice", defaen_in_practice);
+
+        bool defaen_with_startpos = config.get<bool>("auto_deafen::defaen_with_startpos", false);
+        if (ImGuiH::Checkbox("Deafen with StartPos", &defaen_with_startpos, gui.m_scale))
+            config.set<bool>("auto_deafen::defaen_with_startpos", defaen_with_startpos);
+
+        bool undeafen_on_pause = config.get<bool>("auto_deafen::undeafen_on_pause", true);
+        if (ImGuiH::Checkbox("Undeafen on Pause", &undeafen_on_pause, gui.m_scale))
+            config.set<bool>("auto_deafen::undeafen_on_pause", undeafen_on_pause);
+    
+        #endif
+    });
+    #endif
 
     #ifdef GEODE_IS_ANDROID
     SetCustomWindowHandlerByConfig("tps_enabled", [this, &config]() {
@@ -824,6 +860,8 @@ void Hacks::saveKeybinds() {
     keybindJson["startposSwitcherLeftKey"] = gui.m_startposSwitcherLeftKey;
     keybindJson["startposSwitcherRightKey"] = gui.m_startposSwitcherRightKey;
 
+    keybindJson["autoDeafenKey"] = gui.m_autoDeafenKey;
+
     if (!keybindJson.empty()) {
         std::ofstream file(folderPath / "keybinds.json");
         if (file.is_open()) {
@@ -875,6 +913,8 @@ void Hacks::loadKeybinds() {
 
     gui.m_startposSwitcherLeftKey = keybindJson.value("startposSwitcherLeftKey", GLFW_KEY_Q);
     gui.m_startposSwitcherRightKey = keybindJson.value("startposSwitcherRightKey", GLFW_KEY_E);
+
+    gui.m_autoDeafenKey = keybindJson.value("autoDeafenKey", 0);
 
     for (auto& win : m_windows) {
         for (auto& hck : win.hacks) {

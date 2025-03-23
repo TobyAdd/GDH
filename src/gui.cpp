@@ -11,6 +11,7 @@
 #include "utils.hpp"
 #ifdef GEODE_IS_WINDOWS
 #include <subprocess.hpp>
+#include "keyMapping.hpp"
 #endif
 
 std::chrono::steady_clock::time_point animationStartTime;
@@ -93,25 +94,7 @@ void Gui::License() {
 
     #ifdef GEODE_IS_WINDOWS
 
-    auto renderKeyButton = [&](const std::string& label, int& key) {
-        std::string keyStr = label + utilsH::GetKeyName(key);
-        if (key == -1) {
-            keyStr = "Press any key...";
-            if (!m_waitingForBindKey && m_keyToSet != -1) {
-                key = m_keyToSet;
-                m_keyToSet = 0;
-                m_keybindMode = false;
-            }
-        }
-
-        if (ImGuiH::Button(keyStr.c_str(), {ImGui::GetContentRegionAvail().x, 0})) {
-            key = -1;
-            m_keybindMode = true;
-            m_waitingForBindKey = true;
-        }
-    };
-
-    renderKeyButton("Menu Key: ", m_toggleKey);
+    renderKeyButton("Menu Key: ", m_toggleKey, true);
 
     #endif
 
@@ -280,22 +263,6 @@ void Gui::Render() {
             #ifdef GEODE_IS_WINDOWS
 
             if (ImGui::BeginPopupModal("Keybinds Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-                auto renderKeyButton = [&](const std::string& label, int& key) {
-                    std::string keyStr = label + utilsH::GetKeyName(key);
-                    if (key == -1) {
-                        keyStr = "Press any key...";
-                        if (!m_waitingForBindKey && m_keyToSet != -1) {
-                            key = m_keyToSet;
-                            m_keyToSet = 0;
-                        }
-                    }
-
-                    if (ImGuiH::Button(keyStr.c_str(), {400 * m_scale, 0})) {
-                        key = -1;
-                        m_waitingForBindKey = true;
-                    }
-                };
-
                 ImGui::BeginChild("##Keybinds", {420.f * m_scale, 400.f * m_scale});
 
                 bool useKeybindsOnlyInGame = config.get<bool>("use_keybinds_only_in_game", true);
@@ -1490,7 +1457,7 @@ void Gui::Render() {
                     if (ImGuiH::Button(hck.keybind != -1 
                         ? fmt::format("{}: {}", 
                             hck.name.length() > 16 ? hck.name.substr(0, 16) : hck.name,
-                            utilsH::GetKeyName(hck.keybind)).c_str() 
+                            KeyMappingUtils::GetNameFromGLFW(hck.keybind)).c_str() 
                         : "Press any key...", {ImGui::GetContentRegionAvail().x, NULL})) 
                     {
                         hck.keybind = -1;
@@ -1515,15 +1482,17 @@ void Gui::Render() {
                         if (ImGuiH::ArrowButton(fmt::format("{} Settings", hck.name).c_str(), ImGuiDir_Right)) {
                             ImGui::OpenPopup(fmt::format("{} Settings", hck.name).c_str());
                         }
+                    }
+                }
 
-                        if (ImGui::BeginPopupModal(fmt::format("{} Settings", hck.name).c_str(), NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-                            hck.handlerCustomWindow();
+                if (hck.handlerCustomWindow) {
+                    if (ImGui::BeginPopupModal(fmt::format("{} Settings", hck.name).c_str(), NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+                        hck.handlerCustomWindow();
 
-                            if (ImGuiH::Button("Close", {400 * m_scale, NULL}))
-                                ImGui::CloseCurrentPopup();
+                        if (ImGuiH::Button("Close", {400 * m_scale, NULL}))
+                            ImGui::CloseCurrentPopup();
 
-                            ImGui::EndPopup();
-                        }
+                        ImGui::EndPopup();
                     }
                 }
                 
@@ -1573,3 +1542,21 @@ void Gui::Toggle() {
         }
     }
 }
+
+void Gui::renderKeyButton(const std::string& label, int& key, bool withoutKeybindsMode) {
+    std::string keyStr = label + KeyMappingUtils::GetNameFromGLFW(key);
+    if (key == -1) {
+        keyStr = "Press any key...";
+        if (!m_waitingForBindKey && m_keyToSet != -1) {
+            key = m_keyToSet;
+            m_keyToSet = 0;
+            if (withoutKeybindsMode) m_keybindMode = false;
+        }
+    }
+
+    if (ImGuiH::Button(keyStr.c_str(), {ImGui::GetContentRegionAvail().x, 0})) {
+        key = -1;
+        if (withoutKeybindsMode) m_keybindMode = true;
+        m_waitingForBindKey = true;
+    }
+};

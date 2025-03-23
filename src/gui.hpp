@@ -47,12 +47,14 @@ public:
     int m_startposSwitcherLeftKey = GLFW_KEY_Q;
     int m_startposSwitcherRightKey = GLFW_KEY_E;
 
+    int m_autoDeafenKey = 0;
+
     bool m_waitingForBindKey = false;
     int m_keyToSet = -1;
 
     #endif
 
-
+    void renderKeyButton(const std::string& label, int& key, bool withoutKeybindsMode = false);
 
     void Render();
     void Init();
