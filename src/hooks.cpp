@@ -52,6 +52,7 @@ int hooksH::selectedStartpos = -2;
 
 std::deque<cocos2d::CCRect> playerTrail1, playerTrail2;
 
+#ifdef GEODE_IS_WINDOWS
 bool autoDeafenMuted = false;
 void setDeafen(bool muted) {
     if (autoDeafenMuted == muted) return;
@@ -62,6 +63,7 @@ void setDeafen(bool muted) {
     keybd_event(KeyMappingUtils::GetWinAPIFromGLFW(gui.m_autoDeafenKey), 0, 0, 0);
     keybd_event(KeyMappingUtils::GetWinAPIFromGLFW(gui.m_autoDeafenKey), 0, KEYEVENTF_KEYUP, 0);
 }
+#endif
 
 void hooksH::switchStartPos(int incBy, bool direction) {
     auto &config = Config::get();
