@@ -48,7 +48,7 @@
 std::vector<GameObject*> dualPortals, gamemodePortals, miniPortals, speedChanges, mirrorPortals;
 
 std::vector<StartPosObject*> hooksH::startPositions;
-int hooksH::selectedStartpos = -2;
+int hooksH::selectedStartpos = -1;
 
 std::deque<cocos2d::CCRect> playerTrail1, playerTrail2;
 
@@ -71,9 +71,6 @@ void hooksH::switchStartPos(int incBy, bool direction) {
 
     if (!pl || hooksH::startPositions.empty()) return;
 
-    if (hooksH::selectedStartpos == -2)
-        hooksH::selectedStartpos = hooksH::startPositions.size() - 1;
-
     hooksH::selectedStartpos += incBy;
 
     if (hooksH::selectedStartpos < -1)
@@ -85,6 +82,8 @@ void hooksH::switchStartPos(int incBy, bool direction) {
     if (direction) {
         StartPosObject* obj = hooksH::selectedStartpos == -1 ? nullptr : hooksH::startPositions[hooksH::selectedStartpos];
         
+        pl->m_isTestMode = (obj != nullptr);
+
         pl->m_currentCheckpoint = nullptr;
         pl->setStartPosObject(obj);
         pl->resetLevel();
@@ -278,7 +277,7 @@ class $modify(MyPlayLayer, PlayLayer) {
             speedChanges.clear();
             mirrorPortals.clear();
 
-            hooksH::selectedStartpos = -2;
+            hooksH::selectedStartpos = -1;
             playerTrail1.clear();
             playerTrail2.clear();
             color_dt = 0.f;
@@ -289,12 +288,14 @@ class $modify(MyPlayLayer, PlayLayer) {
 	    PlayLayer::createObjectsFromSetupFinished();
         auto& config = Config::get();
 
-        if (config.get<bool>("startos_switcher::sort_objects_by_x", false)) {
+        if (config.get<bool>("startos_switcher::sort_objects_by_x", true)) {
             std::sort(hooksH::startPositions.begin(), hooksH::startPositions.end(), 
                 [](StartPosObject* a, StartPosObject* b) {
                     return a->getPositionX() < b->getPositionX();
                 });
         }
+
+        hooksH::selectedStartpos = hooksH::startPositions.size() - 1;
 
         #ifdef GEODE_IS_ANDROID
         if (config.get<bool>("startpos_switcher", false) && !hooksH::startPositions.empty()) {
@@ -460,13 +461,13 @@ class $modify(MyPlayLayer, PlayLayer) {
         if (recorderAudio.is_recording) {
             bottom_left += fmt::format("Audio recording ({})\n", recorderAudio.get_data_size());
         }
-        
-        m_fields->labels_top_left->    setCString(labels.get_label_string(LabelCorner_TopLeft).c_str());
-        m_fields->labels_top_right->   setCString(labels.get_label_string(LabelCorner_TopRight).c_str());
-        m_fields->labels_bottom_left-> setCString(bottom_left.c_str());
-        m_fields->labels_bottom_right->setCString(labels.get_label_string(LabelCorner_BottomRight).c_str());
-        m_fields->labels_bottom->      setCString(labels.get_label_string(LabelCorner_Bottom).c_str());
-        m_fields->labels_top->         setCString(labels.get_label_string(LabelCorner_Top).c_str());
+
+        labels.setStringColored(m_fields->labels_top_left, labels.get_label_string(LabelCorner_TopLeft));
+        labels.setStringColored(m_fields->labels_top_right, labels.get_label_string(LabelCorner_TopRight));
+        labels.setStringColored(m_fields->labels_bottom_left, bottom_left);
+        labels.setStringColored(m_fields->labels_bottom_right, labels.get_label_string(LabelCorner_BottomRight));
+        labels.setStringColored(m_fields->labels_bottom, labels.get_label_string(LabelCorner_Bottom));
+        labels.setStringColored(m_fields->labels_top, labels.get_label_string(LabelCorner_Top));
         
         m_fields->labels_top_left->    setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentLeft);
         m_fields->labels_top_left->    setPosition({labels.padding, size.height - labels.padding});
@@ -952,14 +953,19 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
             if (player_p1 && m_player1) {
                 m_player1->setColor(color1);
                 m_player1->setSecondColor(color2);
+                m_player1->m_glowColor = color1;
+                m_player1->updateGlowColor();
+                m_player1->m_regularTrail->setColor(color1);
             }
             if (wave_trail_p1 && m_player1->m_waveTrail) m_player1->m_waveTrail->setColor(color1);
 
             if (player_p2 && m_player2) {
                 m_player2->setColor(color2);
                 m_player2->setSecondColor(color1);
+                m_player2->m_glowColor = color2;
+                m_player2->updateGlowColor();
+                m_player2->m_regularTrail->setColor(color2);
             }
-
             if (wave_trail_p2 && m_player2->m_waveTrail) m_player2->m_waveTrail->setColor(color2);
         }
 

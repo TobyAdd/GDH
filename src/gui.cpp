@@ -1288,6 +1288,7 @@ void Gui::Render() {
                 "Noclip Accuracy",
                 "Death Counter",
                 "Startpos Switcher",
+                "Testmode",
                 "Custom Text",
             };
             int label_types_count = sizeof(label_types)/sizeof(label_types[0]);
@@ -1311,6 +1312,7 @@ void Gui::Render() {
                 else if (selected_label_type == 8) text = "{noclipAccuracy}";
                 else if (selected_label_type == 9) text = "{deaths} Deaths";
                 else if (selected_label_type == 10) text = "{startposCurrentIDX}/{startposAllIDX}";
+                else if (selected_label_type == 11) text = "{testmode}";
                 
                 Label l((LabelCorner) (selected_label_corner+1), text);
                 labels.add(l);

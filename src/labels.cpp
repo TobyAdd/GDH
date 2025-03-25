@@ -54,6 +54,7 @@ std::string Label::get_text() {
     result = replace_all(result, "{deaths}", std::to_string(NoclipAccuracy::get().deaths_full));
     result = replace_all(result, "{startposCurrentIDX}", std::to_string(hooksH::selectedStartpos+1));
     result = replace_all(result, "{startposAllIDX}", std::to_string(hooksH::startPositions.size()));
+    result = replace_all(result, "{testmode}", pl->m_isTestMode ? "Testmode" : "");
     result = replace_all(result, "{\\n}", "\n");
 
     return result;
@@ -89,8 +90,9 @@ std::string Labels::get_label_string(LabelCorner corner) {
         if (l.corner != corner) continue;
         if (l.format_text.empty()) continue;
 
-        result += l.get_text();
-        result += "\n";
+        auto text = l.get_text();
+        result += text;
+        if (!text.empty()) result += "\n";
     }
     return result;
 }
@@ -161,23 +163,57 @@ void Labels::load() {
     file.close();
 }
 
-bool setSubColor(cocos2d::CCLabelBMFont* label, int from, int to, const cocos2d::ccColor3B &color) {
-    if (!label) return false;
+void Labels::setStringColored(cocos2d::CCLabelBMFont* label, std::string format_text) {
+    if (!label) return;
 
-    cocos2d::CCArray* children = label->getChildren();
-    unsigned int size = children->count();
+    auto label_children = label->getChildren();
+    std::vector<cocos2d::ccColor3B> colors(label_children->count(), {255, 255, 255});
 
-    if (from < 0 || to >= size || from > to) return false;
+    std::string parsed_text;
+    cocos2d::ccColor3B currentColor = {255, 255, 255};
+    size_t index = 0;
 
-    for (int i = from; i <= to; ++i) {
-        cocos2d::CCSprite* sprite = static_cast<cocos2d::CCSprite*>(children->objectAtIndex(i));
-        if (sprite) {
-            sprite->setColor(color);
+    // shitcoded, will optimize later
+    for (size_t i = 0; i < format_text.size(); i++) {
+        if (format_text.compare(i, 4, "<cr>") == 0) {
+            currentColor = {255, 0, 0};
+            i += 3;
+        } 
+        else if (format_text.compare(i, 4, "<cg>") == 0) {
+            currentColor = {0, 255, 0};
+            i += 3;
+        } 
+        else if (format_text.compare(i, 5, "<cr/>") == 0) {
+            currentColor = {255, 255, 255};
+            i += 4;
+        } 
+        else if (format_text.compare(i, 5, "<cg/>") == 0) {
+            currentColor = {255, 255, 255};
+            i += 4;
+        } 
+        else if (format_text[i] == '\n') {
+            parsed_text += format_text[i];
+            continue;
+        }
+        else {
+            parsed_text += format_text[i];
+            if (index < colors.size()) {
+                colors[index] = currentColor;
+                index++;
+            }
         }
     }
-    
-    return true;
+
+    label->setCString(parsed_text.c_str());
+
+    for (size_t i = 0; i < colors.size(); i++) {
+        auto child = label_children->objectAtIndex(i);
+        if (auto bmFont = geode::prelude::typeinfo_cast<cocos2d::CCSprite*>(child)) {
+            bmFont->setColor(colors[i]);
+        }
+    }
 }
+
 
 void Labels::initMobileContext(geode::ScrollLayer* scrollLayer) {
     scrollLayer->m_contentLayer->removeAllChildren();
@@ -330,7 +366,7 @@ LabelsCreateLayer* LabelsCreateLayer::create(geode::ScrollLayer* scrollLayer) {
 
 bool LabelsCreateLayer::setup() {
     std::array<std::string, 6> corners = {"Top Left", "Top Right", "Top", "Bottom Left", "Bottom Right", "Bottom"};
-    std::array<std::string, 11> label_types = {"Time (24H)", "Time (12H)", "Session Time", "FPS Counter", "Level Progress", "Attempt", "CPS Counter", "Level Info", "Noclip Accuracy", "Death Counter", "Custom Text"};
+    std::array<std::string, 12> label_types = {"Time (24H)", "Time (12H)", "Session Time", "FPS Counter", "Level Progress", "Attempt", "CPS Counter", "Level Info", "Noclip Accuracy", "Death Counter", "Testmode", "Custom Text"};
     
     this->setTitle("Add Label");
 
@@ -373,7 +409,8 @@ bool LabelsCreateLayer::setup() {
         else if (m_labelTypeIndex == 7) text = "{levelName}{byLevelCreator} ({levelId})";
         else if (m_labelTypeIndex == 8) text = "{noclipAccuracy}";
         else if (m_labelTypeIndex == 9) text = "{deaths} Deaths";
-        else if (m_labelTypeIndex == 10) text = "here your text";
+        else if (m_labelTypeIndex == 10) text = "{testmode}";
+        else if (m_labelTypeIndex == 11) text = "here your text";
         
         auto& labels = Labels::get();
         Label l((LabelCorner) (m_toggleIndex), text);

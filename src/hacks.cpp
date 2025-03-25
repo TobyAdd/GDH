@@ -586,7 +586,7 @@ void Hacks::Init() {
 
     SetCustomWindowHandlerByConfig("startpos_switcher", [this, &config]() {
         bool reset_camera = config.get<bool>("startos_switcher::reset_camera", true);
-        bool sort_objects_by_x = config.get<bool>("startos_switcher::sort_objects_by_x", false);
+        bool sort_objects_by_x = config.get<bool>("startos_switcher::sort_objects_by_x", true);
 
         #ifdef GEODE_IS_WINDOWS 
         auto &gui = Gui::get();       
@@ -926,7 +926,6 @@ void Hacks::loadKeybinds() {
     }
     #endif
 }
-
 
 void Hacks::toggleKeybinds(int key) {
     #ifdef GEODE_IS_WINDOWS

@@ -23,9 +23,8 @@ class Label {
 
         std::string get_text();
 
-    private:
+    private:        
         std::string replace_all(std::string src, std::string replace, std::string replacement);
-        
         std::string time_to_fmt_time(int hours, int minutes, int seconds);
         std::string seconds_to_fmt_time(float seconds);
         std::string round_float(float value, int decimal_places);
@@ -61,6 +60,8 @@ class Labels {
         
         void save();
         void load();
+
+        void setStringColored(cocos2d::CCLabelBMFont* label, std::string format_text);
 
         void initMobileContext(geode::ScrollLayer* scrollLayer);
     private:
