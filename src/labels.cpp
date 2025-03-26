@@ -5,6 +5,7 @@
 #include "popupSystem.hpp"
 #include "hooks.hpp"
 #include <algorithm>
+#include "hacks.hpp"
 
 using namespace geode::prelude;
 
@@ -14,6 +15,7 @@ Label::Label(LabelCorner _corner, std::string _format_text) {
 }
 
 std::string Label::get_text() {
+    auto& hacks = Hacks::get();
     auto now = std::chrono::system_clock::now();
     auto steady_now = std::chrono::steady_clock::now();
     std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
@@ -55,6 +57,9 @@ std::string Label::get_text() {
     result = replace_all(result, "{startposCurrentIDX}", std::to_string(hooksH::selectedStartpos+1));
     result = replace_all(result, "{startposAllIDX}", std::to_string(hooksH::startPositions.size()));
     result = replace_all(result, "{testmode}", pl->m_isTestMode ? "Testmode" : "");
+    result = replace_all(result, "{cheat_indicator}", fmt::format("{}+{}", 
+        (hacks.cheatState == legit) ? "<cg>" : (hacks.cheatState == unwanted) ? "<co>" : (hacks.cheatState == safe_mode) ? "<cy>" : (hacks.cheatState == cheating) ? "<cr>" : "",
+        (hacks.cheatState == legit) ? "<cg/>" : (hacks.cheatState == unwanted) ? "<co/>" : (hacks.cheatState == safe_mode) ? "<cy/>" : (hacks.cheatState == cheating) ? "<cr/>" : ""));
     result = replace_all(result, "{\\n}", "\n");
 
     return result;
@@ -179,15 +184,31 @@ void Labels::setStringColored(cocos2d::CCLabelBMFont* label, std::string format_
             currentColor = {255, 0, 0};
             i += 3;
         } 
-        else if (format_text.compare(i, 4, "<cg>") == 0) {
-            currentColor = {0, 255, 0};
-            i += 3;
-        } 
         else if (format_text.compare(i, 5, "<cr/>") == 0) {
             currentColor = {255, 255, 255};
             i += 4;
         } 
+        else if (format_text.compare(i, 4, "<cg>") == 0) {
+            currentColor = {0, 255, 0};
+            i += 3;
+        } 
         else if (format_text.compare(i, 5, "<cg/>") == 0) {
+            currentColor = {255, 255, 255};
+            i += 4;
+        } 
+        else if (format_text.compare(i, 4, "<co>") == 0) {
+            currentColor = {255, 106, 0};
+            i += 3;
+        } 
+        else if (format_text.compare(i, 5, "<co/>") == 0) {
+            currentColor = {255, 255, 255};
+            i += 4;
+        } 
+        else if (format_text.compare(i, 4, "<cy>") == 0) {
+            currentColor = {255, 242, 0};
+            i += 3;
+        } 
+        else if (format_text.compare(i, 5, "<cy/>") == 0) {
             currentColor = {255, 255, 255};
             i += 4;
         } 

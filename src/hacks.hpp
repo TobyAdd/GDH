@@ -2,6 +2,14 @@
 #include <string>
 #include <vector>
 
+enum cheat_state
+{
+    safe_mode,
+    unwanted,
+    cheating,
+    legit
+};
+
 struct hack {
     std::string name;
     std::string desc;
@@ -46,7 +54,8 @@ public:
     void loadKeybinds();
     void toggleKeybinds(int key);
 
-    bool isCheating();
+    cheat_state cheatState = cheat_state::legit;
+    cheat_state cheatingCheck();
 private:
     Hacks() = default;
 

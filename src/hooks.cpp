@@ -591,6 +591,7 @@ class $modify(MyPlayLayer, PlayLayer) {
     
     void resetLevel() {
         auto& config = Config::get();
+        auto& hacks = Hacks::get();
         auto& engine = ReplayEngine::get();
         auto& recorder = Recorder::get();
         auto& recorderAudio = RecorderAudio::get();
@@ -604,6 +605,7 @@ class $modify(MyPlayLayer, PlayLayer) {
         // }
 
         PlayLayer::resetLevel();
+
         if (config.get<bool>("tps_enabled", false)) {
             m_resumeTimer = config.get<int>("resumeTimer_value", 2);
         }
@@ -787,7 +789,9 @@ class $modify(MyPlayLayer, PlayLayer) {
 
     void updateProgressbar() {
         auto& config = Config::get();
+        auto& hacks = Hacks::get();
         PlayLayer::updateProgressbar();
+        hacks.cheatState = hacks.cheatingCheck();
 
         if (config.get<bool>("show_hitboxes", false)) {
             if (!(m_isPracticeMode && GameManager::get()->getGameVariable("0166")))

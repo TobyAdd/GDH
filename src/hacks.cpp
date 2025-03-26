@@ -927,6 +927,40 @@ void Hacks::loadKeybinds() {
     #endif
 }
 
+cheat_state Hacks::cheatingCheck() {
+    auto& config = Config::get();
+    auto& engine = ReplayEngine::get();
+
+    if (config.get<bool>("safe_mode", false)) 
+        return cheat_state::safe_mode;
+
+    if (config.get<bool>("noclip", false) ||
+        config.get<bool>("auto_pickup_coins", false) ||
+        config.get<bool>("instant_complete", false) ||
+        config.get<bool>("jump_hack", false) ||
+        config.get<bool>("layout_mode", false) ||
+        config.get<bool>("spambot_enabled", false) ||
+        (config.get<bool>("show_hitboxes", false) && !config.get<bool>("show_hitboxes::on_death", false)) ||
+        config.get<bool>("straight_fly_bot", false) ||
+        config.get<bool>("no_camera_move", false) ||
+        config.get<bool>("no_camera_zoom", false) ||
+        config.get<bool>("no_shaders", false) ||
+        config.get<bool>("no_mirror_portal", false) ||
+        config.get<bool>("tps_enabled", false) ||
+        (config.get<float>("speedhack_value", 1.f) != 1.f) ||
+        (engine.mode == state::record || engine.mode == state::play)) 
+    {
+        return cheat_state::cheating;
+    }
+    else if (config.get<bool>("no_particles", false) ||
+            (config.get<bool>("wave_trail_size", false) && config.get<float>("wave_trail_size_value", 1.f) < 0.5f))   
+    {
+        return cheat_state::unwanted;
+    }
+
+    return cheat_state::legit;
+}
+
 void Hacks::toggleKeybinds(int key) {
     #ifdef GEODE_IS_WINDOWS
     auto& config = Config::get();
