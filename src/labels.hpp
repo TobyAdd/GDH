@@ -53,10 +53,10 @@ class Labels {
         void move_down(int index);
         void swap(int index_0, int index_1);
 
-        int attempts = 1;
         std::chrono::steady_clock::time_point session_time;
         float progress = 0.f;
         bool platformer = false;
+        bool push = false;
         
         void save();
         void load();
@@ -66,6 +66,9 @@ class Labels {
         void initMobileContext(geode::ScrollLayer* scrollLayer);
     private:
         Labels() = default;
+
+        std::string processSpecialText(std::string text);
+        
 };
 
 class LabelsCreateLayer : public geode::Popup<> {

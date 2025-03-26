@@ -36,7 +36,7 @@ std::string Label::get_text() {
 
     result = replace_all(result, "{time:12}", fmt::format("{} {}", time_to_fmt_time(hour12, localTime.tm_min, localTime.tm_sec), period12));
     result = replace_all(result, "{time:24}", time_to_fmt_time(localTime.tm_hour, localTime.tm_min, localTime.tm_sec));
-    result = replace_all(result, "{attempt}", std::to_string(Labels::get().attempts));
+    result = replace_all(result, "{attempt}", std::to_string(pl->m_attempts));
     result = replace_all(result, "{fps}", std::string(CCDirector::sharedDirector()->m_pszFPS).erase(0, 5));
     float session_time_seconds = std::chrono::duration<float>(steady_now - Labels::get().session_time).count();
     result = replace_all(result, "{sessionTime}", seconds_to_fmt_time(session_time_seconds));    
@@ -96,7 +96,8 @@ std::string Labels::get_label_string(LabelCorner corner) {
         if (l.format_text.empty()) continue;
 
         auto text = l.get_text();
-        result += text;
+
+        result += processSpecialText(text);
         if (!text.empty()) result += "\n";
     }
     return result;
@@ -225,6 +226,7 @@ void Labels::setStringColored(cocos2d::CCLabelBMFont* label, std::string format_
         }
     }
 
+    label->removeAllChildren();
     label->setCString(parsed_text.c_str());
 
     for (size_t i = 0; i < colors.size(); i++) {
@@ -233,6 +235,28 @@ void Labels::setStringColored(cocos2d::CCLabelBMFont* label, std::string format_
             bmFont->setColor(colors[i]);
         }
     }
+}
+
+std::string Labels::processSpecialText(std::string text) {
+    size_t start, end;
+
+    if ((start = text.find("ColoredCPS(")) != std::string::npos) {
+        start += 11;
+        end = text.rfind(')');
+        if (end != std::string::npos && end > start)
+            text.replace(text.find("ColoredCPS("), end + 1 - text.find("ColoredCPS("),
+                        fmt::format("{}{}{}", push ? "<cg>" : "", text.substr(start, end - start), push ? "<cg/>" : ""));
+    }
+
+    if ((start = text.find("ColoredDeath(")) != std::string::npos) {
+        start += 13;
+        end = text.rfind(')');
+        if (end != std::string::npos && end > start)
+            text.replace(text.find("ColoredDeath("), end + 1 - text.find("ColoredDeath("),
+                fmt::format("{}{}{}", NoclipAccuracy::get().prevDied ? "<cr>" : "", text.substr(start, end - start), NoclipAccuracy::get().prevDied ? "<cr/>" : ""));
+    }
+
+    return text;
 }
 
 
@@ -387,7 +411,7 @@ LabelsCreateLayer* LabelsCreateLayer::create(geode::ScrollLayer* scrollLayer) {
 
 bool LabelsCreateLayer::setup() {
     std::array<std::string, 6> corners = {"Top Left", "Top Right", "Top", "Bottom Left", "Bottom Right", "Bottom"};
-    std::array<std::string, 12> label_types = {"Time (24H)", "Time (12H)", "Session Time", "FPS Counter", "Level Progress", "Attempt", "CPS Counter", "Level Info", "Noclip Accuracy", "Death Counter", "Testmode", "Custom Text"};
+    std::array<std::string, 13> label_types = {"Time (24H)", "Time (12H)", "Session Time", "Cheat Indicator", "FPS Counter", "Level Progress", "Attempt", "CPS Counter", "Level Info", "Noclip Accuracy", "Death Counter", "Testmode", "Custom Text"};
     
     this->setTitle("Add Label");
 
@@ -423,15 +447,19 @@ bool LabelsCreateLayer::setup() {
         if (m_labelTypeIndex == 0) text = "{time:24}";
         else if (m_labelTypeIndex == 1) text = "{time:12}";
         else if (m_labelTypeIndex == 2) text = "Session Time: {sessionTime}";
-        else if (m_labelTypeIndex == 3) text = "{fps}";
-        else if (m_labelTypeIndex == 4) text = "{progress:2f}";
-        else if (m_labelTypeIndex == 5) text = "Attempt {attempt}";
-        else if (m_labelTypeIndex == 6) text = "{cps}/{cpsHigh}/{clicks}";
-        else if (m_labelTypeIndex == 7) text = "{levelName}{byLevelCreator} ({levelId})";
-        else if (m_labelTypeIndex == 8) text = "{noclipAccuracy}";
-        else if (m_labelTypeIndex == 9) text = "{deaths} Deaths";
-        else if (m_labelTypeIndex == 10) text = "{testmode}";
-        else if (m_labelTypeIndex == 11) text = "here your text";
+        else if (m_labelTypeIndex == 3) {
+            text = "{cheat_indicator}";
+            Config::get().set<bool>("cheat_indicator", true);
+        }
+        else if (m_labelTypeIndex == 4) text = "{fps}";
+        else if (m_labelTypeIndex == 5) text = "{progress:2f}";
+        else if (m_labelTypeIndex == 6) text = "Attempt {attempt}";
+        else if (m_labelTypeIndex == 7) text = "ColoredCPS({cps}/{cpsHigh}/{clicks})";
+        else if (m_labelTypeIndex == 8) text = "{levelName}{byLevelCreator} ({levelId})";
+        else if (m_labelTypeIndex == 9) text = "ColoredDeath({noclipAccuracy})";
+        else if (m_labelTypeIndex == 10) text = "ColoredDeath({deaths} Deaths)";
+        else if (m_labelTypeIndex == 11) text = "{testmode}";
+        else if (m_labelTypeIndex == 12) text = "here your text";
         
         auto& labels = Labels::get();
         Label l((LabelCorner) (m_toggleIndex), text);

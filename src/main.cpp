@@ -237,11 +237,11 @@ class $modify(cocos2d::CCEGLView) {
                 }
                 else if (!gui.m_keybindMode) {
                     auto& io = ImGui::GetIO();
-                    if (!io.WantCaptureKeyboard) {
-                        if (key == gui.m_toggleKey) {
-                            gui.Toggle();
-                        }
-    
+                    if (key == gui.m_toggleKey) {
+                        gui.Toggle();
+                    }
+                    
+                    if (!io.WantCaptureKeyboard) {    
                         hacks.toggleKeybinds(key);
                     }
                 }

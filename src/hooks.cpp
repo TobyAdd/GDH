@@ -414,7 +414,6 @@ class $modify(MyPlayLayer, PlayLayer) {
         addChild(m_fields->labels_bottom);
         addChild(m_fields->labels_top);
 
-        Labels::get().attempts = 1;
         Labels::get().session_time = std::chrono::steady_clock::now();
 
         return true;
@@ -623,6 +622,8 @@ class $modify(MyPlayLayer, PlayLayer) {
         SpamBot::get().reset_temp();
         engine.handle_reset();  
 
+        hacks.preCheatState = cheat_state::legit;
+
         if (!m_isPracticeMode && !hooksH::startPositions.empty()) {
             recorder.delay = m_gameState.m_levelTime;
         }
@@ -691,11 +692,6 @@ class $modify(MyPlayLayer, PlayLayer) {
     void showNewBest(bool p0, int p1, int p2, bool p3, bool p4, bool p5) {
         if (Config::get().get<bool>("no_new_best_popup", false)) return;        
         PlayLayer::showNewBest(p0, p1, p2, p3, p4, p5);
-    }
-    
-    void updateAttempts() {
-        PlayLayer::updateAttempts();
-        Labels::get().attempts++;
     }
 
     void storeCheckpoint(CheckpointObject* obj) {
@@ -791,7 +787,15 @@ class $modify(MyPlayLayer, PlayLayer) {
         auto& config = Config::get();
         auto& hacks = Hacks::get();
         PlayLayer::updateProgressbar();
+
         hacks.cheatState = hacks.cheatingCheck();
+        if (hacks.cheatState == cheating) {
+            hacks.preCheatState = cheating;
+        } else if (hacks.cheatState == unwanted && hacks.preCheatState != cheating) {
+            hacks.preCheatState = unwanted;
+        } else if (hacks.cheatState == safe_mode && hacks.preCheatState != unwanted && hacks.preCheatState != cheating) {
+            hacks.preCheatState = safe_mode;
+        }
 
         if (config.get<bool>("show_hitboxes", false)) {
             if (!(m_isPracticeMode && GameManager::get()->getGameVariable("0166")))
@@ -829,6 +833,7 @@ class $modify(MyEndLevelLayer, EndLevelLayer) {
         auto& config = Config::get();
         auto& recorder = Recorder::get();
         auto& recorderAudio = RecorderAudio::get();
+        auto& hacks = Hacks::get();
         EndLevelLayer::showLayer(p0);
 
         auto pl = PlayLayer::get();
@@ -837,10 +842,29 @@ class $modify(MyEndLevelLayer, EndLevelLayer) {
         }        
 
         if (config.get<bool>("cheat_indicator", false)) {
-            m_mainLayer->sortAllChildren();
-            auto* sprite = m_mainLayer->getChildByType<cocos2d::CCSprite>(-1);
-            sprite->setColor({255, 0, 0});
-        }
+            auto win_size = cocos2d::CCDirector::sharedDirector()->getWinSize();
+        
+            auto getCheatColor = [](cheat_state state) -> cocos2d::ccColor3B {
+                switch (state) {
+                    case legit:     return {0, 255, 0};
+                    case safe_mode: return {255, 242, 0};
+                    case unwanted:  return {255, 106, 0};
+                    case cheating:  return {255, 0, 0};
+                    default:        return {255, 255, 255};
+                }
+            };
+        
+            auto createIndicator = [&](float x, cheat_state state) {
+                auto* dot = cocos2d::CCLabelBMFont::create("+", "bigFont.fnt");
+                dot->setColor(getCheatColor(state));
+                dot->setScale(0.65f);
+                dot->setPosition({win_size.width / 2 + x, win_size.height / 2 - 100.f});
+                m_mainLayer->addChild(dot);
+            };
+        
+            createIndicator(-164.f, hacks.cheatState);
+            createIndicator(-148.f, hacks.preCheatState);
+        }        
 
         if (recorder.is_recording && recorder.fade_out) {
             auto wnd_size = cocos2d::CCDirector::sharedDirector()->getWinSize();
@@ -888,7 +912,8 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
     void handleButton(bool down, int button, bool isPlayer1) {
         GJBaseGameLayer::handleButton(down, button, isPlayer1);
         ReplayEngine::get().handle_button(down, button, isPlayer1);
-        if (down) CpsCounter::get().click();
+        if (down) CpsCounter::get().click();            
+        Labels::get().push = down;
     }
 
     float getCustomDelta(float dt, float tps, bool applyExtraDelta = true) {

@@ -54,6 +54,7 @@ public:
     void loadKeybinds();
     void toggleKeybinds(int key);
 
+    cheat_state preCheatState = cheat_state::legit;
     cheat_state cheatState = cheat_state::legit;
     cheat_state cheatingCheck();
 private:
