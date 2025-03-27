@@ -231,6 +231,7 @@ void Recorder::handle_recording(float dt) {
             auto offset = (playLayer->m_levelSettings->m_songOffset + playLayer->m_gameState.m_levelTime) * 1000.0;
             fmod->setMusicTimeMS(offset, false, 0);
 
+            // playLayer->startMusic();
             extra_time = time - frame_dt;
             last_frame_time = (playLayer->m_gameState.m_levelTime - delay);
             render_frame();

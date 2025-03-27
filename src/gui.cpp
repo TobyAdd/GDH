@@ -433,7 +433,7 @@ void Gui::Render() {
             static std::string value;
 
             const char* types[] = {"Creator", "Player"};
-            const char* player[] = {"Attempts", "Jumps", "Normal %", "Position X", "Position Y", "Practice %", "Song ID", "Speed"};
+            const char* player[] = {"Attempts", "Jumps", "Normal %", "Position X", "Position Y", "Practice %", "Song ID", "Speed", "Level ID"};
             const char* creator[] = {"Object ID"};
 
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -498,6 +498,10 @@ void Gui::Render() {
                     case 7: // Speed
                         if (isSet) player1.m_playerSpeed = std::stof(value);
                         else value = std::to_string(player1.m_playerSpeed);
+                        break;
+                    case 8: // Level ID
+                        if (isSet) level.m_levelID = std::stoi(value);
+                        else value = std::to_string(level.m_levelID);
                         break;
                 }
             };

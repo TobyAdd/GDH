@@ -35,6 +35,8 @@
 #include <Geode/modify/CCCircleWave.hpp>
 #include <Geode/modify/CreatorLayer.hpp>
 #include <Geode/modify/SecretLayer2.hpp>
+#include <Geode/modify/RewardUnlockLayer.hpp>
+#include <Geode/modify/LevelAreaInnerLayer.hpp>
 #include "hacks.hpp"
 #include "config.hpp"
 #include "labels.hpp"
@@ -965,8 +967,6 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
         if (!engine.engine_v2)
             engine.handle_update(this);
 
-        NoclipAccuracy::get().handle_update(this, dt);
-
         if (config.get<bool>("rgb_icons", false)) {
             color_dt += dt * config.get<float>("rgb_icons::speed", 0.20f);
 
@@ -1116,6 +1116,7 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
         auto& engine = ReplayEngine::get();
         
         GJBaseGameLayer::processCommands(dt);
+        NoclipAccuracy::get().handle_update(this, dt);
         
         if (engine.engine_v2)
             engine.handle_update(this);
@@ -1871,5 +1872,65 @@ class $modify(MyCCCircleWave, CCCircleWave) {
         auto& config = Config::get(); 
         if (!config.get<bool>("no_orb_ring", false))
             CCCircleWave::draw();
+    }
+};
+
+class $modify(MyRewardUnlockLayer, RewardUnlockLayer) {
+    bool init(int p0, RewardsPage *p1)
+    {
+        if (!RewardUnlockLayer::init(p0, p1))
+            return false;
+
+        auto& config = Config::get(); 
+        if (!config.get<bool>("fast_chest_open", false))
+            return true;
+
+        auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
+        m_chestSprite->stopAllActions();
+        m_chestSprite->setPosition({winSize.width / 2, (winSize.height / 2) - 20});
+        m_chestSprite->runAction(
+            cocos2d::CCSequence::create(
+                cocos2d::CCDelayTime::create(0.4),
+                cocos2d::CCCallFunc::create(this, callfunc_selector(RewardUnlockLayer::step3)),
+                nullptr
+            )
+        );
+
+        return true;
+    }
+};
+
+class $modify(MyLevelAreaInnerLayer, LevelAreaInnerLayer) {
+    bool init(bool returning) {
+        auto& config = Config::get();
+        auto gsm = GameStatsManager::get();
+
+        bool main_levels_bypass = config.get<bool>("main_levels", false);
+        std::vector<int> level_ids = {5001, 5002, 5003, 5004};
+
+        std::unordered_map<int, bool> original_completion;
+        for (int level : level_ids) {
+            original_completion[level] = gsm->hasCompletedMainLevel(level);
+        }
+
+        if (main_levels_bypass) {
+            for (int level : level_ids) {
+                gsm->m_completedLevels->setObject(cocos2d::CCBool::create(true), fmt::format("n_{}", level));
+            }
+        }
+
+        if (!LevelAreaInnerLayer::init(returning)) {
+            return false;
+        }
+
+        if (main_levels_bypass) {
+            for (int level : level_ids) {
+                if (!original_completion[level]) {
+                    gsm->m_completedLevels->removeObjectForKey(fmt::format("n_{}", level));
+                }
+            }
+        }
+
+        return true;
     }
 };
