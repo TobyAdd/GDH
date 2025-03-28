@@ -15,6 +15,9 @@
 	"resources": {
 		"sprites": [
 			"res/*.png"
+		],
+		"files": [
+			"res/lnax.exe.so"
 		]
 	},
 	"settings": {

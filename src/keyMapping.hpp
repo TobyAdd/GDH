@@ -14,6 +14,7 @@ namespace KeyMappingUtils {
     std::string GetNameFromWinAPI(int winApiKey);
     int GetGLFWFromWinAPI(int winApiKey);
     int GetWinAPIFromGLFW(int glfwKey);
+    int GetXcbFromGLFW(int glfwKey);
     const KeyMapping* GetMappingFromGLFW(int glfwKey);
     const KeyMapping* GetMappingFromWinAPI(int winApiKey);
     const std::vector<KeyMapping>& GetKeyMappings();

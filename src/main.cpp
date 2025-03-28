@@ -1,3 +1,4 @@
+#include "hooks.hpp"
 #include <Geode/Geode.hpp>
 #include <Geode/modify/MenuLayer.hpp>
 #include <Geode/modify/LevelSelectLayer.hpp>
@@ -9,13 +10,18 @@
 #include <Geode/modify/EditLevelLayer.hpp>
 #include <Geode/modify/LevelInfoLayer.hpp>
 #include <Geode/modify/CCEGLView.hpp>
+#include <chrono>
 #include <imgui-cocos.hpp>
+#include <thread>
 #ifdef GEODE_IS_WINDOWS
 #include "gui.hpp"
 #endif
 #include "gui_mobile.hpp"
 #include "config.hpp"
 #include "hacks.hpp"
+#ifdef GEODE_IS_WINDOWS
+#include "keyMapping.hpp"
+#endif
 
 void CheckDir(const std::filesystem::path &path)
 {
@@ -94,6 +100,36 @@ class $modify(MenuLayer) {
             }).draw([&gui] {
                 gui.Render();
             });
+
+            static bool permChecked = false;
+
+            if (hooksH::isWine()) {
+                std::thread([] {
+                    while (true) {
+                        std::this_thread::sleep_for(std::chrono::seconds(1));
+                        auto &config = Config::get();
+
+                        if (!config.get<bool>("auto_deafen", false)) {
+                            permChecked = false;
+                            continue;
+                        }
+
+                        if (permChecked) {
+                            continue;
+                        }
+
+
+                        auto &gui = Gui::get();
+                        auto xcbkey1 = KeyMappingUtils::GetXcbFromGLFW(gui.m_autoDeafenKey);
+
+                        hooksH::spawn_deafen_process(xcbkey1);
+                        hooksH::spawn_deafen_process(xcbkey1);
+
+                        permChecked = true;
+                    }
+                }).detach();
+            }
+
             #endif
 
             inited = true;
