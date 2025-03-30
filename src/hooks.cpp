@@ -571,7 +571,7 @@ class $modify(MyPlayLayer, PlayLayer) {
         if (config.get<bool>("noclip::tint_on_death", false)) {
             m_fields->tint_death_bg->stopAllActions();
             m_fields->tint_death_bg->setOpacity(config.get<int>("noclip::tint_opacity", 100));
-            m_fields->tint_death_bg->runAction(cocos2d::CCFadeTo::create(0.35f, 0));
+            m_fields->tint_death_bg->runAction(cocos2d::CCFadeTo::create(config.get<float>("noclip::tint_fade", 0.35f), 0));
         }
 
         NoclipAccuracy::get().handle_death();

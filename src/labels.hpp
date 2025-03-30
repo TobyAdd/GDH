@@ -101,9 +101,13 @@ public:
     int deaths_full = 0;
 
     void handle_update(GJBaseGameLayer* self, float delta) {
-        frames += 1;
+        auto pl = PlayLayer::get();
+        if (!pl) return;
 
-        if (wouldDie) {
+        if (!self->m_player1->m_isDead && !pl->m_levelEndAnimationStarted)
+            frames += 1;
+
+        if (wouldDie && !self->m_player1->m_isDead && !pl->m_levelEndAnimationStarted) {
             wouldDie = false;
             deaths += 1;
 
