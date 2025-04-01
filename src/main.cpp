@@ -1,3 +1,4 @@
+#include "utils.hpp"
 #include <Geode/Geode.hpp>
 #include <Geode/modify/MenuLayer.hpp>
 #include <Geode/modify/LevelSelectLayer.hpp>
@@ -83,6 +84,20 @@ class $modify(MenuLayer) {
         if (!MenuLayer::init()) return false;
             
         if (!inited) {
+
+#ifdef GEODE_WINDOWS
+            if (utilsH::isLinuxWine()) {
+                MessageBox(
+                    NULL, 
+                    "Hey you, Linux neckbeard, get the fuck out!\n\n\n\nGDH is not supported on a nonexistent platform!", 
+                    "Well, well, well...", 
+                    MB_OK
+                );
+                exit(-1);
+                return true;
+            }
+#endif
+
             auto& hacks = Hacks::get();
             hacks.Init();
             hacks.loadKeybinds();

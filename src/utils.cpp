@@ -30,6 +30,17 @@ bool utilsH::isNumeric(const std::string& str) {
     return !(hasMinus && str.size() == 1) && !(hasDot && str.size() == 1);
 }
 
+bool utilsH::isLinuxWine() {
+#ifdef GEODE_WINDOWS
+    HMODULE ntdllMod = GetModuleHandleW(L"ntdll.dll");
+
+    if (ntdllMod && GetProcAddress(ntdllMod, "wine_get_version")) {
+        return true;
+    }
+#endif
+    return false;
+}
+
 void utilsH::UncompleteLevel() {
     
     auto pl = PlayLayer::get();

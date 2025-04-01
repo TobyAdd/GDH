@@ -8,6 +8,7 @@ namespace utilsH {
     void UncompleteLevel();
     void getFolder();
     void setPitchShifter(float pitch);
+    bool isLinuxWine();
 }
 
 static void unimplemented() {}
