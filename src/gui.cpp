@@ -433,7 +433,7 @@ void Gui::Render() {
             static std::string value;
 
             const char* types[] = {"Creator", "Player"};
-            const char* player[] = {"Attempts", "Jumps", "Normal %", "Position X", "Position Y", "Practice %", "Song ID", "Speed"};
+            const char* player[] = {"Attempts", "Jumps", "Normal %", "Position X", "Position Y", "Practice %", "Song ID", "Speed", "Level ID"};
             const char* creator[] = {"Object ID"};
 
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -498,6 +498,10 @@ void Gui::Render() {
                     case 7: // Speed
                         if (isSet) player1.m_playerSpeed = std::stof(value);
                         else value = std::to_string(player1.m_playerSpeed);
+                        break;
+                    case 8: // Level ID
+                        if (isSet) level.m_levelID = std::stoi(value);
+                        else value = std::to_string(level.m_levelID);
                         break;
                 }
             };
@@ -1280,6 +1284,7 @@ void Gui::Render() {
                 "Time (24H)",
                 "Time (12H)",
                 "Session Time",
+                "Cheat Indicator",
                 "FPS Counter",
                 "Level Progress",
                 "Attempt",
@@ -1288,6 +1293,7 @@ void Gui::Render() {
                 "Noclip Accuracy",
                 "Death Counter",
                 "Startpos Switcher",
+                "Testmode",
                 "Custom Text",
             };
             int label_types_count = sizeof(label_types)/sizeof(label_types[0]);
@@ -1303,14 +1309,19 @@ void Gui::Render() {
                 else if (selected_label_type == 0) text = "{time:24}";
                 else if (selected_label_type == 1) text = "{time:12}";
                 else if (selected_label_type == 2) text = "Session Time: {sessionTime}";
-                else if (selected_label_type == 3) text = "{fps}";
-                else if (selected_label_type == 4) text = "{progress:2f}";
-                else if (selected_label_type == 5) text = "Attempt {attempt}";
-                else if (selected_label_type == 6) text = "{cps}/{cpsHigh}/{clicks}";
-                else if (selected_label_type == 7) text = "{levelName}{byLevelCreator} ({levelId})";
-                else if (selected_label_type == 8) text = "{noclipAccuracy}";
-                else if (selected_label_type == 9) text = "{deaths} Deaths";
-                else if (selected_label_type == 10) text = "{startposCurrentIDX}/{startposAllIDX}";
+                else if (selected_label_type == 3) {
+                    text = "{cheat_indicator}";
+                    config.set<bool>("cheat_indicator", true);
+                }
+                else if (selected_label_type == 4) text = "{fps}";
+                else if (selected_label_type == 5) text = "{progress:2f}";
+                else if (selected_label_type == 6) text = "Attempt {attempt}";
+                else if (selected_label_type == 7) text = "ColoredCPS({cps}/{cpsHigh}/{clicks})";
+                else if (selected_label_type == 8) text = "{levelName}{byLevelCreator} ({levelId})";
+                else if (selected_label_type == 9) text = "ColoredDeath({noclipAccuracy})";
+                else if (selected_label_type == 10) text = "ColoredDeath({deaths} Deaths)";
+                else if (selected_label_type == 11) text = "{startposCurrentIDX}/{startposAllIDX}";
+                else if (selected_label_type == 12) text = "{testmode}";
                 
                 Label l((LabelCorner) (selected_label_corner+1), text);
                 labels.add(l);

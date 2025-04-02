@@ -35,6 +35,8 @@
 #include <Geode/modify/CCCircleWave.hpp>
 #include <Geode/modify/CreatorLayer.hpp>
 #include <Geode/modify/SecretLayer2.hpp>
+#include <Geode/modify/RewardUnlockLayer.hpp>
+#include <Geode/modify/LevelAreaInnerLayer.hpp>
 #include "hacks.hpp"
 #include "config.hpp"
 #include "labels.hpp"
@@ -48,7 +50,7 @@
 std::vector<GameObject*> dualPortals, gamemodePortals, miniPortals, speedChanges, mirrorPortals;
 
 std::vector<StartPosObject*> hooksH::startPositions;
-int hooksH::selectedStartpos = -2;
+int hooksH::selectedStartpos = -1;
 
 std::deque<cocos2d::CCRect> playerTrail1, playerTrail2;
 
@@ -130,9 +132,6 @@ void hooksH::switchStartPos(int incBy, bool direction) {
 
     if (!pl || hooksH::startPositions.empty()) return;
 
-    if (hooksH::selectedStartpos == -2)
-        hooksH::selectedStartpos = hooksH::startPositions.size() - 1;
-
     hooksH::selectedStartpos += incBy;
 
     if (hooksH::selectedStartpos < -1)
@@ -144,6 +143,8 @@ void hooksH::switchStartPos(int incBy, bool direction) {
     if (direction) {
         StartPosObject* obj = hooksH::selectedStartpos == -1 ? nullptr : hooksH::startPositions[hooksH::selectedStartpos];
         
+        pl->m_isTestMode = (obj != nullptr);
+
         pl->m_currentCheckpoint = nullptr;
         pl->setStartPosObject(obj);
         pl->resetLevel();
@@ -337,7 +338,7 @@ class $modify(MyPlayLayer, PlayLayer) {
             speedChanges.clear();
             mirrorPortals.clear();
 
-            hooksH::selectedStartpos = -2;
+            hooksH::selectedStartpos = -1;
             playerTrail1.clear();
             playerTrail2.clear();
             color_dt = 0.f;
@@ -348,12 +349,14 @@ class $modify(MyPlayLayer, PlayLayer) {
 	    PlayLayer::createObjectsFromSetupFinished();
         auto& config = Config::get();
 
-        if (config.get<bool>("startos_switcher::sort_objects_by_x", false)) {
+        if (config.get<bool>("startos_switcher::sort_objects_by_x", true)) {
             std::sort(hooksH::startPositions.begin(), hooksH::startPositions.end(), 
                 [](StartPosObject* a, StartPosObject* b) {
                     return a->getPositionX() < b->getPositionX();
                 });
         }
+
+        hooksH::selectedStartpos = hooksH::startPositions.size() - 1;
 
         #ifdef GEODE_IS_ANDROID
         if (config.get<bool>("startpos_switcher", false) && !hooksH::startPositions.empty()) {
@@ -472,7 +475,6 @@ class $modify(MyPlayLayer, PlayLayer) {
         addChild(m_fields->labels_bottom);
         addChild(m_fields->labels_top);
 
-        Labels::get().attempts = 1;
         Labels::get().session_time = std::chrono::steady_clock::now();
 
         return true;
@@ -519,13 +521,13 @@ class $modify(MyPlayLayer, PlayLayer) {
         if (recorderAudio.is_recording) {
             bottom_left += fmt::format("Audio recording ({})\n", recorderAudio.get_data_size());
         }
-        
-        m_fields->labels_top_left->    setCString(labels.get_label_string(LabelCorner_TopLeft).c_str());
-        m_fields->labels_top_right->   setCString(labels.get_label_string(LabelCorner_TopRight).c_str());
-        m_fields->labels_bottom_left-> setCString(bottom_left.c_str());
-        m_fields->labels_bottom_right->setCString(labels.get_label_string(LabelCorner_BottomRight).c_str());
-        m_fields->labels_bottom->      setCString(labels.get_label_string(LabelCorner_Bottom).c_str());
-        m_fields->labels_top->         setCString(labels.get_label_string(LabelCorner_Top).c_str());
+
+        labels.setStringColored(m_fields->labels_top_left, labels.get_label_string(LabelCorner_TopLeft));
+        labels.setStringColored(m_fields->labels_top_right, labels.get_label_string(LabelCorner_TopRight));
+        labels.setStringColored(m_fields->labels_bottom_left, bottom_left);
+        labels.setStringColored(m_fields->labels_bottom_right, labels.get_label_string(LabelCorner_BottomRight));
+        labels.setStringColored(m_fields->labels_bottom, labels.get_label_string(LabelCorner_Bottom));
+        labels.setStringColored(m_fields->labels_top, labels.get_label_string(LabelCorner_Top));
         
         m_fields->labels_top_left->    setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentLeft);
         m_fields->labels_top_left->    setPosition({labels.padding, size.height - labels.padding});
@@ -628,7 +630,7 @@ class $modify(MyPlayLayer, PlayLayer) {
         if (config.get<bool>("noclip::tint_on_death", false)) {
             m_fields->tint_death_bg->stopAllActions();
             m_fields->tint_death_bg->setOpacity(config.get<int>("noclip::tint_opacity", 100));
-            m_fields->tint_death_bg->runAction(cocos2d::CCFadeTo::create(0.35f, 0));
+            m_fields->tint_death_bg->runAction(cocos2d::CCFadeTo::create(config.get<float>("noclip::tint_fade", 0.35f), 0));
         }
 
         NoclipAccuracy::get().handle_death();
@@ -649,6 +651,7 @@ class $modify(MyPlayLayer, PlayLayer) {
     
     void resetLevel() {
         auto& config = Config::get();
+        auto& hacks = Hacks::get();
         auto& engine = ReplayEngine::get();
         auto& recorder = Recorder::get();
         auto& recorderAudio = RecorderAudio::get();
@@ -662,6 +665,7 @@ class $modify(MyPlayLayer, PlayLayer) {
         // }
 
         PlayLayer::resetLevel();
+
         if (config.get<bool>("tps_enabled", false)) {
             m_resumeTimer = config.get<int>("resumeTimer_value", 2);
         }
@@ -678,6 +682,8 @@ class $modify(MyPlayLayer, PlayLayer) {
 
         SpamBot::get().reset_temp();
         engine.handle_reset();  
+
+        hacks.preCheatState = cheat_state::legit;
 
         if (!m_isPracticeMode && !hooksH::startPositions.empty()) {
             recorder.delay = m_gameState.m_levelTime;
@@ -747,11 +753,6 @@ class $modify(MyPlayLayer, PlayLayer) {
     void showNewBest(bool p0, int p1, int p2, bool p3, bool p4, bool p5) {
         if (Config::get().get<bool>("no_new_best_popup", false)) return;        
         PlayLayer::showNewBest(p0, p1, p2, p3, p4, p5);
-    }
-    
-    void updateAttempts() {
-        PlayLayer::updateAttempts();
-        Labels::get().attempts++;
     }
 
     void storeCheckpoint(CheckpointObject* obj) {
@@ -845,7 +846,17 @@ class $modify(MyPlayLayer, PlayLayer) {
 
     void updateProgressbar() {
         auto& config = Config::get();
+        auto& hacks = Hacks::get();
         PlayLayer::updateProgressbar();
+
+        hacks.cheatState = hacks.cheatingCheck();
+        if (hacks.cheatState == cheating) {
+            hacks.preCheatState = cheating;
+        } else if (hacks.cheatState == unwanted && hacks.preCheatState != cheating) {
+            hacks.preCheatState = unwanted;
+        } else if (hacks.cheatState == safe_mode && hacks.preCheatState != unwanted && hacks.preCheatState != cheating) {
+            hacks.preCheatState = safe_mode;
+        }
 
         if (config.get<bool>("show_hitboxes", false)) {
             if (!(m_isPracticeMode && GameManager::get()->getGameVariable("0166")))
@@ -883,6 +894,7 @@ class $modify(MyEndLevelLayer, EndLevelLayer) {
         auto& config = Config::get();
         auto& recorder = Recorder::get();
         auto& recorderAudio = RecorderAudio::get();
+        auto& hacks = Hacks::get();
         EndLevelLayer::showLayer(p0);
 
         auto pl = PlayLayer::get();
@@ -891,10 +903,29 @@ class $modify(MyEndLevelLayer, EndLevelLayer) {
         }        
 
         if (config.get<bool>("cheat_indicator", false)) {
-            m_mainLayer->sortAllChildren();
-            auto* sprite = m_mainLayer->getChildByType<cocos2d::CCSprite>(-1);
-            sprite->setColor({255, 0, 0});
-        }
+            auto win_size = cocos2d::CCDirector::sharedDirector()->getWinSize();
+        
+            auto getCheatColor = [](cheat_state state) -> cocos2d::ccColor3B {
+                switch (state) {
+                    case legit:     return {0, 255, 0};
+                    case safe_mode: return {255, 242, 0};
+                    case unwanted:  return {255, 106, 0};
+                    case cheating:  return {255, 0, 0};
+                    default:        return {255, 255, 255};
+                }
+            };
+        
+            auto createIndicator = [&](float x, cheat_state state) {
+                auto* dot = cocos2d::CCLabelBMFont::create("+", "bigFont.fnt");
+                dot->setColor(getCheatColor(state));
+                dot->setScale(0.65f);
+                dot->setPosition({win_size.width / 2 + x, win_size.height / 2 - 100.f});
+                m_mainLayer->addChild(dot);
+            };
+        
+            createIndicator(-164.f, hacks.cheatState);
+            createIndicator(-148.f, hacks.preCheatState);
+        }        
 
         if (recorder.is_recording && recorder.fade_out) {
             auto wnd_size = cocos2d::CCDirector::sharedDirector()->getWinSize();
@@ -942,7 +973,8 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
     void handleButton(bool down, int button, bool isPlayer1) {
         GJBaseGameLayer::handleButton(down, button, isPlayer1);
         ReplayEngine::get().handle_button(down, button, isPlayer1);
-        if (down) CpsCounter::get().click();
+        if (down) CpsCounter::get().click();            
+        Labels::get().push = down;
     }
 
     float getCustomDelta(float dt, float tps, bool applyExtraDelta = true) {
@@ -994,8 +1026,6 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
         if (!engine.engine_v2)
             engine.handle_update(this);
 
-        NoclipAccuracy::get().handle_update(this, dt);
-
         if (config.get<bool>("rgb_icons", false)) {
             color_dt += dt * config.get<float>("rgb_icons::speed", 0.20f);
 
@@ -1011,14 +1041,19 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
             if (player_p1 && m_player1) {
                 m_player1->setColor(color1);
                 m_player1->setSecondColor(color2);
+                m_player1->m_glowColor = color1;
+                m_player1->updateGlowColor();
+                m_player1->m_regularTrail->setColor(color1);
             }
             if (wave_trail_p1 && m_player1->m_waveTrail) m_player1->m_waveTrail->setColor(color1);
 
             if (player_p2 && m_player2) {
                 m_player2->setColor(color2);
                 m_player2->setSecondColor(color1);
+                m_player2->m_glowColor = color2;
+                m_player2->updateGlowColor();
+                m_player2->m_regularTrail->setColor(color2);
             }
-
             if (wave_trail_p2 && m_player2->m_waveTrail) m_player2->m_waveTrail->setColor(color2);
         }
 
@@ -1140,6 +1175,7 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
         auto& engine = ReplayEngine::get();
         
         GJBaseGameLayer::processCommands(dt);
+        NoclipAccuracy::get().handle_update(this, dt);
         
         if (engine.engine_v2)
             engine.handle_update(this);
@@ -1895,5 +1931,65 @@ class $modify(MyCCCircleWave, CCCircleWave) {
         auto& config = Config::get(); 
         if (!config.get<bool>("no_orb_ring", false))
             CCCircleWave::draw();
+    }
+};
+
+class $modify(MyRewardUnlockLayer, RewardUnlockLayer) {
+    bool init(int p0, RewardsPage *p1)
+    {
+        if (!RewardUnlockLayer::init(p0, p1))
+            return false;
+
+        auto& config = Config::get(); 
+        if (!config.get<bool>("fast_chest_open", false))
+            return true;
+
+        auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
+        m_chestSprite->stopAllActions();
+        m_chestSprite->setPosition({winSize.width / 2, (winSize.height / 2) - 20});
+        m_chestSprite->runAction(
+            cocos2d::CCSequence::create(
+                cocos2d::CCDelayTime::create(0.4),
+                cocos2d::CCCallFunc::create(this, callfunc_selector(RewardUnlockLayer::step3)),
+                nullptr
+            )
+        );
+
+        return true;
+    }
+};
+
+class $modify(MyLevelAreaInnerLayer, LevelAreaInnerLayer) {
+    bool init(bool returning) {
+        auto& config = Config::get();
+        auto gsm = GameStatsManager::get();
+
+        bool main_levels_bypass = config.get<bool>("main_levels", false);
+        std::vector<int> level_ids = {5001, 5002, 5003, 5004};
+
+        std::unordered_map<int, bool> original_completion;
+        for (int level : level_ids) {
+            original_completion[level] = gsm->hasCompletedMainLevel(level);
+        }
+
+        if (main_levels_bypass) {
+            for (int level : level_ids) {
+                gsm->m_completedLevels->setObject(cocos2d::CCBool::create(true), fmt::format("n_{}", level));
+            }
+        }
+
+        if (!LevelAreaInnerLayer::init(returning)) {
+            return false;
+        }
+
+        if (main_levels_bypass) {
+            for (int level : level_ids) {
+                if (!original_completion[level]) {
+                    gsm->m_completedLevels->removeObjectForKey(fmt::format("n_{}", level));
+                }
+            }
+        }
+
+        return true;
     }
 };

@@ -2,6 +2,14 @@
 #include <string>
 #include <vector>
 
+enum cheat_state
+{
+    safe_mode,
+    unwanted,
+    cheating,
+    legit
+};
+
 struct hack {
     std::string name;
     std::string desc;
@@ -46,11 +54,9 @@ public:
     void loadKeybinds();
     void toggleKeybinds(int key);
 
-    cocos2d::ccColor3B getIndicatorColor() {
-        cocos2d::ccColor3B color;
-        
-        return color;
-    }
+    cheat_state preCheatState = cheat_state::legit;
+    cheat_state cheatState = cheat_state::legit;
+    cheat_state cheatingCheck();
 private:
     Hacks() = default;
 

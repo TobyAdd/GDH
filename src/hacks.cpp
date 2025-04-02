@@ -56,7 +56,7 @@ void Hacks::Init() {
                 {"Allow Low Volume", "Removes the limit on minimum volume percentage", "allow_low_volume"},  // +
                 {"Coins In Practice", "The ability to collect coins in practice", "coins_in_practice"},  // +
                 {"Confirm Exit", "Warning before level exit", "confim_exit", "0167"},  // +  
-                // {"Cheat Indicator", "", "cheat_indicator"},
+                {"Cheat Indicator", "Adds a cheat indicator on the Level Complete screen:\nthe first dot shows current hacks legitimacy, and the second indicates if illegitimate cheats were used during the attempt", "cheat_indicator"},
                 {"Fast Chest Open", "Removes the delay for opening chests", "fast_chest_open"}, 
                 // {"Random Seed", "Changes the seed game so that the random trigger is not triggered randomly", "random_seed"},
                 {"Respawn Time", "Changes respawn time on death", "respawn_time"},  // +
@@ -255,6 +255,7 @@ void Hacks::Init() {
         bool noclip_p2 = config.get<bool>("noclip::p2", true);
         bool tint_on_death = config.get<bool>("noclip::tint_on_death", false);
         int tint_opacity = config.get<int>("noclip::tint_opacity", 100);
+        float tint_fade = config.get<float>("noclip::tint_fade", 0.35f);
 
         #ifdef GEODE_IS_WINDOWS 
         auto &gui = Gui::get();
@@ -271,6 +272,9 @@ void Hacks::Init() {
 
         if (ImGui::DragInt("##noclip::tint_opacity", &tint_opacity, 1, 0, 255, "Tint Opacity: %i"))
             config.set<int>("noclip::tint_opacity", tint_opacity);
+
+        if (ImGui::DragFloat("##noclip::tint_fade", &tint_fade, 0.01f, 0, 1.f, "Tint Fade: %.2f"))
+            config.set<float>("noclip::tint_fade", tint_fade);
             
 
         #elif defined(GEODE_IS_ANDROID) 
@@ -297,6 +301,12 @@ void Hacks::Init() {
             config.set("noclip::tint_opacity", std::clamp(value, 0, 255));
         }, 25.f);
 
+        popup->AddText("Tint Fade (0.0 - 1.0):");
+
+        popup->AddFloatInput("Tint Fade", tint_fade, [this, &config](float value) 
+        {
+            config.set("noclip::tint_fade", std::clamp(value, 0.f, 1.f));
+        }, 25.f);
 
         popup->show();
         #endif
@@ -597,7 +607,7 @@ void Hacks::Init() {
 
     SetCustomWindowHandlerByConfig("startpos_switcher", [this, &config]() {
         bool reset_camera = config.get<bool>("startos_switcher::reset_camera", true);
-        bool sort_objects_by_x = config.get<bool>("startos_switcher::sort_objects_by_x", false);
+        bool sort_objects_by_x = config.get<bool>("startos_switcher::sort_objects_by_x", true);
 
         #ifdef GEODE_IS_WINDOWS 
         auto &gui = Gui::get();       
@@ -938,6 +948,39 @@ void Hacks::loadKeybinds() {
     #endif
 }
 
+cheat_state Hacks::cheatingCheck() {
+    auto& config = Config::get();
+    auto& engine = ReplayEngine::get();
+
+    if (config.get<bool>("safe_mode", false)) 
+        return cheat_state::safe_mode;
+
+    if (config.get<bool>("noclip", false) ||
+        config.get<bool>("auto_pickup_coins", false) ||
+        config.get<bool>("instant_complete", false) ||
+        config.get<bool>("jump_hack", false) ||
+        config.get<bool>("layout_mode", false) ||
+        config.get<bool>("spambot_enabled", false) ||
+        (config.get<bool>("show_hitboxes", false) && !config.get<bool>("show_hitboxes::on_death", false)) ||
+        config.get<bool>("straight_fly_bot", false) ||
+        config.get<bool>("no_camera_move", false) ||
+        config.get<bool>("no_camera_zoom", false) ||
+        config.get<bool>("no_shaders", false) ||
+        config.get<bool>("no_mirror_portal", false) ||
+        config.get<bool>("tps_enabled", false) ||
+        (config.get<float>("speedhack_value", 1.f) != 1.f) ||
+        (engine.mode == state::record || engine.mode == state::play)) 
+    {
+        return cheat_state::cheating;
+    }
+    else if (config.get<bool>("no_particles", false) ||
+            (config.get<bool>("wave_trail_size", false) && config.get<float>("wave_trail_size_value", 1.f) < 0.5f))   
+    {
+        return cheat_state::unwanted;
+    }
+
+    return cheat_state::legit;
+}
 
 void Hacks::toggleKeybinds(int key) {
     #ifdef GEODE_IS_WINDOWS
