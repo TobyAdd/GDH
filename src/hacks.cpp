@@ -2,6 +2,7 @@
 #include "hooks.hpp"
 #include "config.hpp"
 #include "gui.hpp"
+#include "imgui.h"
 #include "labels.hpp"
 #include "recorder.hpp"
 #include "replayEngine.hpp"
@@ -92,7 +93,7 @@ void Hacks::Init() {
                 {"No New Best Popup", "Disable the new best popup", "no_new_best_popup"}, // +
                 {"No Portal Lighting", "Disables lightning when entering mini/large portal", "no_portal_lighting"}, // +
                 {"No Pulse", "Disables pulsation of falls, orbs, etc", "no_pulse"}, // +
-                {"Pause On Complete", "Lets you pouse during the level complete animation", "pause_during_complete"}, // +
+                {"Pause On Complete", "Lets you pause during the level complete animation", "pause_during_complete"}, // +
                 {"Pitch Shifter", "Shifts the pitch of background music", "pitch_shifter"}, // +
                 // {"Practice Fix", "More accurate respawning in practice mode (used for botting)", "practice_fix"},
                 {"Pulse Size", "Changes pulsation of falls, orbs, etc", "pulse_size"}, // +
@@ -163,7 +164,17 @@ void Hacks::Init() {
         bool undeafen_on_pause = config.get<bool>("auto_deafen::undeafen_on_pause", true);
         if (ImGuiH::Checkbox("Undeafen on Pause", &undeafen_on_pause, gui.m_scale))
             config.set<bool>("auto_deafen::undeafen_on_pause", undeafen_on_pause);
-    
+
+        if (hooksH::isWine()) {
+            ImGui::Spacing();
+            ImGui::PushStyleColor(ImGuiCol_Text, ImColor(255, 128, 128).Value);
+            ImGui::Text("Linux detected, may be unstable. Experimental feature.");
+            ImGui::PopStyleColor();
+            ImGui::Spacing();
+            ImGui::Text("Binary distributed from \ngh:GMDProjectL/linux-new-autodeafen-xpart");
+            ImGui::Spacing();
+        }
+
         #endif
     });
     #endif
