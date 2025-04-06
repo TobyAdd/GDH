@@ -3,6 +3,7 @@
 #include <sstream>
 #include "labels.hpp"
 #include "popupSystem.hpp"
+#include "replayEngine.hpp"
 #include "hooks.hpp"
 #include <algorithm>
 #include "hacks.hpp"
@@ -16,6 +17,7 @@ Label::Label(LabelCorner _corner, std::string _format_text) {
 
 std::string Label::get_text() {
     auto& hacks = Hacks::get();
+    auto& engine = ReplayEngine::get();
     auto now = std::chrono::system_clock::now();
     auto steady_now = std::chrono::steady_clock::now();
     std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
@@ -60,6 +62,7 @@ std::string Label::get_text() {
     result = replace_all(result, "{cheat_indicator}", fmt::format("{}+{}", 
         (hacks.cheatState == legit) ? "<cg>" : (hacks.cheatState == unwanted) ? "<co>" : (hacks.cheatState == safe_mode) ? "<cy>" : (hacks.cheatState == cheating) ? "<cr>" : "",
         (hacks.cheatState == legit) ? "<cg/>" : (hacks.cheatState == unwanted) ? "<co/>" : (hacks.cheatState == safe_mode) ? "<cy/>" : (hacks.cheatState == cheating) ? "<cr/>" : ""));
+    result = replace_all(result, "{re_state}", engine.mode == state::disable ? "Disable" : engine.mode == state::record ? "Record" : "Play");
     result = replace_all(result, "{\\n}", "\n");
 
     return result;
@@ -411,7 +414,7 @@ LabelsCreateLayer* LabelsCreateLayer::create(geode::ScrollLayer* scrollLayer) {
 
 bool LabelsCreateLayer::setup() {
     std::array<std::string, 6> corners = {"Top Left", "Top Right", "Top", "Bottom Left", "Bottom Right", "Bottom"};
-    std::array<std::string, 13> label_types = {"Time (24H)", "Time (12H)", "Session Time", "Cheat Indicator", "FPS Counter", "Level Progress", "Attempt", "CPS Counter", "Level Info", "Noclip Accuracy", "Death Counter", "Testmode", "Custom Text"};
+    std::array<std::string, 14> label_types = {"Time (24H)", "Time (12H)", "Session Time", "Cheat Indicator", "FPS Counter", "Level Progress", "Attempt", "CPS Counter", "Level Info", "Noclip Accuracy", "Death Counter", "Testmode", "Replay Engine State", "Custom Text"};
     
     this->setTitle("Add Label");
 
@@ -459,6 +462,7 @@ bool LabelsCreateLayer::setup() {
         else if (m_labelTypeIndex == 9) text = "ColoredDeath({noclipAccuracy})";
         else if (m_labelTypeIndex == 10) text = "ColoredDeath({deaths} Deaths)";
         else if (m_labelTypeIndex == 11) text = "{testmode}";
+        else if (m_labelTypeIndex == 12) text = "{re_status}";
         else if (m_labelTypeIndex == 12) text = "here your text";
         
         auto& labels = Labels::get();

@@ -84,6 +84,11 @@ void hooksH::switchStartPos(int incBy, bool direction) {
     if (direction) {
         StartPosObject* obj = hooksH::selectedStartpos == -1 ? nullptr : hooksH::startPositions[hooksH::selectedStartpos];
         
+        bool practiceMode = pl->m_isPracticeMode;
+        if (practiceMode) {
+            pl->togglePracticeMode(false);
+        }
+
         pl->m_isTestMode = (obj != nullptr);
 
         pl->m_currentCheckpoint = nullptr;
@@ -94,6 +99,10 @@ void hooksH::switchStartPos(int incBy, bool direction) {
             pl->resetCamera();
 
         pl->startMusic();
+
+        if (practiceMode) {
+            pl->togglePracticeMode(true);
+        }
 
         return;
     }

@@ -147,6 +147,7 @@ void Gui::animateAlpha()
             RGBIcons::get().save();
             Hacks::get().saveKeybinds();
             updateCursorState();
+            search_text = "";
         }
 
         return;
@@ -1294,6 +1295,7 @@ void Gui::Render() {
                 "Death Counter",
                 "Startpos Switcher",
                 "Testmode",
+                "Replay Engine State",
                 "Custom Text",
             };
             int label_types_count = sizeof(label_types)/sizeof(label_types[0]);
@@ -1322,6 +1324,7 @@ void Gui::Render() {
                 else if (selected_label_type == 10) text = "ColoredDeath({deaths} Deaths)";
                 else if (selected_label_type == 11) text = "{startposCurrentIDX}/{startposAllIDX}";
                 else if (selected_label_type == 12) text = "{testmode}";
+                else if (selected_label_type == 13) text = "{re_state}";
                 
                 Label l((LabelCorner) (selected_label_corner+1), text);
                 labels.add(l);
