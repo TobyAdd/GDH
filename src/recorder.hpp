@@ -89,6 +89,7 @@ public:
     bool flvc_enabled = false;
 
     bool overlay_mode = false;
+    bool experimental_audio_sync = false;
 private:
     Recorder() = default;
 

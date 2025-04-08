@@ -808,6 +808,13 @@ void Gui::Render() {
                                 }
                             }
 
+                            ImGui::SameLine();
+
+                            ImGuiH::Checkbox("Audio Sync 2.2 (idk)", &recorder.experimental_audio_sync, m_scale);
+
+                            if (ImGui::IsItemHovered())
+                                ImGui::SetTooltip("Not sure, but it should fix song correction when audio triggers are present (mark only if absolutely necessary!)");
+
                             if (recorder.overlay_mode) {
                                 ImGui::PushStyleColor(ImGuiCol_Text, ImColor(255, 128, 128).Value);
                                 ImGui::TextWrapped("Overlay Mode allows you to capture all overlays (like steam or reshade)");
