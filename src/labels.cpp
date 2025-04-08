@@ -39,7 +39,7 @@ std::string Label::get_text() {
     result = replace_all(result, "{time:12}", fmt::format("{} {}", time_to_fmt_time(hour12, localTime.tm_min, localTime.tm_sec), period12));
     result = replace_all(result, "{time:24}", time_to_fmt_time(localTime.tm_hour, localTime.tm_min, localTime.tm_sec));
     result = replace_all(result, "{attempt}", std::to_string(pl->m_attempts));
-    result = replace_all(result, "{fps}", std::string(CCDirector::sharedDirector()->m_pszFPS).erase(0, 5));
+    result = replace_all(result, "{fps}", fmt::format("{:.0f}", Labels::get().fps));
     float session_time_seconds = std::chrono::duration<float>(steady_now - Labels::get().session_time).count();
     result = replace_all(result, "{sessionTime}", seconds_to_fmt_time(session_time_seconds));    
     for (int i = 0; i <= 6; ++i) {
@@ -454,7 +454,7 @@ bool LabelsCreateLayer::setup() {
             text = "{cheat_indicator}";
             Config::get().set<bool>("cheat_indicator", true);
         }
-        else if (m_labelTypeIndex == 4) text = "{fps}";
+        else if (m_labelTypeIndex == 4) text = "{fps} FPS";
         else if (m_labelTypeIndex == 5) text = "{progress:2f}";
         else if (m_labelTypeIndex == 6) text = "Attempt {attempt}";
         else if (m_labelTypeIndex == 7) text = "ColoredCPS({cps}/{cpsHigh}/{clicks})";

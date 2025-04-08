@@ -37,6 +37,8 @@
 #include <Geode/modify/SecretLayer2.hpp>
 #include <Geode/modify/RewardUnlockLayer.hpp>
 #include <Geode/modify/LevelAreaInnerLayer.hpp>
+#include <Geode/modify/CCEGLView.hpp>
+#include <Geode/modify/CCDirector.hpp>
 #include "hacks.hpp"
 #include "config.hpp"
 #include "labels.hpp"
@@ -170,6 +172,22 @@ void setupStartPos(StartPosObject* startPos) {
     }
 }
 
+void calculateFPS() {
+    static std::chrono::high_resolution_clock::time_point lastTime = std::chrono::high_resolution_clock::now();
+    static std::vector<float> frameTimes;
+
+    std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
+    float deltaTime = std::chrono::duration<float>(now - lastTime).count();
+    lastTime = now;
+
+    frameTimes.push_back(deltaTime);
+    if (frameTimes.size() > 60)
+        frameTimes.erase(frameTimes.begin());
+
+    float avgTime = std::accumulate(frameTimes.begin(), frameTimes.end(), 0.0f);
+    avgTime /= frameTimes.size();
+    Labels::get().fps = 1.f / avgTime;
+}
 
 float color_dt = 0.f;
 float left_over = 0.f;
@@ -180,6 +198,8 @@ class $modify(MyCCScheduler, cocos2d::CCScheduler) {
         auto &engine = ReplayEngine::get();
         auto& recorder = Recorder::get();
         auto& recorderAudio = RecorderAudio::get();
+
+        calculateFPS();
 
         auto handleRestoreWinSize = [&]() {
             if (recorder.is_recording || recorder.needRevertOld) {
@@ -684,6 +704,21 @@ class $modify(MyPlayLayer, PlayLayer) {
         PlayLayer::levelComplete();
 
         m_isTestMode = testmode;
+    }
+
+    void showCompleteEffect() {
+        auto& config = Config::get();
+        if (!config.get<bool>("fast_complete", false))
+            PlayLayer::showCompleteEffect();
+        else {
+            runAction(
+                cocos2d::CCSequence::create(
+                    cocos2d::CCDelayTime::create(0),
+                    cocos2d::CCCallFunc::create(this, callfunc_selector(PlayLayer::showCompleteText)),
+                    nullptr
+                )
+            );
+        }
     }
 
     void playEndAnimationToPos(cocos2d::CCPoint pos) {

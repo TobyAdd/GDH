@@ -57,6 +57,7 @@ void Hacks::Init() {
                 {"Confirm Exit", "Warning before level exit", "confim_exit", "0167"},  // +  
                 {"Cheat Indicator", "Adds a cheat indicator on the Level Complete screen:\nthe first dot shows current hacks legitimacy, and the second indicates if illegitimate cheats were used during the attempt", "cheat_indicator"},
                 {"Fast Chest Open", "Removes the delay for opening chests", "fast_chest_open"}, 
+                {"Fast Complete", "Fast level completion without animations", "fast_complete"}, 
                 // {"Random Seed", "Changes the seed game so that the random trigger is not triggered randomly", "random_seed"},
                 {"Respawn Time", "Changes respawn time on death", "respawn_time"},  // +
                 {"Ignore ESC", "Prevents exiting the level", "ignore_esc"},  // +

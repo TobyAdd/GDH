@@ -57,6 +57,7 @@ class Labels {
         float progress = 0.f;
         bool platformer = false;
         bool push = false;
+        float fps = 0.f;
         
         void save();
         void load();

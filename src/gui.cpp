@@ -159,7 +159,7 @@ void Gui::animateAlpha()
 }
 
 std::vector<std::string> stretchedWindows;
-void Gui::Render() {
+void Gui::Render() {    
     
     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1);
     ImGuiH::Popup::get().render();
@@ -1315,7 +1315,7 @@ void Gui::Render() {
                     text = "{cheat_indicator}";
                     config.set<bool>("cheat_indicator", true);
                 }
-                else if (selected_label_type == 4) text = "{fps}";
+                else if (selected_label_type == 4) text = "{fps} FPS";
                 else if (selected_label_type == 5) text = "{progress:2f}";
                 else if (selected_label_type == 6) text = "Attempt {attempt}";
                 else if (selected_label_type == 7) text = "ColoredCPS({cps}/{cpsHigh}/{clicks})";
