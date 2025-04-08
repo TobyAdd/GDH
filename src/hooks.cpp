@@ -45,6 +45,7 @@
 #include "replayEngine.hpp"
 #include "recorder.hpp"
 #include "gui.hpp"
+#include "utils.hpp"
 #ifdef GEODE_IS_WINDOWS
 #include "keyMapping.hpp"
 #endif
@@ -491,6 +492,10 @@ class $modify(MyPlayLayer, PlayLayer) {
         if (recorderAudio.is_recording) {
             bottom_left += fmt::format("Audio recording ({})\n", recorderAudio.get_data_size());
         }
+
+        // benchmark("setStringColored", [&]() {
+        //     labels.setStringColored(m_fields->labels_top_left, labels.get_label_string(LabelCorner_TopLeft));
+        // });
 
         labels.setStringColored(m_fields->labels_top_left, labels.get_label_string(LabelCorner_TopLeft));
         labels.setStringColored(m_fields->labels_top_right, labels.get_label_string(LabelCorner_TopRight));
