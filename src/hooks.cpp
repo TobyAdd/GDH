@@ -1329,7 +1329,7 @@ class $modify(MyPlayerObject, PlayerObject) {
 class $modify(MyCCTextInputNode, CCTextInputNode){
     void updateLabel(gd::string p0)
     {
-        if (Config::get().get<bool>("text_lenght", false))
+        if (Config::get().get<bool>("text_length", false))
             CCTextInputNode::setMaxLabelLength(9999);
 
         if (Config::get().get<bool>("char_filter", false))

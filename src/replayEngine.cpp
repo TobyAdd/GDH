@@ -436,7 +436,7 @@ bool SpamBot::next_frame()
 {
     auto& config = Config::get();
     
-    if ((downed && ++release_current >= config.get<int>("release_lenght", 5)) || (!downed && ++hold_current >= config.get<int>("hold_lenght", 5)))
+    if ((downed && ++release_current >= config.get<int>("release_length", 5)) || (!downed && ++hold_current >= config.get<int>("hold_length", 5)))
     {
         downed = !downed;
         (downed) ? release_current = 0 : hold_current = 0;
