@@ -468,8 +468,8 @@ void Hacks::Init() {
     });
 
     SetCustomWindowHandlerByConfig("spambot_enabled", [this, &config]() {
-        int spamBotHoldLenght = config.get<int>("hold_lenght", 5);
-        int spamBotReleaseLenght = config.get<int>("release_lenght", 5);
+        int spamBotHoldLength = config.get<int>("hold_length", 5);
+        int spamBotReleaseLength = config.get<int>("release_length", 5);
         bool spamBotPlayer1 = config.get<bool>("spambot_player1", true);
         bool spamBotPlayer2 = config.get<bool>("spambot_player2", false);
 
@@ -477,13 +477,13 @@ void Hacks::Init() {
         auto &gui = Gui::get();
 
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x / 2);
-        if (ImGui::DragInt("##spamhold", &spamBotHoldLenght, 1, 1, INT_MAX, "Hold Lenght: %i"))
-            config.set<int>("hold_lenght", spamBotHoldLenght);
+        if (ImGui::DragInt("##spamhold", &spamBotHoldLength, 1, 1, INT_MAX, "Hold Length: %i"))
+            config.set<int>("hold_length", spamBotHoldLength);
 
         ImGui::SameLine();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (ImGui::DragInt("##spamrelease", &spamBotReleaseLenght, 1, 1, INT_MAX, "Release Lenght: %i"))
-            config.set<int>("release_lenght", spamBotReleaseLenght);
+        if (ImGui::DragInt("##spamrelease", &spamBotReleaseLength, 1, 1, INT_MAX, "Release Length: %i"))
+            config.set<int>("release_length", spamBotReleaseLength);
 
         if (ImGuiH::Checkbox("Player 1", &spamBotPlayer1, gui.m_scale))
             config.set<bool>("spambot_player1", spamBotPlayer1);
@@ -494,17 +494,17 @@ void Hacks::Init() {
 
         #elif defined(GEODE_IS_ANDROID) 
         auto popup = popupSystem::create();
-        popup->AddText("Hold Lenght:");
-        popup->AddIntInput("Hold Lenght", spamBotReleaseLenght, [this, &config](int value) 
+        popup->AddText("Hold Length:");
+        popup->AddIntInput("Hold Length", spamBotReleaseLength, [this, &config](int value) 
         {
-            config.set<int>("hold_lenght", value);
+            config.set<int>("hold_length", value);
         },
         30.f);
 
-        popup->AddText("Release Lenght:");
-        popup->AddIntInput("Release Lenght", spamBotHoldLenght, [this, &config](int value) 
+        popup->AddText("Release Length:");
+        popup->AddIntInput("Release Length", spamBotHoldLength, [this, &config](int value) 
         {
-            config.set<int>("release_lenght", value);
+            config.set<int>("release_length", value);
         },
         30.f);
 
