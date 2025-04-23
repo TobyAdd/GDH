@@ -227,14 +227,11 @@ void Recorder::handle_recording(float dt) {
         double frame_dt = 1.0 / static_cast<double>(fps);
         double time = (playLayer->m_gameState.m_levelTime - delay) + extra_time - last_frame_time;
         if (time >= frame_dt) {
-            if (experimental_audio_sync) {
-                playLayer->processActivatedAudioTriggers(playLayer->m_gameState.m_levelTime);
-            }
-            else {
-                auto fmod = FMODAudioEngine::get();
-                auto offset = (playLayer->m_levelSettings->m_songOffset + playLayer->m_gameState.m_levelTime) * 1000.0;
-                fmod->setMusicTimeMS(offset, false, 0);    
-            }
+            playLayer->processActivatedAudioTriggers(playLayer->m_gameState.m_levelTime);
+
+            // auto fmod = FMODAudioEngine::get();
+            // auto offset = (playLayer->m_levelSettings->m_songOffset + playLayer->m_gameState.m_levelTime) * 1000.0;
+            // fmod->setMusicTimeMS(offset, false, 0);    
 
             extra_time = time - frame_dt;
             last_frame_time = (playLayer->m_gameState.m_levelTime - delay);

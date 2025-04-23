@@ -80,8 +80,6 @@ public:
     std::string compile_command();
     void compile_vf_args();
 
-    bool sync_audio = false;
-
     void applyWinSize();
     void restoreWinSize();
     bool needRevertOld = false;
@@ -89,7 +87,6 @@ public:
     bool flvc_enabled = false;
 
     bool overlay_mode = false;
-    bool experimental_audio_sync = false;
 private:
     Recorder() = default;
 

@@ -360,17 +360,17 @@ class $modify(MyPlayLayer, PlayLayer) {
             right_arrowClick->setOpacity(100);
             right_arrowClick->setID("startpos_switcher_rightArrowClick"_spr);
 
+            auto fields = m_fields.self();
+            fields->startposSwitcherUI = cocos2d::CCMenu::create();
+            fields->startposSwitcherUI->setID("startposSwitcherUI"_spr);
+            fields->startposSwitcherUI->setPosition(0, 0);
+            fields->startposSwitcherUI->setZOrder(999);
 
-            m_fields->startposSwitcherUI = cocos2d::CCMenu::create();
-            m_fields->startposSwitcherUI->setID("startposSwitcherUI"_spr);
-            m_fields->startposSwitcherUI->setPosition(0, 0);
-            m_fields->startposSwitcherUI->setZOrder(999);
+            fields->startposSwitcherUI->addChild(left_arrowClick);
+            fields->startposSwitcherUI->addChild(right_arrowClick);
+            fields->startposSwitcherUI->addChild(label);
 
-            m_fields->startposSwitcherUI->addChild(left_arrowClick);
-            m_fields->startposSwitcherUI->addChild(right_arrowClick);
-            m_fields->startposSwitcherUI->addChild(label);
-
-            m_uiLayer->addChild(m_fields->startposSwitcherUI);
+            m_uiLayer->addChild(fields->startposSwitcherUI);
         }
         #endif
     }
@@ -381,17 +381,18 @@ class $modify(MyPlayLayer, PlayLayer) {
         auto& engine = ReplayEngine::get();
         auto& recorder = Recorder::get();
         auto& recorderAudio = RecorderAudio::get();
+        auto fields = m_fields.self();
 
         auto wnd_size = cocos2d::CCDirector::sharedDirector()->getWinSize();
-        m_fields->tint_death_bg = cocos2d::CCSprite::create("game_bg_13_001.png");
-        auto sprSize = m_fields->tint_death_bg->getContentSize();
-        m_fields->tint_death_bg->setPosition({wnd_size.width/2, wnd_size.height/2});            
-        m_fields->tint_death_bg->setScaleX(wnd_size.width / sprSize.width * 2.f);
-        m_fields->tint_death_bg->setScaleY(wnd_size.height / sprSize.height * 2.f);
-        m_fields->tint_death_bg->setColor({255, 0, 0});
-        m_fields->tint_death_bg->setOpacity(0);
-        m_fields->tint_death_bg->setZOrder(999);
-        addChild(m_fields->tint_death_bg);
+        fields->tint_death_bg = cocos2d::CCSprite::create("game_bg_13_001.png");
+        auto sprSize = fields->tint_death_bg->getContentSize();
+        fields->tint_death_bg->setPosition({wnd_size.width/2, wnd_size.height/2});            
+        fields->tint_death_bg->setScaleX(wnd_size.width / sprSize.width * 2.f);
+        fields->tint_death_bg->setScaleY(wnd_size.height / sprSize.height * 2.f);
+        fields->tint_death_bg->setColor({255, 0, 0});
+        fields->tint_death_bg->setOpacity(0);
+        fields->tint_death_bg->setZOrder(999);
+        addChild(fields->tint_death_bg);
 
         if (config.get<bool>("auto_practice_mode", false))
             togglePracticeMode(true);
@@ -409,27 +410,27 @@ class $modify(MyPlayLayer, PlayLayer) {
             recorderAudio.audio_name2 = fmt::format("{}", level->m_levelName);
         }
         
-        m_fields->labels_top_left     = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
-        m_fields->labels_top_right    = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
-        m_fields->labels_bottom_left  = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
-        m_fields->labels_bottom_right = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
-        m_fields->labels_top          = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
-        m_fields->labels_bottom       = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
-        m_fields->labels_top_left->    setID("labels_top_left"_spr);
-        m_fields->labels_top_right->   setID("labels_top_right"_spr);
-        m_fields->labels_bottom_left-> setID("labels_bottom_left"_spr);
-        m_fields->labels_bottom_right->setID("labels_bottom_right"_spr);
-        m_fields->labels_top->         setID("labels_top"_spr);
-        m_fields->labels_bottom->      setID("labels_bottom"_spr);
+        fields->labels_top_left     = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
+        fields->labels_top_right    = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
+        fields->labels_bottom_left  = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
+        fields->labels_bottom_right = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
+        fields->labels_top          = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
+        fields->labels_bottom       = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
+        fields->labels_top_left->    setID("labels_top_left"_spr);
+        fields->labels_top_right->   setID("labels_top_right"_spr);
+        fields->labels_bottom_left-> setID("labels_bottom_left"_spr);
+        fields->labels_bottom_right->setID("labels_bottom_right"_spr);
+        fields->labels_top->         setID("labels_top"_spr);
+        fields->labels_bottom->      setID("labels_bottom"_spr);
 
         for (size_t i = 0; i < 6; i++) {
             cocos2d::CCLabelBMFont* label_object =
-                i == 0 ? m_fields->labels_top_left :
-                i == 1 ? m_fields->labels_top_right :
-                i == 2 ? m_fields->labels_bottom_left :
-                i == 3 ? m_fields->labels_bottom_right :
-                i == 4 ? m_fields->labels_bottom :
-                m_fields->labels_top;
+                i == 0 ? fields->labels_top_left :
+                i == 1 ? fields->labels_top_right :
+                i == 2 ? fields->labels_bottom_left :
+                i == 3 ? fields->labels_bottom_right :
+                i == 4 ? fields->labels_bottom :
+                fields->labels_top;
             label_object->setZOrder(999);
             if (i == 0) label_object->setAnchorPoint({0, 1});
             if (i == 1) label_object->setAnchorPoint({1, 1});
@@ -439,12 +440,12 @@ class $modify(MyPlayLayer, PlayLayer) {
             if (i == 5) label_object->setAnchorPoint({0.5f, 1});
         }
         
-        addChild(m_fields->labels_top_left);
-        addChild(m_fields->labels_top_right);
-        addChild(m_fields->labels_bottom_left);
-        addChild(m_fields->labels_bottom_right);
-        addChild(m_fields->labels_bottom);
-        addChild(m_fields->labels_top);
+        addChild(fields->labels_top_left);
+        addChild(fields->labels_top_right);
+        addChild(fields->labels_bottom_left);
+        addChild(fields->labels_bottom_right);
+        addChild(fields->labels_bottom);
+        addChild(fields->labels_top);
 
         Labels::get().session_time = std::chrono::steady_clock::now();
 
@@ -452,8 +453,9 @@ class $modify(MyPlayLayer, PlayLayer) {
     }
 
     void togglePracticeMode(bool practiceMode) {
-        if (m_fields->startposSwitcherUI) {
-            m_fields->startposSwitcherUI->setVisible(!practiceMode);
+        auto fields = m_fields.self();
+        if (fields->startposSwitcherUI) {
+            fields->startposSwitcherUI->setVisible(!practiceMode);
         }
         PlayLayer::togglePracticeMode(practiceMode);
     }
@@ -462,25 +464,26 @@ class $modify(MyPlayLayer, PlayLayer) {
         auto& config = Config::get();
         auto& labels = Labels::get();
         auto& recorderAudio = RecorderAudio::get();
+        auto fields = m_fields.self();
 
         PlayLayer::postUpdate(dt);
 
-        if (!(m_fields->labels_top_left &&
-              m_fields->labels_top_right &&
-              m_fields->labels_bottom_left &&
-              m_fields->labels_bottom_right &&
-              m_fields->labels_bottom &&
-              m_fields->labels_top)) return;
+        if (!(fields->labels_top_left &&
+              fields->labels_top_right &&
+              fields->labels_bottom_left &&
+              fields->labels_bottom_right &&
+              fields->labels_bottom &&
+              fields->labels_top)) return;
 
             
         for (size_t i = 0; i < 6; i++) {
             cocos2d::CCLabelBMFont* label_object =
-                i == 0 ? m_fields->labels_top_left :
-                i == 1 ? m_fields->labels_top_right :
-                i == 2 ? m_fields->labels_bottom_left :
-                i == 3 ? m_fields->labels_bottom_right :
-                i == 4 ? m_fields->labels_bottom :
-                m_fields->labels_top;
+                i == 0 ? fields->labels_top_left :
+                i == 1 ? fields->labels_top_right :
+                i == 2 ? fields->labels_bottom_left :
+                i == 3 ? fields->labels_bottom_right :
+                i == 4 ? fields->labels_bottom :
+                fields->labels_top;
             label_object->setScale(labels.size);
             label_object->setOpacity((int)(labels.opacity*255));
         }
@@ -494,37 +497,38 @@ class $modify(MyPlayLayer, PlayLayer) {
         }
 
         // benchmark("setStringColored", [&]() {
-        //     labels.setStringColored(m_fields->labels_top_left, labels.get_label_string(LabelCorner_TopLeft));
+        //     labels.setStringColored(fields->labels_top_left, labels.get_label_string(LabelCorner_TopLeft));
         // });
 
-        labels.setStringColored(m_fields->labels_top_left, labels.get_label_string(LabelCorner_TopLeft));
-        labels.setStringColored(m_fields->labels_top_right, labels.get_label_string(LabelCorner_TopRight));
-        labels.setStringColored(m_fields->labels_bottom_left, bottom_left);
-        labels.setStringColored(m_fields->labels_bottom_right, labels.get_label_string(LabelCorner_BottomRight));
-        labels.setStringColored(m_fields->labels_bottom, labels.get_label_string(LabelCorner_Bottom));
-        labels.setStringColored(m_fields->labels_top, labels.get_label_string(LabelCorner_Top));
+        labels.setStringColored(fields->labels_top_left, labels.get_label_string(LabelCorner_TopLeft));
+        labels.setStringColored(fields->labels_top_right, labels.get_label_string(LabelCorner_TopRight));
+        labels.setStringColored(fields->labels_bottom_left, bottom_left);
+        labels.setStringColored(fields->labels_bottom_right, labels.get_label_string(LabelCorner_BottomRight));
+        labels.setStringColored(fields->labels_bottom, labels.get_label_string(LabelCorner_Bottom));
+        labels.setStringColored(fields->labels_top, labels.get_label_string(LabelCorner_Top));
         
-        m_fields->labels_top_left->    setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentLeft);
-        m_fields->labels_top_left->    setPosition({labels.padding, size.height - labels.padding});
+        fields->labels_top_left->    setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentLeft);
+        fields->labels_top_left->    setPosition({labels.padding, size.height - labels.padding});
         
-        m_fields->labels_bottom_left-> setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentLeft);
-        m_fields->labels_bottom_left-> setPosition({labels.padding, labels.padding});
+        fields->labels_bottom_left-> setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentLeft);
+        fields->labels_bottom_left-> setPosition({labels.padding, labels.padding});
         
-        m_fields->labels_top_right->   setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentRight);
-        m_fields->labels_top_right->   setPosition({size.width - labels.padding, size.height - labels.padding});
+        fields->labels_top_right->   setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentRight);
+        fields->labels_top_right->   setPosition({size.width - labels.padding, size.height - labels.padding});
         
-        m_fields->labels_bottom_right->setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentRight);
-        m_fields->labels_bottom_right->setPosition({size.width - labels.padding, labels.padding});
+        fields->labels_bottom_right->setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentRight);
+        fields->labels_bottom_right->setPosition({size.width - labels.padding, labels.padding});
         
-        m_fields->labels_top->setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentCenter);
-        m_fields->labels_top->setPosition({size.width/2, size.height - labels.padding});
+        fields->labels_top->setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentCenter);
+        fields->labels_top->setPosition({size.width/2, size.height - labels.padding});
         
-        m_fields->labels_bottom->setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentCenter);
-        m_fields->labels_bottom->setPosition({size.width/2, labels.padding});
+        fields->labels_bottom->setAlignment(cocos2d::CCTextAlignment::kCCTextAlignmentCenter);
+        fields->labels_bottom->setPosition({size.width/2, labels.padding});
     }
 
     void addObject(GameObject* obj) {
         auto& config = Config::get();
+        auto fields = m_fields.self();
         
         if (config.get<bool>("no_glow", false)) {
             obj->m_hasNoGlow = true;
@@ -535,7 +539,7 @@ class $modify(MyPlayLayer, PlayLayer) {
         switch (obj->m_objectID) {
             case 1329:
             case 142:
-                m_fields->coinsObjects.push_back(obj);
+                fields->coinsObjects.push_back(obj);
                 break;
 
             case 31:
@@ -583,6 +587,7 @@ class $modify(MyPlayLayer, PlayLayer) {
     
     void destroyPlayer(PlayerObject* player, GameObject* obj) {
         auto& config = Config::get();
+        auto fields = m_fields.self();
 
         bool testmode = m_isTestMode;
         
@@ -603,9 +608,9 @@ class $modify(MyPlayLayer, PlayLayer) {
         }
 
         if (config.get<bool>("noclip::tint_on_death", false)) {
-            m_fields->tint_death_bg->stopAllActions();
-            m_fields->tint_death_bg->setOpacity(config.get<int>("noclip::tint_opacity", 100));
-            m_fields->tint_death_bg->runAction(cocos2d::CCFadeTo::create(config.get<float>("noclip::tint_fade", 0.35f), 0));
+            fields->tint_death_bg->stopAllActions();
+            fields->tint_death_bg->setOpacity(config.get<int>("noclip::tint_opacity", 100));
+            fields->tint_death_bg->runAction(cocos2d::CCFadeTo::create(config.get<float>("noclip::tint_fade", 0.35f), 0));
         }
 
         NoclipAccuracy::get().handle_death();
@@ -630,6 +635,7 @@ class $modify(MyPlayLayer, PlayLayer) {
         auto& engine = ReplayEngine::get();
         auto& recorder = Recorder::get();
         auto& recorderAudio = RecorderAudio::get();
+        auto fields = m_fields.self();
 
         // auto unk3188 = m_unk3188;
         // auto replayRandSeed = m_replayRandSeed;
@@ -677,7 +683,7 @@ class $modify(MyPlayLayer, PlayLayer) {
             m_level->m_attempts = m_level->m_attempts - 1;
 
         if (config.get<bool>("auto_pickup_coins", false)) {
-            for (auto* coin : m_fields->coinsObjects) {
+            for (auto* coin : fields->coinsObjects) {
                 if (!coin) continue;
                 destroyObject(coin);
                 pickupItem(static_cast<EffectGameObject*>(coin));
@@ -865,13 +871,15 @@ class $modify(MyEndLevelLayer, EndLevelLayer) {
     void pizdec(float) {
         auto& recorder = Recorder::get();
         auto& recorderAudio = RecorderAudio::get();
-        if (m_fields->black_bg && recorder.is_recording && recorder.fade_out) {
+        auto fields = m_fields.self();
+
+        if (fields->black_bg && recorder.is_recording && recorder.fade_out) {
             int opacity = (recorder.after_end_extra_time >= (recorder.after_end_duration - 0.1f)) ? 255 : 255 * recorder.after_end_extra_time / (recorder.after_end_duration - 0.1f);
-            m_fields->black_bg->setOpacity(opacity);
+            fields->black_bg->setOpacity(opacity);
         }
-        else if (m_fields->black_bg && recorder.need_remove_black) {
+        else if (fields->black_bg && recorder.need_remove_black) {
             recorder.need_remove_black = false;
-            m_fields->black_bg->setOpacity(0);
+            fields->black_bg->setOpacity(0);
         }
 
         if (recorder.need_visible_lc) {
@@ -885,6 +893,7 @@ class $modify(MyEndLevelLayer, EndLevelLayer) {
         auto& recorder = Recorder::get();
         auto& recorderAudio = RecorderAudio::get();
         auto& hacks = Hacks::get();
+        auto fields = m_fields.self();
         EndLevelLayer::showLayer(p0);
 
         auto pl = PlayLayer::get();
@@ -920,20 +929,20 @@ class $modify(MyEndLevelLayer, EndLevelLayer) {
         if (recorder.is_recording && recorder.fade_out) {
             auto wnd_size = cocos2d::CCDirector::sharedDirector()->getWinSize();
 
-            m_fields->black_bg = cocos2d::CCSprite::create("game_bg_13_001.png");
-            auto sprSize = m_fields->black_bg->getContentSize();
-            m_fields->black_bg->setPosition({wnd_size.width/2, wnd_size.height/2});            
-            m_fields->black_bg->setScaleX(wnd_size.width / sprSize.width * 2.f);
-            m_fields->black_bg->setScaleY(wnd_size.height / sprSize.height * 2.f);
-            m_fields->black_bg->setColor({0, 0, 0});
-            m_fields->black_bg->setOpacity(0);
-            m_fields->black_bg->setZOrder(999);
+            fields->black_bg = cocos2d::CCSprite::create("game_bg_13_001.png");
+            auto sprSize = fields->black_bg->getContentSize();
+            fields->black_bg->setPosition({wnd_size.width/2, wnd_size.height/2});            
+            fields->black_bg->setScaleX(wnd_size.width / sprSize.width * 2.f);
+            fields->black_bg->setScaleY(wnd_size.height / sprSize.height * 2.f);
+            fields->black_bg->setColor({0, 0, 0});
+            fields->black_bg->setOpacity(0);
+            fields->black_bg->setZOrder(999);
 
             if (recorder.hide_level_complete) {
-                pl->addChild(m_fields->black_bg);;
+                pl->addChild(fields->black_bg);;
             }
             else {
-                addChild(m_fields->black_bg);
+                addChild(fields->black_bg);
             }
         }
 

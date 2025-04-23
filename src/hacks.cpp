@@ -95,7 +95,7 @@ void Hacks::Init() {
                 {"No Pulse", "Disables pulsation of falls, orbs, etc", "no_pulse"}, // +
                 {"Pause On Complete", "Lets you pause during the level complete animation", "pause_during_complete"}, // +
                 {"Pitch Shifter", "Shifts the pitch of background music", "pitch_shifter"}, // +
-                // {"Practice Fix", "More accurate respawning in practice mode (used for botting)", "practice_fix"},
+                {"Practice Fix", "More accurate respawning in practice mode (used for botting)", "practice_fix"},
                 {"Pulse Size", "Changes pulsation of falls, orbs, etc", "pulse_size"}, // +
                 #ifdef GEODE_IS_ANDROID
                 {"Uncomplete Level", "Resets level completion statistics (it's just a button, it doesn't depend on on/off switch)", "uncomplete_level"}, // +

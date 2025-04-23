@@ -95,11 +95,8 @@ public:
     NoclipAccuracy& operator=(const NoclipAccuracy&) = delete;
     NoclipAccuracy(const NoclipAccuracy&) = delete;
 
-    bool wouldDie = false;
-    bool prevDied = false;
-    int frames = 0;
-    int deaths = 0;
-    int deaths_full = 0;
+    bool wouldDie = false, prevDied = false;
+    int frames = 0, deaths = 0, deaths_full = 0;
 
     void handle_update(GJBaseGameLayer* self, float delta) {
         auto pl = PlayLayer::get();

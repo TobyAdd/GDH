@@ -808,10 +808,6 @@ void Gui::Render() {
                                 }
                             }
 
-                            ImGui::SameLine();
-
-                            ImGuiH::Checkbox("Audio Sync 2.2 (idk)", &recorder.experimental_audio_sync, m_scale);
-
                             if (ImGui::IsItemHovered())
                                 ImGui::SetTooltip("Not sure, but it should fix song correction when audio triggers are present (mark only if absolutely necessary!)");
 
