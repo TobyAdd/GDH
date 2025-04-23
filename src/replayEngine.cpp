@@ -341,7 +341,7 @@ void ReplayEngine::handle_update(GJBaseGameLayer* self) {
             bool frameExist_p2 = std::find_if(m_physicFrames_p2.begin(), m_physicFrames_p2.end(), [&](const auto &data)
                 { return data.frame == frame; }) != m_physicFrames_p2.end();
 
-            if (frameExist_p2)
+            if (!frameExist_p2)
                 m_physicFrames_p2.push_back({
                     frame, 
                     self->m_player2->m_position.x,

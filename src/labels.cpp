@@ -185,7 +185,7 @@ void Labels::setStringColored(cocos2d::CCLabelBMFont* label, std::string format_
     // shitcoded, will optimize later
     for (size_t i = 0; i < format_text.size(); i++) {
         if (format_text.compare(i, 4, "<cr>") == 0) {
-            currentColor = {255, 0, 0};
+            currentColor = {255, 0, 128};
             i += 3;
         } 
         else if (format_text.compare(i, 5, "<cr/>") == 0) {
