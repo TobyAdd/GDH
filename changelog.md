@@ -1,3 +1,38 @@
+# v5.0.0-beta.4
+UI Changes:
+- Seach box will be cleared when the menu is closed
+- Mobile button now using layouts (Node ID dependency)
+
+Hacks changes:
+- Added Process priority
+- Added Resume Timer (fixes lag when respawning while TPS Bypass is enabled, adjustable in the Framerate window)
+- Fast Complete (Faster animation)
+- Fixed Fast Chest open
+- Added Auto Deafen
+- Added Cheat Indicator
+- Fixed "Main Levels Bypass" hack for "The Tower" levels
+- Fixed Startpos Swither when you in Practice Mode
+
+Labels changes:
+- Added text coloring (CPS Counter, Death Counter will now be colored)
+- Added Replay Engine State
+- Added FPS Counter
+- Added Cheat Indicator
+- Added Testmode label
+- Fixed Noclip Accuracy deaths
+- Fixed Session Time
+- "Progress" label have now a more customizable floating point
+
+**Note:** labels may have an old formatting mapping, so they should be re-added
+
+Replay Engine/Recorder changes:
+- Fixed Accuracy Fix for 2P
+- Audio Sync Recording now works perfectly with Music/SFX triggers
+- Overlay Mode for Recorder (capturing overlays like reshade)
+- Added option to change the volume percentage when recording audio for the showcase
+- Practice Fix is back and reworked
+- Audio now has better quality when merged with "Merge" tab
+
 # v5.0.0-beta.3
 - armeabi-v7a support (no recorder yet)
 - startpos switcher keybinds fix (thanks ery)
