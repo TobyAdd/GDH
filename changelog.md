@@ -1,3 +1,6 @@
+# v5.0.0-beta.5
+- Fixed android64, thanks to whoever broke the bindings
+
 # v5.0.0-beta.4
 UI Changes:
 - Seach box will be cleared when the menu is closed
