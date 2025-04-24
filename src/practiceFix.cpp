@@ -20,7 +20,8 @@ class $modify(PlayLayer) {
         auto& config = Config::get();
         auto& engine = ReplayEngine::get();
 
-        if (config.get<bool>("practice_fix", false) || engine.mode == state::record) {
+        bool practiceFixEnabled = config.get<bool>("practice_fix", false) || engine.mode == state::record;
+        if (practiceFixEnabled) {
             auto fields = m_fields.self();
             if (fields->checkpoints.contains(checkpoint)) {
                 PlayLayer::loadFromCheckpoint(checkpoint);
@@ -42,8 +43,9 @@ class $modify(PlayLayer) {
         auto& engine = ReplayEngine::get();
 
         auto checkpoint = PlayLayer::createCheckpoint();
-        if (!checkpoint || (!config.get<bool>("practice_fix", false) || engine.mode == state::record))
-            return checkpoint;
+        bool practiceFixEnabled = config.get<bool>("practice_fix", false) || engine.mode == state::record;
+        if (!checkpoint || !practiceFixEnabled)
+            return checkpoint;            
 
         if (m_gameState.m_currentProgress > 0) {
             checkpoint_data checkpoint_p1(m_player1);
