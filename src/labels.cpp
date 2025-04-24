@@ -174,53 +174,48 @@ void Labels::load() {
 
 void Labels::setStringColored(cocos2d::CCLabelBMFont* label, std::string format_text) {
     if (!label) return;
-
     auto label_children = label->getChildren();
     std::vector<cocos2d::ccColor3B> colors(label_children->count(), {255, 255, 255});
-
     std::string parsed_text;
-    cocos2d::ccColor3B currentColor = {255, 255, 255};
+    const cocos2d::ccColor3B defaultColor = {255, 255, 255};
+    cocos2d::ccColor3B currentColor = defaultColor;
     size_t index = 0;
-
-    // shitcoded, will optimize later
+    
+    const std::unordered_map<std::string, cocos2d::ccColor3B> tagColors = {
+        {"cr", {255, 0, 128}},
+        {"cg", {0, 255, 0}},
+        {"co", {255, 106, 0}},
+        {"cy", {255, 242, 0}}
+    };
+    
     for (size_t i = 0; i < format_text.size(); i++) {
-        if (format_text.compare(i, 4, "<cr>") == 0) {
-            currentColor = {255, 0, 128};
-            i += 3;
-        } 
-        else if (format_text.compare(i, 5, "<cr/>") == 0) {
-            currentColor = {255, 255, 255};
-            i += 4;
-        } 
-        else if (format_text.compare(i, 4, "<cg>") == 0) {
-            currentColor = {0, 255, 0};
-            i += 3;
-        } 
-        else if (format_text.compare(i, 5, "<cg/>") == 0) {
-            currentColor = {255, 255, 255};
-            i += 4;
-        } 
-        else if (format_text.compare(i, 4, "<co>") == 0) {
-            currentColor = {255, 106, 0};
-            i += 3;
-        } 
-        else if (format_text.compare(i, 5, "<co/>") == 0) {
-            currentColor = {255, 255, 255};
-            i += 4;
-        } 
-        else if (format_text.compare(i, 4, "<cy>") == 0) {
-            currentColor = {255, 242, 0};
-            i += 3;
-        } 
-        else if (format_text.compare(i, 5, "<cy/>") == 0) {
-            currentColor = {255, 255, 255};
-            i += 4;
-        } 
-        else if (format_text[i] == '\n') {
-            parsed_text += format_text[i];
-            continue;
+        if (format_text[i] == '<' && i + 2 < format_text.size()) {
+            std::string potentialTag = format_text.substr(i + 1, 2);
+            
+            bool isClosingTag = false;
+            if (i + 4 < format_text.size() && format_text[i + 3] == '/' && format_text[i + 4] == '>') {
+                isClosingTag = true;
+            }
+            
+            bool isOpeningTag = !isClosingTag && i + 3 < format_text.size() && format_text[i + 3] == '>';
+            
+            auto tagIt = tagColors.find(potentialTag);
+            if (tagIt != tagColors.end()) {
+                if (isOpeningTag) {
+                    currentColor = tagIt->second;
+                    i += 3;
+                    continue;
+                } else if (isClosingTag) {
+                    currentColor = defaultColor;
+                    i += 4;
+                    continue;
+                }
+            }
         }
-        else {
+        
+        if (format_text[i] == '\n') {
+            parsed_text += '\n';
+        } else {
             parsed_text += format_text[i];
             if (index < colors.size()) {
                 colors[index] = currentColor;
@@ -228,10 +223,9 @@ void Labels::setStringColored(cocos2d::CCLabelBMFont* label, std::string format_
             }
         }
     }
-
+    
     label->removeAllChildren();
     label->setCString(parsed_text.c_str());
-
     for (size_t i = 0; i < colors.size(); i++) {
         auto child = label_children->objectAtIndex(i);
         if (auto bmFont = geode::prelude::typeinfo_cast<cocos2d::CCSprite*>(child)) {
@@ -241,24 +235,32 @@ void Labels::setStringColored(cocos2d::CCLabelBMFont* label, std::string format_
 }
 
 std::string Labels::processSpecialText(std::string text) {
-    size_t start, end;
-
-    if ((start = text.find("ColoredCPS(")) != std::string::npos) {
-        start += 11;
-        end = text.rfind(')');
-        if (end != std::string::npos && end > start)
-            text.replace(text.find("ColoredCPS("), end + 1 - text.find("ColoredCPS("),
-                        fmt::format("{}{}{}", push ? "<cg>" : "", text.substr(start, end - start), push ? "<cg/>" : ""));
+    const std::string cpsTag = "ColoredCPS(";
+    size_t start = text.find(cpsTag);
+    if (start != std::string::npos) {
+        size_t contentStart = start + cpsTag.length();
+        size_t end = text.find(')', contentStart);
+        
+        if (end != std::string::npos) {
+            std::string content = text.substr(contentStart, end - contentStart);
+            std::string replacement = push ? "<cg>" + content + "<cg/>" : content;
+            text.replace(start, end - start + 1, replacement);
+        }
     }
-
-    if ((start = text.find("ColoredDeath(")) != std::string::npos) {
-        start += 13;
-        end = text.rfind(')');
-        if (end != std::string::npos && end > start)
-            text.replace(text.find("ColoredDeath("), end + 1 - text.find("ColoredDeath("),
-                fmt::format("{}{}{}", NoclipAccuracy::get().prevDied ? "<cr>" : "", text.substr(start, end - start), NoclipAccuracy::get().prevDied ? "<cr/>" : ""));
+    
+    const std::string deathTag = "ColoredDeath(";
+    start = text.find(deathTag);
+    if (start != std::string::npos) {
+        size_t contentStart = start + deathTag.length();
+        size_t end = text.find(')', contentStart);
+        
+        if (end != std::string::npos) {
+            std::string content = text.substr(contentStart, end - contentStart);
+            std::string replacement = NoclipAccuracy::get().prevDied ? "<cr>" + content + "<cr/>" : content;
+            text.replace(start, end - start + 1, replacement);
+        }
     }
-
+    
     return text;
 }
 
