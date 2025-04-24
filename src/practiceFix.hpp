@@ -241,8 +241,8 @@ public:
         m_maybeStateForce2 = player->m_maybeStateForce2;
         m_stateScale = player->m_stateScale;
         m_platformerXVelocity = player->m_platformerXVelocity;
-        m_holdingRight = player->m_holdingRight;
-        m_holdingLeft = player->m_holdingLeft;
+        // m_holdingRight = player->m_holdingRight;
+        // m_holdingLeft = player->m_holdingLeft;
         m_leftPressedFirst = player->m_leftPressedFirst;
         m_scaleXRelated = player->m_scaleXRelated;
         m_maybeHasStopped = player->m_maybeHasStopped;
@@ -549,8 +549,8 @@ public:
         player->m_maybeStateForce2 = m_maybeStateForce2;
         player->m_stateScale = m_stateScale;
         player->m_platformerXVelocity = m_platformerXVelocity;
-        player->m_holdingRight = m_holdingRight;
-        player->m_holdingLeft = m_holdingLeft;
+        // player->m_holdingRight = m_holdingRight;
+        // player->m_holdingLeft = m_holdingLeft;
         player->m_leftPressedFirst = m_leftPressedFirst;
         player->m_scaleXRelated = m_scaleXRelated;
         player->m_maybeHasStopped = m_maybeHasStopped;
@@ -858,8 +858,8 @@ private:
     int m_maybeStateForce2;
     int m_stateScale;
     double m_platformerXVelocity;
-    bool m_holdingRight;
-    bool m_holdingLeft;
+    // bool m_holdingRight;
+    // bool m_holdingLeft;
     bool m_leftPressedFirst;
     double m_scaleXRelated;
     bool m_maybeHasStopped;
