@@ -409,14 +409,14 @@ void ReplayEngine::handle_button(bool down, int button, bool isPlayer1) {
 
     unsigned frame = get_frame();
     if (isPlayer1) {
-        if (!m_inputFrames_p1.empty() && down && !m_inputFrames_p1.back().down && m_inputFrames_p1.back().frame == frame)
-            m_inputFrames_p1.pop_back();
+        // if (!m_inputFrames_p1.empty() && down && !m_inputFrames_p1.back().down && m_inputFrames_p1.back().frame == frame)
+        //     m_inputFrames_p1.pop_back();
 
         m_inputFrames_p1.push_back({get_frame(), down, button, isPlayer1});
     }        
     else {
-        if (!m_inputFrames_p2.empty() && down && !m_inputFrames_p2.back().down && m_inputFrames_p2.back().frame == frame)
-            m_inputFrames_p2.pop_back();
+        // if (!m_inputFrames_p2.empty() && down && !m_inputFrames_p2.back().down && m_inputFrames_p2.back().frame == frame)
+        //     m_inputFrames_p2.pop_back();
 
         m_inputFrames_p2.push_back({get_frame(), down, button, isPlayer1});
     }
