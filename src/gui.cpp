@@ -1368,8 +1368,7 @@ void Gui::Render() {
                 }
                 
                 if (ImGui::BeginDragDropTarget()) {
-                    ImGuiDragDropFlags target_flags = 0;
-                    if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("LBLMOVE", target_flags)) {
+                    if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("LBLMOVE")) {
                         size_t move_from = *(size_t*)payload->Data;
                         labels.swap(move_from, index);
                     }

@@ -742,7 +742,7 @@ void Hacks::Init() {
         if (colors.colors.empty())
             ImGui::TextDisabled("No colors is here");
 
-        for (int i = 0; i < colors.colors.size(); ++i) {
+        for (size_t i = 0; i < colors.colors.size(); ++i) {
             ImGui::PushID(i);
 
             ImGui::Selectable("  =", false, ImGuiSelectableFlags_DontClosePopups, {20.f * gui.m_scale, 20.f * gui.m_scale});
@@ -754,16 +754,16 @@ void Hacks::Init() {
 
             if (ImGui::BeginDragDropSource()) {
                 ImGui::TextUnformatted(fmt::format("Color {}", i).c_str());
-                ImGui::SetDragDropPayload("LBLMOVE", &i, sizeof(size_t));
+                ImGui::SetDragDropPayload("LBLMOVE2", &i, sizeof(size_t));
                 ImGui::EndDragDropSource();
             }
 
             if (ImGui::BeginDragDropTarget()) {
-                if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("LBLMOVE")) {
+                if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("LBLMOVE2")) {
                     if (payload->DataSize == sizeof(size_t)) {
                         size_t move_from = *(size_t*)payload->Data;
                         if (i != move_from) {
-                            std::iter_swap(colors.colors.begin() + move_from, colors.colors.begin() + i);
+                            std::iter_swap(std::next(colors.colors.begin(), move_from), std::next(colors.colors.begin(), i));
                         }
                     }
                 }
