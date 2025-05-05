@@ -9,7 +9,7 @@ GDH is an open-source Geometry Dash mod menu that aims to improve the game's per
 Это README также [доступно на русском языке](README.ru.md)
 
 ## Gallery
-<img src="https://github.com/user-attachments/assets/089fae49-28a9-4058-8514-5b65b4c25050" alt="Screenshot" width=800 />
+<img src="https://github.com/user-attachments/assets/b82e1a3d-b770-4830-bdce-2ef7a645d0e1" alt="Screenshot" width=800 />
 
 ## Install GDH directly through the mod catalogue in Geode itself (Recommended)
 1. Make sure [Geode](https://geode-sdk.org/) is installed
