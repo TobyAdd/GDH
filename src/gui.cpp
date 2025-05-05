@@ -827,6 +827,7 @@ void Gui::Render() {
                                     new_frame.y = 0.0f;
                                     new_frame.rotation = 0.0f;
                                     new_frame.y_accel = 0.0f;
+                                    new_frame.player = isPlayer1;
                                     
                                     if (!frames.empty() && selected_index >= 0 && selected_index < frames.size()) {
                                         new_frame.frame = frames[selected_index].frame + 1;
@@ -910,6 +911,7 @@ void Gui::Render() {
                                     
                                     new_frame.button = 1;
                                     new_frame.down = false;
+                                    new_frame.isPlayer1 = isPlayer1;
                                     
                                     if (!frames.empty() && selected_index >= 0 && selected_index < frames.size()) {
                                         new_frame.frame = frames[selected_index].frame + 1;
