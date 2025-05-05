@@ -1305,6 +1305,8 @@ ImGuiIO::ImGuiIO()
     ScrollSpeedMax = 15.0f;
     ScrollKeepForce = true;
 
+    Inverted = true;  
+
     // Miscellaneous options
     MouseDrawCursor = false;
 #ifdef __APPLE__

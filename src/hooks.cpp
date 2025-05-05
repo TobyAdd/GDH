@@ -607,7 +607,7 @@ class $modify(MyPlayLayer, PlayLayer) {
             m_isTestMode = testmode;
         }
 
-        if (config.get<bool>("noclip::tint_on_death", false)) {
+        if (config.get<bool>("noclip", false) && config.get<bool>("noclip::tint_on_death", false)) {
             fields->tint_death_bg->stopAllActions();
             fields->tint_death_bg->setOpacity(config.get<int>("noclip::tint_opacity", 100));
             fields->tint_death_bg->runAction(cocos2d::CCFadeTo::create(config.get<float>("noclip::tint_fade", 0.35f), 0));
@@ -1283,7 +1283,7 @@ class $modify(MyPlayerObject, PlayerObject) {
     void update(float dt)
     {
         PlayerObject::update(dt);
-
+        
         if (Config::get().get<bool>("no_robot_fire", false)) {
             m_robotFire->setVisible(false);
             m_robotBurstParticles->setVisible(false);

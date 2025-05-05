@@ -2098,6 +2098,9 @@ struct ImGuiIO
     float       ScrollSpeedMax;                 // = 15.0f          // Maximum scrolling speed for ImGuiWindow::ScrollSpeed.
     bool        ScrollKeepForce;                // = true           // Whether to sum the scrolling speed on subsequent frames when using the mouse wheel.
 
+    // Inverted theme
+    bool        Inverted;                       // = false          // Inverted theme
+
     //------------------------------------------------------------------
     // Debug options
     //------------------------------------------------------------------

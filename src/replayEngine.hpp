@@ -70,6 +70,14 @@ public:
     void auto_button_release();
 
     void renderUI();
+
+    std::vector<replay_data>& getPhysicFrames(bool player) {
+        return player ? m_physicFrames_p1 : m_physicFrames_p2;
+    }
+
+    std::vector<replay_data2>& getInputFrames(bool player) {
+        return player ? m_inputFrames_p1 : m_inputFrames_p2;
+    }
 private:
     ReplayEngine() = default;
 

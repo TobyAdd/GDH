@@ -51,6 +51,12 @@ static void ApplyGuiColors(bool invert) {
     colors[ImGuiCol_Tab] = invert ? invertColor(ImColor(50, 50, 52)) : ImColor(50, 50, 52).Value;
     colors[ImGuiCol_TabHovered] = invert ? invertColor(ImColor(70, 70, 72)) : ImColor(70, 70, 72).Value;
     colors[ImGuiCol_TabActive] = invert ? invertColor(ImColor(88, 88, 90)) : ImColor(88, 88, 90).Value;
+    colors[ImGuiCol_ModalWindowDimBg] = ImColor(0, 0, 0, 127).Value;
+    colors[ImGuiCol_TableHeaderBg] = invert ? invertColor(ImColor(60, 60, 60)) : ImColor(60, 60, 60).Value;
+    colors[ImGuiCol_TableBorderStrong] = invert ? invertColor(ImColor(80, 80, 80)) : ImColor(80, 80, 80).Value;
+    colors[ImGuiCol_TableBorderLight] = invert ? invertColor(ImColor(60, 60, 60)) : ImColor(60, 60, 60).Value;
+    colors[ImGuiCol_TableRowBg] = invert ? invertColor(ImColor(30, 30, 30)) : ImColor(30, 30, 30).Value;
+    colors[ImGuiCol_TableRowBgAlt] = invert ? invertColor(ImColor(35, 35, 35)) : ImColor(35, 35, 35).Value;
 }
 
 static void ApplyColor(const Theme& theme) {

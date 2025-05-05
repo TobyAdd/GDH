@@ -16,6 +16,7 @@ public:
     Gui(const Gui&) = delete;
 
     bool m_license_inited = false;
+    bool first_time_re_settings = true;
 
     bool m_show = false;
 

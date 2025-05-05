@@ -958,7 +958,7 @@ cheat_state Hacks::cheatingCheck() {
         config.get<bool>("no_shaders", false) ||
         config.get<bool>("no_mirror_portal", false) ||
         config.get<bool>("tps_enabled", false) ||
-        (config.get<float>("speedhack_value", 1.f) != 1.f) ||
+        (config.get<bool>("speedhack_enabled", false) && config.get<float>("speedhack_value", 1.f) != 1.f) ||
         (engine.mode == state::record || engine.mode == state::play)) 
     {
         return cheat_state::cheating;
