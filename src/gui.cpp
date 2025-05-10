@@ -149,6 +149,7 @@ void Gui::animateAlpha()
             Hacks::get().saveKeybinds();
             updateCursorState();
             search_text = "";
+            Recorder::get().settings_openned = false;
         }
 
         return;
@@ -1007,7 +1008,7 @@ void Gui::Render() {
 
                                     if (engine.engine_v2 ? (!fps_enabled && check2) : (fps_enabled && check)) {
                                         if (recorder.enabled) {
-                                            if (recorder.overlay_mode) {
+                                            if (recorder.overlay_mode && !recorder.native_mode) {
                                                 auto size = ImGui::GetIO().DisplaySize;
                                                 recorder.width = static_cast<int>(size.x);
                                                 recorder.height = static_cast<int>(size.y);
@@ -1019,8 +1020,9 @@ void Gui::Render() {
 
                                             recorder.start(recorder.full_cmd);
                                         }                        
-                                        else 
+                                        else {
                                             recorder.stop();
+                                        }
                                     }
                                     else {
                                         recorder.enabled = false;
@@ -1081,19 +1083,36 @@ void Gui::Render() {
                                         recorder.full_cmd = (std::string)ImGui::GetClipboardText();
                                     }
                                 }
-                                ImGui::Spacing();
                             }
 
                             if (ImGuiH::Checkbox("Overlay Mode", &recorder.overlay_mode, m_scale)) {
                                 bool isFullscreen = !GameManager::sharedState()->getGameVariable("0025");
-                                if (!isFullscreen) {
+                                if (!isFullscreen && !recorder.native_mode) {
                                     recorder.overlay_mode = false;
-                                    ImGuiH::Popup::get().add_popup("Please switch to fullscreen to record in overlay mode");
+                                    ImGuiH::Popup::get().add_popup("Please switch to fullscreen to record in overlay mode (or enable native mode)");
                                 }
                             }
 
-                            if (ImGui::IsItemHovered())
-                                ImGui::SetTooltip("Not sure, but it should fix song correction when audio triggers are present (mark only if absolutely necessary!)");
+                            ImGui::SameLine();
+
+                            if (ImGuiH::Checkbox("Native Mode", &recorder.native_mode, m_scale)) {
+                                bool isFullscreen = !GameManager::sharedState()->getGameVariable("0025");
+                                if (isFullscreen) {
+                                    recorder.native_mode = false;
+                                    ImGuiH::Popup::get().add_popup("Please switch to windowed mode to record in native mode mode");
+                                }
+                            }
+
+                            if (recorder.native_mode) {
+                                ImGui::SameLine();
+                                ImGui::SetNextItemWidth(200.f * m_scale);
+                                if (ImGui::DragFloat("##PauseLayerScale", &recorder.pauseLayerScale, 0.01f, 0, FLT_MAX, "Pause Layer Scale: %.2f")) {
+                                    if (hacks.pauseLayer) {
+                                        hacks.pauseLayer->setAnchorPoint({0.f, 1.f});
+                                        hacks.pauseLayer->setScale(recorder.pauseLayerScale);
+                                    }
+                                }
+                            }
 
                             if (recorder.overlay_mode) {
                                 ImGui::PushStyleColor(ImGuiCol_Text, ImColor(255, 128, 128).Value);
@@ -1101,6 +1120,17 @@ void Gui::Render() {
                                 ImGui::TextWrapped("In this mode, you can only record in full screen mode (native screen resolution)");
                                 ImGui::TextWrapped("- Don't open other overlays like GDH, Steam, Reshade to make a good showcase");
                                 ImGui::TextWrapped("- Don't pause while recording the showcase, a frame of the pause menu may be visible");
+                                ImGui::PopStyleColor();
+                            }
+
+                            if (recorder.native_mode) {
+                                if (recorder.overlay_mode) ImGui::NewLine();
+                                ImGui::PushStyleColor(ImGuiCol_Text, ImColor(255, 128, 128).Value);
+                                ImGui::TextWrapped("Native mode adjusts the window size to match the video screen resolution");
+                                ImGui::TextWrapped("- Some parts of the window may be hidden");
+                                ImGui::TextWrapped("- Make sure you are able to enter the level to start recording (GD Buttons can be behind the screen)");
+                                ImGui::TextWrapped("- It lets you record in any resolution with Overlay Mode");
+                                ImGui::TextWrapped("- Also makes shader triggers match the quality of the recorded video resolution");
                                 ImGui::PopStyleColor();
                             }
 
@@ -1807,6 +1837,7 @@ void Gui::Render() {
 
 void Gui::Init() {
     auto &config = Config::get();
+    auto &recorder = Recorder::get();
 
     stretchedWindows.clear();
     ImGuiH::Popup::get().messages.clear();
@@ -1816,6 +1847,7 @@ void Gui::Init() {
 
     m_license_inited = false;
     first_time_re_settings = true;
+    recorder.settings_openned = false;
 
     bool inverted = config.get("gui_inverted", false);
     ApplyGuiColors(inverted);

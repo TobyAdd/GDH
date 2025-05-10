@@ -4,12 +4,26 @@
 #include <fstream>
 #include "config.hpp"
 
+#ifdef GEODE_IS_WINDOWS
+struct WindowStateBackup {
+    HWND hwnd;
+    LONG Style;
+    LONG ExStyle;
+    RECT ClientRect;
+    POINT WindowPos;
+};
+#endif
+
 namespace utilsH {
+    #ifdef GEODE_IS_WINDOWS
+    HWND find_hwnd();
+    #endif
     bool isNumeric(const std::string& str);
     void UncompleteLevel();
     void getFolder();
     void setPitchShifter(float pitch);
 }
+
 
 static void unimplemented() {}
 

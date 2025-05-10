@@ -11,7 +11,6 @@
 #ifdef GEODE_IS_ANDROID64
 #include "h264_encoder.hpp"
 #endif
-#include "utils.hpp"
 
 void RenderTexture::begin() {
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &oldFBO);
@@ -78,6 +77,8 @@ void RenderTexture::end() {
 }
 
 void Recorder::applyWinSize() {
+    if (native_mode) return;
+
     auto pl = PlayLayer::get();
     if (pl && pl->m_isPaused) return;
     if (newDesignResolution.width != 0 && newDesignResolution.height != 0) {    
@@ -90,6 +91,8 @@ void Recorder::applyWinSize() {
 }
 
 void Recorder::restoreWinSize() {
+    if (native_mode) return;
+
     if (oldDesignResolution.width != 0 && oldDesignResolution.height != 0) {
         cocos2d::CCDirector::get()->m_obWinSizeInPoints = oldDesignResolution;
         auto view = cocos2d::CCEGLView::get();
@@ -100,6 +103,29 @@ void Recorder::restoreWinSize() {
 }
 
 void Recorder::start(std::string command) {
+    #ifdef GEODE_IS_WINDOWS
+    if (native_mode) {
+        HWND hwnd = utilsH::find_hwnd();
+        backup.hwnd = hwnd;
+        backup.Style = GetWindowLong(hwnd, GWL_STYLE);
+        backup.ExStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
+
+        RECT client;
+        GetClientRect(hwnd, &client);
+    
+        POINT topLeft = { 0, 0 };
+        ClientToScreen(hwnd, &topLeft);
+        backup.WindowPos = topLeft;
+    
+        backup.ClientRect = client;
+
+        SetWindowLong(hwnd, GWL_STYLE, WS_POPUP);
+        SetWindowLong(hwnd, GWL_EXSTYLE, 0);
+    
+        SetWindowPos(hwnd, HWND_TOP, 0, 0, width, height, SWP_NOZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+    }
+    #endif
+
     bool use_flvc = video_name.ends_with(".flvc");
 
     is_recording = true;
@@ -111,14 +137,16 @@ void Recorder::start(std::string command) {
 
     after_end_extra_time = 0.f;
 
-    auto view = cocos2d::CCEGLView::get();
+    if (!native_mode) {
+        auto view = cocos2d::CCEGLView::get();
     
-    oldDesignResolution = view->getDesignResolutionSize();
-    float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
-    newDesignResolution = cocos2d::CCSize(roundf(320.f * aspectRatio), 320.f);
-
-    originalScreenScale = cocos2d::CCSize(view->m_fScaleX, view->m_fScaleY);
-    newScreenScale = cocos2d::CCSize(static_cast<float>(width) / newDesignResolution.width, static_cast<float>(height) / newDesignResolution.height);
+        oldDesignResolution = view->getDesignResolutionSize();
+        float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
+        newDesignResolution = cocos2d::CCSize(roundf(320.f * aspectRatio), 320.f);
+    
+        originalScreenScale = cocos2d::CCSize(view->m_fScaleX, view->m_fScaleY);
+        newScreenScale = cocos2d::CCSize(static_cast<float>(width) / newDesignResolution.width, static_cast<float>(height) / newDesignResolution.height);
+    }
 
     frame_has_data = false;
     current_frame.resize(width * height * 3, 0);
@@ -203,6 +231,19 @@ void Recorder::stop() {
 
     needRevertOld = true;
     #ifdef GEODE_IS_WINDOWS
+    if (native_mode) {
+        SetWindowLong(backup.hwnd, GWL_STYLE, backup.Style);
+        SetWindowLong(backup.hwnd, GWL_EXSTYLE, backup.ExStyle);
+    
+        RECT adjusted = backup.ClientRect;
+        AdjustWindowRectEx(&adjusted, backup.Style, FALSE, backup.ExStyle);
+    
+        int width = adjusted.right - adjusted.left;
+        int height = adjusted.bottom - adjusted.top;
+    
+        SetWindowPos(backup.hwnd, HWND_TOP, backup.WindowPos.x, backup.WindowPos.y, width, height, SWP_NOZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+    }
+
     ImGuiH::Popup::get().add_popup("Video recording stoped!");
     #elif defined(GEODE_IS_ANDROID64) 
     geode::queueInMainThread([] {

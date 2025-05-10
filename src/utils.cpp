@@ -1,6 +1,27 @@
 #include "utils.hpp"
 #include "config.hpp"
 
+#ifdef GEODE_IS_WINDOWS
+HWND hwnd_window = NULL;
+
+BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
+    DWORD windowPid = 0;
+    GetWindowThreadProcessId(hwnd, &windowPid);
+
+    DWORD currentPid = GetCurrentProcessId();
+    if (windowPid == currentPid) {
+        hwnd_window = hwnd;
+        return FALSE;
+    }
+    return TRUE;
+}
+
+HWND utilsH::find_hwnd() {
+    EnumWindows(EnumWindowsProc, 0);
+    return hwnd_window;
+}
+#endif
+
 bool utilsH::isNumeric(const std::string& str) {
     if (str.empty()) {
         return false;

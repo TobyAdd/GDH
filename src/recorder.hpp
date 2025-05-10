@@ -1,6 +1,7 @@
 #include <mutex>
 #include <thread>
 #include "config.hpp"
+#include "utils.hpp"
 
 class RenderTexture {
 public:
@@ -87,6 +88,12 @@ public:
     bool flvc_enabled = false;
 
     bool overlay_mode = false;
+    bool native_mode = false;
+    float pauseLayerScale = 1.f;
+
+    #ifdef GEODE_IS_WINDOWS
+    WindowStateBackup backup;
+    #endif
 private:
     Recorder() = default;
 

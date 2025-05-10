@@ -215,10 +215,13 @@ class $modify(MyCCScheduler, cocos2d::CCScheduler) {
             dt *= config.get<float>("speedhack_value", 1.f);
 
         if (engine.engine_v2 && recorder.is_recording) {
-            if (recorder.is_recording) recorder.applyWinSize();
-            CCScheduler::update(1.f / static_cast<float>(recorder.fps));
-            handleRestoreWinSize();
-            return;
+            if (!recorder.frame_has_data) {
+                if (recorder.is_recording) recorder.applyWinSize();
+                CCScheduler::update(1.f / static_cast<float>(recorder.fps));
+                handleRestoreWinSize();
+                return;
+            }
+            else return;
         }
 
         if (!config.get<bool>("tps_enabled", false))
@@ -226,6 +229,16 @@ class $modify(MyCCScheduler, cocos2d::CCScheduler) {
 
         float tps_value = config.get<float>("tps_value", 60.f);
         float new_dt = 1.f / tps_value;
+
+        if (recorder.is_recording && recorder.overlay_mode) {
+            if (!recorder.frame_has_data) {
+                if (recorder.is_recording) recorder.applyWinSize();
+                CCScheduler::update(new_dt);
+                handleRestoreWinSize();
+                return;
+            }
+            else return;
+        }
 
         auto pl = PlayLayer::get();
         if (engine.frame_advance && pl && !pl->m_isPaused) {
@@ -254,9 +267,6 @@ class $modify(MyCCScheduler, cocos2d::CCScheduler) {
         using namespace std::literals;
 
         for (unsigned i = 0; i < times; ++i) {
-            if (recorder.is_recording && recorder.frame_has_data && recorder.overlay_mode)
-                break;
-
             if (recorder.is_recording) recorder.applyWinSize();
             CCScheduler::update(new_dt);
             handleRestoreWinSize();
@@ -1511,6 +1521,7 @@ class $modify(MyPauseLayer, PauseLayer) {
 
     void customSetup() {
         auto& hacks = Hacks::get();
+        auto& recorder = Recorder::get();
         auto& engine = ReplayEngine::get();
         auto& config = Config::get();
         auto levelType = PlayLayer::get()->m_level->m_levelType;
@@ -1526,6 +1537,11 @@ class $modify(MyPauseLayer, PauseLayer) {
         hacks.pauseLayer = this;
         if (config.get<bool>("hide_pause_menu", false)) {
             setVisible(false);
+        }
+
+        if (recorder.native_mode) {
+            setAnchorPoint({0.f, 1.f});
+            setScale(recorder.pauseLayerScale);
         }
     }
 
