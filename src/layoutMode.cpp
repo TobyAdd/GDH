@@ -110,7 +110,8 @@ class $modify(GameObject) {
 class $modify(GJBaseGameLayer) {
     void updateColor(cocos2d::ccColor3B& color, float fadeTime, int colorID, bool blending, float opacity, cocos2d::ccHSVValue& copyHSV, int colorIDToCopy, bool copyOpacity, EffectGameObject* callerObject, int unk1, int unk2)
     {
-        if (Config::get().get("layout_mode", false)) {
+		auto &config = Config::get();
+        if (config.get("layout_mode", false) && config.get<bool>("layout_mode::default_colors", true)) {
             if (colorID == 1000) // background
                 color = {40, 125, 255};
             else if (colorID == 1001) // ground (no ground 2???)
