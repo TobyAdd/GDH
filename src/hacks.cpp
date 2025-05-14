@@ -135,6 +135,17 @@ void Hacks::Init() {
     };
 
     auto &config = Config::get();
+	
+	SetCustomWindowHandlerByConfig("layout_mode", [this, &config]() {
+        auto &gui = Gui::get();
+        #ifdef GEODE_IS_WINDOWS
+
+        bool default_colors = config.get<bool>("layout_mode::default_colors", true);
+        if (ImGuiH::Checkbox("Default Colors", &default_colors, gui.m_scale))
+            config.set<bool>("layout_mode::default_colors", default_colors);
+    
+        #endif
+    });
 
     #ifdef GEODE_IS_WINDOWS
     SetCustomWindowHandlerByConfig("auto_deafen", [this, &config]() {
