@@ -105,6 +105,17 @@ void Recorder::restoreWinSize() {
 void Recorder::start(std::string command) {
     #ifdef GEODE_IS_WINDOWS
     if (native_mode) {
+        auto& hacks = Hacks::get();
+        auto& config = Config::get();
+        for (auto& win : hacks.m_windows) {
+            for (auto& hck : win.hacks) {
+                if (hck.config == "free_win_resize" && hck.handlerFunc) {
+                    config.set<bool>("free_win_resize", true);
+                    hck.handlerFunc(true);
+                }
+            }
+        }
+
         HWND hwnd = utilsH::find_hwnd();
         backup.hwnd = hwnd;
         backup.Style = GetWindowLong(hwnd, GWL_STYLE);

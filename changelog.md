@@ -1,3 +1,10 @@
+# v5.0.0-beta.6
+- Macro Editor
+- Disabled Accuracy Fix for 2P Player due to problems and bugs
+- Layout Mode Default Colors of Level
+- Replay Engine Recorder: Native Mode (any resolution for overlay mode, 100% quality shader trigger recording)
+- Overlay Recording fixes
+
 # v5.0.0-beta.5
 - Fixed android64, thanks to whoever broke the bindings
 

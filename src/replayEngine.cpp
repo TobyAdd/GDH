@@ -338,18 +338,18 @@ void ReplayEngine::handle_update(GJBaseGameLayer* self) {
             if (!self->m_gameState.m_isDualMode)
                 return;
 
-            bool frameExist_p2 = std::find_if(m_physicFrames_p2.begin(), m_physicFrames_p2.end(), [&](const auto &data)
-                { return data.frame == frame; }) != m_physicFrames_p2.end();
+            // bool frameExist_p2 = std::find_if(m_physicFrames_p2.begin(), m_physicFrames_p2.end(), [&](const auto &data)
+            //     { return data.frame == frame; }) != m_physicFrames_p2.end();
 
-            if (!frameExist_p2)
-                m_physicFrames_p2.push_back({
-                    frame, 
-                    self->m_player2->m_position.x,
-                    self->m_player2->m_position.y,
-                    self->m_player2->getRotation(),
-                    self->m_player2->m_yVelocity,
-                    false //second player
-                });
+            // if (!frameExist_p2)
+            //     m_physicFrames_p2.push_back({
+            //         frame, 
+            //         self->m_player2->m_position.x,
+            //         self->m_player2->m_position.y,
+            //         self->m_player2->getRotation(),
+            //         self->m_player2->m_yVelocity,
+            //         false //second player
+            //     });
         }
     }
     else if (mode == state::play) {
@@ -364,15 +364,15 @@ void ReplayEngine::handle_update(GJBaseGameLayer* self) {
                 m_physicIndex_p1++;
             }
 
-            while (m_physicIndex_p2 < m_physicFrames_p2.size() && frame >= m_physicFrames_p2[m_physicIndex_p2].frame)
-            {
-                self->m_player2->m_position.x = m_physicFrames_p2[m_physicIndex_p2].x;
-                self->m_player2->m_position.y = m_physicFrames_p2[m_physicIndex_p2].y;
-                if (rotation_fix)
-                    self->m_player2->setRotation(m_physicFrames_p2[m_physicIndex_p2].rotation);
-                self->m_player2->m_yVelocity = m_physicFrames_p2[m_physicIndex_p2].y_accel;
-                m_physicIndex_p2++;
-            }
+            // while (m_physicIndex_p2 < m_physicFrames_p2.size() && frame >= m_physicFrames_p2[m_physicIndex_p2].frame)
+            // {
+            //     self->m_player2->m_position.x = m_physicFrames_p2[m_physicIndex_p2].x;
+            //     self->m_player2->m_position.y = m_physicFrames_p2[m_physicIndex_p2].y;
+            //     if (rotation_fix)
+            //         self->m_player2->setRotation(m_physicFrames_p2[m_physicIndex_p2].rotation);
+            //     self->m_player2->m_yVelocity = m_physicFrames_p2[m_physicIndex_p2].y_accel;
+            //     m_physicIndex_p2++;
+            // }
         }
 
         while (m_inputIndex_p1 < m_inputFrames_p1.size() && frame >= m_inputFrames_p1[m_inputIndex_p1].frame)
