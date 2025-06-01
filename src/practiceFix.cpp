@@ -76,4 +76,16 @@ class $modify(PlayLayer) {
     
         PlayLayer::removeCheckpoint(first);
     }    
+
+    #ifdef GEODE_IS_WINDOWS
+    void storeCheckpoint(CheckpointObject* checkpoint) {
+        auto oldCheckpoint = static_cast<CheckpointObject*>(m_checkpointArray->objectAtIndex(0));
+
+        PlayLayer::storeCheckpoint(checkpoint);
+
+        auto fields = m_fields.self();
+        if (!m_checkpointArray->containsObject(oldCheckpoint) && fields->checkpoints.contains(oldCheckpoint))
+            fields->checkpoints.erase(oldCheckpoint);
+    }
+    #endif
 };
