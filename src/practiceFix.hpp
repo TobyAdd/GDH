@@ -214,7 +214,7 @@ public:
         // m_touchedRings = player->// m_touchedRings;
         m_lastActivatedPortal = player->m_lastActivatedPortal;
         m_hasEverJumped = player->m_hasEverJumped;
-        m_ringOrStreakRelated = player->m_ringOrStreakRelated;
+        // m_ringOrStreakRelated = player->m_ringOrStreakRelated;
         m_playerColor1 = player->m_playerColor1;
         m_playerColor2 = player->m_playerColor2;
         m_position = player->m_position;
@@ -522,7 +522,7 @@ public:
         // player->m_touchedRings = // m_touchedRings;
         player->m_lastActivatedPortal = m_lastActivatedPortal;
         player->m_hasEverJumped = m_hasEverJumped;
-        player->m_ringOrStreakRelated = m_ringOrStreakRelated;
+        // player->m_ringOrStreakRelated = m_ringOrStreakRelated;
         player->m_playerColor1 = m_playerColor1;
         player->m_playerColor2 = m_playerColor2;
         player->m_position = m_position;
@@ -831,7 +831,7 @@ private:
     // gd::unordered_set<int> m_touchedRings;
     GameObject* m_lastActivatedPortal;
     bool m_hasEverJumped;
-    bool m_ringOrStreakRelated;
+    // bool m_ringOrStreakRelated;
     cocos2d::ccColor3B m_playerColor1;
     cocos2d::ccColor3B m_playerColor2;
     cocos2d::CCPoint m_position;
