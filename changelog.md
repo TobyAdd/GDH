@@ -1,3 +1,7 @@
+# v5.0.0-beta.7
+- Layout Mode fix (breaks decor levels in the editor)
+- Improved vertical flip algorithm for android recorder
+
 # v5.0.0-beta.6
 - Macro Editor
 - Disabled Accuracy Fix for 2P Player due to problems and bugs
