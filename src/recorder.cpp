@@ -32,36 +32,50 @@ void RenderTexture::begin() {
 void RenderTexture::capture_frame(std::mutex& lock, std::vector<uint8_t>& data, volatile bool& frame_has_data) {
     auto& recorder = Recorder::get();
 
+    #ifdef GEODE_IS_ANDROID
+    auto flip_vertical = [this, &data]() {
+        const size_t row_size = width * 3;
+        uint8_t* top = data.data();
+        uint8_t* bottom = data.data() + (height - 1) * row_size;
+        
+        static thread_local std::vector<uint8_t> tmp_row;
+        if (tmp_row.size() < row_size) tmp_row.resize(row_size);
+        
+        for (int y = 0; y < height / 2; y++) {
+            memcpy(tmp_row.data(), top, row_size);
+            memcpy(top, bottom, row_size);
+            memcpy(bottom, tmp_row.data(), row_size);
+            top += row_size;
+            bottom -= row_size;
+        }
+    };
+    #else
+    auto flip_vertical = [](){};
+    #endif
+
     if (recorder.overlay_mode) {
         lock.lock();
         glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data.data());
+        flip_vertical();
         frame_has_data = true;
         lock.unlock();
         return;
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
     glViewport(0, 0, width, height);
 
     auto director = cocos2d::CCDirector::get();
     auto scene = PlayLayer::get();
-
-    #ifdef GEODE_IS_ANDROID
-    scene->setScaleY(-1);
-    #endif
     scene->visit();
-    #ifdef GEODE_IS_ANDROID
-    scene->setScaleY(1);
-    #endif
 
     lock.lock();
     glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data.data());
+    flip_vertical();
     frame_has_data = true;
     lock.unlock();
 
     glBindFramebuffer(GL_FRAMEBUFFER, oldFBO);
-
     director->setViewport();
 }
 
