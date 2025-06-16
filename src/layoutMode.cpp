@@ -95,7 +95,8 @@ class $modify(GameObject) {
     void addGlow(gd::string p0) {
         GameObject::addGlow(p0);
 
-        if (!Config::get().get("layout_mode", false))
+        auto pl = PlayLayer::get();
+        if (!pl || !Config::get().get("layout_mode", false))
             return;
 
         bool needToHide = false;
@@ -110,6 +111,10 @@ class $modify(GameObject) {
 class $modify(GJBaseGameLayer) {
     void updateColor(cocos2d::ccColor3B& color, float fadeTime, int colorID, bool blending, float opacity, cocos2d::ccHSVValue& copyHSV, int colorIDToCopy, bool copyOpacity, EffectGameObject* callerObject, int unk1, int unk2)
     {
+        auto pl = PlayLayer::get();
+        if (!pl)
+            return GJBaseGameLayer::updateColor(color, fadeTime, colorID, blending, opacity, copyHSV, colorIDToCopy, copyOpacity, callerObject, unk1, unk2);
+
 		auto &config = Config::get();
         if (config.get("layout_mode", false) && config.get<bool>("layout_mode::default_colors", true)) {
             if (colorID == 1000) // background
