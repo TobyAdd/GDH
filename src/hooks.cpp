@@ -43,7 +43,6 @@
 #include "config.hpp"
 #include "labels.hpp"
 #include "replayEngine.hpp"
-#include "recorder.hpp"
 #include "gui.hpp"
 #include "utils.hpp"
 #ifdef GEODE_IS_WINDOWS
@@ -197,79 +196,37 @@ class $modify(MyCCScheduler, cocos2d::CCScheduler) {
     void update(float dt) {
         auto &config = Config::get();
         auto &engine = ReplayEngine::get();
-        auto& recorder = Recorder::get();
-        auto& recorderAudio = RecorderAudio::get();
 
         calculateFPS();
-
-        auto handleRestoreWinSize = [&]() {
-            if (recorder.is_recording || recorder.needRevertOld) {
-                if (recorder.needRevertOld) {
-                    recorder.needRevertOld = false;
-                }
-                recorder.restoreWinSize();
-            }
-        };
 
         if (config.get<bool>("speedhack_enabled", false))
             dt *= config.get<float>("speedhack_value", 1.f);
 
-        if (engine.engine_v2 && recorder.is_recording) {
-            if (!recorder.frame_has_data) {
-                if (recorder.is_recording) recorder.applyWinSize();
-                CCScheduler::update(1.f / static_cast<float>(recorder.fps));
-                handleRestoreWinSize();
-                return;
-            }
-            else return;
-        }
-
-        if (!config.get<bool>("tps_enabled", false))
-            return CCScheduler::update(dt);
-
         float tps_value = config.get<float>("tps_value", 60.f);
         float new_dt = 1.f / tps_value;
-
-        if (recorder.is_recording && recorder.overlay_mode) {
-            if (!recorder.frame_has_data) {
-                if (recorder.is_recording) recorder.applyWinSize();
-                CCScheduler::update(new_dt);
-                handleRestoreWinSize();
-                return;
-            }
-            else return;
-        }
 
         auto pl = PlayLayer::get();
         if (engine.frame_advance && pl && !pl->m_isPaused) {
             if (engine.next_frame) {
                 engine.next_frame = false;
-                if (recorder.is_recording) recorder.applyWinSize();
                 CCScheduler::update(new_dt);
-                handleRestoreWinSize();
             }
-
             return;
         }
 
-        if (!config.get<bool>("tps::real_time", true)) {
-            if (recorder.is_recording) recorder.applyWinSize();
-            CCScheduler::update(new_dt);
-            handleRestoreWinSize();
-            return;
-        }             
+        if (!config.get<bool>("tps::real_time", true))
+            return CCScheduler::update(new_dt);       
 
         unsigned times = static_cast<int>((dt + left_over) / new_dt);  
-        if (dt == 0.f)
+        if (dt == 0.f) {
             return CCScheduler::update(new_dt);
+        }
 
         auto start = std::chrono::high_resolution_clock::now();
         using namespace std::literals;
 
         for (unsigned i = 0; i < times; ++i) {
-            if (recorder.is_recording) recorder.applyWinSize();
             CCScheduler::update(new_dt);
-            handleRestoreWinSize();
 
             if (std::chrono::high_resolution_clock::now() - start > 33.333ms) {         
                 times = i + 1;
@@ -389,8 +346,6 @@ class $modify(MyPlayLayer, PlayLayer) {
         if (!PlayLayer::init(level, useReplay, dontCreateObjects)) return false;
         auto& config = Config::get();
         auto& engine = ReplayEngine::get();
-        auto& recorder = Recorder::get();
-        auto& recorderAudio = RecorderAudio::get();
         auto fields = m_fields.self();
 
         auto wnd_size = cocos2d::CCDirector::sharedDirector()->getWinSize();
@@ -409,16 +364,6 @@ class $modify(MyPlayLayer, PlayLayer) {
 
         if (engine.mode == state::disable)
             engine.replay_name = fmt::format("{}", level->m_levelName);
-
-        if (!recorder.is_recording) {
-            recorder.video_name = fmt::format("{}.mp4", level->m_levelName);
-            recorder.video_name2 = fmt::format("{}", level->m_levelName);
-        }            
-
-        if (!recorderAudio.is_recording && !recorderAudio.enabled) {
-            recorderAudio.audio_name = fmt::format("{}.wav", level->m_levelName);
-            recorderAudio.audio_name2 = fmt::format("{}", level->m_levelName);
-        }
         
         fields->labels_top_left     = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
         fields->labels_top_right    = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
@@ -473,7 +418,6 @@ class $modify(MyPlayLayer, PlayLayer) {
     void postUpdate(float dt) {
         auto& config = Config::get();
         auto& labels = Labels::get();
-        auto& recorderAudio = RecorderAudio::get();
         auto fields = m_fields.self();
 
         PlayLayer::postUpdate(dt);
@@ -502,9 +446,6 @@ class $modify(MyPlayLayer, PlayLayer) {
 
         std::string bottom_left;
         bottom_left += labels.get_label_string(LabelCorner_BottomLeft);
-        if (recorderAudio.is_recording) {
-            bottom_left += fmt::format("Audio recording ({})\n", recorderAudio.get_data_size());
-        }
 
         // benchmark("setStringColored", [&]() {
         //     labels.setStringColored(fields->labels_top_left, labels.get_label_string(LabelCorner_TopLeft));
@@ -643,8 +584,6 @@ class $modify(MyPlayLayer, PlayLayer) {
         auto& config = Config::get();
         auto& hacks = Hacks::get();
         auto& engine = ReplayEngine::get();
-        auto& recorder = Recorder::get();
-        auto& recorderAudio = RecorderAudio::get();
         auto fields = m_fields.self();
 
         // auto unk3188 = m_unk3188;
@@ -675,13 +614,6 @@ class $modify(MyPlayLayer, PlayLayer) {
         engine.handle_reset();  
 
         hacks.preCheatState = cheat_state::legit;
-
-        if (!m_isPracticeMode && !hooksH::startPositions.empty()) {
-            recorder.delay = m_gameState.m_levelTime;
-        }
-        else if (hooksH::startPositions.empty()) {
-            recorder.delay = 0;
-        }      
 
         if (config.get<bool>("no_do_not_flip", false) && m_attemptLabel)
             m_attemptLabel->setScaleY(1);
@@ -774,13 +706,7 @@ class $modify(MyPlayLayer, PlayLayer) {
     }
 
     void updateVisibility(float dt)  {   
-        auto& config = Config::get();
-        auto& recorderAudio = RecorderAudio::get();
-
-        if (recorderAudio.is_recording || recorderAudio.enabled) {
-            return;
-        }
-        
+        auto& config = Config::get();       
 
         if (!config.get<bool>("pulse_size", false) && config.get<bool>("no_pulse", false)) {
             m_audioEffectsLayer->m_notAudioScale = 0.5f;
@@ -804,23 +730,6 @@ class $modify(MyPlayLayer, PlayLayer) {
     
     void pauseGame(bool paused) {
         auto& config = Config::get();
-        auto& recorderAudio = RecorderAudio::get();
-        
-        if (recorderAudio.is_recording) {
-            #ifdef GEODE_IS_WINDOWS
-            ImGuiH::Popup::get().add_popup("You can't pause because the audio is still recording");
-            return;
-            #elif defined(GEODE_IS_ANDROID) 
-            if (!recorderAudio.want_to_stop) {
-                FLAlertLayer::create("Recorder (Audio)", "You can't pause because the audio is still recording (or pause again if you want to stop recording)", "OK")->show();
-                recorderAudio.want_to_stop = true;
-                return;
-            }
-            else {
-                recorderAudio.stop();
-            }            
-            #endif
-        }
         
         bool levelEndAnimationStarted = m_levelEndAnimationStarted;
         if (config.get<bool>("pause_during_complete", false))
@@ -836,18 +745,6 @@ class $modify(MyPlayLayer, PlayLayer) {
         PlayLayer::pauseGame(paused);
 
         m_levelEndAnimationStarted = levelEndAnimationStarted;
-    }
-
-    void startMusic() {
-        auto& recorderAudio = RecorderAudio::get();
-        PlayLayer::startMusic();
-        if (recorderAudio.enabled && recorderAudio.showcase_mode && recorderAudio.first_start) {
-            recorderAudio.first_start = false;
-            recorderAudio.start();
-        }
-        else if (recorderAudio.is_recording && !recorderAudio.first_start) {
-            recorderAudio.stop();
-        }
     }
 
     void updateProgressbar() {
@@ -874,42 +771,12 @@ class $modify(MyPlayLayer, PlayLayer) {
 };
 
 class $modify(MyEndLevelLayer, EndLevelLayer) {
-    struct Fields {
-        cocos2d::CCSprite* black_bg;
-    };
-
-    void pizdec(float) {
-        auto& recorder = Recorder::get();
-        auto& recorderAudio = RecorderAudio::get();
-        auto fields = m_fields.self();
-
-        if (fields->black_bg && recorder.is_recording && recorder.fade_out) {
-            int opacity = (recorder.after_end_extra_time >= (recorder.after_end_duration - 0.1f)) ? 255 : 255 * recorder.after_end_extra_time / (recorder.after_end_duration - 0.1f);
-            fields->black_bg->setOpacity(opacity);
-        }
-        else if (fields->black_bg && recorder.need_remove_black) {
-            recorder.need_remove_black = false;
-            fields->black_bg->setOpacity(0);
-        }
-
-        if (recorder.need_visible_lc) {
-            setVisible(true);
-            recorder.need_visible_lc = false;
-        }
-    }
-
     void showLayer(bool p0) {
         auto& config = Config::get();
-        auto& recorder = Recorder::get();
-        auto& recorderAudio = RecorderAudio::get();
         auto& hacks = Hacks::get();
-        auto fields = m_fields.self();
         EndLevelLayer::showLayer(p0);
 
         auto pl = PlayLayer::get();
-        if (recorder.is_recording && recorder.hide_level_complete) {
-            setVisible(false);
-        }        
 
         if (config.get<bool>("cheat_indicator", false)) {
             auto win_size = cocos2d::CCDirector::sharedDirector()->getWinSize();
@@ -934,32 +801,8 @@ class $modify(MyEndLevelLayer, EndLevelLayer) {
         
             createIndicator(-164.f, hacks.cheatState);
             createIndicator(-148.f, hacks.preCheatState);
-        }        
-
-        if (recorder.is_recording && recorder.fade_out) {
-            auto wnd_size = cocos2d::CCDirector::sharedDirector()->getWinSize();
-
-            fields->black_bg = cocos2d::CCSprite::create("game_bg_13_001.png");
-            auto sprSize = fields->black_bg->getContentSize();
-            fields->black_bg->setPosition({wnd_size.width/2, wnd_size.height/2});            
-            fields->black_bg->setScaleX(wnd_size.width / sprSize.width * 2.f);
-            fields->black_bg->setScaleY(wnd_size.height / sprSize.height * 2.f);
-            fields->black_bg->setColor({0, 0, 0});
-            fields->black_bg->setOpacity(0);
-            fields->black_bg->setZOrder(999);
-
-            if (recorder.hide_level_complete) {
-                pl->addChild(fields->black_bg);;
-            }
-            else {
-                addChild(fields->black_bg);
-            }
         }
-
-        schedule(schedule_selector(MyEndLevelLayer::pizdec), 0.0f);
     }
-
-    //if ( GameManager::getGameVariable(v16, "0095") )
 
     void customSetup() {
         auto gm = GameManager::get();
@@ -1014,8 +857,6 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
 
     void update(float dt) {
         auto& engine = ReplayEngine::get();
-        auto& recorder = Recorder::get();
-        auto& recorderAudio = RecorderAudio::get();
         auto& config = Config::get();
 
         if (config.get<bool>("stop_triggers_on_death", false) && PlayLayer::get() && (m_player1->m_isDead || m_player2->m_isDead))
@@ -1023,9 +864,6 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
 
         if (config.get<bool>("jump_hack", false))
             m_player1->m_isOnGround = true;
-
-        if (recorder.is_recording) recorder.handle_recording(dt);        
-        if (recorderAudio.is_recording) recorderAudio.handle_recording(dt);
     
         GJBaseGameLayer::update(dt);
 
@@ -1184,6 +1022,7 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
         auto& engine = ReplayEngine::get();
         
         GJBaseGameLayer::processCommands(dt);
+        
         NoclipAccuracy::get().handle_update(this, dt);
         
         if (engine.engine_v2)
@@ -1521,7 +1360,6 @@ class $modify(MyPauseLayer, PauseLayer) {
 
     void customSetup() {
         auto& hacks = Hacks::get();
-        auto& recorder = Recorder::get();
         auto& engine = ReplayEngine::get();
         auto& config = Config::get();
         auto levelType = PlayLayer::get()->m_level->m_levelType;
@@ -1537,11 +1375,6 @@ class $modify(MyPauseLayer, PauseLayer) {
         hacks.pauseLayer = this;
         if (config.get<bool>("hide_pause_menu", false)) {
             setVisible(false);
-        }
-
-        if (recorder.native_mode) {
-            setAnchorPoint({0.f, 1.f});
-            setScale(recorder.pauseLayerScale);
         }
     }
 
@@ -1932,13 +1765,13 @@ class $modify(MyCCDrawNode, cocos2d::CCDrawNode) {
     }
 };
 
-class $modify(MyAchievementNotifier, AchievementNotifier) {
-    void notifyAchievement(char const* title, char const* desc, char const* icon, bool quest) {
-        if (Recorder::get().is_recording || RecorderAudio::get().is_recording) return;
+// class $modify(MyAchievementNotifier, AchievementNotifier) {
+//     void notifyAchievement(char const* title, char const* desc, char const* icon, bool quest) {
+//         if (Recorder::get().is_recording || RecorderAudio::get().is_recording) return;
         
-        AchievementNotifier::notifyAchievement(title, desc, icon, quest);
-    }
-};
+//         AchievementNotifier::notifyAchievement(title, desc, icon, quest);
+//     }
+// };
 
 class $modify(MyCCCircleWave, CCCircleWave) {
     void draw()

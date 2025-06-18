@@ -3,7 +3,6 @@
 #include "config.hpp"
 #include "gui.hpp"
 #include "labels.hpp"
-#include "recorder.hpp"
 #include "replayEngine.hpp"
 #include <imgui-cocos.hpp>
 #include "popupSystem.hpp"
@@ -829,9 +828,6 @@ void Hacks::Init() {
         popup->show();
         #endif
     });
-
-    Recorder::get().folderShowcasesPath = Config::get().get<std::filesystem::path>("showcases_path", folderPath / "Showcases");
-    ReplayEngine::get().engine_v2 = Config::get().get<bool>("engine::v2", false);
 
     Labels::get().load();
     RGBIcons::get().load();

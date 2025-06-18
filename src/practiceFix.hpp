@@ -225,9 +225,9 @@ public:
         m_unkAAC = player->m_unkAAC;
         m_unkAngle1 = player->m_unkAngle1;
         m_yVelocityRelated3 = player->m_yVelocityRelated3;
-        m_gamevar0060 = player->m_gamevar0060;
+        // m_gamevar0060 = player->m_gamevar0060;
         m_swapColors = player->m_swapColors;
-        m_gamevar0062 = player->m_gamevar0062;
+        // m_gamevar0062 = player->m_gamevar0062;
         m_followRelated = player->m_followRelated;
         // m_playerFollowFloats = player->// m_playerFollowFloats;
         m_unk838 = player->m_unk838;
@@ -533,9 +533,9 @@ public:
         player->m_unkAAC = m_unkAAC;
         player->m_unkAngle1 = m_unkAngle1;
         player->m_yVelocityRelated3 = m_yVelocityRelated3;
-        player->m_gamevar0060 = m_gamevar0060;
+        // player->m_gamevar0060 = m_gamevar0060;
         player->m_swapColors = m_swapColors;
-        player->m_gamevar0062 = m_gamevar0062;
+        // player->m_gamevar0062 = m_gamevar0062;
         player->m_followRelated = m_followRelated;
         // player->m_playerFollowFloats = // m_playerFollowFloats;
         player->m_unk838 = m_unk838;
@@ -844,7 +844,7 @@ private:
     float m_yVelocityRelated3;
     bool m_gamevar0060;
     bool m_swapColors;
-    bool m_gamevar0062;
+    // bool m_gamevar0062;
     int m_followRelated;
     // gd::vector<float> m_playerFollowFloats;
     float m_unk838;

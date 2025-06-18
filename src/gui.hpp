@@ -17,6 +17,7 @@ public:
 
     bool m_license_inited = false;
     bool first_time_re_settings = true;
+    bool settings_openned = false;
 
     bool m_show = false;
 
