@@ -202,39 +202,7 @@ class $modify(MyCCScheduler, cocos2d::CCScheduler) {
         if (config.get<bool>("speedhack_enabled", false))
             dt *= config.get<float>("speedhack_value", 1.f);
 
-        float tps_value = config.get<float>("tps_value", 60.f);
-        float new_dt = 1.f / tps_value;
-
-        auto pl = PlayLayer::get();
-        if (engine.frame_advance && pl && !pl->m_isPaused) {
-            if (engine.next_frame) {
-                engine.next_frame = false;
-                CCScheduler::update(new_dt);
-            }
-            return;
-        }
-
-        if (!config.get<bool>("tps::real_time", true))
-            return CCScheduler::update(new_dt);       
-
-        unsigned times = static_cast<int>((dt + left_over) / new_dt);  
-        if (dt == 0.f) {
-            return CCScheduler::update(new_dt);
-        }
-
-        auto start = std::chrono::high_resolution_clock::now();
-        using namespace std::literals;
-
-        for (unsigned i = 0; i < times; ++i) {
-            CCScheduler::update(new_dt);
-
-            if (std::chrono::high_resolution_clock::now() - start > 33.333ms) {         
-                times = i + 1;
-                break;
-            }
-        }
-
-        left_over = std::max(0.f, left_over + dt - new_dt * times);
+        CCScheduler::update(dt);
     }
 };
 
@@ -1169,7 +1137,7 @@ class $modify(MyPlayerObject, PlayerObject) {
         auto& config = Config::get();
         auto gm = GameManager::get();
 
-        bool gv0096 = m_gv0096;
+        bool gv0096 = m_switchWaveTrailColor;
         auto playerColor = gm->m_playerColor;
 
         if (config.get<bool>("solid_wave_trail", false)) {
@@ -1179,7 +1147,7 @@ class $modify(MyPlayerObject, PlayerObject) {
 
         PlayerObject::setupStreak();
 
-        m_gv0096 = gv0096;
+        m_switchWaveTrailColor = gv0096;
         gm->m_playerColor = playerColor;
     }
 };

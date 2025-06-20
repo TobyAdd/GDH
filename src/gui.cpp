@@ -377,19 +377,19 @@ void Gui::Render() {
 
         }
         else if (windowName == "Framerate") {
-            bool tps_enabled = config.get<bool>("tps_enabled", false);
-            float tps_value = config.get<float>("tps_value", 60.f);;
+            // bool tps_enabled = config.get<bool>("tps_enabled", false);
+            // float tps_value = config.get<float>("tps_value", 60.f);;
 
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - (35 + 5) * m_scale);
-            if (ImGui::DragFloat("##tps_value", &tps_value, 1, 1, FLT_MAX, "%0.f TPS"))
-                config.set<float>("tps_value", tps_value);
+            // ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - (35 + 5) * m_scale);
+            // if (ImGui::DragFloat("##tps_value", &tps_value, 1, 1, FLT_MAX, "%0.f TPS"))
+            //     config.set<float>("tps_value", tps_value);
 
-            ImGui::SameLine();
-            if (ImGuiH::Checkbox("##tps_enabled", &tps_enabled, m_scale))
-                config.set<bool>("tps_enabled", tps_enabled);
+            // ImGui::SameLine();
+            // if (ImGuiH::Checkbox("##tps_enabled", &tps_enabled, m_scale))
+            //     config.set<bool>("tps_enabled", tps_enabled);
 
-            if (ImGui::IsItemHovered())
-                ImGui::SetTooltip("Multiplies the number of ticks per second, used mainly for botting\n(not recommended for normal use as it ruins the game's performance)");
+            // if (ImGui::IsItemHovered())
+            //     ImGui::SetTooltip("Multiplies the number of ticks per second, used mainly for botting\n(not recommended for normal use as it ruins the game's performance)");
             
             bool speedhack_enabled = config.get<bool>("speedhack_enabled", false);
             float speedhack_value = config.get<float>("speedhack_value", 1.f);
@@ -415,13 +415,6 @@ void Gui::Render() {
             }
 
             if (ImGui::BeginPopup("More TPS Settings")) {
-                bool tps_real_time = config.get<bool>("tps::real_time", true);
-                if (ImGuiH::Checkbox("Real Time", &tps_real_time, m_scale)) 
-                    config.set<bool>("tps::real_time", tps_real_time);
-
-                if (ImGui::IsItemHovered())
-                    ImGui::SetTooltip("Allows real-time update of multiplied ticks (may cause lags)");
-
                 int resumeTimer = config.get<int>("resumeTimer_value", 2);
                 if (ImGui::DragInt("##ResumerTimer", &resumeTimer, 1, 2, INT_MAX, "Resume Timer: %d"))
                     config.set<int>("resumeTimer_value", resumeTimer);    
