@@ -786,6 +786,11 @@ class $modify(MyEndLevelLayer, EndLevelLayer) {
 };
 
 class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
+    struct Fields {
+        float m_extraDt = 0.f;
+        float m_visualDt = 0.f;
+    };
+
     static void onModify(auto& self) {
         (void) self.setHookPriority("GJBaseGameLayer::update", 0x99999); 
     }
@@ -824,6 +829,7 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
     }
 
     void update(float dt) {
+        auto fields = m_fields.self();
         auto& engine = ReplayEngine::get();
         auto& config = Config::get();
 
@@ -832,6 +838,26 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
 
         if (config.get<bool>("jump_hack", false))
             m_player1->m_isOnGround = true;
+
+        if (config.get<bool>("tps_enabled", false)) {
+            #ifdef GEODE_IS_WINDOWS
+            // float timeWarp = m_gameState.m_timeWarp;
+            // float adjustedDt = dt / timeWarp;
+        
+            // m_fields->m_extraDt += adjustedDt;
+            fields->m_extraDt += dt;
+
+            float tps_value = config.get<float>("tps_value", 60.f);
+            float new_dt = 1.f / tps_value;
+            auto ticks = std::round(m_fields->m_extraDt / new_dt);
+            auto totalDt = ticks * new_dt;
+            fields->m_extraDt -= totalDt;
+            m_exceptedTicks = ticks;
+
+            fields->m_visualDt = totalDt;
+            // m_fields->m_visualDt = totalDt * timeWarp;
+            #endif
+        }
     
         GJBaseGameLayer::update(dt);
 

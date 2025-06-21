@@ -8,6 +8,8 @@
 #include "popupSystem.hpp"
 #include "utils.hpp"
 
+int m_exceptedTicks = 0;
+
 void Hacks::Init() {
     m_windows = {
         {"Core", 10, 10, 200, 230, 
@@ -134,6 +136,10 @@ void Hacks::Init() {
     };
 
     auto &config = Config::get();
+
+    if (config.get<bool>("tps_enabled", false)) {
+        TPSBypass_Init(true);
+    }
 	
 	SetCustomWindowHandlerByConfig("layout_mode", [this, &config]() {
         auto &gui = Gui::get();

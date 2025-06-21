@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include <vector>
+#include <vector> 
 
 enum cheat_state
 {
@@ -35,6 +35,8 @@ struct window {
     float orig_w, orig_h;
 };
 
+extern int m_exceptedTicks;
+
 class Hacks {
 public:
     static Hacks& get() {
@@ -57,6 +59,40 @@ public:
     cheat_state preCheatState = cheat_state::legit;
     cheat_state cheatState = cheat_state::legit;
     cheat_state cheatingCheck();
+
+    
+    bool TPSBypass_Init(bool enable = true) {
+        auto exceptedTicksAddr = (uintptr_t)&m_exceptedTicks;
+        std::vector<uint8_t> patchBytes;
+        
+        // mov rax, exceptedTicks (48 B8 + 8 byte address)
+        patchBytes.push_back(0x48);
+        patchBytes.push_back(0xB8);
+        for (int i = 0; i < 8; i++) {
+            patchBytes.push_back((exceptedTicksAddr >> (i * 8)) & 0xFF);
+        }
+
+        // mov r11d, [rax] (44 8B 18)
+        patchBytes.push_back(0x44);
+        patchBytes.push_back(0x8B);
+        patchBytes.push_back(0x18);
+
+        for (int i = 0; i < 54; i++) {
+            patchBytes.push_back(0x90); // NOP
+        }
+        
+        uintptr_t offset = geode::base::get() + 0x232294;  
+        static auto result1 = geode::Mod::get()->patch((void*)(offset), patchBytes);
+        static auto patch1 = result1.isErr() ? nullptr : result1.unwrap();
+        if (patch1) {
+            if (enable) (void)patch1->enable();
+            else (void)patch1->disable();
+            return true;
+        }
+
+        return false;
+    }
+
 private:
     Hacks() = default;
 

@@ -377,19 +377,18 @@ void Gui::Render() {
 
         }
         else if (windowName == "Framerate") {
-            // bool tps_enabled = config.get<bool>("tps_enabled", false);
-            // float tps_value = config.get<float>("tps_value", 60.f);;
+            bool tps_enabled = config.get<bool>("tps_enabled", false);
+            float tps_value = config.get<float>("tps_value", 60.f);;
 
-            // ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - (35 + 5) * m_scale);
-            // if (ImGui::DragFloat("##tps_value", &tps_value, 1, 1, FLT_MAX, "%0.f TPS"))
-            //     config.set<float>("tps_value", tps_value);
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - (35 + 5) * m_scale);
+            if (ImGui::DragFloat("##tps_value", &tps_value, 1, 1, FLT_MAX, "%0.f TPS"))
+                config.set<float>("tps_value", tps_value);
 
-            // ImGui::SameLine();
-            // if (ImGuiH::Checkbox("##tps_enabled", &tps_enabled, m_scale))
-            //     config.set<bool>("tps_enabled", tps_enabled);
-
-            // if (ImGui::IsItemHovered())
-            //     ImGui::SetTooltip("Multiplies the number of ticks per second, used mainly for botting\n(not recommended for normal use as it ruins the game's performance)");
+            ImGui::SameLine();
+            if (ImGuiH::Checkbox("##tps_enabled", &tps_enabled, m_scale)) {
+                config.set<bool>("tps_enabled", tps_enabled);
+                hacks.TPSBypass_Init(tps_enabled);
+            }                
             
             bool speedhack_enabled = config.get<bool>("speedhack_enabled", false);
             float speedhack_value = config.get<float>("speedhack_value", 1.f);
