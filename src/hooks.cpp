@@ -786,11 +786,6 @@ class $modify(MyEndLevelLayer, EndLevelLayer) {
 };
 
 class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
-    struct Fields {
-        float m_extraDt = 0.f;
-        float m_visualDt = 0.f;
-    };
-
     static void onModify(auto& self) {
         (void) self.setHookPriority("GJBaseGameLayer::update", 0x99999); 
     }
@@ -817,6 +812,13 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
         auto new_dt = steps * timestep;
         if (applyExtraDelta) m_extraDelta = total_dt - new_dt;
 
+        if (new_dt > 0.0) {
+            // float v6 = new_dt * 60.f;
+            // m_exceptedTicks = fmaxf(1.f, std::round(v6 / std::min(m_gameState.m_timeWarp, 1.f) * 4.f));
+            float v6 = new_dt * tps;
+            m_exceptedTicks = fmaxf(1.f, std::round(v6 / std::min(m_gameState.m_timeWarp, 1.f)));
+        }
+
         return static_cast<float>(new_dt);
     }
 
@@ -838,26 +840,6 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
 
         if (config.get<bool>("jump_hack", false))
             m_player1->m_isOnGround = true;
-
-        if (config.get<bool>("tps_enabled", false)) {
-            #ifdef GEODE_IS_WINDOWS
-            // float timeWarp = m_gameState.m_timeWarp;
-            // float adjustedDt = dt / timeWarp;
-        
-            // m_fields->m_extraDt += adjustedDt;
-            fields->m_extraDt += dt;
-
-            float tps_value = config.get<float>("tps_value", 60.f);
-            float new_dt = 1.f / tps_value;
-            auto ticks = std::round(m_fields->m_extraDt / new_dt);
-            auto totalDt = ticks * new_dt;
-            fields->m_extraDt -= totalDt;
-            m_exceptedTicks = ticks;
-
-            fields->m_visualDt = totalDt;
-            // m_fields->m_visualDt = totalDt * timeWarp;
-            #endif
-        }
     
         GJBaseGameLayer::update(dt);
 
