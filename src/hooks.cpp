@@ -831,7 +831,6 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
     }
 
     void update(float dt) {
-        auto fields = m_fields.self();
         auto& engine = ReplayEngine::get();
         auto& config = Config::get();
 
