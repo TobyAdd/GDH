@@ -34,11 +34,3 @@ public:
     bool setup();
     void onExit();
 };
-
-class ReplaySelectLayer : public geode::Popup<> {
-private:
-    geode::TextInput* input;
-public:
-    static ReplaySelectLayer* create(geode::TextInput* textInput); 
-    bool setup();
-};

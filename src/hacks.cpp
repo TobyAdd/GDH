@@ -953,7 +953,6 @@ void Hacks::loadKeybinds() {
 
 cheat_state Hacks::cheatingCheck() {
     auto& config = Config::get();
-    auto& engine = ReplayEngine::get();
 
     if (config.get<bool>("safe_mode", false)) 
         return cheat_state::safe_mode;
@@ -971,8 +970,7 @@ cheat_state Hacks::cheatingCheck() {
         config.get<bool>("no_shaders", false) ||
         config.get<bool>("no_mirror_portal", false) ||
         config.get<bool>("tps_enabled", false) ||
-        (config.get<bool>("speedhack_enabled", false) && config.get<float>("speedhack_value", 1.f) != 1.f) ||
-        (engine.mode == state::record || engine.mode == state::play)) 
+        (config.get<bool>("speedhack_enabled", false) && config.get<float>("speedhack_value", 1.f) != 1.f))
     {
         return cheat_state::cheating;
     }
@@ -995,63 +993,6 @@ void Hacks::toggleKeybinds(int key) {
 
     if (gui.m_tpsKey == key)
         config.set<bool>("tps_enabled", !config.get<bool>("tps_enabled", false));
-
-    
-    if (gui.m_playbackKey == key) {
-        auto& engine = ReplayEngine::get();
-        engine.mode = (engine.mode == state::play) ? state::disable : state::play;
-    }
-    
-    
-    if (gui.m_saveMacroByCurrentNameKey == key) {
-        auto pl = PlayLayer::get();
-        auto& engine = ReplayEngine::get();
-        if (!pl) {
-            ImGuiH::Popup::get().add_popup("Can't get a level name to save a macro");
-        }
-        else {
-            std::string level_name = pl->m_level->m_levelName;
-            if (engine.engine_v2)
-                ImGuiH::Popup::get().add_popup(engine.save2(level_name));
-            else 
-                ImGuiH::Popup::get().add_popup(engine.save(level_name));
-        }
-    }
-
-    
-    if (gui.m_loadMacroByCurrentNameKey == key) {
-        auto pl = PlayLayer::get();
-        auto& engine = ReplayEngine::get();
-        if (!pl) {
-            ImGuiH::Popup::get().add_popup("Can't get a level name to load a macro");
-        }
-        else {
-            std::string level_name = pl->m_level->m_levelName;
-            if (engine.engine_v2)
-                ImGuiH::Popup::get().add_popup(engine.load2(level_name));
-            else 
-                ImGuiH::Popup::get().add_popup(engine.load(level_name));
-        }
-    }
-    
-    if (gui.m_frameAdvanceEnableKey == key) {
-        auto& engine = ReplayEngine::get();
-        if (engine.mode == state::record || engine.mode == state::play) {
-            if (!engine.frame_advance)
-                ImGuiH::Popup::get().add_popup("Frame Advance enabled");
-
-            engine.frame_advance = true;
-            engine.next_frame = true;
-        }
-    }
-
-    if (gui.m_frameAdvanceDisableKey == key) {
-        auto& engine = ReplayEngine::get();
-        if (engine.frame_advance)
-            ImGuiH::Popup::get().add_popup("Frame Advance disabled");
-
-        engine.frame_advance = false;
-    }
 
     if (gui.m_optionsKey == key) {
         auto options_layer = OptionsLayer::create();

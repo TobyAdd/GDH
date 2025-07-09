@@ -17,7 +17,6 @@ Label::Label(LabelCorner _corner, std::string _format_text) {
 
 std::string Label::get_text() {
     auto& hacks = Hacks::get();
-    auto& engine = ReplayEngine::get();
     auto now = std::chrono::system_clock::now();
     auto steady_now = std::chrono::steady_clock::now();
     std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
@@ -62,7 +61,7 @@ std::string Label::get_text() {
     result = replace_all(result, "{cheat_indicator}", fmt::format("{}+{}", 
         (hacks.cheatState == legit) ? "<cg>" : (hacks.cheatState == unwanted) ? "<co>" : (hacks.cheatState == safe_mode) ? "<cy>" : (hacks.cheatState == cheating) ? "<cr>" : "",
         (hacks.cheatState == legit) ? "<cg/>" : (hacks.cheatState == unwanted) ? "<co/>" : (hacks.cheatState == safe_mode) ? "<cy/>" : (hacks.cheatState == cheating) ? "<cr/>" : ""));
-    result = replace_all(result, "{re_state}", engine.mode == state::disable ? "Disable" : engine.mode == state::record ? "Record" : "Play");
+    // result = replace_all(result, "{re_state}", engine.mode == state::disable ? "Disable" : engine.mode == state::record ? "Record" : "Play");
     result = replace_all(result, "{\\n}", "\n");
 
     return result;

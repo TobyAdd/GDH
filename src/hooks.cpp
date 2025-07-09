@@ -195,7 +195,6 @@ float left_over = 0.f;
 class $modify(MyCCScheduler, cocos2d::CCScheduler) {
     void update(float dt) {
         auto &config = Config::get();
-        auto &engine = ReplayEngine::get();
 
         calculateFPS();
 
@@ -313,7 +312,6 @@ class $modify(MyPlayLayer, PlayLayer) {
     bool init(GJGameLevel* level, bool useReplay, bool dontCreateObjects) {
         if (!PlayLayer::init(level, useReplay, dontCreateObjects)) return false;
         auto& config = Config::get();
-        auto& engine = ReplayEngine::get();
         auto fields = m_fields.self();
 
         auto wnd_size = cocos2d::CCDirector::sharedDirector()->getWinSize();
@@ -329,9 +327,6 @@ class $modify(MyPlayLayer, PlayLayer) {
 
         if (config.get<bool>("auto_practice_mode", false))
             togglePracticeMode(true);
-
-        if (engine.mode == state::disable)
-            engine.replay_name = fmt::format("{}", level->m_levelName);
         
         fields->labels_top_left     = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
         fields->labels_top_right    = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
@@ -551,7 +546,6 @@ class $modify(MyPlayLayer, PlayLayer) {
     void resetLevel() {
         auto& config = Config::get();
         auto& hacks = Hacks::get();
-        auto& engine = ReplayEngine::get();
         auto fields = m_fields.self();
 
         // auto unk3188 = m_unk3188;
@@ -579,7 +573,6 @@ class $modify(MyPlayLayer, PlayLayer) {
         }
 
         SpamBot::get().reset_temp();
-        engine.handle_reset();  
 
         hacks.preCheatState = cheat_state::legit;
 
@@ -643,17 +636,11 @@ class $modify(MyPlayLayer, PlayLayer) {
     }
 
     void playEndAnimationToPos(cocos2d::CCPoint pos) {
-        auto& engine = ReplayEngine::get();
         PlayLayer::playEndAnimationToPos(pos);
-        if (engine.mode == state::record)
-            engine.mode = state::disable;
     }
 
     void playPlatformerEndAnimationToPos(cocos2d::CCPoint pos, bool idk) {
-        auto& engine = ReplayEngine::get();
         PlayLayer::playPlatformerEndAnimationToPos(pos, idk);
-        if (engine.mode == state::record)
-            engine.mode = state::disable;
     }
 
     void showNewBest(bool p0, int p1, int p2, bool p3, bool p4, bool p5) {
@@ -792,7 +779,6 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
 
     void handleButton(bool down, int button, bool isPlayer1) {
         GJBaseGameLayer::handleButton(down, button, isPlayer1);
-        ReplayEngine::get().handle_button(down, button, isPlayer1);
         if (down) CpsCounter::get().click();            
         Labels::get().push = down;
     }
@@ -831,7 +817,6 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
     }
 
     void update(float dt) {
-        auto& engine = ReplayEngine::get();
         auto& config = Config::get();
 
         if (config.get<bool>("stop_triggers_on_death", false) && PlayLayer::get() && (m_player1->m_isDead || m_player2->m_isDead))
@@ -844,9 +829,6 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
 
         SpamBot::get().handle_spambot(this);
         StraightFly::get().handle_straightfly(this);
-
-        if (!engine.engine_v2)
-            engine.handle_update(this);
 
         if (config.get<bool>("rgb_icons", false)) {
             color_dt += dt * config.get<float>("rgb_icons::speed", 0.20f);
@@ -994,14 +976,10 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
 
     void processCommands(float dt) {
         auto& config = Config::get();
-        auto& engine = ReplayEngine::get();
         
         GJBaseGameLayer::processCommands(dt);
         
         NoclipAccuracy::get().handle_update(this, dt);
-        
-        if (engine.engine_v2)
-            engine.handle_update(this);
 
         if (config.get<bool>("show_hitboxes", false) && config.get<bool>("show_hitboxes::draw_trail", false)) {
             if (!m_player1->m_isDead) {
@@ -1335,7 +1313,6 @@ class $modify(MyPauseLayer, PauseLayer) {
 
     void customSetup() {
         auto& hacks = Hacks::get();
-        auto& engine = ReplayEngine::get();
         auto& config = Config::get();
         auto levelType = PlayLayer::get()->m_level->m_levelType;
 
@@ -1343,7 +1320,6 @@ class $modify(MyPauseLayer, PauseLayer) {
             PlayLayer::get()->m_level->m_levelType = GJLevelType::Editor;
 
         PauseLayer::customSetup();
-        engine.auto_button_release();
 
         PlayLayer::get()->m_level->m_levelType = levelType;
 
@@ -1700,15 +1676,10 @@ class $modify(MyLevelEditorLayer, LevelEditorLayer) {
     }
 
     void onPlaytest() {
-        auto& engine = ReplayEngine::get();
         LevelEditorLayer::onPlaytest();
 
         playerTrail1.clear();
         playerTrail2.clear();
-
-        if (engine.mode == state::play) {
-            engine.handle_reset();
-        }
     }
 };
 
