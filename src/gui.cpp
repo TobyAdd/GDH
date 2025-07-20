@@ -515,6 +515,40 @@ void Gui::Render() {
                 }
             }
         }
+        else if (windowName == "Replay Engine") {
+            auto& engine = ReplayEngine::get();
+            int mode_ = (int)engine.mode;
+
+            if (ImGuiH::RadioButton("Disable", &mode_, 0, m_scale))
+                engine.mode = state::disable;
+            ImGui::SameLine();
+
+            if (ImGuiH::RadioButton("Record", &mode_, 1, m_scale))
+                engine.mode = state::record;
+            ImGui::SameLine();
+
+            if (ImGuiH::RadioButton("Play", &mode_, 2, m_scale))
+                engine.mode = state::play;
+
+            ImGui::Separator();   
+
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 35 * m_scale);
+            ImGui::InputTextWithHint("##replay_name", "Enter the macro name", &engine.replay_name);
+
+            if (ImGuiH::Button("Clear", {ImGui::GetContentRegionAvail().x, NULL})) {
+                engine.clear();
+                ImGuiH::Popup::get().add_popup("Replay has been cleared");
+            }
+
+            ImGui::Text("Replay Size: %i/%zu", engine.get_current_index(), engine.get_actions_size());
+            ImGui::Text("Frame: %i", engine.get_frame());
+
+            ImGui::Separator(); 
+
+            if (ImGui::MenuItem("More Settings")) {
+                
+            }
+        }
         else if (windowName == "Labels") {
             auto &labels = Labels::get();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x/2);

@@ -190,7 +190,6 @@ void calculateFPS() {
 }
 
 float color_dt = 0.f;
-float left_over = 0.f;
 
 class $modify(MyCCScheduler, cocos2d::CCScheduler) {
     void update(float dt) {
@@ -544,6 +543,7 @@ class $modify(MyPlayLayer, PlayLayer) {
     }
     
     void resetLevel() {
+        auto& engine = ReplayEngine::get();
         auto& config = Config::get();
         auto& hacks = Hacks::get();
         auto fields = m_fields.self();
@@ -565,7 +565,7 @@ class $modify(MyPlayLayer, PlayLayer) {
         // m_unk3188 = unk3188;
         // m_replayRandSeed = replayRandSeed;
 
-        left_over = 0;
+        Labels::get().push = false;
 
         if (config.get<bool>("smart_startpos", false)) {
             for (StartPosObject* obj : hooksH::startPositions)
@@ -573,6 +573,7 @@ class $modify(MyPlayLayer, PlayLayer) {
         }
 
         SpamBot::get().reset_temp();
+        engine.reset();
 
         hacks.preCheatState = cheat_state::legit;
 
@@ -780,6 +781,7 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
     void handleButton(bool down, int button, bool isPlayer1) {
         GJBaseGameLayer::handleButton(down, button, isPlayer1);
         if (down) CpsCounter::get().click();            
+        ReplayEngine::get().handle_button(down, button, isPlayer1);
         Labels::get().push = down;
     }
 
@@ -978,6 +980,7 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
         auto& config = Config::get();
         
         GJBaseGameLayer::processCommands(dt);
+        ReplayEngine::get().update(this);
         
         NoclipAccuracy::get().handle_update(this, dt);
 

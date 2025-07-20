@@ -22,8 +22,9 @@ target_include_directories(${PROJECT_NAME} PRIVATE libs libs/ffmpeg)
 set(HAS_IMGUI ON)
 add_subdirectory(libs/imgui)
 CPMAddPackage("gh:matcool/gd-imgui-cocos#8973953")
+CPMAddPackage("gh:maxnut/GDReplayFormat#638e72c")
 
-target_link_libraries(${PROJECT_NAME} imgui-cocos imgui)
+target_link_libraries(${PROJECT_NAME} imgui-cocos imgui libGDR)
 
 if (ANDROID AND ANDROID_ABI STREQUAL "arm64-v8a") 
     target_link_libraries(${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/libs/ffmpeg/libavcodec/libavcodec.a)
