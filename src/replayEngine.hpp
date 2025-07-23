@@ -69,13 +69,13 @@ public:
     bool rotation_fix = false;
 
     uint64_t get_frame();
-    void remove_actions(uint64_t frame);
+    void remove_actions(uint64_t currentFrame, bool autoRelease = true);
 
     size_t get_actions_size();
     int get_current_index();
 
-    void save(std::string name);
-    void load(std::string name);
+    bool save(const std::string& name);
+    bool load(const std::string& name);
     void clear();
 
     void update(GJBaseGameLayer* self);

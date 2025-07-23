@@ -34,7 +34,7 @@ void Hacks::Init() {
         },
         {"Bypass", 10, 250, 200, 250, 
             {
-                {"Text Length", "Removes the text input limit", "text_lenght"}, // +
+                {"Text Length", "Removes the text input limit", "text_length"}, // +
                 {"Slider Limit", "Removes the limit on sliding beyond set limits", "slider_limit"}, // + 
                 {"Character Filter", "Lets you input any character in all text inputs", "char_filter"},  // +   
                 {"Checkpoint Limit", "Removes the limit that deletes previous checkpoints after the 50th checkpoint", "checkpoint_limit"}, // +   

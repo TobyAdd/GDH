@@ -11,17 +11,25 @@ uint64_t ReplayEngine::get_frame() {
     return 0;
 }
 
-void ReplayEngine::remove_actions(uint64_t frame) {
-    std::erase_if(macro.inputs, [frame](const gdr::Input<>& input) { return input.frame > frame; });
-}
+void ReplayEngine::remove_actions(uint64_t currentFrame, bool autoRelease) {
+    std::erase_if(macro.inputs, [currentFrame](const gdr::Input<>& input) { return input.frame >= currentFrame; });
 
+    if (!autoRelease) return;
+
+    if (!macro.inputs.empty() && macro.inputs.back().down)
+        macro.inputs.emplace_back(macro.inputs.back().frame, macro.inputs.back().button, macro.inputs.back().player2, false);
+}
 void ReplayEngine::update(GJBaseGameLayer* self) {
     uint64_t frame = get_frame();
 
     if (mode == state::play) {
         while (m_inputIndex < macro.inputs.size() && frame >= macro.inputs[m_inputIndex].frame)
         {
-            self->handleButton(macro.inputs[m_inputIndex].down, macro.inputs[m_inputIndex].button, macro.inputs[m_inputIndex].player2);
+            bool swapControls = GameManager::get()->getGameVariable("0010");
+            bool isPlayer1 = !macro.inputs[m_inputIndex].player2;
+            isPlayer1 = swapControls ? !isPlayer1 : isPlayer1;
+
+            self->handleButton(macro.inputs[m_inputIndex].down, macro.inputs[m_inputIndex].button, isPlayer1);
             m_inputIndex++; 
         }
     }
@@ -39,11 +47,25 @@ void ReplayEngine::reset() {
 }
 
 void ReplayEngine::handle_button(bool down, int button, bool isPlayer1) {
+    geode::log::debug("{} {} {}", down, button, isPlayer1);
     if (mode != state::record)
         return;
 
+    bool swapControls = GameManager::get()->getGameVariable("0010");
+    isPlayer1 = swapControls ? !isPlayer1 : isPlayer1;
+
     uint64_t frame = get_frame();
-    macro.inputs.emplace_back(frame, button, isPlayer1, down);
+    macro.inputs.emplace_back(frame, button, !isPlayer1, down); // inverted !isPlayer1 because GDR accepts isPlayer2
+}
+
+bool ReplayEngine::save(const std::string& name) {
+    auto res = macro.exportData(folderMacroPath / name);
+    return res.isOk();
+}
+
+bool ReplayEngine::load(const std::string& name) {
+    auto res = macro.importData(folderMacroPath / name);
+    return res.isOk();
 }
 
 void ReplayEngine::clear() {

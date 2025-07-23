@@ -535,6 +535,24 @@ void Gui::Render() {
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 35 * m_scale);
             ImGui::InputTextWithHint("##replay_name", "Enter the macro name", &engine.replay_name);
 
+            ImGui::SameLine();
+
+            if (ImGuiH::ArrowButton("##replay_select", ImGuiDir_Down)) {
+                geode::utils::file::openFolder(folderMacroPath);
+            }
+
+            if (ImGuiH::Button("Save", {ImGui::GetContentRegionAvail().x / 3, NULL})) {
+                bool result = engine.save(engine.replay_name);
+                ImGuiH::Popup::get().add_popup(result ? "Replay saved" : "Failed to save replay!");
+            }
+            ImGui::SameLine();
+
+            if (ImGuiH::Button("Load", {ImGui::GetContentRegionAvail().x / 2, NULL})) {
+                bool result = engine.load(engine.replay_name);
+                ImGuiH::Popup::get().add_popup(result ? "Replay loaded" : "Failed to load replay!");
+            }
+            ImGui::SameLine();
+
             if (ImGuiH::Button("Clear", {ImGui::GetContentRegionAvail().x, NULL})) {
                 engine.clear();
                 ImGuiH::Popup::get().add_popup("Replay has been cleared");
