@@ -10,7 +10,7 @@ enum state
 };
 
 struct FrameFix {
-    uint32_t frame;
+    uint64_t frame;
     float x, y;
     float rotation;
     double accelY;
@@ -83,8 +83,8 @@ public:
     void handle_button(bool down, int button, bool isPlayer1);
 private:
     ReplayEngine() = default;
+    
     ReplayEngineMacro macro;
-
     size_t m_inputIndex = 0;
     size_t m_physicIndex = 0;
 };

@@ -621,6 +621,20 @@ class $modify(MyPlayLayer, PlayLayer) {
         m_isTestMode = testmode;
     }
 
+    void playEndAnimationToPos(cocos2d::CCPoint pos) {
+        auto& engine = ReplayEngine::get();
+        PlayLayer::playEndAnimationToPos(pos);
+        if (engine.mode == state::record)
+            engine.mode = state::disable;
+    }
+
+    void playPlatformerEndAnimationToPos(cocos2d::CCPoint pos, bool idk) {
+        auto& engine = ReplayEngine::get();
+        PlayLayer::playPlatformerEndAnimationToPos(pos, idk);
+        if (engine.mode == state::record)
+            engine.mode = state::disable;
+    }
+
     void showCompleteEffect() {
         auto& config = Config::get();
         if (!config.get<bool>("fast_complete", false))
