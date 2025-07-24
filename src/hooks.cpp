@@ -649,15 +649,7 @@ class $modify(MyPlayLayer, PlayLayer) {
             );
         }
     }
-
-    void playEndAnimationToPos(cocos2d::CCPoint pos) {
-        PlayLayer::playEndAnimationToPos(pos);
-    }
-
-    void playPlatformerEndAnimationToPos(cocos2d::CCPoint pos, bool idk) {
-        PlayLayer::playPlatformerEndAnimationToPos(pos, idk);
-    }
-
+    
     void showNewBest(bool p0, int p1, int p2, bool p3, bool p4, bool p5) {
         if (Config::get().get<bool>("no_new_best_popup", false)) return;        
         PlayLayer::showNewBest(p0, p1, p2, p3, p4, p5);
