@@ -164,7 +164,6 @@ void Gui::Render() {
     
     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1);
     ImGuiH::Popup::get().render();
-
     ImGui::PopStyleVar();
     
     if (isAnimating) {

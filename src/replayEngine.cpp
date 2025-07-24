@@ -16,9 +16,31 @@ void ReplayEngine::remove_actions(uint64_t currentFrame, bool autoRelease) {
 
     if (!autoRelease) return;
 
-    if (!macro.inputs.empty() && macro.inputs.back().down)
-        macro.inputs.emplace_back(macro.inputs.back().frame, macro.inputs.back().button, macro.inputs.back().player2, false);
+    std::array<bool, 6> released = {true, true, true, true, true, true};
+    std::array<bool, 6> checked = {false, false, false, false, false, false};
+
+    for (auto it = macro.inputs.rbegin(); it != macro.inputs.rend(); ++it) {
+        int button_index = it->button - 1;
+        button_index += it->player2 ? 3 : 0;
+
+        if (!checked[button_index]) {
+            checked[button_index] = true;
+            released[button_index] = !it->down;
+        }
+
+        if (std::all_of(checked.begin(), checked.end(), [](bool v) { return v; })) break;
+    }
+
+    for (int i = 0; i < 3; ++i) {
+        if (!released[i]) {
+            macro.inputs.emplace_back(currentFrame, i + 1, false, false);
+        }
+        if (!released[i + 3]) {
+            macro.inputs.emplace_back(currentFrame, i + 1, true, false);
+        }
+    }
 }
+
 void ReplayEngine::update(GJBaseGameLayer* self) {
     uint64_t frame = get_frame();
 
@@ -47,7 +69,6 @@ void ReplayEngine::reset() {
 }
 
 void ReplayEngine::handle_button(bool down, int button, bool isPlayer1) {
-    geode::log::debug("{} {} {}", down, button, isPlayer1);
     if (mode != state::record)
         return;
 
@@ -65,6 +86,7 @@ bool ReplayEngine::save(const std::string& name) {
 
 bool ReplayEngine::load(const std::string& name) {
     auto res = macro.importData(folderMacroPath / name);
+    if (res.isOk()) macro = std::move(res).unwrap();
     return res.isOk();
 }
 
