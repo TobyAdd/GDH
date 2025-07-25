@@ -56,51 +56,57 @@ void ReplayEngine::update(GJBaseGameLayer* self) {
             m_inputIndex++; 
         }
 
-        while (m_physicIndex < macro.frameFixes.size() && frame >= macro.frameFixes[m_physicIndex].frame)
-        {
-            if (!macro.frameFixes[m_physicIndex].isPlayer2)
-            {
-                self->m_player1->setPosition({macro.frameFixes[m_physicIndex].x, macro.frameFixes[m_physicIndex].y});
-                self->m_player1->m_position.x = macro.frameFixes[m_physicIndex].x;
-                self->m_player1->m_position.y = macro.frameFixes[m_physicIndex].y;
-                if (rotation_fix)
-                    self->m_player1->setRotation(macro.frameFixes[m_physicIndex].rotation);
-                self->m_player1->m_yVelocity = macro.frameFixes[m_physicIndex].accelY;
-            }
-            else
-            {
-                self->m_player2->setPosition({macro.frameFixes[m_physicIndex].x, macro.frameFixes[m_physicIndex].y});
-                self->m_player2->m_position.x = macro.frameFixes[m_physicIndex].x;
-                self->m_player2->m_position.y = macro.frameFixes[m_physicIndex].y;
-                if (rotation_fix)
-                    self->m_player2->setRotation(macro.frameFixes[m_physicIndex].rotation);
-                self->m_player2->m_yVelocity = macro.frameFixes[m_physicIndex].accelY;
-            }
-            m_physicIndex++; 
-        }
+        // while (m_physicIndex < macro.frameFixes.size() && frame >= macro.frameFixes[m_physicIndex].frame)
+        // {
+        //     if (!macro.frameFixes[m_physicIndex].isPlayer2)
+        //     {
+        //         self->m_player1->setPosition({macro.frameFixes[m_physicIndex].x, macro.frameFixes[m_physicIndex].y});
+        //         self->m_player1->m_position.x = macro.frameFixes[m_physicIndex].x;
+        //         self->m_player1->m_position.y = macro.frameFixes[m_physicIndex].y;                
+        //         if (rotation_fix)
+        //             self->m_player1->setRotation(macro.frameFixes[m_physicIndex].rotation);
+        //         self->m_player1->m_yVelocity = macro.frameFixes[m_physicIndex].accelY;
+        //         geode::log::debug("RE: {} {} {} {} {}", macro.frameFixes[m_physicIndex].frame, macro.frameFixes[m_physicIndex].x, macro.frameFixes[m_physicIndex].y,
+        //             macro.frameFixes[m_physicIndex].rotation, macro.frameFixes[m_physicIndex].accelY);
+        //     }
+        //     else
+        //     {
+        //         self->m_player2->setPosition({macro.frameFixes[m_physicIndex].x, macro.frameFixes[m_physicIndex].y});
+        //         self->m_player2->m_position.x = macro.frameFixes[m_physicIndex].x;
+        //         self->m_player2->m_position.y = macro.frameFixes[m_physicIndex].y;
+        //         if (rotation_fix)
+        //             self->m_player2->setRotation(macro.frameFixes[m_physicIndex].rotation);
+        //         self->m_player2->m_yVelocity = macro.frameFixes[m_physicIndex].accelY;
+        //     }
+        //     m_physicIndex++; 
+        // }
     }
-    else if (mode == state::record) {
-        if (!macro.frameFixes.empty() && macro.frameFixes.back().frame == frame)
-            return;
+    // else if (mode == state::record) {
+    //     if (!macro.frameFixes.empty() && macro.frameFixes.back().frame == frame)
+    //         return;
 
-        macro.frameFixes.push_back({
-            frame,
-            self->m_player1->m_position.x,
-            self->m_player1->m_position.y,
-            self->m_player1->getRotation(),
-            self->m_player1->m_yVelocity,
-            false
-        });
 
-        macro.frameFixes.push_back({
-            frame,
-            self->m_player2->m_position.x,
-            self->m_player2->m_position.y,
-            self->m_player2->getRotation(),
-            self->m_player2->m_yVelocity,
-            true
-        });
-    }
+    //     macro.frameFixes.push_back({
+    //         frame,
+    //         self->m_player1->m_position.x,
+    //         self->m_player1->m_position.y,
+    //         self->m_player1->getRotation(),
+    //         self->m_player1->m_yVelocity,
+    //         false
+    //     });
+
+    //     if (!self->m_gameState.m_isDualMode)
+    //         return;
+
+    //     macro.frameFixes.push_back({
+    //         frame,
+    //         self->m_player2->m_position.x,
+    //         self->m_player2->m_position.y,
+    //         self->m_player2->getRotation(),
+    //         self->m_player2->m_yVelocity,
+    //         true
+    //     });
+    // }
 }
 
 void ReplayEngine::reset() {

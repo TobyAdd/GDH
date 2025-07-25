@@ -984,9 +984,9 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
 
     void processCommands(float dt) {
         auto& config = Config::get();
-        
+        auto& engine = ReplayEngine::get();
         GJBaseGameLayer::processCommands(dt);
-        ReplayEngine::get().update(this);
+        engine.update(this);
         
         NoclipAccuracy::get().handle_update(this, dt);
 
