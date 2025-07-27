@@ -7,13 +7,13 @@ uint64_t ReplayEngine::get_frame() {
 
     auto gjbgl = GJBaseGameLayer::get();
     if (gjbgl)
-        return static_cast<uint64_t>(gjbgl->m_gameState.m_levelTime * config.get<float>("tps_value", 240.f));
+        return static_cast<uint64_t>(gjbgl->m_gameState.m_currentProgress);
     return 0;
 }
 
 void ReplayEngine::remove_actions(uint64_t currentFrame, bool autoRelease) {
-    std::erase_if(macro.inputs, [currentFrame](const gdr::Input<>& input) { return input.frame >= currentFrame; });
-    std::erase_if(macro.frameFixes, [currentFrame](const FrameFix& frameFix) { return frameFix.frame >= currentFrame; });
+    std::erase_if(macro.inputs, [currentFrame](const gdr::Input<>& input) { return input.frame > currentFrame; });
+    // std::erase_if(macro.frameFixes, [currentFrame](const FrameFix& frameFix) { return frameFix.frame >= currentFrame; });
 
     if (!autoRelease) return;
 
@@ -34,10 +34,10 @@ void ReplayEngine::remove_actions(uint64_t currentFrame, bool autoRelease) {
 
     for (int i = 0; i < 3; ++i) {
         if (!released[i]) {
-            macro.inputs.emplace_back(currentFrame, i + 1, false, false);
+            macro.inputs.emplace_back(currentFrame+1, i+1, false, false);
         }
         if (!released[i + 3]) {
-            macro.inputs.emplace_back(currentFrame, i + 1, true, false);
+            macro.inputs.emplace_back(currentFrame+1, i+1, true, false);
         }
     }
 }
