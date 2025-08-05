@@ -62,7 +62,11 @@ std::string Label::get_text() {
     result = replace_all(result, "{cheat_indicator}", fmt::format("{}+{}", 
         (hacks.cheatState == legit) ? "<cg>" : (hacks.cheatState == unwanted) ? "<co>" : (hacks.cheatState == safe_mode) ? "<cy>" : (hacks.cheatState == cheating) ? "<cr>" : "",
         (hacks.cheatState == legit) ? "<cg/>" : (hacks.cheatState == unwanted) ? "<co/>" : (hacks.cheatState == safe_mode) ? "<cy/>" : (hacks.cheatState == cheating) ? "<cr/>" : ""));
-    result = replace_all(result, "{re_state}", engine.mode == state::disable ? "Disable" : engine.mode == state::record ? "Record" : "Play");
+    result = replace_all(result, "{re_state}", engine.mode == state::disable ? "<co>Disable<co/>" : engine.mode == state::record ? "<cr>Record<cr/>" : "<cg>Play<cg/>");
+    
+    static geode::Mod* cbfMod = geode::Loader::get()->getLoadedMod("syzzi.click_between_frames");
+    static bool hasCBF = cbfMod != nullptr && cbfMod->isEnabled();
+    result = replace_all(result, "{cbf_enabled}", hasCBF ? "<cg>Enabled<cg/>" : "<cr>Disabled<cr/>");
     result = replace_all(result, "{\\n}", "\n");
 
     return result;
@@ -182,11 +186,22 @@ void Labels::setStringColored(cocos2d::CCLabelBMFont* label, std::string format_
     size_t index = 0;
     
     const std::unordered_map<std::string, cocos2d::ccColor3B> tagColors = {
-        {"cr", {255, 0, 128}},
-        {"cg", {0, 255, 0}},
-        {"co", {255, 106, 0}},
-        {"cy", {255, 242, 0}}
-    };
+        {"cr", {255, 0, 64}},      // Red
+        {"cg", {0, 255, 0}},       // Green
+        {"co", {255, 106, 0}},     // Orange
+        {"cy", {255, 242, 0}},     // Yellow
+        {"cb", {0, 128, 255}},     // Blue
+        {"cp", {170, 0, 255}},     // Purple
+        {"cw", {255, 255, 255}},   // White
+        {"ck", {0, 0, 0}},         // Black
+        {"cm", {255, 0, 255}},     // Magenta
+        {"cc", {0, 255, 255}},     // Cyan
+        {"cs", {192, 192, 192}},   // Silver
+        {"cl", {128, 0, 255}},     // Lavender
+        {"cn", {255, 192, 203}},   // Pink
+        {"ca", {255, 215, 0}},     // Amber/Gold
+        {"cd", {139, 69, 19}}      // Brown
+    };    
     
     for (size_t i = 0; i < format_text.size(); i++) {
         if (format_text[i] == '<' && i + 2 < format_text.size()) {
@@ -416,7 +431,7 @@ LabelsCreateLayer* LabelsCreateLayer::create(geode::ScrollLayer* scrollLayer) {
 
 bool LabelsCreateLayer::setup() {
     std::array<std::string, 6> corners = {"Top Left", "Top Right", "Top", "Bottom Left", "Bottom Right", "Bottom"};
-    std::array<std::string, 14> label_types = {"Time (24H)", "Time (12H)", "Session Time", "Cheat Indicator", "FPS Counter", "Level Progress", "Attempt", "CPS Counter", "Level Info", "Noclip Accuracy", "Death Counter", "Testmode", "Replay Engine State", "Custom Text"};
+    std::array<std::string, 15> label_types = {"Time (24H)", "Time (12H)", "Session Time", "Cheat Indicator", "FPS Counter", "Level Progress", "Attempt", "CPS Counter", "Level Info", "Noclip Accuracy", "Death Counter", "Testmode", "Replay Engine State", "CBF Status", "Custom Text"};
     
     this->setTitle("Add Label");
 
@@ -465,7 +480,8 @@ bool LabelsCreateLayer::setup() {
         else if (m_labelTypeIndex == 10) text = "ColoredDeath({deaths} Deaths)";
         else if (m_labelTypeIndex == 11) text = "{testmode}";
         else if (m_labelTypeIndex == 12) text = "{re_status}";
-        else if (m_labelTypeIndex == 12) text = "here your text";
+        else if (m_labelTypeIndex == 13) text = "CBF: {cbf_status}";
+        else if (m_labelTypeIndex == 14) text = "here your text";
         
         auto& labels = Labels::get();
         Label l((LabelCorner) (m_toggleIndex), text);

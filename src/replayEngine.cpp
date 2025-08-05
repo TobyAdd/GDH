@@ -11,20 +11,53 @@ unsigned ReplayEngine::get_frame() {
     return 0;
 }
 
-void ReplayEngine::remove_actions(unsigned frame) {
-    auto check_inputs = [&](replay_data2 &action) -> bool { return action.frame >= frame; };
-    m_inputFrames_p1.erase(remove_if(m_inputFrames_p1.begin(), m_inputFrames_p1.end(), check_inputs), m_inputFrames_p1.end());
-    m_inputFrames_p2.erase(remove_if(m_inputFrames_p2.begin(), m_inputFrames_p2.end(), check_inputs), m_inputFrames_p2.end());
+void ReplayEngine::remove_actions(unsigned currentFrame) {
+    // clearing physic frames
+    std::erase_if(m_physicFrames_p1, [currentFrame](const replay_data &action) {
+        return action.frame >= currentFrame;
+    });
+    std::erase_if(m_physicFrames_p2, [currentFrame](const replay_data &action) {
+        return action.frame >= currentFrame;
+    });
 
-    if (engine_v2) return;
+    // clearing inputs and auto-releasing it (future fix implementation for re lite!!)
+    std::erase_if(m_inputFrames_p1, [currentFrame](const replay_data2 &action) {
+        return action.frame >= currentFrame;
+    });
+    std::erase_if(m_inputFrames_p2, [currentFrame](const replay_data2 &action) {
+        return action.frame >= currentFrame;
+    });
 
-    auto check_physics = [&](replay_data &action) -> bool
-    {
-        return action.frame > frame;
+    std::array<bool, 6> released = {true, true, true, true, true, true};
+    std::array<bool, 6> checked = {false, false, false, false, false, false};
+
+    auto scan_input = [&](const std::vector<replay_data2>& inputs) {
+        for (auto it = inputs.rbegin(); it != inputs.rend(); ++it) {
+            int button_index = it->button - 1 + (it->isPlayer1 ? 0 : 3);
+
+            if (!checked[button_index]) {
+                checked[button_index] = true;
+                released[button_index] = !it->down;
+
+                if (std::all_of(checked.begin(), checked.end(), [](bool v) { return v; }))
+                    break;
+            }
+        }
     };
-    m_physicFrames_p1.erase(remove_if(m_physicFrames_p1.begin(), m_physicFrames_p1.end(), check_physics), m_physicFrames_p1.end());
-    m_physicFrames_p2.erase(remove_if(m_physicFrames_p1.begin(), m_physicFrames_p1.end(), check_physics), m_physicFrames_p1.end());
+
+    scan_input(m_inputFrames_p1);
+    scan_input(m_inputFrames_p2);
+
+    for (int i = 0; i < 3; ++i) {
+        if (!released[i]) {
+            handle_button(false, i + 1, true);
+        }
+        if (!released[i + 3]) {
+            handle_button(false, i + 1, false);
+        }
+    }
 }
+
 
 size_t ReplayEngine::get_actions_size() {
     return m_inputFrames_p1.size() + m_inputFrames_p2.size();
@@ -322,8 +355,7 @@ void ReplayEngine::handle_update(GJBaseGameLayer* self) {
 
     if (mode == state::record) {
         if (!engine_v2) {
-            bool frameExist_p1 = std::find_if(m_physicFrames_p1.begin(), m_physicFrames_p1.end(), [&](const auto &data)
-                                    { return data.frame == frame; }) != m_physicFrames_p1.end();
+            bool frameExist_p1 = !m_physicFrames_p1.empty() && m_physicFrames_p1.back().frame == frame;
 
             if (!frameExist_p1)
                 m_physicFrames_p1.push_back({
@@ -338,18 +370,17 @@ void ReplayEngine::handle_update(GJBaseGameLayer* self) {
             if (!self->m_gameState.m_isDualMode)
                 return;
 
-            // bool frameExist_p2 = std::find_if(m_physicFrames_p2.begin(), m_physicFrames_p2.end(), [&](const auto &data)
-            //     { return data.frame == frame; }) != m_physicFrames_p2.end();
+            bool frameExist_p2 = !m_physicFrames_p2.empty() && m_physicFrames_p2.back().frame == frame;
 
-            // if (!frameExist_p2)
-            //     m_physicFrames_p2.push_back({
-            //         frame, 
-            //         self->m_player2->m_position.x,
-            //         self->m_player2->m_position.y,
-            //         self->m_player2->getRotation(),
-            //         self->m_player2->m_yVelocity,
-            //         false //second player
-            //     });
+            if (!frameExist_p2)
+                m_physicFrames_p2.push_back({
+                    frame, 
+                    self->m_player2->m_position.x,
+                    self->m_player2->m_position.y,
+                    self->m_player2->getRotation(),
+                    self->m_player2->m_yVelocity,
+                    false //second player
+                });
         }
     }
     else if (mode == state::play) {
@@ -393,7 +424,6 @@ void ReplayEngine::handle_reset() {
     if (mode == state::record) {
         int lastCheckpointFrame = get_frame();
         remove_actions(lastCheckpointFrame);
-        auto_button_release();
     }
     else if (mode == state::play) {
         m_physicIndex_p1 = 0;
@@ -419,16 +449,6 @@ void ReplayEngine::handle_button(bool down, int button, bool isPlayer1) {
         //     m_inputFrames_p2.pop_back();
 
         m_inputFrames_p2.push_back({get_frame(), down, button, isPlayer1});
-    }
-}
-
-void ReplayEngine::auto_button_release() {
-    if (mode == state::record) {
-        if (!m_inputFrames_p1.empty() && m_inputFrames_p1.back().down)
-            handle_button(false, m_inputFrames_p1.back().button, m_inputFrames_p1.back().isPlayer1);
-
-        if (!m_inputFrames_p2.empty() && m_inputFrames_p2.back().down)
-            handle_button(false, m_inputFrames_p2.back().button, m_inputFrames_p2.back().isPlayer1);
     }
 }
 

@@ -33,7 +33,7 @@ void Hacks::Init() {
         },
         {"Bypass", 10, 250, 200, 250, 
             {
-                {"Text Length", "Removes the text input limit", "text_lenght"}, // +
+                {"Text Length", "Removes the text input limit", "text_length"}, // +
                 {"Slider Limit", "Removes the limit on sliding beyond set limits", "slider_limit"}, // + 
                 {"Character Filter", "Lets you input any character in all text inputs", "char_filter"},  // +   
                 {"Checkpoint Limit", "Removes the limit that deletes previous checkpoints after the 50th checkpoint", "checkpoint_limit"}, // +   
@@ -95,7 +95,7 @@ void Hacks::Init() {
                 {"No Pulse", "Disables pulsation of falls, orbs, etc", "no_pulse"}, // +
                 {"Pause On Complete", "Lets you pause during the level complete animation", "pause_during_complete"}, // +
                 {"Pitch Shifter", "Shifts the pitch of background music", "pitch_shifter"}, // +
-                {"Practice Fix", "More accurate respawning in practice mode (used for botting)", "practice_fix"},
+                // {"Practice Fix", "More accurate respawning in practice mode (used for botting)", "practice_fix"},
                 {"Pulse Size", "Changes pulsation of falls, orbs, etc", "pulse_size"}, // +
                 #ifdef GEODE_IS_ANDROID
                 {"Uncomplete Level", "Resets level completion statistics (it's just a button, it doesn't depend on on/off switch)", "uncomplete_level"}, // +

@@ -199,9 +199,27 @@ void Gui::Render() {
             stretchedWindows.push_back(windowName);
         }
 
+        auto& engine = ReplayEngine::get();
+        bool re_needRecolor = (windowName == "Replay Engine") && (engine.mode != state::disable);
+        if (re_needRecolor) {
+            ImGui::PushStyleColor(ImGuiCol_Text, ImColor(0, 0, 0).Value);
+            if (engine.mode == state::record) {                
+                ImGui::PushStyleColor(ImGuiCol_TitleBg, ImColor(255, 128, 128).Value);
+                ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImColor(255, 128, 128).Value);
+                ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, ImColor(255, 128, 128).Value);
+            }
+            else {
+                ImGui::PushStyleColor(ImGuiCol_TitleBg, ImColor(34, 177, 76).Value);
+                ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImColor(34, 177, 76).Value);
+                ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, ImColor(34, 177, 76).Value);
+            }
+        }
+
         ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[2]);
         ImGui::Begin(windowName.c_str(), 0, ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoNavInputs);
         ImGui::PopFont();
+
+        if (re_needRecolor) ImGui::PopStyleColor(4);
 
         if (!ImGui::IsWindowCollapsed()) {
             auto size = ImGui::GetWindowSize();
@@ -534,7 +552,6 @@ void Gui::Render() {
                 ImGui::PopStyleColor();
             }
             else {
-                auto& engine = ReplayEngine::get();
                 static std::vector<std::filesystem::path> replay_list;
 
                 if (ImGui::BeginPopupModal("Select Replay", 0, ImGuiWindowFlags_NoResize)) {
@@ -695,9 +712,9 @@ void Gui::Render() {
                             ImGuiH::Checkbox("Rotation Fix", &engine.rotation_fix, m_scale);
                         }
 
-                        bool practice_fix = config.get<bool>("practice_fix", false);
-                        if (ImGuiH::Checkbox("Practice Fix", &practice_fix, m_scale))
-                            config.set<bool>("practice_fix", practice_fix);
+                        // bool practice_fix = config.get<bool>("practice_fix", false);
+                        // if (ImGuiH::Checkbox("Practice Fix", &practice_fix, m_scale))
+                        //     config.set<bool>("practice_fix", practice_fix);
 
                         ImGui::EndTabItem();
                     }	
@@ -1613,6 +1630,7 @@ void Gui::Render() {
                 "Startpos Switcher",
                 "Testmode",
                 "Replay Engine State",
+                "CBF Status",
                 "Custom Text",
             };
             int label_types_count = sizeof(label_types)/sizeof(label_types[0]);
@@ -1642,6 +1660,7 @@ void Gui::Render() {
                 else if (selected_label_type == 11) text = "{startposCurrentIDX}/{startposAllIDX}";
                 else if (selected_label_type == 12) text = "{testmode}";
                 else if (selected_label_type == 13) text = "{re_state}";
+                else if (selected_label_type == 14) text = "CBF: {cbf_enabled}";
                 
                 Label l((LabelCorner) (selected_label_corner+1), text);
                 labels.add(l);

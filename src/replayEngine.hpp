@@ -50,7 +50,7 @@ public:
     bool next_frame = false;
 
     unsigned get_frame();
-    void remove_actions(unsigned frame);
+    void remove_actions(unsigned currentFrame);
 
     size_t get_actions_size();
     int get_current_index();
@@ -66,8 +66,6 @@ public:
     void handle_update(GJBaseGameLayer* self);
     void handle_reset();
     void handle_button(bool down, int button, bool isPlayer1);
-
-    void auto_button_release();
 
     void renderUI();
 

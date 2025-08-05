@@ -2,6 +2,7 @@
 #include <Geode/modify/CCScheduler.hpp>
 #include <Geode/modify/PlayLayer.hpp>
 #include <Geode/modify/GameStatsManager.hpp>
+#include <Geode/modify/GameLevelManager.hpp>
 #include <Geode/modify/PlayerObject.hpp>
 #include <Geode/modify/CCTextInputNode.hpp>
 #include <Geode/modify/LevelPage.hpp>
@@ -655,6 +656,7 @@ class $modify(MyPlayLayer, PlayLayer) {
         //     m_replayRandSeed = config.get<int>("random_seed_value", 1337);
         // }
 
+        Labels::get().push = false;
         PlayLayer::resetLevel();
 
         if (config.get<bool>("tps_enabled", false)) {
@@ -1330,17 +1332,17 @@ class $modify(MyPlayerObject, PlayerObject) {
         auto& config = Config::get();
         auto gm = GameManager::get();
 
-        bool gv0096 = m_gv0096;
+        bool switchWaveTrailColor = m_switchWaveTrailColor;
         auto playerColor = gm->m_playerColor;
 
         if (config.get<bool>("solid_wave_trail", false)) {
-            gv0096 = false;
+            m_switchWaveTrailColor = false;
             gm->m_playerColor = 15;
         }
 
         PlayerObject::setupStreak();
 
-        m_gv0096 = gv0096;
+        m_switchWaveTrailColor = switchWaveTrailColor;
         gm->m_playerColor = playerColor;
     }
 };
@@ -1355,18 +1357,6 @@ class $modify(MyCCTextInputNode, CCTextInputNode){
             CCTextInputNode::setAllowedChars("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~ ");
         
         CCTextInputNode::updateLabel(p0);
-    }
-};
-
-class $modify(MyLevelPage, LevelPage) {
-    void onPlay(cocos2d::CCObject* sender) {
-        auto coins = m_level->m_requiredCoins;
-
-        if (Config::get().get<bool>("main_levels", false)) m_level->m_requiredCoins = 0;
-
-        LevelPage::onPlay(sender);
-
-        m_level->m_requiredCoins = coins;
     }
 };
 
@@ -1530,7 +1520,7 @@ class $modify(MyPauseLayer, PauseLayer) {
             PlayLayer::get()->m_level->m_levelType = GJLevelType::Editor;
 
         PauseLayer::customSetup();
-        engine.auto_button_release();
+        engine.remove_actions(engine.get_frame());
 
         PlayLayer::get()->m_level->m_levelType = levelType;
 
@@ -1971,6 +1961,17 @@ class $modify(MyRewardUnlockLayer, RewardUnlockLayer) {
         );
 
         return true;
+    }
+};
+
+class $modify(MyGameLevelManager, GameLevelManager) {
+    GJGameLevel* getMainLevel(int levelID, bool dontGetLevelString) {
+        auto& config = Config::get();
+        auto level = GameLevelManager::getMainLevel(levelID, dontGetLevelString);
+        if (level->m_requiredCoins > 0 && config.get<bool>("main_levels", false)) {
+            level->m_requiredCoins = 0;
+        }
+        return level;
     }
 };
 
