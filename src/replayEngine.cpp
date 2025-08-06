@@ -395,26 +395,34 @@ void ReplayEngine::handle_update(GJBaseGameLayer* self) {
                 m_physicIndex_p1++;
             }
 
-            // while (m_physicIndex_p2 < m_physicFrames_p2.size() && frame >= m_physicFrames_p2[m_physicIndex_p2].frame)
-            // {
-            //     self->m_player2->m_position.x = m_physicFrames_p2[m_physicIndex_p2].x;
-            //     self->m_player2->m_position.y = m_physicFrames_p2[m_physicIndex_p2].y;
-            //     if (rotation_fix)
-            //         self->m_player2->setRotation(m_physicFrames_p2[m_physicIndex_p2].rotation);
-            //     self->m_player2->m_yVelocity = m_physicFrames_p2[m_physicIndex_p2].y_accel;
-            //     m_physicIndex_p2++;
-            // }
+            while (m_physicIndex_p2 < m_physicFrames_p2.size() && frame >= m_physicFrames_p2[m_physicIndex_p2].frame)
+            {
+                self->m_player2->m_position.x = m_physicFrames_p2[m_physicIndex_p2].x;
+                self->m_player2->m_position.y = m_physicFrames_p2[m_physicIndex_p2].y;
+                if (rotation_fix)
+                    self->m_player2->setRotation(m_physicFrames_p2[m_physicIndex_p2].rotation);
+                self->m_player2->m_yVelocity = m_physicFrames_p2[m_physicIndex_p2].y_accel;
+                m_physicIndex_p2++;
+            }
         }
 
         while (m_inputIndex_p1 < m_inputFrames_p1.size() && frame >= m_inputFrames_p1[m_inputIndex_p1].frame)
         {
-            self->handleButton(m_inputFrames_p1[m_inputIndex_p1].down, m_inputFrames_p1[m_inputIndex_p1].button, m_inputFrames_p1[m_inputIndex_p1].isPlayer1);
+            bool swapControls = GameManager::get()->getGameVariable("0010");
+            bool isPlayer1 = m_inputFrames_p1[m_inputIndex_p1].isPlayer1;
+            isPlayer1 = swapControls ? !isPlayer1 : isPlayer1;
+
+            self->handleButton(m_inputFrames_p1[m_inputIndex_p1].down, m_inputFrames_p1[m_inputIndex_p1].button, isPlayer1);
             m_inputIndex_p1++; 
         }
 
         while (m_inputIndex_p2 < m_inputFrames_p2.size() && frame >= m_inputFrames_p2[m_inputIndex_p2].frame)
         {
-            self->handleButton(m_inputFrames_p2[m_inputIndex_p2].down, m_inputFrames_p2[m_inputIndex_p2].button, m_inputFrames_p2[m_inputIndex_p2].isPlayer1);
+            bool swapControls = GameManager::get()->getGameVariable("0010");
+            bool isPlayer1 = m_inputFrames_p2[m_inputIndex_p2].isPlayer1;
+            isPlayer1 = swapControls ? !isPlayer1 : isPlayer1;
+
+            self->handleButton(m_inputFrames_p2[m_inputIndex_p2].down, m_inputFrames_p2[m_inputIndex_p2].button, isPlayer1);
             m_inputIndex_p2++; 
         }
     }
@@ -436,6 +444,9 @@ void ReplayEngine::handle_reset() {
 void ReplayEngine::handle_button(bool down, int button, bool isPlayer1) {
     if (mode != state::record)
         return;
+
+    bool swapControls = GameManager::get()->getGameVariable("0010");
+    isPlayer1 = swapControls ? !isPlayer1 : isPlayer1;
 
     unsigned frame = get_frame();
     if (isPlayer1) {

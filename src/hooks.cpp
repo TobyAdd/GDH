@@ -112,6 +112,11 @@ void hooksH::switchStartPos(int incBy, bool direction) {
     }
 }
 
+bool hooksH::startposExist() {
+    auto& config = Config::get();
+    return !startPositions.empty() && config.get<bool>("startpos_switcher", false);
+}
+
 void setupStartPos(StartPosObject* startPos) {
     LevelSettingsObject* startPosSettings = startPos->m_startSettings;
     LevelSettingsObject* levelSettings = PlayLayer::get()->m_levelSettings;
@@ -191,7 +196,7 @@ void calculateFPS() {
     Labels::get().fps = 1.f / avgTime;
 }
 
-float color_dt = 0.f;
+float hooksH::color_dt = 0.f;
 float left_over = 0.f;
 
 class $modify(MyCCScheduler, cocos2d::CCScheduler) {
@@ -323,7 +328,7 @@ class $modify(MyPlayLayer, PlayLayer) {
             hooksH::selectedStartpos = -1;
             playerTrail1.clear();
             playerTrail2.clear();
-            color_dt = 0.f;
+            hooksH::color_dt = 0.f;
         }
     };
     
@@ -611,7 +616,8 @@ class $modify(MyPlayLayer, PlayLayer) {
             : true;
 
         if (shouldDestroy) {
-            if (Config::get().get<bool>("safe_mode", false)) {
+            bool auto_safe_mode = (Config::get().get<bool>("auto_safe_mode", false) && Hacks::get().preCheatState != cheat_state::legit);
+            if (Config::get().get<bool>("safe_mode", false) || auto_safe_mode) {
                 m_isTestMode = true;
             }
             PlayLayer::destroyPlayer(player, obj);
@@ -691,7 +697,8 @@ class $modify(MyPlayLayer, PlayLayer) {
         if (config.get<bool>("show_total_attempts", false) && m_attemptLabel)
             m_attemptLabel->setCString(fmt::format("Attempt {}", static_cast<int>(m_level->m_attempts)).c_str());
 
-        if (config.get<bool>("safe_mode", false))
+        bool auto_safe_mode = (Config::get().get<bool>("auto_safe_mode", false) && Hacks::get().preCheatState != cheat_state::legit);
+        if (config.get<bool>("safe_mode", false) || auto_safe_mode)
             m_level->m_attempts = m_level->m_attempts - 1;
 
         if (config.get<bool>("auto_pickup_coins", false)) {
@@ -721,7 +728,8 @@ class $modify(MyPlayLayer, PlayLayer) {
         auto& config = Config::get();
         bool testmode = m_isTestMode;
 
-        if (config.get<bool>("safe_mode", false))
+        bool auto_safe_mode = (Config::get().get<bool>("auto_safe_mode", false) && Hacks::get().preCheatState != cheat_state::legit);
+        if (config.get<bool>("safe_mode", false) || auto_safe_mode)
             m_isTestMode = true;
 
         PlayLayer::levelComplete();
@@ -936,6 +944,20 @@ class $modify(MyEndLevelLayer, EndLevelLayer) {
         
             createIndicator(-164.f, hacks.cheatState);
             createIndicator(-148.f, hacks.preCheatState);
+
+            auto menu = cocos2d::CCMenu::create();
+            menu->setID("cheat_indicator_button");
+            menu->setPosition({0, 0});
+            m_mainLayer->addChild(menu);
+
+            auto cheatInfo = cocos2d::CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
+            cheatInfo->setScale(0.8f);
+            std::string cheatInfoState = hacks.getCheatModulesAndState();
+            auto cheatInfoClick = geode::cocos::CCMenuItemExt::createSpriteExtra(cheatInfo, [cheatInfoState](CCMenuItemSpriteExtra* sender) {
+                FLAlertLayer::create("Cheating info", cheatInfoState.c_str(), "OK")->show();
+            });
+            cheatInfoClick->setPosition(win_size.width / 2 + 181, win_size.height / 2 + 127);
+            menu->addChild(cheatInfoClick);
         }        
 
         if (recorder.is_recording && recorder.fade_out) {
@@ -1037,12 +1059,11 @@ class $modify(MyGJBaseGameLayer, GJBaseGameLayer) {
         if (!engine.engine_v2)
             engine.handle_update(this);
 
+        hooksH::color_dt += dt * config.get<float>("rgb_icons::speed", 0.20f);
         if (config.get<bool>("rgb_icons", false)) {
-            color_dt += dt * config.get<float>("rgb_icons::speed", 0.20f);
-
             auto& rgb_colors = RGBIcons::get();
-            auto color1 = rgb_colors.interpolateColor(color_dt);
-            auto color2 = rgb_colors.interpolateColor(color_dt, true);
+            auto color1 = rgb_colors.interpolateColor(hooksH::color_dt);
+            auto color2 = rgb_colors.interpolateColor(hooksH::color_dt, true);
 
             bool player_p1 = config.get<bool>("rgb_icons::player_p1", true);
             bool player_p2 = config.get<bool>("rgb_icons::player_p2", true);
@@ -1313,7 +1334,8 @@ class $modify(MyPlayerObject, PlayerObject) {
     }
 
     void incrementJumps() {
-        if (Config::get().get<bool>("safe_mode", false)) return;
+        bool auto_safe_mode = (Config::get().get<bool>("auto_safe_mode", false) && Hacks::get().preCheatState != cheat_state::legit);
+        if (Config::get().get<bool>("safe_mode", false) || auto_safe_mode) return;
 
         PlayerObject::incrementJumps();
     }
@@ -1520,7 +1542,9 @@ class $modify(MyPauseLayer, PauseLayer) {
             PlayLayer::get()->m_level->m_levelType = GJLevelType::Editor;
 
         PauseLayer::customSetup();
-        engine.remove_actions(engine.get_frame());
+
+        if (engine.mode == state::record)
+            engine.remove_actions(engine.get_frame());
 
         PlayLayer::get()->m_level->m_levelType = levelType;
 

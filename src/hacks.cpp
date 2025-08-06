@@ -48,6 +48,7 @@ void Hacks::Init() {
                 {"Accurate Percentage", "Shows decimals in level progress", "accurate_percentage", "0126"}, // +
                 {"Auto Pickup Coins", "Collects all coins in the level", "auto_pickup_coins"}, // +
                 {"Auto Practice Mode", "Auto-enables practice mode", "auto_practice_mode"}, // +
+                {"Auto Safe Mode", "Disables progression if cheating modules are detected", "auto_safe_mode"}, // +
                 {"Auto Song Download", "Automatic downloading of song when you enter an online level", "auto_song_download"},  // +
                 #ifdef GEODE_IS_WINDOWS
                 {"Auto Deafen", "Deafens user in Discord after a certain %", "auto_deafen"},  // +
@@ -952,8 +953,9 @@ void Hacks::loadKeybinds() {
 cheat_state Hacks::cheatingCheck() {
     auto& config = Config::get();
     auto& engine = ReplayEngine::get();
-
-    if (config.get<bool>("safe_mode", false)) 
+    
+    bool auto_safe_mode = (Config::get().get<bool>("auto_safe_mode", false) && preCheatState != cheat_state::legit);
+    if (config.get<bool>("safe_mode", false) || auto_safe_mode) 
         return cheat_state::safe_mode;
 
     if (config.get<bool>("noclip", false) ||
@@ -974,13 +976,80 @@ cheat_state Hacks::cheatingCheck() {
     {
         return cheat_state::cheating;
     }
-    else if (config.get<bool>("no_particles", false) ||
-            (config.get<bool>("wave_trail_size", false) && config.get<float>("wave_trail_size_value", 1.f) < 0.5f))   
-    {
-        return cheat_state::unwanted;
-    }
+    // else if (config.get<bool>("no_particles", false) ||
+    //         (config.get<bool>("wave_trail_size", false) && config.get<float>("wave_trail_size_value", 1.f) < 0.5f))   
+    // {
+    //     return cheat_state::unwanted;
+    // }
 
     return cheat_state::legit;
+}
+
+std::string Hacks::getCheatModulesAndState() {
+    auto& config = Config::get();
+    auto& engine = ReplayEngine::get();
+
+    std::ostringstream result;
+    std::vector<std::string> enabledModules;
+
+    bool safeMode = config.get<bool>("safe_mode", false);
+    bool autoSafeMode = config.get<bool>("auto_safe_mode", false) && preCheatState == cheat_state::cheating;
+    bool isInSafeMode = safeMode || autoSafeMode;
+
+    if (safeMode) enabledModules.push_back("safe_mode");
+    if (autoSafeMode) enabledModules.push_back("auto_safe_mode");
+
+    if (config.get<bool>("noclip", false)) enabledModules.push_back("noclip");
+    if (config.get<bool>("auto_pickup_coins", false)) enabledModules.push_back("auto_pickup_coins");
+    if (config.get<bool>("instant_complete", false)) enabledModules.push_back("instant_complete");
+    if (config.get<bool>("jump_hack", false)) enabledModules.push_back("jump_hack");
+    if (config.get<bool>("layout_mode", false)) enabledModules.push_back("layout_mode");
+    if (config.get<bool>("spambot_enabled", false)) enabledModules.push_back("spambot_enabled");
+    if (config.get<bool>("show_hitboxes", false) && !config.get<bool>("show_hitboxes::on_death", false))
+        enabledModules.push_back("show_hitboxes");
+    if (config.get<bool>("straight_fly_bot", false)) enabledModules.push_back("straight_fly_bot");
+    if (config.get<bool>("no_camera_move", false)) enabledModules.push_back("no_camera_move");
+    if (config.get<bool>("no_camera_zoom", false)) enabledModules.push_back("no_camera_zoom");
+    if (config.get<bool>("no_shaders", false)) enabledModules.push_back("no_shaders");
+    if (config.get<bool>("no_mirror_portal", false)) enabledModules.push_back("no_mirror_portal");
+    if (config.get<bool>("tps_enabled", false)) enabledModules.push_back("tps_enabled");
+    if (config.get<bool>("speedhack_enabled", false) && config.get<float>("speedhack_value", 1.f) != 1.f)
+        enabledModules.push_back("speedhack_enabled");
+    if (engine.mode == state::record) enabledModules.push_back("replay_record");
+    if (engine.mode == state::play) enabledModules.push_back("replay_play");
+
+    if (!enabledModules.empty()) {
+        result << "Enabled Modules: ";
+        for (size_t i = 0; i < enabledModules.size(); ++i) {
+            result << enabledModules[i];
+            if (i != enabledModules.size() - 1)
+                result << ", ";
+        }
+        result << "\n";
+    } else {
+        result << "Enabled Modules: none\n";
+    }
+
+    cheat_state finalState = cheat_state::legit;
+
+    if (isInSafeMode) {
+        finalState = cheat_state::safe_mode;
+    } else if (!enabledModules.empty()) {
+        finalState = cheat_state::cheating;
+    }
+
+    if (!isInSafeMode && preCheatState == cheat_state::cheating && finalState == cheat_state::legit) {
+        finalState = cheat_state::cheating;
+    }
+
+    switch (finalState) {
+        case cheat_state::safe_mode:  result << "Cheat Status: safe_mode"; break;
+        case cheat_state::cheating:   result << "Cheat Status: cheating";  break;
+        case cheat_state::unwanted:   result << "Cheat Status: unwanted";  break;
+        case cheat_state::legit:      result << "Cheat Status: legit";     break;
+    }
+
+    return result.str();
 }
 
 void Hacks::toggleKeybinds(int key) {

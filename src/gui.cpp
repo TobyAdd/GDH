@@ -234,7 +234,7 @@ void Gui::Render() {
 
         ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);    
 
-       
+        
         if (windowName == "GDH Settings") {
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             ImGui::InputTextWithHint("##Search", "Search:", &search_text);
@@ -1631,7 +1631,8 @@ void Gui::Render() {
                 "Testmode",
                 "Replay Engine State",
                 "CBF Status",
-                "Custom Text",
+                "Rainbow Text",
+                "Custom Text"
             };
             int label_types_count = sizeof(label_types)/sizeof(label_types[0]);
             
@@ -1657,10 +1658,11 @@ void Gui::Render() {
                 else if (selected_label_type == 8) text = "{levelName}{byLevelCreator} ({levelId})";
                 else if (selected_label_type == 9) text = "ColoredDeath({noclipAccuracy})";
                 else if (selected_label_type == 10) text = "ColoredDeath({deaths} Deaths)";
-                else if (selected_label_type == 11) text = "{startposCurrentIDX}/{startposAllIDX}";
+                else if (selected_label_type == 11) text = "showIfStartposesExist({startposCurrentIDX}/{startposAllIDX})";
                 else if (selected_label_type == 12) text = "{testmode}";
                 else if (selected_label_type == 13) text = "{re_state}";
                 else if (selected_label_type == 14) text = "CBF: {cbf_enabled}";
+                else if (selected_label_type == 15) text = "<rb>Rainbow text!!<rb/>";
                 
                 Label l((LabelCorner) (selected_label_corner+1), text);
                 labels.add(l);

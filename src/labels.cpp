@@ -184,6 +184,8 @@ void Labels::setStringColored(cocos2d::CCLabelBMFont* label, std::string format_
     const cocos2d::ccColor3B defaultColor = {255, 255, 255};
     cocos2d::ccColor3B currentColor = defaultColor;
     size_t index = 0;
+
+    cocos2d::ccColor3B rainbowColor = RGBIcons::get().interpolateColor(hooksH::color_dt);
     
     const std::unordered_map<std::string, cocos2d::ccColor3B> tagColors = {
         {"cr", {255, 0, 64}},      // Red
@@ -200,7 +202,8 @@ void Labels::setStringColored(cocos2d::CCLabelBMFont* label, std::string format_
         {"cl", {128, 0, 255}},     // Lavender
         {"cn", {255, 192, 203}},   // Pink
         {"ca", {255, 215, 0}},     // Amber/Gold
-        {"cd", {139, 69, 19}}      // Brown
+        {"cd", {139, 69, 19}},      // Brown
+        {"rb", {rainbowColor.r, rainbowColor.g, rainbowColor.b}}
     };    
     
     for (size_t i = 0; i < format_text.size(); i++) {
@@ -251,31 +254,46 @@ void Labels::setStringColored(cocos2d::CCLabelBMFont* label, std::string format_
 
 std::string Labels::processSpecialText(std::string text) {
     const std::string cpsTag = "ColoredCPS(";
-    size_t start = text.find(cpsTag);
-    if (start != std::string::npos) {
+    const std::string deathTag = "ColoredDeath(";
+    const std::string startposTag = "showIfStartposesExist(";
+
+    size_t start = 0;
+    while ((start = text.find(startposTag, start)) != std::string::npos) {
+        size_t contentStart = start + startposTag.length();
+        size_t end = text.find(')', contentStart);
+
+        if (end == std::string::npos) break;
+
+        std::string content = text.substr(contentStart, end - contentStart);
+        std::string replacement = hooksH::startposExist() ? content : "";
+        text.replace(start, end - start + 1, replacement);
+        start += replacement.length();
+    }
+
+    start = 0;
+    while ((start = text.find(cpsTag, start)) != std::string::npos) {
         size_t contentStart = start + cpsTag.length();
         size_t end = text.find(')', contentStart);
-        
-        if (end != std::string::npos) {
-            std::string content = text.substr(contentStart, end - contentStart);
-            std::string replacement = push ? "<cg>" + content + "<cg/>" : content;
-            text.replace(start, end - start + 1, replacement);
-        }
+        if (end == std::string::npos) break;
+
+        std::string content = text.substr(contentStart, end - contentStart);
+        std::string replacement = push ? "<cg>" + content + "<cg/>" : content;
+        text.replace(start, end - start + 1, replacement);
+        start += replacement.length();
     }
-    
-    const std::string deathTag = "ColoredDeath(";
-    start = text.find(deathTag);
-    if (start != std::string::npos) {
+
+    start = 0;
+    while ((start = text.find(deathTag, start)) != std::string::npos) {
         size_t contentStart = start + deathTag.length();
         size_t end = text.find(')', contentStart);
-        
-        if (end != std::string::npos) {
-            std::string content = text.substr(contentStart, end - contentStart);
-            std::string replacement = NoclipAccuracy::get().prevDied ? "<cr>" + content + "<cr/>" : content;
-            text.replace(start, end - start + 1, replacement);
-        }
+        if (end == std::string::npos) break;
+
+        std::string content = text.substr(contentStart, end - contentStart);
+        std::string replacement = NoclipAccuracy::get().prevDied ? "<cr>" + content + "<cr/>" : content;
+        text.replace(start, end - start + 1, replacement);
+        start += replacement.length();
     }
-    
+
     return text;
 }
 
@@ -431,7 +449,7 @@ LabelsCreateLayer* LabelsCreateLayer::create(geode::ScrollLayer* scrollLayer) {
 
 bool LabelsCreateLayer::setup() {
     std::array<std::string, 6> corners = {"Top Left", "Top Right", "Top", "Bottom Left", "Bottom Right", "Bottom"};
-    std::array<std::string, 15> label_types = {"Time (24H)", "Time (12H)", "Session Time", "Cheat Indicator", "FPS Counter", "Level Progress", "Attempt", "CPS Counter", "Level Info", "Noclip Accuracy", "Death Counter", "Testmode", "Replay Engine State", "CBF Status", "Custom Text"};
+    std::array<std::string, 16> label_types = {"Time (24H)", "Time (12H)", "Session Time", "Cheat Indicator", "FPS Counter", "Level Progress", "Attempt", "CPS Counter", "Level Info", "Noclip Accuracy", "Death Counter", "Testmode", "Replay Engine State", "CBF Status", "Rainbow Text", "Custom Text"};
     
     this->setTitle("Add Label");
 
@@ -481,7 +499,8 @@ bool LabelsCreateLayer::setup() {
         else if (m_labelTypeIndex == 11) text = "{testmode}";
         else if (m_labelTypeIndex == 12) text = "{re_status}";
         else if (m_labelTypeIndex == 13) text = "CBF: {cbf_status}";
-        else if (m_labelTypeIndex == 14) text = "here your text";
+        else if (m_labelTypeIndex == 14) text = "<rb>Rainbow text!!<rb/>";
+        else if (m_labelTypeIndex == 15) text = "here your text";
         
         auto& labels = Labels::get();
         Label l((LabelCorner) (m_toggleIndex), text);
