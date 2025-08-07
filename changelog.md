@@ -1,3 +1,29 @@
+# v5.0.0-beta.8
+UI Changes:
+- Replay Engine window title is now coloured based on the bot's stauts
+- Allow scrolling outside window frame in the Android UI (for convenience in "Labels" tab)
+
+Hacks changes:
+- Added "Auto Safe Mode"
+- Practice Fix is removed due to crashes (needs investigating)
+- Fixed Text Length
+- Improved Main Levels Bypass
+
+Labels changes:
+- Added CBF Status
+- Added Rainbow label
+- Fixed CPS Counter coloring
+- More color tags
+- Improved Startpos Switcher label (will be hidden if there are no startposes)
+
+Replay Engine changes:
+- Fixed 1 physic frame pre-recording 
+- Fixed erasing for second player
+- Fixed inputs auto-releasing
+
+Replay Engine Note:
+- Engine v3 may be discontinued, as it uses outdated and non-optimized algorithms from the 2.1 era. It may be replaced by Engine Lite, which will be more modernized and potentially standalone (though that's still under consideration)
+
 # v5.0.0-beta.7
 - Layout Mode fix (breaks decor levels in the editor)
 - Improved vertical flip algorithm for android recorder
