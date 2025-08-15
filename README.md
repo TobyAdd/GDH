@@ -4,10 +4,16 @@
 
 # GDH
 
-GDH is an open-source Geometry Dash mod menu that aims to improve the game's performance and add new features
+GDH is an open-source Geometry Dash mod menu that aims to improve the game's performance and add new features.
+Features include:
+Bot called ReplayEngine
+TPS Unlocker
+Labels
+Keybinds
+Hitboxes
+And more!
 
 Это README также [доступно на русском языке](README.ru.md)
-
 ## Gallery
 <img src="https://github.com/user-attachments/assets/b82e1a3d-b770-4830-bdce-2ef7a645d0e1" alt="Screenshot" width=800 />
 
