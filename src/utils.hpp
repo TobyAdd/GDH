@@ -3,6 +3,7 @@
 #include <cctype>
 #include <fstream>
 #include "config.hpp"
+#include <Geode/binding/TextAlertPopup.hpp>
 
 #ifdef GEODE_IS_WINDOWS
 struct WindowStateBackup {
@@ -53,4 +54,17 @@ static void benchmark(const std::string& name, const std::function<void()>& func
 
     geode::log::debug("[Benchmark] {}: avg = {:.0f} ns | {:.4f} ms ({} runs)\n",
                name, avg_ns, avg_ms, runs);
+}
+
+static void toast(const std::string& text, float delay = 1, float scale = 1, int opacity = 127) {
+	auto alert = TextAlertPopup::create(text, delay, scale, opacity, "bigFont.fnt");
+	auto cs = alert->getChildByType<cocos2d::extension::CCScale9Sprite>(0)->getScaledContentSize();
+	alert->setPosition(
+		cs.width / 2.f,
+		cocos2d::CCDirector::get()->getWinSize().height - cs.height / 2.f
+	);
+
+	auto scene = cocos2d::CCScene::get();
+
+	scene->addChild(alert);
 }

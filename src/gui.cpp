@@ -298,11 +298,19 @@ void Gui::Render() {
 
                 renderKeyButton("Menu Key: ", m_toggleKey);
 
-                ImGui::Text("Framerate");
+                ImGui::Text("Speedhack");
                 ImGui::Separator();
                 ImGui::Spacing();
 
                 renderKeyButton("Speedhack Key: ", m_speedhackKey);
+				renderKeyButton("Speedhack Decrease Key: ", m_speedhackDecreaseKey);
+				renderKeyButton("Speedhack Increase Key: ", m_speedhackIncreaseKey);
+				ImGui::InputFloat("Speedhack Step Interval: ", &m_speedhackStepInterval, 0.1f, 1.0f, "%.2fx");
+
+				ImGui::Text("Framerate");
+				ImGui::Separator();
+				ImGui::Spacing();
+
                 renderKeyButton("TPS Bypass Key: ", m_tpsKey);
 
                 ImGui::Text("Replay Engine");

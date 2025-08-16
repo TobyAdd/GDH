@@ -6,6 +6,7 @@
 #include "recorder.hpp"
 #include "replayEngine.hpp"
 #include <imgui-cocos.hpp>
+#include <Geode/binding/TextAlertPopup.hpp>
 #include "popupSystem.hpp"
 #include "utils.hpp"
 
@@ -866,6 +867,9 @@ void Hacks::saveKeybinds() {
     keybindJson["gui::toggle"] = gui.m_toggleKey;
 
     keybindJson["speedhackKey"] = gui.m_speedhackKey;
+	keybindJson["speedhackDecreaseKey"] = gui.m_speedhackDecreaseKey;
+	keybindJson["speedhackIncreaseKey"] = gui.m_speedhackIncreaseKey;
+	keybindJson["speedhackStepInterval"] = gui.m_speedhackStepInterval;
     keybindJson["tpsKey"] = gui.m_tpsKey;
 
     keybindJson["playbackKey"] = gui.m_playbackKey;
@@ -882,7 +886,6 @@ void Hacks::saveKeybinds() {
 
     keybindJson["startposSwitcherLeftKey"] = gui.m_startposSwitcherLeftKey;
     keybindJson["startposSwitcherRightKey"] = gui.m_startposSwitcherRightKey;
-
     keybindJson["autoDeafenKey"] = gui.m_autoDeafenKey;
 
     if (!keybindJson.empty()) {
@@ -920,6 +923,9 @@ void Hacks::loadKeybinds() {
     gui.m_toggleKey = keybindJson.value("gui::toggle", GLFW_KEY_TAB);
 
     gui.m_speedhackKey = keybindJson.value("speedhackKey", 0);
+    gui.m_speedhackDecreaseKey = keybindJson.value("speedhackDecreaseKey", 0);
+    gui.m_speedhackIncreaseKey = keybindJson.value("speedhackIncreaseKey", 0);
+	gui.m_speedhackStepInterval = keybindJson.value("speedhackStepInterval", 0.1f);
     gui.m_tpsKey = keybindJson.value("tpsKey", 0);
 
     gui.m_playbackKey = keybindJson.value("playbackKey", 0);
@@ -1059,6 +1065,30 @@ void Hacks::toggleKeybinds(int key) {
 
     if (gui.m_speedhackKey == key)
         config.set<bool>("speedhack_enabled", !config.get<bool>("speedhack_enabled", false));
+
+	if (gui.m_speedhackDecreaseKey == key) {
+		float speedhackValue = config.get<float>("speedhack_value", 1.0f);
+		float speedhackStepInterval = config.get<float>("speedhack_step_interval", 0.1f);
+		float newSpeedhackValue = speedhackValue - speedhackStepInterval;
+
+		config.set<float>("speedhack_value", newSpeedhackValue);
+
+		std::string notification_text = std::format("{:.2f}x->{:.2f}x", speedhackValue, newSpeedhackValue);
+
+		toast(notification_text);
+	}
+
+	if (gui.m_speedhackIncreaseKey == key) {
+		float speedhackValue = config.get<float>("speedhack_value", 1.0f);
+		float speedhackStepInterval = config.get<float>("speedhack_step_interval", 0.1f);
+		float newSpeedhackValue = speedhackValue + speedhackStepInterval;
+
+		config.set<float>("speedhack_value", newSpeedhackValue);
+
+		std::string notification_text = std::format("{:.2f}x->{:.2f}x", speedhackValue, newSpeedhackValue);
+
+		toast(notification_text);
+	}
 
     if (gui.m_tpsKey == key)
         config.set<bool>("tps_enabled", !config.get<bool>("tps_enabled", false));

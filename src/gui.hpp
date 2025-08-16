@@ -31,6 +31,9 @@ public:
     int m_toggleKey = GLFW_KEY_TAB;
     
     int m_speedhackKey = 0;
+	int m_speedhackDecreaseKey = 0;
+	int m_speedhackIncreaseKey = 0;
+	float m_speedhackStepInterval = 0.1;
     int m_tpsKey = 0;
 
     int m_playbackKey = 0;
