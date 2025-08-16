@@ -870,6 +870,9 @@ void Hacks::saveKeybinds() {
 	keybindJson["speedhackDecreaseKey"] = gui.m_speedhackDecreaseKey;
 	keybindJson["speedhackIncreaseKey"] = gui.m_speedhackIncreaseKey;
 	keybindJson["speedhackStepInterval"] = gui.m_speedhackStepInterval;
+	keybindJson["speedhackToastDelay"] = gui.m_speedhackToastDelay;
+	keybindJson["speedhackToastScale"] = gui.m_speedhackToastScale;
+	keybindJson["speedhackToastOpacity"] = gui.m_speedhackToastOpacity;
     keybindJson["tpsKey"] = gui.m_tpsKey;
 
     keybindJson["playbackKey"] = gui.m_playbackKey;
@@ -926,6 +929,9 @@ void Hacks::loadKeybinds() {
     gui.m_speedhackDecreaseKey = keybindJson.value("speedhackDecreaseKey", 0);
     gui.m_speedhackIncreaseKey = keybindJson.value("speedhackIncreaseKey", 0);
 	gui.m_speedhackStepInterval = keybindJson.value("speedhackStepInterval", 0.1f);
+	gui.m_speedhackToastDelay = keybindJson.value("speedhackToastDelay", 1.f);
+	gui.m_speedhackToastScale = keybindJson.value("speedhackToastScale", 1.f);
+	gui.m_speedhackToastOpacity = keybindJson.value("speedhackToastOpacity", 127);
     gui.m_tpsKey = keybindJson.value("tpsKey", 0);
 
     gui.m_playbackKey = keybindJson.value("playbackKey", 0);
@@ -1068,26 +1074,24 @@ void Hacks::toggleKeybinds(int key) {
 
 	if (gui.m_speedhackDecreaseKey == key) {
 		float speedhackValue = config.get<float>("speedhack_value", 1.0f);
-		float speedhackStepInterval = config.get<float>("speedhack_step_interval", 0.1f);
-		float newSpeedhackValue = speedhackValue - speedhackStepInterval;
-
+		float newSpeedhackValue = speedhackValue - gui.m_speedhackStepInterval;
+		
 		config.set<float>("speedhack_value", newSpeedhackValue);
 
 		std::string notification_text = std::format("{:.2f}x->{:.2f}x", speedhackValue, newSpeedhackValue);
 
-		toast(notification_text);
+		toast(notification_text, gui.m_speedhackToastDelay, gui.m_speedhackToastScale, gui.m_speedhackToastOpacity);
 	}
 
 	if (gui.m_speedhackIncreaseKey == key) {
 		float speedhackValue = config.get<float>("speedhack_value", 1.0f);
-		float speedhackStepInterval = config.get<float>("speedhack_step_interval", 0.1f);
-		float newSpeedhackValue = speedhackValue + speedhackStepInterval;
+		float newSpeedhackValue = speedhackValue + gui.m_speedhackStepInterval;
 
 		config.set<float>("speedhack_value", newSpeedhackValue);
 
 		std::string notification_text = std::format("{:.2f}x->{:.2f}x", speedhackValue, newSpeedhackValue);
 
-		toast(notification_text);
+		toast(notification_text, gui.m_speedhackToastDelay, gui.m_speedhackToastScale, gui.m_speedhackToastOpacity);
 	}
 
     if (gui.m_tpsKey == key)

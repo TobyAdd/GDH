@@ -34,6 +34,10 @@ public:
 	int m_speedhackDecreaseKey = 0;
 	int m_speedhackIncreaseKey = 0;
 	float m_speedhackStepInterval = 0.1;
+	float m_speedhackToastDelay = 1.0;
+	float m_speedhackToastScale = 1.0;
+	int m_speedhackToastOpacity = 127;
+
     int m_tpsKey = 0;
 
     int m_playbackKey = 0;

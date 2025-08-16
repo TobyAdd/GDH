@@ -302,10 +302,17 @@ void Gui::Render() {
                 ImGui::Separator();
                 ImGui::Spacing();
 
-                renderKeyButton("Speedhack Key: ", m_speedhackKey);
-				renderKeyButton("Speedhack Decrease Key: ", m_speedhackDecreaseKey);
-				renderKeyButton("Speedhack Increase Key: ", m_speedhackIncreaseKey);
-				ImGui::InputFloat("Speedhack Step Interval: ", &m_speedhackStepInterval, 0.1f, 1.0f, "%.2fx");
+                renderKeyButton("Toggle Key", m_speedhackKey);
+				renderKeyButton("Decrease Key", m_speedhackDecreaseKey);
+				renderKeyButton("Increase Key", m_speedhackIncreaseKey);
+				ImGui::InputFloat("Step Interval", &m_speedhackStepInterval, 0.1f, 1.0f, "%.2fx");
+				ImGui::InputFloat("Toast Delay", &m_speedhackToastDelay, 0.1f, 1.0f, "%.2fs");
+				ImGui::InputFloat("Toast Scale", &m_speedhackToastScale, 0.1f, 2.0f, "%.2f");
+
+				uint8_t step = 5;
+				uint8_t stepFast = 10;
+				ImGui::InputScalar("Toast Opacity", ImGuiDataType_U8, &m_speedhackToastOpacity, &step, &stepFast, "%u");
+
 
 				ImGui::Text("Framerate");
 				ImGui::Separator();
